@@ -1,0 +1,10 @@
+.next
+node_modules
+dist
+.env
+.env.local
+supabase/.temp
+.agents
+skills-lock.json
+*.log
+*.tsbuildinfo
