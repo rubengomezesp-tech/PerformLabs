@@ -1,5 +1,6 @@
 import Link from "next/link";
 import {
+  Apple,
   ArrowRight,
   BadgeCheck,
   BarChart3,
@@ -12,7 +13,7 @@ import {
   Mail,
   MessageCircle,
   Palette,
-  Rocket,
+  Play,
   Send,
   ShieldCheck,
   Smartphone,
@@ -40,6 +41,24 @@ const trustSignals = [
   "Consola para operar",
   "Contenido cargado",
   "Lanzamiento guiado",
+];
+
+const launchChannels = [
+  {
+    title: "Web app instalable",
+    text: "La forma más rápida de lanzar: dominio personalizado, acceso desde navegador y experiencia instalable en móvil.",
+    icon: Globe,
+  },
+  {
+    title: "Google Play",
+    text: "Podemos preparar la publicación Android con ficha, assets, políticas y build listo para revisión.",
+    icon: Play,
+  },
+  {
+    title: "Apple App Store",
+    text: "También podemos acompañar la publicación iOS con cuenta, privacidad, assets y revisión de requisitos.",
+    icon: Apple,
+  },
 ];
 
 const growthPillars = [
@@ -177,6 +196,36 @@ export default function Home() {
               {signal}
             </span>
           ))}
+        </MotionReveal>
+      </section>
+
+      <section className="landingSection">
+        <MotionReveal>
+          <div className="sectionHeader">
+            <div>
+              <span className="eyebrow">Canales de lanzamiento</span>
+              <h2>Puede salir como web app, Google Play o Apple App Store.</h2>
+              <p>
+                Elegimos la ruta según el momento del proyecto: lanzamiento rápido
+                por web, publicación en tiendas o ambas cuando la marca ya está lista.
+              </p>
+            </div>
+          </div>
+          <div className="grid">
+            {launchChannels.map((channel) => {
+              const Icon = channel.icon;
+              return (
+                <article className="card span4 motionCard" key={channel.title}>
+                  <Icon color="var(--gold)" />
+                  <h3>{channel.title}</h3>
+                  <p>{channel.text}</p>
+                </article>
+              );
+            })}
+          </div>
+          <p className="storeNote">
+            Nuestro equipo puede preparar y acompañar la publicación. La aprobación final depende de la revisión de Apple y Google.
+          </p>
         </MotionReveal>
       </section>
 

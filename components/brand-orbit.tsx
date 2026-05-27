@@ -5,19 +5,6 @@ import { Canvas, useFrame } from "@react-three/fiber";
 import { useRef } from "react";
 import * as THREE from "three";
 
-function AppPlane({ position, rotation, scale = 1 }: {
-  position: [number, number, number];
-  rotation: [number, number, number];
-  scale?: number;
-}) {
-  return (
-    <mesh position={position} rotation={rotation} scale={scale}>
-      <boxGeometry args={[1.05, 1.8, 0.055]} />
-      <meshStandardMaterial color="#071019" metalness={0.7} roughness={0.22} />
-    </mesh>
-  );
-}
-
 function CoreMark() {
   const group = useRef<THREE.Group>(null);
 
@@ -45,9 +32,6 @@ function CoreMark() {
           </mesh>
         </group>
       </Float>
-      <AppPlane position={[-2.2, -0.35, -0.9]} rotation={[0.18, 0.45, 0.18]} scale={0.9} />
-      <AppPlane position={[2.15, -0.1, -0.75]} rotation={[0.08, -0.48, -0.12]} scale={0.95} />
-      <AppPlane position={[1.25, 1.34, -1.05]} rotation={[0.16, -0.36, -0.2]} scale={0.62} />
     </group>
   );
 }
