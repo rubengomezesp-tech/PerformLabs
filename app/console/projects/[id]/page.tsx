@@ -2,6 +2,7 @@ import { AppWindow, CalendarDays, CheckCircle2, ChevronLeft, ClipboardCheck, Cre
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { Topbar } from "@/components/topbar";
+import { baseAppBlueprint } from "@/lib/domain/app-blueprint";
 import { getImplementationProjectDetail } from "@/lib/repositories/implementation-projects";
 import { addProjectTaskAction, createOperationalWorkspaceAction, updateProjectAction, updateProjectBriefAction, updateProjectTaskAction } from "../actions";
 
@@ -127,9 +128,9 @@ export default async function ProjectDetailPage({ params }: ProjectDetailPagePro
           <div className="sectionHeader">
             <div>
               <AppWindow color="var(--gold)" />
-              <h2>App operativa</h2>
+              <h2>App base operativa</h2>
               <p>
-                Crea la marca real a partir del briefing: ajustes base, PWA, páginas iniciales, producto principal y enlace del proyecto.
+                Crea la marca real a partir del briefing: ajustes, PWA, navegación, contenido inicial, producto principal y vista cliente.
               </p>
             </div>
             {project.workspaceId ? <span className="tag">Creada</span> : <span className="tag danger">Pendiente</span>}
@@ -154,6 +155,15 @@ export default async function ProjectDetailPage({ params }: ProjectDetailPagePro
               <Link className="btn" href={`/console/brand?brand=${project.workspaceId}`}>
                 Configurar marca
               </Link>
+              <Link className="btn" href={`/console/content?brand=${project.workspaceId}`}>
+                Contenido
+              </Link>
+              <Link className="btn" href={`/console/programs?brand=${project.workspaceId}`}>
+                Programas
+              </Link>
+              <Link className="btn" href={`/console/diet-templates?brand=${project.workspaceId}`}>
+                Dietas
+              </Link>
               <Link className="btn" href={`/app/select?brand=${project.workspaceId}`}>
                 Vista cliente
               </Link>
@@ -167,6 +177,16 @@ export default async function ProjectDetailPage({ params }: ProjectDetailPagePro
               <p>Primero guarda el briefing si acabas de cambiar nombre, dominio, colores u oferta.</p>
             </form>
           )}
+          <div className="engineGrid compactEngineGrid">
+            {baseAppBlueprint.slice(0, 3).map((module) => (
+              <article className="engineTile" key={module.key}>
+                <span>{module.consoleArea}</span>
+                <h3>{module.title}</h3>
+                <p>{module.description}</p>
+                <small>{module.clientExperience}</small>
+              </article>
+            ))}
+          </div>
         </article>
 
         <article className="card span12">

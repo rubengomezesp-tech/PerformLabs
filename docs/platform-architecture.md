@@ -1,84 +1,81 @@
-# Arquitectura Madre / Apps Hijas
+# Arquitectura PerformLabs
 
-CoachOS es la plataforma madre. Cada entrenador, marca o agencia vive como una
-app hija dentro de la misma infraestructura.
+PerformLabs funciona como una plataforma de implantacion para apps de coaching.
+El objetivo no es duplicar codigo para cada cliente desde el primer dia, sino
+mantener una base app robusta y parametrizable por marca, dominio, contenido,
+roles y modulos activos.
 
-## Plataforma Madre
+## Plataforma Operativa
 
-La madre tiene el mando supremo:
+La consola central permite:
 
-- Crear apps hijas.
-- Activar o desactivar apps.
-- Controlar dominios.
-- Controlar planes y precios.
-- Gestionar plantillas globales.
-- Publicar librerías base de ejercicios.
-- Publicar librerías base de dietas.
-- Revisar métricas globales.
-- Dar o quitar permisos.
-- Clonar una app hija.
-- Suspender una app hija por impago o mal uso.
+- Crear marcas y proyectos de implantacion.
+- Activar o pausar apps de cliente.
+- Coordinar dominios personalizados.
+- Gestionar identidad visual, soporte y permisos.
+- Preparar plantillas globales de ejercicios, dietas y contenido.
+- Revisar metricas internas.
+- Dar o quitar acceso a equipos.
+- Dejar una app lista para vista cliente desde el briefing.
 
-## App Hija
+## App De Cliente
 
-Cada app hija pertenece a un entrenador o marca.
-
-Puede modificar:
+Cada app de cliente vive sobre la base PerformLabs y puede personalizar:
 
 - Logo
 - Colores
 - Dominio
-- Menú
+- Menu
 - Textos
-- Guías
+- Guias
 - FAQs
-- Vídeos de ejercicios
+- Videos de ejercicios
 - Ejercicios propios
 - Recetas propias
 - Plantillas de dieta
 - Plantillas de entrenamiento
-- Precios y planes
+- Precios y productos
 - Equipo de coaches
 
-## Herencia
+## Base Compartida
 
-Las apps hijas pueden heredar de la madre:
+La base app aporta:
 
-- Ejercicios base.
-- Recetas base.
-- Categorías de dieta.
-- Fórmulas nutricionales.
-- Plantillas de entrenamiento.
-- Plantillas legales.
-- Componentes de UI.
+- Pantallas moviles: panel, onboarding, entrenos, comidas, progreso, cardio, guias, soporte y perfil.
+- Ajustes PWA por marca.
+- Contenido inicial de bienvenida y soporte.
+- Producto principal en borrador.
+- Modulos de entrenamiento, nutricion, progreso y comunicacion.
 
-Una app hija puede clonar y modificar una plantilla sin alterar la plantilla madre.
+Una marca puede personalizar sus datos sin romper la base comun. Si en una fase
+posterior un cliente necesita despliegue aislado, se puede exportar su
+configuracion y levantar una variante dedicada.
 
-## Resolución de Tenant
+## Resolucion De Marca
 
-El sistema debe detectar la app hija por:
+El sistema debe detectar la marca por:
 
 - Dominio propio: `app.entrenador.com`
-- Subdominio: `entrenador.coachos.com`
-- Slug interno: `/t/entrenador`
+- Subdominio: `entrenador.performlabs.app`
+- Seleccion interna: `/app/select?brand=<workspace_id>`
 
 ## Permisos
 
-- `platform_owner`: mando supremo.
-- `agency_admin`: gestiona varias apps hijas.
-- `coach_admin`: dueño de una app hija.
+- `platform_owner`: controla toda la plataforma.
+- `agency_admin`: gestiona varias marcas.
+- `coach_admin`: dueño operativo de una marca.
 - `coach_staff`: equipo del entrenador.
 - `member`: usuario final.
 
 ## Supabase
 
-Supabase será la fuente de verdad:
+Supabase sera la fuente de verdad:
 
 - Auth
 - Postgres
 - Storage
 - Row Level Security
-- Edge Functions para generación de planes
+- Edge Functions para generacion de planes
 - Realtime para chat/notificaciones
 
 ## Storage Buckets

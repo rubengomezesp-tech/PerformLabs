@@ -1,5 +1,6 @@
 import { childApps } from "@/lib/data";
 import { tenant } from "@/lib/data";
+import { appSettingDefinitions, defaultMemberAppPages } from "@/lib/domain/platform-logic";
 import { getSupabaseServiceEnv } from "@/lib/supabase/env";
 import { createServiceSupabaseClient } from "@/lib/supabase/server";
 
@@ -87,6 +88,115 @@ function isInternalWorkspace(workspace: { name: string; slug: string }) {
   return workspace.slug === "coachos-mother-platform" || workspace.name.toLowerCase().includes("mother platform");
 }
 
+async function seedBaseWorkspaceApp(
+  supabase: any,
+  input: {
+    workspaceId: string;
+    workspaceName: string;
+    customDomain: string | null;
+    accentColor: string;
+  },
+) {
+  const publicUrl = input.customDomain ? `https://${input.customDomain}` : "";
+  const settingOverrides: Record<string, string | boolean | number | Record<string, unknown>> = {
+    "pwa.short_name": input.workspaceName.slice(0, 24),
+    "pwa.description": `${input.workspaceName} app de coaching, entrenamiento y nutricion.`,
+    "pwa.theme_color": input.accentColor,
+    "support.website_url": publicUrl,
+  };
+
+  const settingsPayload = appSettingDefinitions.map((setting) => ({
+    workspace_id: input.workspaceId,
+    key: setting.key,
+    value: settingOverrides[setting.key] ?? setting.defaultValue,
+    updated_at: new Date().toISOString(),
+  }));
+
+  const settingsResult = await (supabase as any)
+    .from("app_settings")
+    .upsert(settingsPayload, { onConflict: "workspace_id,key" });
+
+  if (settingsResult.error) {
+    throw new Error(`No se pudo preparar la configuracion base: ${settingsResult.error.message}`);
+  }
+
+  const contentResult = await (supabase as any)
+    .from("content_pages")
+    .upsert([
+      {
+        workspace_id: input.workspaceId,
+        title: "Bienvenida",
+        slug: "bienvenida",
+        status: "draft",
+        body: {
+          title: `Bienvenido a ${input.workspaceName}`,
+          notes: "Preparar bienvenida, normas de uso y primeros pasos del cliente.",
+        },
+      },
+      {
+        workspace_id: input.workspaceId,
+        title: "Soporte",
+        slug: "soporte",
+        status: "draft",
+        body: {
+          title: "Soporte",
+          notes: "Definir canales, tiempos de respuesta y mensajes iniciales.",
+        },
+      },
+    ], { onConflict: "workspace_id,slug" })
+    .select("id,slug");
+
+  if (contentResult.error) {
+    throw new Error(`No se pudo crear el contenido base: ${contentResult.error.message}`);
+  }
+
+  const contentPageBySlug = new Map((contentResult.data ?? []).map((page: any) => [page.slug, page.id]));
+  const appPages = defaultMemberAppPages.map((page) => ({
+    workspace_id: input.workspaceId,
+    title: page.title,
+    route: page.route,
+    page_type: page.pageType,
+    menu_area: page.menuArea,
+    sort_order: page.sortOrder,
+    is_system: page.isSystem,
+    status: "draft",
+    content_page_id: page.route === "/app/guides"
+      ? contentPageBySlug.get("bienvenida") ?? null
+      : page.route === "/app/support"
+        ? contentPageBySlug.get("soporte") ?? null
+        : null,
+  }));
+
+  const appPagesResult = await (supabase as any)
+    .from("app_pages")
+    .upsert(appPages, { onConflict: "workspace_id,route" });
+
+  if (appPagesResult.error) {
+    throw new Error(`No se pudo crear la navegacion base: ${appPagesResult.error.message}`);
+  }
+
+  const existingProduct = await (supabase as any)
+    .from("product_catalog_items")
+    .select("id")
+    .eq("workspace_id", input.workspaceId)
+    .limit(1)
+    .maybeSingle();
+
+  if (!existingProduct.data?.id) {
+    const productResult = await (supabase as any).from("product_catalog_items").insert({
+      workspace_id: input.workspaceId,
+      name: `Programa ${input.workspaceName}`,
+      description: "Oferta principal pendiente de definir.",
+      included_modules: ["entrenamiento", "nutricion", "contenido", "soporte"],
+      status: "draft",
+    });
+
+    if (productResult.error) {
+      throw new Error(`No se pudo crear el producto base: ${productResult.error.message}`);
+    }
+  }
+}
+
 export async function listWorkspaceSummaries(): Promise<{
   source: "supabase" | "mock";
   workspaces: WorkspaceSummary[];
@@ -146,18 +256,29 @@ export async function createWorkspace(input: WorkspaceInput) {
   }
 
   const supabase = createServiceSupabaseClient();
-  const { error } = await supabase.from("workspaces").insert({
+  const customDomain = cleanOptional(input.customDomain);
+  const accentColor = normalizeHexColor(input.accentColor);
+  const { data, error } = await supabase.from("workspaces").insert({
     name,
     slug: `${slugBase}-${Date.now().toString(36)}`,
     app_name: input.appName.trim() || name,
-    custom_domain: cleanOptional(input.customDomain),
+    custom_domain: customDomain,
     support_email: cleanOptional(input.supportEmail),
-    accent_color: normalizeHexColor(input.accentColor),
+    accent_color: accentColor,
+  }).select("id").single();
+
+  if (error || !data) {
+    throw new Error(`No se pudo crear la marca: ${error?.message ?? "error desconocido"}`);
+  }
+
+  await seedBaseWorkspaceApp(supabase, {
+    workspaceId: data.id,
+    workspaceName: input.appName.trim() || name,
+    customDomain,
+    accentColor,
   });
 
-  if (error) {
-    throw new Error(`No se pudo crear la marca: ${error.message}`);
-  }
+  return data.id as string;
 }
 
 export async function getWorkspaceBrand(workspaceId?: string): Promise<WorkspaceBrand> {
