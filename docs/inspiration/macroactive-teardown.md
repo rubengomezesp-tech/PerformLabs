@@ -103,6 +103,34 @@ un importador `import-free-exercise-db.mjs`. **El modelo de datos ya da la talla
 3. **Cerrar el foso de contenido**: sembrar librería (ejercicios ya; **falta recetas/comidas** — importación o generación con IA).
 4. **Ownership**: tu plataforma, no la de Macroactive.
 
+## Detail-screen findings (edit forms + AI agent)
+
+- **Meal = recipe container.** A "Comida" groups a dietary-category multi-select
+  (General/Vegano/Pescatariano/Bajo en carbohidratos… many `[Oculto]` combos),
+  cuisine, restriction mode (Manual/Automático), image, description, and a **Lista
+  de Recetas** (the swap set). This is their substitution engine: a meal resolves
+  to a recipe filtered by the member's restrictions. (PerformLabs to build:
+  meal-as-container above recipes.)
+- **Exercise edit** fields: name, muscle groups, **gender**, location, "used N
+  times" usage counter, experience level, **Exercise Types**, **Lesiones
+  (contraindications)**, rich-text description. (Add gender + types +
+  contraindications to our exercise model.)
+- **Nutrition Agent** lives on a separate MVP app (`nutrition-agent.macroactivemvp.com`):
+  a basic two-pane AI chat → recipe → "Send to Platform", tabs Create / Review
+  Ingredients / Review Recipes, food-DB country selector. It's clearly an add-on
+  MVP, not integrated. **We ship a premium, integrated agent instead.**
+- **Competitive bug:** their `workout-builder.macroactive.com` throws
+  `URIError: Failed to decode param` because it puts the Latin-1-encoded brand
+  name ("Rub%E9n G%F3mez") in the URL. Lesson: our builder uses IDs/slugs in
+  routes, never raw names — and decodes UTF-8 safely.
+
+## Shipped in PerformLabs so far
+
+- Premium nutrition library (recipes + ingredients, Base/Custom) + base-library seeder.
+- Premium training library (workout templates) + exercise library already had base/brand/video.
+- **AI nutrition agent** at `/console/nutrition/agent`: prompt → structured macro-costed
+  recipe → save to library. Anthropic via fetch, graceful fallback without a key.
+
 ## Sources
 
 - https://www.macroactive.com/

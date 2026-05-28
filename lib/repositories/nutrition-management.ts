@@ -1,3 +1,4 @@
+import type { AiRecipeDraft } from "@/lib/ai/nutrition-agent";
 import { dietTemplateCategories, meals } from "@/lib/data";
 import { getSupabaseServiceEnv } from "@/lib/supabase/env";
 import { createServiceSupabaseClient } from "@/lib/supabase/server";
@@ -447,4 +448,60 @@ export async function addIngredientToRecipe(input: RecipeIngredientInput) {
   });
 
   if (error) throw new Error(`No se pudo añadir el ingrediente: ${error.message}`);
+}
+
+/** Persists an AI-generated recipe (ingredients + recipe + links) as coach-custom content. */
+export async function saveAiRecipe(workspaceId: string, recipe: AiRecipeDraft) {
+  if (!isUuid(workspaceId)) throw new Error("Selecciona una marca antes de guardar.");
+  if (!recipe.ingredients.length) throw new Error("La receta no tiene ingredientes.");
+
+  const supabase = createServiceSupabaseClient();
+  const stamp = Date.now().toString(36);
+  const ingredientIds: string[] = [];
+
+  for (const [index, ingredient] of recipe.ingredients.entries()) {
+    const { data, error } = await supabase
+      .from("ingredients")
+      .insert({
+        workspace_id: workspaceId,
+        name: ingredient.name,
+        slug: `${slugify(ingredient.name)}-${stamp}-${index}`,
+        calories_per_100g: ingredient.caloriesPer100g,
+        protein_per_100g: ingredient.proteinPer100g,
+        carbs_per_100g: ingredient.carbsPer100g,
+        fat_per_100g: ingredient.fatPer100g,
+        tags: ["ai"],
+        is_base_library: false,
+      })
+      .select("id")
+      .single();
+    if (error) throw new Error(`No se pudo guardar el ingrediente: ${error.message}`);
+    ingredientIds.push(data.id);
+  }
+
+  const { data: created, error: recipeError } = await supabase
+    .from("recipes")
+    .insert({
+      workspace_id: workspaceId,
+      name: recipe.name,
+      slug: `${slugify(recipe.name)}-${stamp}`,
+      meal_slot: recipe.mealSlot,
+      instructions: recipe.instructions,
+      tags: [...new Set([...recipe.tags, "ai"])],
+      is_base_library: false,
+    })
+    .select("id")
+    .single();
+  if (recipeError) throw new Error(`No se pudo guardar la receta: ${recipeError.message}`);
+
+  const links = recipe.ingredients.map((ingredient, index) => ({
+    recipe_id: created.id,
+    ingredient_id: ingredientIds[index],
+    grams: ingredient.grams,
+    sort_order: index,
+  }));
+  const { error: linkError } = await supabase.from("recipe_ingredients").insert(links);
+  if (linkError) throw new Error(`No se pudieron vincular los ingredientes: ${linkError.message}`);
+
+  return { id: created.id as string };
 }

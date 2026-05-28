@@ -1,4 +1,5 @@
-import { Apple, Calculator, ShoppingBasket } from "lucide-react";
+import { Apple, Calculator, ShoppingBasket, Sparkles } from "lucide-react";
+import Link from "next/link";
 import { Topbar } from "@/components/topbar";
 import { Badge, Table } from "@/components/ui";
 import { calculateNutritionTargets, splitCaloriesByMeal } from "@/lib/domain/nutrition-engine";
@@ -51,6 +52,14 @@ export default async function NutritionPage({ searchParams }: NutritionPageProps
         eyebrow="Nutrición"
         title="Planes, macros, recetas y lista de compra."
         text="Base para crear comidas reutilizables, preferencias, alergias, ingredientes no deseados y swaps automáticos."
+        actions={
+          <Link
+            className="btn primary"
+            href={`/console/nutrition/agent${selectedWorkspace?.id ? `?brand=${selectedWorkspace.id}` : ""}`}
+          >
+            Crear con IA <Sparkles size={18} />
+          </Link>
+        }
       />
       <section className="grid">
         <article className="card span12">
