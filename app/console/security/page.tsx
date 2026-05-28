@@ -1,8 +1,8 @@
-import { Clock3, KeyRound, LockKeyhole, ShieldCheck, Unplug, UsersRound } from "lucide-react";
+import { Clock3, KeyRound, LockKeyhole, ShieldAlert, ShieldCheck, Unplug, UsersRound } from "lucide-react";
 import { Topbar } from "@/components/topbar";
 import { formatRole, getConsoleSession, requirePlatformAccess } from "@/lib/auth/access-control";
 import { entitlementModuleLabels, entitlementStatusLabels } from "@/lib/repositories/entitlements";
-import { listSecurityAuditEvents, listSecurityTeamMembers } from "@/lib/repositories/security-management";
+import { listLoginSecurityAlerts, listSecurityAuditEvents, listSecurityTeamMembers } from "@/lib/repositories/security-management";
 import { listWorkspaceSummaries } from "@/lib/repositories/workspaces";
 
 export const dynamic = "force-dynamic";
@@ -35,9 +35,10 @@ function metadataPreview(metadata: unknown) {
 export default async function SecurityPage() {
   await requirePlatformAccess();
   const session = await getConsoleSession();
-  const [teamMembers, auditEvents, workspaceResult] = await Promise.all([
+  const [teamMembers, auditEvents, loginAlerts, workspaceResult] = await Promise.all([
     listSecurityTeamMembers(),
     listSecurityAuditEvents(),
+    listLoginSecurityAlerts(),
     listWorkspaceSummaries(),
   ]);
   const consoleMembers = teamMembers.filter((member) => member.role !== "member");
@@ -149,6 +150,38 @@ export default async function SecurityPage() {
               <UsersRound color="var(--gold)" />
               <h3>No hay equipo operativo creado.</h3>
               <p>Cuando activemos acceso obligatorio, cada usuario necesitará rol y marca asignada.</p>
+            </div>
+          )}
+        </article>
+
+        <article className="card span12">
+          <div className="sectionHeader">
+            <div>
+              <ShieldAlert color="var(--gold)" />
+              <h2>Alertas de login</h2>
+              <p>Intentos fallidos y bloqueos detectados en las últimas 24 horas. No mostramos emails ni IPs reales, solo huellas seguras.</p>
+            </div>
+            <span className={loginAlerts.some((alert) => alert.severity === "critical") ? "tag danger" : "tag"}>
+              {loginAlerts.length ? `${loginAlerts.length} activas` : "Sin alertas"}
+            </span>
+          </div>
+          {loginAlerts.length ? (
+            <ul className="list">
+              {loginAlerts.map((alert) => (
+                <li className="row" key={alert.id}>
+                  <div>
+                    <strong>{alert.title}</strong>
+                    <p>{alert.detail} · {alert.userAgent}</p>
+                  </div>
+                  <span className={alert.severity === "critical" ? "tag danger" : "tag"}>{formatDate(alert.lastSeenAt)}</span>
+                </li>
+              ))}
+            </ul>
+          ) : (
+            <div className="inlineEmpty">
+              <ShieldAlert color="var(--gold)" />
+              <h3>No hay patrones sospechosos.</h3>
+              <p>Los intentos fallidos quedarán agrupados aquí cuando aparezcan señales repetidas.</p>
             </div>
           )}
         </article>

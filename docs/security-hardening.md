@@ -18,6 +18,9 @@ PerformLabs debe operar varias marcas desde una consola central sin mezclar perm
 - La app sirve headers base de seguridad: CSP, frame deny, nosniff, referrer policy, permissions policy y HSTS.
 - Las reglas puras de roles y rate limiting tienen tests automatizados con Vitest.
 - CI fuerza acciones JavaScript en Node 24 para anticipar el cambio de GitHub Actions de junio de 2026.
+- `/console/security` agrupa alertas de login fallido/rate-limited sin exponer emails ni IPs reales.
+- La base incluye buckets/policies de Storage por marca: `brand-assets`, `exercise-media` y `member-progress`.
+- Las tablas de registro de entreno/comida tienen políticas RLS preparadas para miembro real y equipo de la marca.
 
 ## Roles
 
@@ -47,3 +50,4 @@ Después, cada usuario operativo necesita una fila en `workspace_memberships`.
 - Añadir tests e2e para login, bloqueo de consola y mutaciones protegidas.
 - Revisar políticas RLS tabla por tabla antes de abrir tráfico real.
 - Rediseñar funciones `SECURITY DEFINER` (`is_platform_owner`, `is_workspace_member`, `has_workspace_role`) para eliminar exposición RPC sin romper políticas RLS.
+- Aplicar advisor real de Supabase cuando el MCP esté autenticado o `SUPABASE_DB_URL` tenga contraseña real.

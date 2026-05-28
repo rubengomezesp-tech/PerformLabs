@@ -25,6 +25,19 @@ export type SecurityAuditEvent = {
   createdAt: string;
 };
 
+export type LoginSecurityAlert = {
+  id: string;
+  action: "auth.sign_in_failed" | "auth.sign_in_rate_limited";
+  severity: "warning" | "critical";
+  title: string;
+  detail: string;
+  count: number;
+  emailDomain: string;
+  ipHashPreview: string;
+  userAgent: string;
+  lastSeenAt: string;
+};
+
 type WorkspaceRelation = {
   name?: string | null;
   slug?: string | null;
@@ -48,6 +61,26 @@ type AuditLogRow = {
   created_at: string;
   workspaces: WorkspaceRelation;
 };
+
+type AuthAuditLogRow = {
+  id: string;
+  action: "auth.sign_in_failed" | "auth.sign_in_rate_limited";
+  metadata: Json;
+  created_at: string;
+};
+
+function metadataValue(metadata: Json, key: string) {
+  if (!metadata || typeof metadata !== "object" || Array.isArray(metadata)) {
+    return "";
+  }
+
+  const value = (metadata as Record<string, unknown>)[key];
+  return typeof value === "string" ? value : "";
+}
+
+function shortHash(value: string) {
+  return value ? `${value.slice(0, 10)}...` : "sin huella";
+}
 
 async function getUserEmail(userId?: string | null) {
   if (!userId) {
@@ -99,6 +132,72 @@ export async function listSecurityTeamMembers(): Promise<SecurityTeamMember[]> {
     workspaceSlug: row.workspaces?.slug ?? "",
     createdAt: row.created_at,
   }));
+}
+
+export async function listLoginSecurityAlerts(): Promise<LoginSecurityAlert[]> {
+  const env = getSupabaseServiceEnv();
+  if (!env.ok) return [];
+
+  const since = new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString();
+  const supabase = createServiceSupabaseClient();
+  const { data, error } = await supabase
+    .from("audit_log")
+    .select("id,action,metadata,created_at")
+    .in("action", ["auth.sign_in_failed", "auth.sign_in_rate_limited"])
+    .gte("created_at", since)
+    .order("created_at", { ascending: false })
+    .limit(200);
+
+  if (error) {
+    console.error("Unable to load login security alerts", error.message);
+    return [];
+  }
+
+  const grouped = new Map<string, LoginSecurityAlert>();
+  const rows = (data ?? []) as unknown as AuthAuditLogRow[];
+
+  for (const row of rows) {
+    const emailDomain = metadataValue(row.metadata, "email_domain") || "unknown";
+    const emailHash = metadataValue(row.metadata, "email_hash");
+    const ipHash = metadataValue(row.metadata, "ip_hash");
+    const userAgent = metadataValue(row.metadata, "user_agent") || "Navegador sin identificar";
+    const groupKey = `${row.action}:${emailHash}:${ipHash}`;
+    const existing = grouped.get(groupKey);
+
+    if (existing) {
+      existing.count += 1;
+      if (row.created_at > existing.lastSeenAt) {
+        existing.lastSeenAt = row.created_at;
+      }
+      if (existing.count >= 5 || row.action === "auth.sign_in_rate_limited") {
+        existing.severity = "critical";
+        existing.title = row.action === "auth.sign_in_rate_limited" ? "Bloqueo activo de login" : "Intentos repetidos";
+      }
+      existing.detail = `${existing.count} eventos en 24h · dominio ${emailDomain} · IP ${shortHash(ipHash)}`;
+      continue;
+    }
+
+    const isCritical = row.action === "auth.sign_in_rate_limited";
+    grouped.set(groupKey, {
+      id: row.id,
+      action: row.action,
+      severity: isCritical ? "critical" : "warning",
+      title: isCritical ? "Bloqueo activo de login" : "Intento fallido de login",
+      detail: `1 evento en 24h · dominio ${emailDomain} · IP ${shortHash(ipHash)}`,
+      count: 1,
+      emailDomain,
+      ipHashPreview: shortHash(ipHash),
+      userAgent,
+      lastSeenAt: row.created_at,
+    });
+  }
+
+  return [...grouped.values()]
+    .sort((a, b) => {
+      if (a.severity !== b.severity) return a.severity === "critical" ? -1 : 1;
+      return b.lastSeenAt.localeCompare(a.lastSeenAt);
+    })
+    .slice(0, 10);
 }
 
 export async function listSecurityAuditEvents(): Promise<SecurityAuditEvent[]> {

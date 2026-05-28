@@ -202,13 +202,13 @@ Rules:
 - Storage paths should include `{workspace_id}/...`.
 - Every sensitive action should eventually write to `audit_log`.
 
-Production hardening still needed:
+Production hardening status:
 
-- Rate limiting on login.
-- CSP headers.
-- Storage policy audit.
-- Failed-login alerts.
-- Full table-by-table RLS review.
+- Done: rate limiting on login.
+- Done: CSP and security headers.
+- Done: first Storage policy baseline for brand assets, exercise media and member progress paths.
+- Done: failed-login alerts in `/console/security`.
+- Remaining: full table-by-table RLS review before opening real member traffic.
 
 ## Migrations
 
