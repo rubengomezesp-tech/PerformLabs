@@ -1264,49 +1264,6 @@ a.card:hover {
   margin: 4px 0 0;
 }
 
-.coachHero {
-  position: relative;
-  overflow: hidden;
-  display: grid;
-  grid-template-columns: minmax(0, 1fr) minmax(280px, 0.42fr);
-  gap: 24px;
-  align-items: end;
-  border: 1px solid color-mix(in srgb, var(--accent) 24%, transparent);
-  border-radius: 8px;
-  background:
-    radial-gradient(circle at 78% 24%, color-mix(in srgb, var(--accent) 22%, transparent), transparent 28%),
-    linear-gradient(135deg, color-mix(in srgb, var(--accent) 14%, transparent), rgba(17, 19, 21, 0.96) 48%),
-    var(--panel);
-  padding: clamp(20px, 4vw, 34px);
-}
-
-.coachHero h2 {
-  max-width: 760px;
-  margin: 8px 0 12px;
-  font-size: clamp(34px, 5vw, 62px);
-  line-height: 1;
-}
-
-.coachHero p {
-  max-width: 680px;
-}
-
-.coachHeroPanel {
-  border: 1px solid color-mix(in srgb, var(--accent) 38%, transparent);
-  border-radius: 8px;
-  background: rgba(9, 10, 11, 0.72);
-  box-shadow: 0 28px 70px rgba(0, 0, 0, 0.32);
-  padding: 16px;
-  backdrop-filter: blur(18px);
-}
-
-.coachHeroPanel strong {
-  display: block;
-  margin-top: 10px;
-  font-family: var(--font-display, Arial, Helvetica, sans-serif);
-  font-size: 34px;
-}
-
 .coachCommandHero {
   position: relative;
   overflow: hidden;
@@ -2355,7 +2312,9 @@ a.card:hover {
   color: var(--muted);
 }
 
-.workoutAppHero {
+/* Canonical app hero shared by the member workout & meal surfaces. */
+.workoutAppHero,
+.mealAppHero {
   position: relative;
   overflow: hidden;
   display: grid;
@@ -2949,22 +2908,6 @@ a.card:hover {
   max-width: 640px;
   margin: 0;
   color: var(--muted);
-}
-
-.mealAppHero {
-  position: relative;
-  overflow: hidden;
-  display: grid;
-  grid-template-columns: minmax(0, 1fr) minmax(280px, 0.34fr);
-  gap: 24px;
-  align-items: stretch;
-  border: 1px solid color-mix(in srgb, var(--accent) 26%, transparent);
-  border-radius: 8px;
-  background:
-    radial-gradient(circle at 86% 18%, color-mix(in srgb, var(--accent) 20%, transparent), transparent 30%),
-    linear-gradient(135deg, color-mix(in srgb, var(--accent) 12%, transparent), rgba(18, 20, 18, 0.96) 46%),
-    var(--panel);
-  padding: clamp(18px, 3vw, 28px);
 }
 
 .mealAppHero h1 {
@@ -5175,7 +5118,6 @@ input[type="color"] {
     padding: 20px;
   }
 
-  .coachHero,
   .coachCommandHero,
   .coachBuilderCard,
   .exerciseImportBanner,
