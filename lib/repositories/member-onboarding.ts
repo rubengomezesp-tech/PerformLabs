@@ -1,6 +1,39 @@
 import { getSupabaseServiceEnv } from "@/lib/supabase/env";
 import { createServiceSupabaseClient } from "@/lib/supabase/server";
+import { assignWorkoutTemplateToMember } from "@/lib/repositories/member-management";
 import { listManagedWorkoutTemplates, type ManagedWorkoutTemplate } from "@/lib/repositories/training-management";
+
+export type MemberAssignedWorkoutExercise = {
+  id: string;
+  sourceTemplateExerciseId: string | null;
+  exerciseId: string;
+  exerciseName: string;
+  videoUrl: string;
+  thumbnailUrl: string;
+  sets: number | null;
+  reps: string;
+  tempo: string;
+  restSeconds: number | null;
+  targetRir: string;
+  notes: string;
+  sortOrder: number;
+};
+
+export type MemberAssignedWorkoutDay = {
+  id: string;
+  sourceTemplateDayId: string | null;
+  assignedPlanId: string;
+  title: string;
+  weekNumber: number;
+  monthNumber: number;
+  dayNumber: number;
+  scheduledOn: string;
+  status: string;
+  focus: string;
+  notes: string;
+  estimatedMinutes: number | null;
+  exercises: MemberAssignedWorkoutExercise[];
+};
 
 export type MemberOnboardingInput = {
   workspaceId: string;
@@ -22,11 +55,17 @@ export type MemberTrainingContext = {
   activeAssignment: {
     id: string;
     name: string;
+    sourceTemplateId: string | null;
     startsOn: string;
     endsOn: string;
     version: number;
+    currentWeek: number;
+    currentMonth: number;
+    daysPerWeek: number | null;
   } | null;
   activeTemplate: ManagedWorkoutTemplate | null;
+  assignedDays: MemberAssignedWorkoutDay[];
+  activeAssignedDay: MemberAssignedWorkoutDay | null;
 };
 
 function parseNumber(value: string) {
@@ -47,10 +86,12 @@ function splitList(value: string) {
     .filter(Boolean);
 }
 
-function addDays(date: Date, days: number) {
-  const next = new Date(date);
-  next.setDate(next.getDate() + days);
-  return next.toISOString().slice(0, 10);
+function daysBetween(fromIso?: string | null, toIso = new Date().toISOString().slice(0, 10)) {
+  if (!fromIso) return 0;
+  const from = new Date(`${fromIso}T00:00:00.000Z`).getTime();
+  const to = new Date(`${toIso}T00:00:00.000Z`).getTime();
+  if (!Number.isFinite(from) || !Number.isFinite(to)) return 0;
+  return Math.max(0, Math.floor((to - from) / 86_400_000));
 }
 
 async function getDefaultMemberProfile(workspaceId: string) {
@@ -108,38 +149,16 @@ export async function assignQuarterlyWorkoutModule(input: {
     return { templateId: template.id, assignmentCreated: false };
   }
 
-  const today = new Date();
-  const startsOn = today.toISOString().slice(0, 10);
-  const endsOn = addDays(today, 84);
-  const nextVersion = (latest.data?.version ?? 0) + 1;
-
-  const archive = await supabase
-    .from("assigned_workout_plans")
-    .update({ status: "archived" })
-    .eq("workspace_id", input.workspaceId)
-    .eq("member_profile_id", input.memberProfileId)
-    .eq("status", "active");
-
-  if (archive.error) {
-    throw new Error(`No se pudo cerrar el modulo anterior: ${archive.error.message}`);
-  }
-
-  const insert = await supabase.from("assigned_workout_plans").insert({
-    workspace_id: input.workspaceId,
-    member_profile_id: input.memberProfileId,
-    source_template_id: template.id,
-    name: template.name,
-    starts_on: startsOn,
-    ends_on: endsOn,
-    version: nextVersion,
-    status: "active",
+  const assignment = await assignWorkoutTemplateToMember({
+    workspaceId: input.workspaceId,
+    memberProfileId: input.memberProfileId,
+    workoutTemplateId: template.id,
+    assignmentGoal: template.goal,
+    currentMonth: "1",
+    currentWeek: "1",
   });
 
-  if (insert.error) {
-    throw new Error(`No se pudo asignar el modulo trimestral: ${insert.error.message}`);
-  }
-
-  return { templateId: template.id, assignmentCreated: true };
+  return { templateId: template.id, assignmentCreated: Boolean(assignment?.assignmentId) };
 }
 
 export async function saveMemberOnboarding(input: MemberOnboardingInput) {
@@ -207,6 +226,8 @@ export async function getMemberTrainingContext(workspaceId?: string): Promise<Me
     preferredDaysPerWeek: null,
     activeAssignment: null,
     activeTemplate: null,
+    assignedDays: [],
+    activeAssignedDay: null,
   };
 
   const env = getSupabaseServiceEnv();
@@ -224,7 +245,7 @@ export async function getMemberTrainingContext(workspaceId?: string): Promise<Me
       .maybeSingle(),
     supabase
       .from("assigned_workout_plans")
-      .select("id,name,source_template_id,starts_on,ends_on,version")
+      .select("id,name,source_template_id,starts_on,ends_on,version,current_week,current_month,days_per_week")
       .eq("workspace_id", workspaceId)
       .eq("member_profile_id", member.id)
       .eq("status", "active")
@@ -239,19 +260,97 @@ export async function getMemberTrainingContext(workspaceId?: string): Promise<Me
   const activeTemplate = assignedTemplateId
     ? templates.find((template) => template.id === assignedTemplateId) ?? null
     : findQuarterlyTemplate(templates, preferredDaysPerWeek ?? 4) ?? templates[0] ?? null;
+  let assignedDays: MemberAssignedWorkoutDay[] = [];
+
+  if (assignment.data?.id) {
+    const daysResult = await supabase
+      .from("assigned_workout_days")
+      .select("id,assigned_workout_plan_id,source_template_day_id,week_number,month_number,day_number,scheduled_on,title,focus,instructions,estimated_minutes,status")
+      .eq("workspace_id", workspaceId)
+      .eq("assigned_workout_plan_id", assignment.data.id)
+      .order("week_number", { ascending: true })
+      .order("day_number", { ascending: true });
+
+    if (daysResult.error) {
+      console.error("Unable to load assigned workout days", daysResult.error.message);
+    }
+
+    const dayRows = daysResult.data ?? [];
+    const dayIds = dayRows.map((day) => day.id);
+    const exercisesResult = dayIds.length
+      ? await supabase
+          .from("assigned_workout_exercises")
+          .select("id,assigned_workout_day_id,source_template_exercise_id,exercise_id,title,video_url,sets,reps,tempo,rest_seconds,target_rir,notes,sort_order")
+          .in("assigned_workout_day_id", dayIds)
+          .order("sort_order", { ascending: true })
+      : { data: [], error: null };
+
+    if (exercisesResult.error) {
+      console.error("Unable to load assigned workout exercises", exercisesResult.error.message);
+    }
+
+    const exercisesByDay = new Map<string, MemberAssignedWorkoutExercise[]>();
+    for (const exercise of exercisesResult.data ?? []) {
+      const list = exercisesByDay.get(exercise.assigned_workout_day_id) ?? [];
+      list.push({
+        id: exercise.id,
+        sourceTemplateExerciseId: exercise.source_template_exercise_id,
+        exerciseId: exercise.exercise_id ?? "",
+        exerciseName: exercise.title,
+        videoUrl: exercise.video_url ?? "",
+        thumbnailUrl: "",
+        sets: exercise.sets,
+        reps: exercise.reps ?? "",
+        tempo: exercise.tempo ?? "",
+        restSeconds: exercise.rest_seconds,
+        targetRir: exercise.target_rir ?? "",
+        notes: exercise.notes ?? "",
+        sortOrder: exercise.sort_order,
+      });
+      exercisesByDay.set(exercise.assigned_workout_day_id, list);
+    }
+
+    assignedDays = dayRows.map((day) => ({
+      id: day.id,
+      sourceTemplateDayId: day.source_template_day_id,
+      assignedPlanId: day.assigned_workout_plan_id,
+      title: day.title,
+      weekNumber: day.week_number,
+      monthNumber: day.month_number,
+      dayNumber: day.day_number,
+      scheduledOn: day.scheduled_on ?? "",
+      status: day.status,
+      focus: day.focus ?? "",
+      notes: day.instructions ?? "",
+      estimatedMinutes: day.estimated_minutes,
+      exercises: exercisesByDay.get(day.id) ?? [],
+    }));
+  }
+
+  const activeAssignedDay = assignedDays.find((day) => day.status !== "completed" && day.weekNumber === (assignment.data?.current_week ?? 1))
+    ?? assignedDays.find((day) => day.status !== "completed" && daysBetween(assignment.data?.starts_on) <= (day.weekNumber - 1) * 7 + Math.max(0, day.dayNumber - 1))
+    ?? assignedDays.find((day) => day.status !== "completed")
+    ?? assignedDays[0]
+    ?? null;
 
   return {
     memberProfileId: member.id,
     preferredDaysPerWeek,
     activeAssignment: assignment.data
-      ? {
-          id: assignment.data.id,
-          name: assignment.data.name,
-          startsOn: assignment.data.starts_on ?? "",
-          endsOn: assignment.data.ends_on ?? "",
-          version: assignment.data.version,
-        }
-      : null,
+        ? {
+            id: assignment.data.id,
+            name: assignment.data.name,
+            sourceTemplateId: assignment.data.source_template_id,
+            startsOn: assignment.data.starts_on ?? "",
+            endsOn: assignment.data.ends_on ?? "",
+            version: assignment.data.version,
+            currentWeek: assignment.data.current_week,
+            currentMonth: assignment.data.current_month,
+            daysPerWeek: assignment.data.days_per_week,
+          }
+        : null,
     activeTemplate,
+    assignedDays,
+    activeAssignedDay,
   };
 }

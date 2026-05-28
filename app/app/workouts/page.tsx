@@ -3,12 +3,15 @@ import Link from "next/link";
 import { Topbar } from "@/components/topbar";
 import { workouts } from "@/lib/data";
 import { getSelectedMemberAppBrand } from "@/lib/member-app";
-import { getMemberTrainingContext } from "@/lib/repositories/member-onboarding";
+import { getMemberTrainingContext, type MemberAssignedWorkoutDay, type MemberAssignedWorkoutExercise } from "@/lib/repositories/member-onboarding";
 import { listManagedWorkoutTemplates, type ManagedWorkoutTemplate } from "@/lib/repositories/training-management";
 import { getWorkoutPerformanceSummary } from "@/lib/repositories/workout-performance";
 import { saveWorkoutSessionAction } from "./actions";
 
 type WorkoutTemplateDay = ManagedWorkoutTemplate["days"][number];
+type WorkoutTemplateExercise = WorkoutTemplateDay["exercises"][number];
+type WorkoutDayView = WorkoutTemplateDay | MemberAssignedWorkoutDay;
+type WorkoutExerciseView = WorkoutTemplateExercise | MemberAssignedWorkoutExercise;
 
 const monthLabels: Record<number, { title: string; weeks: string; focus: string }> = {
   1: { title: "Mes 1 · Base técnica", weeks: "Semanas 1-4", focus: "Aprender patrón, tempo y volumen sostenible." },
@@ -39,6 +42,14 @@ function publicTemplateName(template?: ManagedWorkoutTemplate | null) {
   return template.name;
 }
 
+function sourceExerciseId(exercise: WorkoutExerciseView) {
+  return "sourceTemplateExerciseId" in exercise ? exercise.sourceTemplateExerciseId ?? "" : exercise.id;
+}
+
+function estimatedMinutesFor(day: WorkoutDayView | null) {
+  return day && "estimatedMinutes" in day && day.estimatedMinutes ? day.estimatedMinutes : 60;
+}
+
 export default async function WorkoutsPage() {
   const brand = await getSelectedMemberAppBrand();
   const [templates, performance, trainingContext] = await Promise.all([
@@ -46,13 +57,17 @@ export default async function WorkoutsPage() {
     getWorkoutPerformanceSummary(brand.id),
     getMemberTrainingContext(brand.id),
   ]);
+  const assignedDay = trainingContext.activeAssignedDay;
   const activeTemplate = trainingContext.activeTemplate ?? templates[0];
-  const activeDay = activeTemplate?.days[0];
+  const activeDay = assignedDay ?? activeTemplate?.days[0] ?? null;
+  const templateIdForLog = trainingContext.activeAssignment?.sourceTemplateId ?? activeTemplate?.id ?? "";
+  const dayIdForLog = assignedDay?.sourceTemplateDayId ?? activeDay?.id ?? "";
   const totalSessionVideos = activeDay?.exercises.filter((exercise) => exercise.videoUrl).length ?? 0;
   const sessionExercises = activeDay?.exercises.length ?? 0;
   const activeWeekNumber = activeDay?.weekNumber ?? 1;
   const weekProgressPercent = Math.min(100, Math.max(8, Math.round((activeWeekNumber / 12) * 100)));
-  const weeklyGoal = activeTemplate?.daysPerWeek ?? trainingContext.preferredDaysPerWeek ?? 4;
+  const weeklyGoal = trainingContext.activeAssignment?.daysPerWeek ?? activeTemplate?.daysPerWeek ?? trainingContext.preferredDaysPerWeek ?? 4;
+  const estimatedMinutes = estimatedMinutesFor(activeDay);
 
   return (
     <>
@@ -70,7 +85,7 @@ export default async function WorkoutsPage() {
             <div className="workoutHeroMeta">
               <span><Dumbbell size={16} /> {sessionExercises} ejercicios</span>
               <span><Video size={16} /> {totalSessionVideos ? `${totalSessionVideos} vídeos` : "Sin vídeos"}</span>
-              <span><Timer size={16} /> 60 min aprox.</span>
+              <span><Timer size={16} /> {estimatedMinutes} min aprox.</span>
               <span><Repeat2 size={16} /> Puedes pedir cambio</span>
             </div>
             <div className="workoutActionRail">
@@ -126,7 +141,7 @@ export default async function WorkoutsPage() {
           </article>
         </div>
 
-        {activeTemplate && activeDay ? (
+        {activeDay ? (
           <article className="card span12 workoutSession" id="sesion-activa">
             <div className="sectionHeader">
               <div>
@@ -149,8 +164,9 @@ export default async function WorkoutsPage() {
             {activeDay.notes ? <p className="sessionCoachNotes">Controla la técnica, respeta los descansos y avisa a tu coach si aparece alguna molestia.</p> : null}
             <form action={saveWorkoutSessionAction} className="sessionLogForm">
               <input name="workspaceId" type="hidden" value={brand.id} />
-              <input name="templateId" type="hidden" value={activeTemplate.id} />
-              <input name="dayId" type="hidden" value={activeDay.id} />
+              <input name="templateId" type="hidden" value={templateIdForLog} />
+              <input name="dayId" type="hidden" value={dayIdForLog} />
+              <input name="assignedDayId" type="hidden" value={assignedDay?.id ?? ""} />
               <div className="sessionExerciseList">
                 {activeDay.exercises.map((exercise, index) => {
                   const plannedSets = Math.max(1, Math.min(exercise.sets ?? 3, 6));
@@ -186,7 +202,7 @@ export default async function WorkoutsPage() {
                         <div className="setLogGrid">
                           {Array.from({ length: plannedSets }).map((_, setIndex) => (
                             <div className="setLogRow" key={`${exercise.id}-${setIndex}`}>
-                              <input name="templateExerciseId" type="hidden" value={exercise.id} />
+                              <input name="templateExerciseId" type="hidden" value={sourceExerciseId(exercise)} />
                               <input name="exerciseId" type="hidden" value={exercise.exerciseId} />
                               <input name="setNumber" type="hidden" value={setIndex + 1} />
                               <input name="plannedReps" type="hidden" value={exercise.reps} />

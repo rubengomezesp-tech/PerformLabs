@@ -46,6 +46,7 @@ export async function saveWorkoutSessionAction(formData: FormData) {
     workspaceId: readText(formData, "workspaceId"),
     templateId: readText(formData, "templateId"),
     dayId: readText(formData, "dayId"),
+    assignedDayId: readText(formData, "assignedDayId"),
     perceivedEffort: readInteger(formData.get("perceivedEffort")),
     durationMinutes: readInteger(formData.get("durationMinutes")),
     notes: readText(formData, "notes"),

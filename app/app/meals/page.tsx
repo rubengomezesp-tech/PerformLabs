@@ -3,16 +3,28 @@ import { Topbar } from "@/components/topbar";
 import { meals } from "@/lib/data";
 import { getSelectedMemberAppBrand } from "@/lib/member-app";
 import { listManagedDietTemplates, listManagedRecipes } from "@/lib/repositories/nutrition-management";
-import { getNutritionDailySummary } from "@/lib/repositories/nutrition-tracking";
+import { getMemberMealPlanForToday, getNutritionDailySummary } from "@/lib/repositories/nutrition-tracking";
 import { saveMealLogAction, saveNutritionDayAction } from "./actions";
 
 export default async function MealsPage() {
   const brand = await getSelectedMemberAppBrand();
-  const [templates, recipes, dailySummary] = await Promise.all([
+  const [templates, recipes, dailySummary, assignedMealPlan] = await Promise.all([
     listManagedDietTemplates(brand.id),
     listManagedRecipes(brand.id),
     getNutritionDailySummary(brand.id),
+    getMemberMealPlanForToday(brand.id),
   ]);
+  const assignedCards = assignedMealPlan?.items.map((item) => ({
+    id: item.id,
+    recipeId: item.recipeId ?? "",
+    slot: item.mealSlot,
+    title: item.title,
+    ingredients: item.ingredients,
+    tags: item.tags,
+    instructions: item.instructions,
+    calories: item.calories,
+    proteinG: item.proteinG,
+  })) ?? [];
   const recipeCards = recipes.map((recipe) => ({
     id: recipe.id,
     recipeId: recipe.id,
@@ -21,6 +33,8 @@ export default async function MealsPage() {
     ingredients: recipe.ingredients.length,
     tags: recipe.tags,
     instructions: recipe.instructions,
+    calories: null,
+    proteinG: null,
   }));
   const fallbackCards = meals.map((meal) => ({
     id: meal.name,
@@ -30,13 +44,17 @@ export default async function MealsPage() {
     ingredients: 4,
     tags: ["preparada"],
     instructions: "Mantén la estructura indicada por tu coach y avisa si necesitas una alternativa.",
+    calories: null,
+    proteinG: null,
   }));
-  const mealCards = recipeCards.length ? recipeCards : fallbackCards;
+  const mealCards = assignedCards.length ? assignedCards : recipeCards.length ? recipeCards : fallbackCards;
   const primaryTemplate = templates[0];
   const mealLogBySlot = new Map(dailySummary.mealLogs.map((log) => [log.mealSlot, log]));
   const nextMeal = mealCards.find((meal) => mealLogBySlot.get(meal.slot)?.status !== "done") ?? mealCards[0];
   const completionPercent = mealCards.length ? Math.round((dailySummary.completedMeals / mealCards.length) * 100) : 0;
-  const waterPercent = Math.min(100, Math.round((dailySummary.waterGlasses / 8) * 100));
+  const waterTargetGlasses = assignedMealPlan?.waterTargetMl ? Math.max(6, Math.round(assignedMealPlan.waterTargetMl / 250)) : 8;
+  const waterPercent = Math.min(100, Math.round((dailySummary.waterGlasses / waterTargetGlasses) * 100));
+  const planLabel = assignedMealPlan?.planName || primaryTemplate?.goal || "Plan activo. Tu coach verá tus registros y sensaciones.";
 
   return (
     <>
@@ -53,7 +71,7 @@ export default async function MealsPage() {
             <p>{nextMeal ? "Cuando termines, márcala como hecha. Si no te encaja, pide un cambio y tu coach lo revisa." : "Tu coach está preparando tu plan de comidas."}</p>
             <div className="mealHeroMeta">
               <span><Utensils size={16} /> {dailySummary.completedMeals}/{mealCards.length} comidas hechas</span>
-              <span><Droplets size={16} /> {dailySummary.waterGlasses}/8 vasos de agua</span>
+              <span><Droplets size={16} /> {dailySummary.waterGlasses}/{waterTargetGlasses} vasos de agua</span>
               <span><Repeat size={16} /> {dailySummary.swapRequests ? `${dailySummary.swapRequests} cambio pedido` : "Cambios disponibles"}</span>
             </div>
             {nextMeal ? (
@@ -71,7 +89,7 @@ export default async function MealsPage() {
           <div className="memberHeroSignal">
             <Sparkles size={18} />
             <strong>{completionPercent}% del día</strong>
-            <p>{primaryTemplate?.goal || "Plan activo. Tu coach verá tus registros y sensaciones."}</p>
+            <p>{planLabel}</p>
             <div className="workoutProgressTrack" aria-label={`${completionPercent}% completado`}>
               <span style={{ width: `${Math.max(8, completionPercent)}%` }} />
             </div>
@@ -91,7 +109,7 @@ export default async function MealsPage() {
           <article className="card mealStatusCard">
             <div>
               <span><small>Hidratación</small>Agua del día</span>
-              <strong>{dailySummary.waterGlasses}/8</strong>
+              <strong>{dailySummary.waterGlasses}/{waterTargetGlasses}</strong>
             </div>
             <div className="mealMiniProgress"><span style={{ width: `${Math.max(6, waterPercent)}%` }} /></div>
           </article>
@@ -114,7 +132,9 @@ export default async function MealsPage() {
             <h3>{meal.title}</h3>
             <p>{meal.instructions || "Comida preparada para cumplir tu plan de hoy."}</p>
             <div className="workoutExerciseChips">
-              <span>{meal.ingredients} ingredientes</span>
+              <span>{meal.ingredients ? `${meal.ingredients} ingredientes` : "Plan de hoy"}</span>
+              {meal.calories ? <span>{meal.calories} kcal</span> : null}
+              {meal.proteinG ? <span>{meal.proteinG} g proteína</span> : null}
               {meal.tags.slice(0, 2).map((tag) => <span key={tag}>{tag}</span>)}
             </div>
             <form action={saveMealLogAction} className="mealCardActions">
@@ -165,7 +185,7 @@ export default async function MealsPage() {
           <MessageSquare color="var(--gold)" />
           <h2>Mensaje para tu coach</h2>
           <p>Si una comida no encaja, pide cambio desde la tarjeta. Tu coach verá el contexto del día antes de tocar tu plan.</p>
-          <div className="row"><span>Objetivo</span><strong>{primaryTemplate?.goal || "seguir plan"}</strong></div>
+          <div className="row"><span>Objetivo</span><strong>{planLabel}</strong></div>
           <div className="row"><span>Comidas</span><strong>{completionPercent}%</strong></div>
           <div className="row"><span>Cambios pedidos</span><strong>{dailySummary.swapRequests}</strong></div>
         </article>

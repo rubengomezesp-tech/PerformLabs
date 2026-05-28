@@ -35,6 +35,32 @@ export type NutritionDailySummary = {
   }>;
 };
 
+export type MemberMealPlanForToday = {
+  planId: string;
+  planName: string;
+  dayId: string;
+  dayTitle: string;
+  targetCalories: number | null;
+  targetProteinG: number | null;
+  targetCarbsG: number | null;
+  targetFatG: number | null;
+  waterTargetMl: number | null;
+  hideMacros: boolean;
+  items: Array<{
+    id: string;
+    recipeId: string | null;
+    mealSlot: string;
+    title: string;
+    instructions: string;
+    ingredients: number;
+    tags: string[];
+    calories: number | null;
+    proteinG: number | null;
+    carbsG: number | null;
+    fatG: number | null;
+  }>;
+};
+
 function todayIso() {
   return new Date().toISOString().slice(0, 10);
 }
@@ -59,6 +85,115 @@ async function getDefaultMemberProfileId(workspaceId: string) {
     .maybeSingle();
 
   return data?.id ?? null;
+}
+
+function daysBetween(fromIso?: string | null, toIso = todayIso()) {
+  if (!fromIso) return 0;
+  const from = new Date(`${fromIso}T00:00:00.000Z`).getTime();
+  const to = new Date(`${toIso}T00:00:00.000Z`).getTime();
+  if (!Number.isFinite(from) || !Number.isFinite(to)) return 0;
+  return Math.max(0, Math.floor((to - from) / 86_400_000));
+}
+
+async function getActiveMealPlanId(
+  supabase: ReturnType<typeof createServiceSupabaseClient>,
+  workspaceId: string,
+  memberProfileId: string | null,
+) {
+  if (!memberProfileId) return null;
+  const result = await supabase
+    .from("assigned_meal_plans")
+    .select("id")
+    .eq("workspace_id", workspaceId)
+    .eq("member_profile_id", memberProfileId)
+    .eq("status", "active")
+    .order("created_at", { ascending: false })
+    .limit(1)
+    .maybeSingle();
+
+  if (result.error) {
+    console.error("Unable to load active meal plan", result.error.message);
+  }
+
+  return result.data?.id ?? null;
+}
+
+export async function getMemberMealPlanForToday(workspaceId?: string): Promise<MemberMealPlanForToday | null> {
+  const env = getSupabaseServiceEnv();
+  if (!env.ok || !isUuid(workspaceId)) return null;
+
+  const supabase = createServiceSupabaseClient();
+  const memberProfileId = await getDefaultMemberProfileId(workspaceId);
+  if (!memberProfileId) return null;
+
+  const plan = await supabase
+    .from("assigned_meal_plans")
+    .select("id,name,starts_on,target_calories,target_protein_g,target_carbs_g,target_fat_g,water_target_ml,hide_macros")
+    .eq("workspace_id", workspaceId)
+    .eq("member_profile_id", memberProfileId)
+    .eq("status", "active")
+    .order("created_at", { ascending: false })
+    .limit(1)
+    .maybeSingle();
+
+  if (plan.error || !plan.data) {
+    if (plan.error && plan.error.code !== "PGRST116") {
+      console.error("Unable to load assigned meal plan", plan.error.message);
+    }
+    return null;
+  }
+
+  const activePlan = plan.data;
+  const days = await supabase
+    .from("assigned_meal_plan_days")
+    .select("id,day_number,title,target_calories,target_protein_g,target_carbs_g,target_fat_g")
+    .eq("workspace_id", workspaceId)
+    .eq("assigned_meal_plan_id", activePlan.id)
+    .order("day_number", { ascending: true });
+
+  if (days.error || !days.data?.length) {
+    if (days.error) console.error("Unable to load assigned meal days", days.error.message);
+    return null;
+  }
+
+  const dayIndex = daysBetween(activePlan.starts_on) % days.data.length;
+  const activeDay = days.data[dayIndex] ?? days.data[0];
+  const items = await supabase
+    .from("assigned_meal_plan_items")
+    .select("id,recipe_id,meal_slot,title,instructions,calories,protein_g,carbs_g,fat_g,sort_order")
+    .eq("workspace_id", workspaceId)
+    .eq("assigned_meal_plan_day_id", activeDay.id)
+    .order("sort_order", { ascending: true });
+
+  if (items.error) {
+    console.error("Unable to load assigned meal items", items.error.message);
+  }
+
+  return {
+    planId: activePlan.id,
+    planName: activePlan.name,
+    dayId: activeDay.id,
+    dayTitle: activeDay.title ?? `Dia ${activeDay.day_number}`,
+    targetCalories: activePlan.hide_macros ? null : activeDay.target_calories ?? activePlan.target_calories,
+    targetProteinG: activePlan.hide_macros ? null : activeDay.target_protein_g ?? activePlan.target_protein_g,
+    targetCarbsG: activePlan.hide_macros ? null : activeDay.target_carbs_g ?? activePlan.target_carbs_g,
+    targetFatG: activePlan.hide_macros ? null : activeDay.target_fat_g ?? activePlan.target_fat_g,
+    waterTargetMl: activePlan.water_target_ml,
+    hideMacros: activePlan.hide_macros,
+    items: (items.data ?? []).map((item) => ({
+      id: item.id,
+      recipeId: item.recipe_id,
+      mealSlot: item.meal_slot,
+      title: item.title,
+      instructions: item.instructions ?? "Sigue la comida indicada y pide cambio si no te encaja.",
+      ingredients: 0,
+      tags: ["plan"],
+      calories: activePlan.hide_macros ? null : item.calories,
+      proteinG: activePlan.hide_macros ? null : item.protein_g,
+      carbsG: activePlan.hide_macros ? null : item.carbs_g,
+      fatG: activePlan.hide_macros ? null : item.fat_g,
+    })),
+  };
 }
 
 export async function getNutritionDailySummary(workspaceId?: string): Promise<NutritionDailySummary> {
@@ -136,10 +271,12 @@ export async function upsertMealLog(input: MealLogInput) {
 
   const supabase = createServiceSupabaseClient();
   const memberProfileId = await getDefaultMemberProfileId(input.workspaceId);
+  const activeMealPlanId = await getActiveMealPlanId(supabase, input.workspaceId, memberProfileId);
   const date = todayIso();
   const payload = {
     workspace_id: input.workspaceId,
     member_profile_id: memberProfileId,
+    assigned_meal_plan_id: activeMealPlanId,
     recipe_id: isUuid(input.recipeId) ? input.recipeId : null,
     logged_on: date,
     meal_slot: mealSlot,
@@ -158,6 +295,25 @@ export async function upsertMealLog(input: MealLogInput) {
 
   if (error) {
     throw new Error(`No se pudo guardar la comida: ${error.message}`);
+  }
+
+  if (memberProfileId) {
+    const event = await supabase.from("member_activity_events").insert({
+      workspace_id: input.workspaceId,
+      member_profile_id: memberProfileId,
+      event_type: "meal_logged",
+      source: "member_app",
+      metadata: {
+        mealSlot,
+        mealTitle,
+        status: input.status,
+        assignedMealPlanId: activeMealPlanId,
+      },
+    });
+
+    if (event.error) {
+      console.error("Unable to log meal activity", event.error.message);
+    }
   }
 }
 
@@ -187,5 +343,23 @@ export async function upsertDailyNutritionLog(input: DailyNutritionInput) {
 
   if (error) {
     throw new Error(`No se pudo guardar el seguimiento: ${error.message}`);
+  }
+
+  if (memberProfileId) {
+    const event = await supabase.from("member_activity_events").insert({
+      workspace_id: input.workspaceId,
+      member_profile_id: memberProfileId,
+      event_type: "nutrition_day_logged",
+      source: "member_app",
+      metadata: {
+        waterGlasses: payload.water_glasses,
+        hungerLevel: payload.hunger_level,
+        energyLevel: payload.energy_level,
+      },
+    });
+
+    if (event.error) {
+      console.error("Unable to log nutrition activity", event.error.message);
+    }
   }
 }

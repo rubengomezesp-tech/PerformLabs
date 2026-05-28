@@ -17,6 +17,7 @@ export type WorkoutSessionLogInput = {
   workspaceId: string;
   templateId: string;
   dayId: string;
+  assignedDayId?: string;
   perceivedEffort: number | null;
   durationMinutes: number | null;
   notes: string;
@@ -59,14 +60,14 @@ async function getDefaultMemberProfileId(workspaceId: string) {
 }
 
 export async function createWorkoutSessionLog(input: WorkoutSessionLogInput) {
-  if (!input.workspaceId || !input.templateId || !input.dayId) {
+  if (!input.workspaceId || !input.templateId || (!input.dayId && !input.assignedDayId)) {
     throw new Error("Falta la sesion de entrenamiento.");
   }
 
   const supabase = createServiceSupabaseClient();
   const memberProfileId = await getDefaultMemberProfileId(input.workspaceId);
   const completedSets = input.sets.filter((set) => set.actualReps || set.weightKg || set.rir || set.rpe || set.notes);
-  const status = completedSets.length >= input.sets.length * 0.8 ? "completed" : completedSets.length ? "partial" : "planned";
+  const status = input.sets.length && completedSets.length >= input.sets.length * 0.8 ? "completed" : completedSets.length ? "partial" : "planned";
 
   const sessionResult = await (supabase as any)
     .from("workout_session_logs")
@@ -74,7 +75,7 @@ export async function createWorkoutSessionLog(input: WorkoutSessionLogInput) {
       workspace_id: input.workspaceId,
       member_profile_id: memberProfileId,
       template_id: input.templateId,
-      day_id: input.dayId,
+      day_id: input.dayId || null,
       status,
       perceived_effort: input.perceivedEffort,
       duration_minutes: input.durationMinutes,
@@ -88,6 +89,23 @@ export async function createWorkoutSessionLog(input: WorkoutSessionLogInput) {
   }
 
   if (!completedSets.length) {
+    await markAssignedWorkoutDay({
+      supabase,
+      workspaceId: input.workspaceId,
+      memberProfileId,
+      assignedDayId: input.assignedDayId,
+      status,
+    });
+    await logWorkoutActivity({
+      supabase,
+      workspaceId: input.workspaceId,
+      memberProfileId,
+      sessionId: sessionResult.data.id,
+      assignedDayId: input.assignedDayId,
+      status,
+      setsLogged: 0,
+      durationMinutes: input.durationMinutes,
+    });
     return { sessionId: sessionResult.data.id, setsLogged: 0 };
   }
 
@@ -110,7 +128,81 @@ export async function createWorkoutSessionLog(input: WorkoutSessionLogInput) {
     throw new Error(`Se guardo la sesion, pero no los sets: ${setResult.error.message}`);
   }
 
+  await markAssignedWorkoutDay({
+    supabase,
+    workspaceId: input.workspaceId,
+    memberProfileId,
+    assignedDayId: input.assignedDayId,
+    status,
+  });
+  await logWorkoutActivity({
+    supabase,
+    workspaceId: input.workspaceId,
+    memberProfileId,
+    sessionId: sessionResult.data.id,
+    assignedDayId: input.assignedDayId,
+    status,
+    setsLogged: completedSets.length,
+    durationMinutes: input.durationMinutes,
+  });
+
   return { sessionId: sessionResult.data.id, setsLogged: completedSets.length };
+}
+
+async function markAssignedWorkoutDay(input: {
+  supabase: ReturnType<typeof createServiceSupabaseClient>;
+  workspaceId: string;
+  memberProfileId: string | null;
+  assignedDayId?: string;
+  status: string;
+}) {
+  if (!input.assignedDayId || !input.memberProfileId) return;
+
+  const update = await (input.supabase as any)
+    .from("assigned_workout_days")
+    .update({
+      status: input.status === "completed" ? "completed" : "in_progress",
+      completed_at: input.status === "completed" ? new Date().toISOString() : null,
+      updated_at: new Date().toISOString(),
+    })
+    .eq("id", input.assignedDayId)
+    .eq("workspace_id", input.workspaceId)
+    .eq("member_profile_id", input.memberProfileId);
+
+  if (update.error) {
+    console.error("Unable to update assigned workout day", update.error.message);
+  }
+}
+
+async function logWorkoutActivity(input: {
+  supabase: ReturnType<typeof createServiceSupabaseClient>;
+  workspaceId: string;
+  memberProfileId: string | null;
+  sessionId: string;
+  assignedDayId?: string;
+  status: string;
+  setsLogged: number;
+  durationMinutes: number | null;
+}) {
+  if (!input.memberProfileId) return;
+
+  const event = await input.supabase.from("member_activity_events").insert({
+    workspace_id: input.workspaceId,
+    member_profile_id: input.memberProfileId,
+    event_type: "workout_session_logged",
+    source: "member_app",
+    metadata: {
+      sessionId: input.sessionId,
+      assignedDayId: input.assignedDayId ?? null,
+      status: input.status,
+      setsLogged: input.setsLogged,
+      durationMinutes: input.durationMinutes,
+    },
+  });
+
+  if (event.error) {
+    console.error("Unable to log workout activity", event.error.message);
+  }
 }
 
 export async function getWorkoutPerformanceSummary(workspaceId?: string): Promise<WorkoutPerformanceSummary> {
