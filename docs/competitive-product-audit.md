@@ -93,7 +93,7 @@ Posterior:
 
 ## Decisiones de producto
 
-- Publico: hablar de app propia, agente, marca, URL, contenido, lanzamiento y confianza. No hablar de Supabase, tablas, madres/hijos ni arquitectura interna.
+- Publico: hablar de app propia, agente, marca, URL, contenido, lanzamiento y confianza. No hablar de Supabase, tablas ni arquitectura interna.
 - Consola: si puede mostrar estrategia, modulos, readiness, riesgos, acciones y estado real.
 - App cliente: cada pantalla debe responder "que hago ahora", no solo enseñar funciones.
 - Formularios: menos campos iniciales, mas cualificacion progresiva.

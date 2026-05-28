@@ -1,8 +1,9 @@
-import { AppWindow, ArrowRight, Eye, Globe, Layers, Pause, Play, Plus, Save } from "lucide-react";
+import { AppWindow, ArrowRight, Eye, Globe, KeyRound, Layers, Pause, Play, Plus, Save } from "lucide-react";
 import { Topbar } from "@/components/topbar";
 import { baseAppBlueprint, baseAppMetrics } from "@/lib/domain/app-blueprint";
+import { entitlementModuleDescriptions, entitlementModuleLabels, entitlementModules, entitlementStatusLabels } from "@/lib/repositories/entitlements";
 import { listWorkspaceSummaries } from "@/lib/repositories/workspaces";
-import { createWorkspaceAction, toggleWorkspaceAction, updateWorkspaceAction } from "./actions";
+import { createWorkspaceAction, toggleWorkspaceAction, updateWorkspaceAction, updateWorkspaceEntitlementAction } from "./actions";
 
 export const dynamic = "force-dynamic";
 
@@ -102,6 +103,7 @@ export default async function ChildAppsPage() {
               <li className="row">Dominio <span>{app.domain}</span></li>
               <li className="row">Soporte <span>{app.supportEmail || "Pendiente"}</span></li>
               <li className="row">Estado <span className={app.isActive ? "tag" : "tag danger"}>{app.status}</span></li>
+              <li className="row">Licencia <span className={app.entitlement.status === "active" ? "tag" : "tag danger"}>{entitlementStatusLabels[app.entitlement.status]}</span></li>
               <li className="row">Miembros <strong>{app.members}</strong></li>
               <li className="row">MRR <strong>{app.mrr}</strong></li>
             </ul>
@@ -130,6 +132,56 @@ export default async function ChildAppsPage() {
               <div className="actions">
                 <button className="btn" type="submit">
                   Guardar <Save size={16} />
+                </button>
+              </div>
+            </form>
+            <form action={updateWorkspaceEntitlementAction} className="editForm entitlementForm">
+              <input name="workspaceId" type="hidden" value={app.id} />
+              <div className="sectionHeader compact">
+                <div>
+                  <KeyRound color="var(--gold)" size={18} />
+                  <h3>Hilo operativo privado</h3>
+                  <p>Control interno de licencia, invisible para entrenador y miembros.</p>
+                </div>
+              </div>
+              <label>
+                Estado de licencia
+                <select name="status" defaultValue={app.entitlement.status}>
+                  <option value="active">Activa</option>
+                  <option value="past_due">Pendiente de regularizar</option>
+                  <option value="suspended">Suspendida</option>
+                  <option value="revoked">Revocada</option>
+                  <option value="terminated">Finalizada</option>
+                </select>
+              </label>
+              <label>
+                Contrato / referencia
+                <input name="contractRef" defaultValue={app.entitlement.contractRef} placeholder="MSA-2026-001" />
+              </label>
+              <label className="span2">
+                Motivo interno
+                <input name="reason" defaultValue={app.entitlement.reason} placeholder="Impago, revisión contractual, soporte interno..." />
+              </label>
+              <fieldset className="moduleMatrix span2">
+                <legend>Modulos autorizados</legend>
+                {entitlementModules.map((module) => (
+                  <label className="moduleToggle" key={module}>
+                    <input
+                      name="modules"
+                      type="checkbox"
+                      value={module}
+                      defaultChecked={app.entitlement.modules[module]}
+                    />
+                    <span>
+                      <strong>{entitlementModuleLabels[module]}</strong>
+                      <small>{entitlementModuleDescriptions[module]}</small>
+                    </span>
+                  </label>
+                ))}
+              </fieldset>
+              <div className="actions">
+                <button className="btn" type="submit">
+                  Guardar licencia <Save size={16} />
                 </button>
               </div>
             </form>

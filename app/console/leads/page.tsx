@@ -286,7 +286,7 @@ export default async function LeadsPage({ searchParams }: LeadsPageProps) {
               </label>
               <label>
                 Agente asignado
-                <input name="assignedAgent" defaultValue={lead.assignedAgent} placeholder="Ruben, Marina, Equipo..." />
+                <input name="assignedAgent" defaultValue={lead.assignedAgent} placeholder="Equipo comercial..." />
               </label>
               <label>
                 Próxima acción

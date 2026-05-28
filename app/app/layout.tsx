@@ -1,6 +1,8 @@
 import type { Metadata } from "next";
+import { EntitlementGate } from "@/components/entitlement-gate";
 import { PageShell } from "@/components/page-shell";
 import { getSelectedMemberAppBrand, getSelectedMemberAppShell } from "@/lib/member-app";
+import { getWorkspaceEntitlement } from "@/lib/repositories/entitlements";
 
 export async function generateMetadata(): Promise<Metadata> {
   const brand = await getSelectedMemberAppBrand();
@@ -17,10 +19,13 @@ export default async function MemberAppLayout({
   children: React.ReactNode;
 }) {
   const { brand, nav } = await getSelectedMemberAppShell();
+  const entitlement = await getWorkspaceEntitlement(brand.id);
 
   return (
     <PageShell brand={brand} nav={nav} active="/app" productLabel="App cliente">
-      {children}
+      <EntitlementGate brand={brand} entitlement={entitlement} module="member_app">
+        {children}
+      </EntitlementGate>
     </PageShell>
   );
 }

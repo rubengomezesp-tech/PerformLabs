@@ -1,13 +1,20 @@
-import { Activity, Apple, ClipboardCheck, Dumbbell, Save, ShieldCheck, UserRound } from "lucide-react";
+import { Activity, Apple, CheckCircle2, ClipboardCheck, Dumbbell, Save, ShieldCheck, UserRound } from "lucide-react";
 import { Topbar } from "@/components/topbar";
 import { getSelectedMemberAppBrand } from "@/lib/member-app";
+import { saveMemberOnboardingAction } from "./actions";
 
 const goalOptions = ["Definicion", "Volumen", "Recomposicion", "Rendimiento", "Salud"];
 const trainingOptions = ["Gimnasio", "Casa", "Exterior", "Mixto"];
 const nutritionOptions = ["Sin gluten", "Vegetariana", "Alta proteina", "Flexible", "Sin lactosa"];
+const trainingDayOptions = [3, 4, 5, 6, 7];
 
 export default async function MemberOnboardingPage() {
   const brand = await getSelectedMemberAppBrand();
+  const onboardingSteps = [
+    { label: "Datos", status: "Activo" },
+    { label: "Preferencias", status: "Pendiente" },
+    { label: "Revisión", status: "Coach" },
+  ];
 
   return (
     <>
@@ -16,18 +23,39 @@ export default async function MemberOnboardingPage() {
         title={`Configura tu plan en ${brand.appName}.`}
         text="Completa tus datos base para que el equipo pueda ajustar entrenamiento, nutrición, seguimiento y comunicación."
       />
-      <section className="grid">
-        <article className="card span4">
+      <form action={saveMemberOnboardingAction} className="grid">
+        <input name="workspaceId" type="hidden" value={brand.id} />
+        <article className="span12 onboardingHero">
+          <div>
+            <span className="eyebrow">Primer acceso</span>
+            <h2>Deja listo tu perfil para que el equipo pueda personalizar tu plan.</h2>
+            <p>Completa lo básico una vez. Después la app usa esta información para ajustar entrenamientos, comidas, check-ins y soporte.</p>
+          </div>
+          <div className="onboardingStepRail">
+            {onboardingSteps.map((step, index) => (
+              <span className="onboardingStep" key={step.label}>
+                <b>{index + 1}</b>
+                <strong>{step.label}</strong>
+                <small>{step.status}</small>
+              </span>
+            ))}
+          </div>
+        </article>
+
+        <article className="card span4 onboardingStatus motionCard">
           <ClipboardCheck color="var(--gold)" />
           <h2>Estado</h2>
           <ul className="list">
-            <li className="row">Datos básicos <span className="tag">Pendiente</span></li>
+            <li className="row">Datos básicos <span className="tag">En curso</span></li>
             <li className="row">Preferencias <span className="tag">Pendiente</span></li>
             <li className="row">Revisión coach <span className="tag">Después</span></li>
           </ul>
+          <div className="progressTrack" aria-label="Progreso de onboarding">
+            <span style={{ width: "34%" }} />
+          </div>
         </article>
 
-        <article className="card span8">
+        <article className="card span8 motionCard">
           <div className="sectionHeader">
             <div>
               <ShieldCheck color="var(--gold)" />
@@ -36,7 +64,7 @@ export default async function MemberOnboardingPage() {
             </div>
             <span className="tag">Privado</span>
           </div>
-          <form className="formGrid">
+          <div className="formGrid">
             <label>
               Nombre completo
               <input name="fullName" placeholder="Tu nombre" />
@@ -70,15 +98,22 @@ export default async function MemberOnboardingPage() {
               Lesiones o limitaciones
               <textarea name="injuries" placeholder="Rodilla, hombro, espalda, recuperación..." rows={3} />
             </label>
-            <div className="formActions">
-              <button className="btn primary" type="button">
-                Guardar borrador <Save size={18} />
-              </button>
-            </div>
-          </form>
+            <label>
+              Entorno principal
+              <select name="trainingLocation" defaultValue="gym">
+                <option value="gym">Gimnasio</option>
+                <option value="home">Casa</option>
+                <option value="outdoor">Exterior</option>
+              </select>
+            </label>
+            <label>
+              Minutos por sesión
+              <input name="sessionMinutes" defaultValue="60" min={30} max={150} type="number" />
+            </label>
+          </div>
         </article>
 
-        <article className="card span4">
+        <article className="card span4 preferenceCard motionCard">
           <Dumbbell color="var(--gold)" />
           <h2>Entrenamiento</h2>
           <div className="tagCloud">
@@ -88,11 +123,16 @@ export default async function MemberOnboardingPage() {
           </div>
           <label>
             Días por semana
-            <input min={1} max={7} name="daysPerWeek" placeholder="4" type="number" />
+            <select name="daysPerWeek" defaultValue="4">
+              {trainingDayOptions.map((days) => (
+                <option key={days} value={days}>{days} dias/semana</option>
+              ))}
+            </select>
           </label>
+          <p className="muted">Tu coach preparará una fase de 3 meses según tu disponibilidad. Después se revisará con tus métricas y sensaciones.</p>
         </article>
 
-        <article className="card span4">
+        <article className="card span4 preferenceCard motionCard">
           <Apple color="var(--gold)" />
           <h2>Nutrición</h2>
           <div className="tagCloud">
@@ -106,7 +146,7 @@ export default async function MemberOnboardingPage() {
           </label>
         </article>
 
-        <article className="card span4">
+        <article className="card span4 preferenceCard motionCard">
           <Activity color="var(--gold)" />
           <h2>Seguimiento</h2>
           <ul className="list">
@@ -115,7 +155,18 @@ export default async function MemberOnboardingPage() {
             <li className="row">Hábitos <span>Agua, pasos, sueño</span></li>
           </ul>
         </article>
-      </section>
+
+        <article className="card span12 privacyNote">
+          <CheckCircle2 color="var(--green)" />
+          <div>
+            <strong>Tu información se usa para preparar tu experiencia dentro de {brand.name}.</strong>
+            <p>El equipo la revisa antes de activar cambios de entrenamiento, nutrición o seguimiento.</p>
+          </div>
+          <button className="btn primary" type="submit">
+            Guardar y preparar mi plan <Save size={18} />
+          </button>
+        </article>
+      </form>
     </>
   );
 }

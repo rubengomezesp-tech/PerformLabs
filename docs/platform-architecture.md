@@ -55,9 +55,31 @@ configuracion y levantar una variante dedicada.
 
 El sistema debe detectar la marca por:
 
-- Dominio propio: `app.entrenador.com`
-- Subdominio: `entrenador.performlabs.app`
-- Seleccion interna: `/app/select?brand=<workspace_id>`
+- Dominio publico del entrenador: `tumarca.com`
+- Dominio de miembros: `miembros.tumarca.com`
+- Subdominio PerformLabs de fallback: `marca-blanca.performlabs.app`
+- Seleccion interna: `/app/select?brand=<workspace_id|slug|domain>`
+
+La resolucion quirurgica completa queda documentada en
+`docs/surgical-supabase-architecture.md`.
+
+## Modelo De Dominios
+
+Cada entrenador recibe una base generica de PerformLabs personalizada con lo justo:
+branding, imagenes, textos, colores, contenido, programas, nutricion y dominio.
+
+La separacion recomendada es:
+
+- `public_domain`: web publica/comercial de la marca del entrenador.
+  Ejemplo: `tumarca.com`.
+- `member_domain`: app privada para miembros/clientes finales.
+  Ejemplo: `miembros.tumarca.com`.
+- `fallback_subdomain`: dominio tecnico mientras DNS o publicacion no estan listos.
+  Ejemplo: `marca-blanca.performlabs.app`.
+
+La consola del entrenador vive protegida por autenticacion y puede resolverse desde
+la misma marca, pero nunca debe mezclarse con la experiencia del miembro final.
+La consola interna PerformLabs sigue siendo `/console` y no se expone al cliente final.
 
 ## Permisos
 

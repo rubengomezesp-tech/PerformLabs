@@ -1,7 +1,9 @@
-import { Clock3, KeyRound, LockKeyhole, ShieldCheck, UsersRound } from "lucide-react";
+import { Clock3, KeyRound, LockKeyhole, ShieldCheck, Unplug, UsersRound } from "lucide-react";
 import { Topbar } from "@/components/topbar";
 import { formatRole, getConsoleSession, requirePlatformAccess } from "@/lib/auth/access-control";
+import { entitlementModuleLabels, entitlementStatusLabels } from "@/lib/repositories/entitlements";
 import { listSecurityAuditEvents, listSecurityTeamMembers } from "@/lib/repositories/security-management";
+import { listWorkspaceSummaries } from "@/lib/repositories/workspaces";
 
 export const dynamic = "force-dynamic";
 
@@ -33,12 +35,14 @@ function metadataPreview(metadata: unknown) {
 export default async function SecurityPage() {
   await requirePlatformAccess();
   const session = await getConsoleSession();
-  const [teamMembers, auditEvents] = await Promise.all([
+  const [teamMembers, auditEvents, workspaceResult] = await Promise.all([
     listSecurityTeamMembers(),
     listSecurityAuditEvents(),
+    listWorkspaceSummaries(),
   ]);
   const consoleMembers = teamMembers.filter((member) => member.role !== "member");
   const memberOnly = teamMembers.length - consoleMembers.length;
+  const restrictedApps = workspaceResult.workspaces.filter((workspace) => workspace.entitlement.status !== "active" || !workspace.isActive);
 
   return (
     <>
@@ -84,11 +88,49 @@ export default async function SecurityPage() {
         <article className="card span12">
           <div className="sectionHeader">
             <div>
+              <Unplug color="var(--gold)" />
+              <h2>Hilo operativo privado</h2>
+              <p>Estado de licencia por marca. Esto controla app, consola del entrenador y módulos sin enseñar nuestra capa interna.</p>
+            </div>
+            <a className="btn" href="/console/apps">Gestionar apps</a>
+          </div>
+          {workspaceResult.workspaces.length ? (
+            <ul className="list">
+              {workspaceResult.workspaces.map((workspace) => {
+                const disabledModules = Object.entries(workspace.entitlement.modules)
+                  .filter(([, enabled]) => !enabled)
+                  .map(([module]) => entitlementModuleLabels[module as keyof typeof entitlementModuleLabels]);
+
+                return (
+                  <li className="row" key={workspace.id}>
+                    <div>
+                      <strong>{workspace.name}</strong>
+                      <p>{workspace.memberDomain || workspace.fallbackSubdomain} · {disabledModules.length ? `Sin ${disabledModules.join(", ")}` : "Todos los módulos activos"}</p>
+                    </div>
+                    <span className={workspace.entitlement.status === "active" && workspace.isActive ? "tag" : "tag danger"}>
+                      {workspace.isActive ? entitlementStatusLabels[workspace.entitlement.status] : "Pausada"}
+                    </span>
+                  </li>
+                );
+              })}
+            </ul>
+          ) : (
+            <div className="inlineEmpty">
+              <Unplug color="var(--gold)" />
+              <h3>No hay marcas conectadas.</h3>
+              <p>Cuando creemos una implantación aparecerá aquí con su licencia y módulos activos.</p>
+            </div>
+          )}
+        </article>
+
+        <article className="card span12">
+          <div className="sectionHeader">
+            <div>
               <KeyRound color="var(--gold)" />
               <h2>Matriz de acceso</h2>
               <p>Usuarios con permiso operativo por marca. La consola queda reservada a equipo interno y entrenadores autorizados.</p>
             </div>
-            <span className="tag">RBAC</span>
+            <span className={restrictedApps.length ? "tag danger" : "tag"}>{restrictedApps.length ? `${restrictedApps.length} restringida` : "RBAC"}</span>
           </div>
           {consoleMembers.length ? (
             <ul className="list">

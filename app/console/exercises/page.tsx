@@ -1,20 +1,37 @@
-import { Dumbbell, Upload, Video } from "lucide-react";
+import { Camera, Dumbbell, Filter, PlayCircle, Search, Upload, Video } from "lucide-react";
 import { Topbar } from "@/components/topbar";
-import { listManagedExercises } from "@/lib/repositories/training-management";
+import { getExerciseLibraryFacets, listManagedExercises } from "@/lib/repositories/training-management";
 import { listWorkspaceSummaries } from "@/lib/repositories/workspaces";
-import { createExerciseAction } from "./actions";
+import { addExerciseVideoAction, createExerciseAction } from "./actions";
 
 export const dynamic = "force-dynamic";
 
 type ExercisesPageProps = {
-  searchParams?: Promise<{ brand?: string }>;
+  searchParams?: Promise<{
+    brand?: string;
+    q?: string;
+    muscle?: string;
+    equipment?: string;
+    level?: string;
+    source?: "all" | "base" | "brand" | "video";
+  }>;
 };
 
 export default async function ExercisesPage({ searchParams }: ExercisesPageProps) {
   const params = await searchParams;
   const { workspaces } = await listWorkspaceSummaries();
   const selectedWorkspace = workspaces.find((workspace) => workspace.id === params?.brand) ?? workspaces[0];
-  const exercises = await listManagedExercises(selectedWorkspace?.id);
+  const [exercises, facets] = await Promise.all([
+    listManagedExercises(selectedWorkspace?.id, {
+      query: params?.q,
+      muscle: params?.muscle,
+      equipment: params?.equipment,
+      level: params?.level,
+      source: params?.source ?? "all",
+      limit: 96,
+    }),
+    getExerciseLibraryFacets(selectedWorkspace?.id),
+  ]);
 
   return (
     <>
@@ -25,8 +42,19 @@ export default async function ExercisesPage({ searchParams }: ExercisesPageProps
         actions={<button className="btn">Importar CSV <Upload size={18} /></button>}
       />
       <section className="grid">
+        <article className="card span12 exerciseImportBanner">
+          <div>
+            <span className="eyebrow">Biblioteca base</span>
+            <h2>873 ejercicios importados desde Free Exercise DB.</h2>
+            <p>Fuente Unlicense/public domain con instrucciones, músculos, equipo e imágenes. Los entrenadores pueden crear variantes propias encima sin tocar la base global.</p>
+          </div>
+          <a className="btn" href="https://github.com/yuhonas/free-exercise-db" target="_blank" rel="noreferrer">
+            Ver fuente
+          </a>
+        </article>
+
         <article className="card span12">
-          <form action="/console/exercises" className="formGrid" method="get">
+          <form action="/console/exercises" className="exerciseFilters" method="get">
             <label>
               Marca
               <select name="brand" defaultValue={selectedWorkspace?.id}>
@@ -37,10 +65,57 @@ export default async function ExercisesPage({ searchParams }: ExercisesPageProps
                 ))}
               </select>
             </label>
+            <label>
+              Buscar
+              <input name="q" defaultValue={params?.q ?? ""} placeholder="press, squat, curl..." />
+            </label>
+            <label>
+              Músculo
+              <select name="muscle" defaultValue={params?.muscle ?? ""}>
+                <option value="">Todos</option>
+                {facets.muscles.map((muscle) => (
+                  <option key={muscle} value={muscle}>{muscle}</option>
+                ))}
+              </select>
+            </label>
+            <label>
+              Equipo
+              <select name="equipment" defaultValue={params?.equipment ?? ""}>
+                <option value="">Todo</option>
+                {facets.equipment.map((item) => (
+                  <option key={item} value={item}>{item}</option>
+                ))}
+              </select>
+            </label>
+            <label>
+              Nivel
+              <select name="level" defaultValue={params?.level ?? ""}>
+                <option value="">Todos</option>
+                {facets.levels.map((level) => (
+                  <option key={level} value={level}>{level}</option>
+                ))}
+              </select>
+            </label>
+            <label>
+              Origen
+              <select name="source" defaultValue={params?.source ?? "all"}>
+                <option value="all">Todo</option>
+                <option value="base">Base global</option>
+                <option value="brand">Solo marca</option>
+                <option value="video">Con vídeo propio</option>
+              </select>
+            </label>
             <div className="formActions">
-              <button className="btn" type="submit">Ver biblioteca</button>
+              <button className="btn" type="submit">Filtrar <Filter size={16} /></button>
             </div>
           </form>
+        </article>
+
+        <article className="card span12 exerciseStats">
+          <span><Dumbbell size={18} /> <strong>{facets.total}</strong> base disponible</span>
+          <span><Camera size={18} /> <strong>{facets.withImages}</strong> con imágenes</span>
+          <span><PlayCircle size={18} /> <strong>{facets.withVideo}</strong> con vídeo propio</span>
+          <span><Video size={18} /> <strong>{facets.brandOnly}</strong> variantes de marca</span>
         </article>
 
         <article className="card span12">
@@ -101,28 +176,79 @@ export default async function ExercisesPage({ searchParams }: ExercisesPageProps
             </div>
             <span className="tag">{selectedWorkspace?.name ?? "Demo"}</span>
           </div>
-          <table className="table">
-            <thead>
-              <tr>
-                <th>Ejercicio</th>
-                <th>Músculos</th>
-                <th>Equipo</th>
-                <th>Origen</th>
-                <th>Vídeo</th>
-              </tr>
-            </thead>
-            <tbody>
+          {exercises.length ? (
+            <div className="exerciseLibraryGrid">
               {exercises.map((exercise) => (
-                <tr key={exercise.id}>
-                  <td>{exercise.name}</td>
-                  <td>{exercise.muscleGroups.join(", ") || "Pendiente"}</td>
-                  <td>{exercise.equipment.join(", ") || "Libre"}</td>
-                  <td><span className="tag">{exercise.source}</span></td>
-                  <td><Video size={16} /> {exercise.defaultVideoUrl ? "Configurado" : "Pendiente"}</td>
-                </tr>
+                <article className="exerciseCard" key={exercise.id}>
+                  <div className="exerciseMedia">
+                    {exercise.imageUrls[0] ? (
+                      <img alt="" src={exercise.imageUrls[0]} />
+                    ) : (
+                      <Dumbbell size={28} />
+                    )}
+                    <span className={exercise.workspaceVideo || exercise.defaultVideoUrl ? "videoBadge ready" : "videoBadge"}>
+                      {exercise.workspaceVideo || exercise.defaultVideoUrl ? "Vídeo propio" : "Vídeo pendiente"}
+                    </span>
+                  </div>
+                  <div className="exerciseCardBody">
+                    <div>
+                      <h3>{exercise.name}</h3>
+                      <p>{exercise.muscleGroups.slice(0, 3).join(", ") || "Músculo pendiente"}</p>
+                    </div>
+                    <div className="exerciseTags">
+                      <span>{exercise.equipment[0] ?? "Libre"}</span>
+                      <span>{exercise.difficulty || "Nivel abierto"}</span>
+                      <span>{exercise.sourceLicense || exercise.source}</span>
+                    </div>
+                    <p className="exerciseInstructions">{exercise.instructions || "Sin instrucciones todavía. El entrenador puede crear su versión propia con vídeo y cues."}</p>
+                    <details className="exerciseVideoDetails">
+                      <summary>
+                        <Video size={16} />
+                        {exercise.workspaceVideo ? "Gestionar vídeo propio" : "Añadir vídeo propio"}
+                      </summary>
+                      <form action={addExerciseVideoAction} className="exerciseVideoForm">
+                        <input name="workspaceId" type="hidden" value={selectedWorkspace?.id ?? ""} />
+                        <input name="exerciseId" type="hidden" value={exercise.id} />
+                        <label>
+                          Título vídeo
+                          <input name="title" defaultValue={exercise.workspaceVideo?.title ?? `${exercise.name} - demo coach`} placeholder="Demo técnica del coach" required />
+                        </label>
+                        <label>
+                          URL vídeo
+                          <input name="videoUrl" defaultValue={exercise.workspaceVideo?.videoUrl ?? ""} placeholder="https://..." required />
+                        </label>
+                        <label>
+                          Thumbnail
+                          <input name="thumbnailUrl" defaultValue={exercise.workspaceVideo?.thumbnailUrl ?? ""} placeholder="https://... opcional" />
+                        </label>
+                        <label className="toggleRow compactToggle">
+                          Usar por defecto
+                          <input name="isDefault" type="checkbox" value="true" defaultChecked={!exercise.workspaceVideo || exercise.workspaceVideo.isDefault} />
+                        </label>
+                        <button className="btn" type="submit">
+                          <Video size={16} /> {exercise.workspaceVideo ? "Guardar vídeo" : "Añadir vídeo"}
+                        </button>
+                      </form>
+                    </details>
+                    <div className="exerciseActions">
+                      <a className="btn" href={`/console/exercises?brand=${selectedWorkspace?.id ?? ""}&q=${encodeURIComponent(exercise.name)}`}>
+                        <Search size={16} /> Ver similares
+                      </a>
+                      <span className={exercise.workspaceVideo ? "tag" : "tag danger"}>
+                        {exercise.workspaceVideo ? "Listo para app" : "Falta vídeo coach"}
+                      </span>
+                    </div>
+                  </div>
+                </article>
               ))}
-            </tbody>
-          </table>
+            </div>
+          ) : (
+            <div className="inlineEmpty">
+              <Dumbbell color="var(--gold)" />
+              <h3>No hay ejercicios con estos filtros.</h3>
+              <p>Ajusta búsqueda, músculo, equipo o fuente para ampliar resultados.</p>
+            </div>
+          )}
         </article>
       </section>
     </>

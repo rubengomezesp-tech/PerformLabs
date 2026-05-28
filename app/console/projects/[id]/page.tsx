@@ -209,7 +209,7 @@ export default async function ProjectDetailPage({ params }: ProjectDetailPagePro
             </label>
             <label>
               Agente responsable
-              <input name="assignedAgent" defaultValue={project.assignedAgent} placeholder="Equipo, Ruben, Marina..." />
+              <input name="assignedAgent" defaultValue={project.assignedAgent} placeholder="Equipo comercial, agente asignado..." />
             </label>
             <label>
               Fecha objetivo

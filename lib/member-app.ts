@@ -1,4 +1,4 @@
-import { cookies } from "next/headers";
+import { cookies, headers } from "next/headers";
 import {
   Activity,
   Apple,
@@ -13,7 +13,7 @@ import {
 import { listWorkspaceAppPages, type MemberAppPage } from "@/lib/repositories/member-experience";
 import { getWorkspaceBrand, type WorkspaceBrand } from "@/lib/repositories/workspaces";
 
-const selectedWorkspaceCookie = "coachos_workspace_id";
+const selectedWorkspaceCookie = "performlabs_workspace_id";
 
 type MemberNavItem = {
   label: string;
@@ -38,6 +38,11 @@ async function getSelectedWorkspaceId() {
   return cookieStore.get(selectedWorkspaceCookie)?.value;
 }
 
+async function getRequestHost() {
+  const headerStore = await headers();
+  return headerStore.get("x-forwarded-host") || headerStore.get("host") || "";
+}
+
 function toNavItem(page: MemberAppPage): MemberNavItem {
   return {
     label: page.title,
@@ -48,8 +53,9 @@ function toNavItem(page: MemberAppPage): MemberNavItem {
 
 export async function getSelectedMemberAppBrand(): Promise<WorkspaceBrand> {
   const workspaceId = await getSelectedWorkspaceId();
+  const host = await getRequestHost();
 
-  return getWorkspaceBrand(workspaceId);
+  return getWorkspaceBrand(workspaceId || host);
 }
 
 export async function getSelectedMemberAppShell(): Promise<{

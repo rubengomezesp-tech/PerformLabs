@@ -35,7 +35,7 @@ export default function ThanksPage() {
             <Link className="btn primary" href="/">
               <ArrowLeft size={18} /> Volver a la página
             </Link>
-            <a className="btn" href="mailto:rubengomezesp@gmail.com">
+            <a className="btn" href="mailto:contacto@performlabs.app">
               Escribir por email <Mail size={18} />
             </a>
           </div>

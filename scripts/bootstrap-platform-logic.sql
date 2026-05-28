@@ -1,4 +1,4 @@
--- Seed idempotente de logica base para todas las apps hijas existentes.
+-- Seed idempotente de logica base para todas las apps de cliente existentes.
 -- Ejecutar despues de crear workspaces.
 
 with setting_seed(key, value) as (
@@ -11,7 +11,7 @@ with setting_seed(key, value) as (
     ('access.master_password_enabled', 'false'::jsonb),
     ('nutrition.show_net_carbs', 'false'::jsonb),
     ('pwa.enabled', 'true'::jsonb),
-    ('pwa.short_name', '"CoachOS"'::jsonb),
+    ('pwa.short_name', '"Coach App"'::jsonb),
     ('pwa.description', '"Fitness coaching app"'::jsonb),
     ('pwa.theme_color', '"#d8bd6b"'::jsonb),
     ('subscription.activation_delay_min_days', '0'::jsonb),

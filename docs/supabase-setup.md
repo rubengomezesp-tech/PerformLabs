@@ -30,8 +30,8 @@ scripts/bootstrap.sql
 
 Esto crea:
 
-- Workspace madre.
-- App hija RGE.
+- Workspace operativo interno.
+- App de cliente de marca blanca.
 - Categorías base de dieta.
 - Categorías base de ejercicios.
 - Fórmula nutricional base.

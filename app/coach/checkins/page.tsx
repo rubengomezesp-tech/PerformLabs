@@ -1,0 +1,123 @@
+import { Camera, CheckCircle2, ClipboardCheck, MessageSquareText, TrendingUp } from "lucide-react";
+import { EmptyState } from "@/components/empty-state";
+import { Topbar } from "@/components/topbar";
+import { getSelectedMemberAppBrand } from "@/lib/member-app";
+import { getCoachIntelligenceAlerts, listManagedCheckins } from "@/lib/repositories/checkin-management";
+import { reviewCoachCheckinAction } from "./actions";
+
+export const dynamic = "force-dynamic";
+
+const resultOptions = [
+  ["on_track", "En línea"],
+  ["needs_adjustment", "Ajustar plan"],
+  ["stalled", "Estancado"],
+  ["excellent", "Excelente"],
+];
+
+export default async function CoachCheckinsPage() {
+  const brand = await getSelectedMemberAppBrand();
+  const [checkins, alerts] = await Promise.all([
+    listManagedCheckins(brand.id),
+    getCoachIntelligenceAlerts(brand.id),
+  ]);
+  const pending = checkins.filter((checkin) => checkin.status !== "reviewed").length;
+  const reviewed = checkins.filter((checkin) => checkin.status === "reviewed").length;
+  const withPhotos = checkins.filter((checkin) => checkin.photosAvailable).length;
+
+  return (
+    <>
+      <Topbar
+        eyebrow="Check-ins"
+        title="Revisión semanal de progreso."
+        text="Fotos, peso, medidas, notas, adherencia y decisión del coach para actualizar el plan."
+      />
+      <section className="grid">
+        <article className="card span3">
+          <p className="metric">Pendientes<strong>{pending}</strong></p>
+        </article>
+        <article className="card span3">
+          <p className="metric">Revisados<strong>{reviewed}</strong></p>
+        </article>
+        <article className="card span3">
+          <p className="metric">Con fotos<strong>{withPhotos}</strong></p>
+        </article>
+        <article className="card span3">
+          <p className="metric">Alertas<strong>{alerts.length}</strong></p>
+        </article>
+
+        <article className="card span12 nutritionLabCard">
+          <div className="sectionHeader">
+            <div>
+              <TrendingUp color="var(--gold)" />
+              <h2>Alertas inteligentes.</h2>
+              <p>Señales que ayudan al coach a intervenir antes de que el cliente se enfríe.</p>
+            </div>
+            <span className="tag">{brand.name}</span>
+          </div>
+          <div className="coachAlertGrid">
+            {alerts.length ? alerts.slice(0, 6).map((alert) => (
+              <a className={`coachAlert ${alert.severity}`} href={alert.actionHref} key={alert.id}>
+                <strong>{alert.title}</strong>
+                <p>{alert.detail}</p>
+                <span className="tag">{alert.area}</span>
+              </a>
+            )) : <p className="muted">Sin alertas críticas ahora mismo.</p>}
+          </div>
+        </article>
+
+        {checkins.map((checkin) => (
+          <article className="card span6 motionCard" key={checkin.id}>
+            <div className="sectionHeader">
+              <div>
+                <ClipboardCheck color="var(--gold)" />
+                <h2>{checkin.memberName}</h2>
+                <p>{checkin.submittedAt ? checkin.submittedAt.slice(0, 10) : "Sin fecha"}</p>
+              </div>
+              <span className={checkin.status === "reviewed" ? "tag" : "tag danger"}>{checkin.status}</span>
+            </div>
+            <ul className="list">
+              <li className="row"><Camera size={16} /> Fotos <span className="tag">{checkin.photosAvailable ? "Sí" : "No"}</span></li>
+              <li className="row">Peso <strong>{checkin.values.weightKg ? `${checkin.values.weightKg} kg` : "Sin dato"}</strong></li>
+              <li className="row">Grasa <strong>{checkin.values.bodyFatPercent ? `${checkin.values.bodyFatPercent}%` : "Sin dato"}</strong></li>
+              <li className="row">Adherencia entreno <strong>{checkin.values.trainingAdherence || "Pendiente"}</strong></li>
+              <li className="row">Adherencia nutrición <strong>{checkin.values.nutritionAdherence || "Pendiente"}</strong></li>
+              <li className="row">Resultado <span>{checkin.resultsStatus}</span></li>
+            </ul>
+            {checkin.values.notes ? <p className="sessionCoachNotes">{checkin.values.notes}</p> : null}
+            <form action={reviewCoachCheckinAction} className="checkinReviewForm">
+              <input name="workspaceId" type="hidden" value={brand.id} />
+              <input name="checkinId" type="hidden" value={checkin.id} />
+              <label>
+                Resultado
+                <select name="resultStatus" defaultValue={checkin.resultsStatus}>
+                  {resultOptions.map(([value, label]) => (
+                    <option key={value} value={value}>{label}</option>
+                  ))}
+                </select>
+              </label>
+              <label className="spanFull">
+                Feedback para el cliente
+                <textarea name="coachFeedback" defaultValue={checkin.values.coachFeedback} rows={3} placeholder="Qué va bien, qué ajustar y cómo debe ejecutar esta semana..." />
+              </label>
+              <label className="spanFull">
+                Siguiente acción
+                <input name="nextActions" defaultValue={checkin.values.nextActions} placeholder="Mantener calorías, subir pasos, cambiar volumen, revisar en 7 días..." />
+              </label>
+              <button className="btn primary" type="submit">
+                Guardar revisión <CheckCircle2 size={16} />
+              </button>
+            </form>
+          </article>
+        ))}
+
+        {!checkins.length ? (
+          <EmptyState
+            icon={MessageSquareText}
+            title="Todavía no hay check-ins."
+            text="Cuando el cliente envíe peso, medidas, fotos y sensaciones aparecerán aquí para revisión."
+          />
+        ) : null}
+      </section>
+    </>
+  );
+}

@@ -2,14 +2,14 @@
 
 ## Objetivo
 
-CoachOS debe operar varias marcas desde una consola central sin mezclar permisos, datos ni trazabilidad. Esta fase establece la base de gobierno antes de abrir acceso a equipo, entrenadores o clientes reales.
+PerformLabs debe operar varias marcas desde una consola central sin mezclar permisos, datos ni trazabilidad. Esta fase establece la base de gobierno antes de abrir acceso a equipo, entrenadores o clientes reales.
 
 ## Decisiones implementadas
 
 - La consola pasa por `requireConsoleAccess`.
 - Las acciones internas pasan por permisos de plataforma o permisos por marca.
 - El modo local sigue abierto si `COACHOS_AUTH_REQUIRED` no es `true`.
-- En producción, la sesión se valida contra Supabase Auth con la cookie `coachos_access_token`.
+- En producción, la sesión se valida contra Supabase Auth con la cookie `performlabs_access_token`.
 - Los roles operativos son `platform_owner`, `agency_admin`, `coach_admin` y `coach_staff`.
 - El rol `member` no puede entrar a consola.
 - Las acciones críticas escriben en `audit_log`.

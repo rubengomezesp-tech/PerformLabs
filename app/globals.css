@@ -611,6 +611,1807 @@ textarea {
   font-size: 12px;
 }
 
+.memberHeroCard,
+.memberProgressCard,
+.memberCoachCard,
+.memberProgramCard,
+.onboardingHero,
+.preferenceCard {
+  overflow: hidden;
+}
+
+.memberHeroCard,
+.onboardingHero {
+  border: 1px solid rgba(7, 141, 242, 0.24);
+  border-radius: 8px;
+  background:
+    linear-gradient(135deg, rgba(7, 141, 242, 0.14), rgba(17, 19, 21, 0.96) 48%),
+    var(--panel);
+  padding: 16px;
+}
+
+.memberHero {
+  position: relative;
+  display: grid;
+  min-height: 320px;
+  align-items: end;
+  border-radius: 8px;
+  background:
+    linear-gradient(120deg, rgba(0, 0, 0, 0.9), rgba(0, 0, 0, 0.36)),
+    url("/brand/perform-labs-gym-bg.webp") center/cover;
+  padding: 28px;
+}
+
+.memberHero::before {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  content: "";
+  background:
+    radial-gradient(circle at 72% 34%, rgba(7, 141, 242, 0.2), transparent 28%),
+    linear-gradient(90deg, transparent, rgba(7, 141, 242, 0.18), transparent);
+  mix-blend-mode: screen;
+}
+
+.memberHero > * {
+  position: relative;
+  z-index: 1;
+}
+
+.memberHero h1,
+.onboardingHero h2 {
+  max-width: 720px;
+  margin: 8px 0 12px;
+  font-size: clamp(34px, 5vw, 60px);
+  line-height: 1;
+}
+
+.memberHero p,
+.onboardingHero p {
+  max-width: 620px;
+  color: #e4dac9;
+  line-height: 1.6;
+}
+
+.memberHeroStats {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 10px;
+  margin-top: 24px;
+}
+
+.memberHeroStats span,
+.memberStatsGrid span {
+  display: grid;
+  gap: 4px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 8px;
+  background: rgba(8, 9, 9, 0.72);
+  color: var(--muted);
+  padding: 12px;
+  backdrop-filter: blur(14px);
+}
+
+.memberHeroStats strong,
+.memberStatsGrid strong {
+  color: var(--text);
+  font-family: var(--font-display, Arial, Helvetica, sans-serif);
+  font-size: 22px;
+}
+
+.memberHeroSignal {
+  position: absolute;
+  right: 18px;
+  bottom: 18px;
+  max-width: 300px;
+  border: 1px solid rgba(7, 141, 242, 0.38);
+  border-radius: 8px;
+  background: rgba(9, 10, 11, 0.72);
+  box-shadow: 0 28px 70px rgba(0, 0, 0, 0.38);
+  padding: 14px;
+  backdrop-filter: blur(18px);
+}
+
+.memberHeroSignal strong {
+  display: block;
+  margin-top: 10px;
+  font-family: var(--font-display, Arial, Helvetica, sans-serif);
+  font-size: 19px;
+}
+
+.memberHeroSignal p {
+  margin: 6px 0 0;
+  color: var(--muted);
+  font-size: 13px;
+  line-height: 1.45;
+}
+
+.memberStatsGrid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 10px;
+  margin: 16px 0;
+}
+
+.fullWidth {
+  width: 100%;
+}
+
+.memberActionList {
+  display: grid;
+  gap: 10px;
+}
+
+.memberAction {
+  display: grid;
+  grid-template-columns: 42px 1fr auto;
+  align-items: center;
+  gap: 12px;
+  border: 1px solid rgba(255, 255, 255, 0.09);
+  border-radius: 8px;
+  background:
+    linear-gradient(135deg, rgba(255, 255, 255, 0.04), rgba(7, 141, 242, 0.08)),
+    var(--panel-2);
+  padding: 12px;
+  transition:
+    border-color 180ms ease,
+    background 180ms ease,
+    transform 180ms ease;
+}
+
+.memberAction:hover {
+  border-color: rgba(7, 141, 242, 0.44);
+  background: #1a1e22;
+  transform: translateY(-1px);
+}
+
+.memberActionIcon {
+  display: grid;
+  width: 42px;
+  height: 42px;
+  place-items: center;
+  border: 1px solid rgba(7, 141, 242, 0.34);
+  border-radius: 8px;
+  color: var(--gold);
+}
+
+.memberAction strong,
+.memberAction small {
+  display: block;
+}
+
+.memberAction small {
+  margin-top: 3px;
+  color: var(--muted);
+}
+
+.onboardingHero {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(280px, 0.64fr);
+  gap: 24px;
+  align-items: center;
+}
+
+.onboardingStepRail {
+  display: grid;
+  gap: 10px;
+}
+
+.onboardingStep {
+  display: grid;
+  grid-template-columns: 36px 1fr auto;
+  align-items: center;
+  gap: 10px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background:
+    linear-gradient(135deg, rgba(255, 255, 255, 0.04), rgba(7, 141, 242, 0.08)),
+    var(--panel-2);
+  padding: 12px;
+}
+
+.onboardingStep b {
+  display: grid;
+  width: 36px;
+  height: 36px;
+  place-items: center;
+  border-radius: 999px;
+  background: var(--gold);
+  color: #081019;
+}
+
+.onboardingStep small {
+  color: var(--muted);
+}
+
+.onboardingStatus .progressTrack {
+  margin-top: 16px;
+}
+
+.preferenceCard {
+  display: grid;
+  gap: 12px;
+}
+
+.privacyNote {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  background: rgba(88, 214, 141, 0.08);
+}
+
+.privacyNote p {
+  margin: 4px 0 0;
+}
+
+.coachHero {
+  position: relative;
+  overflow: hidden;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(280px, 0.42fr);
+  gap: 24px;
+  align-items: end;
+  border: 1px solid rgba(7, 141, 242, 0.24);
+  border-radius: 8px;
+  background:
+    radial-gradient(circle at 78% 24%, rgba(7, 141, 242, 0.22), transparent 28%),
+    linear-gradient(135deg, rgba(7, 141, 242, 0.14), rgba(17, 19, 21, 0.96) 48%),
+    var(--panel);
+  padding: clamp(20px, 4vw, 34px);
+}
+
+.coachHero h2 {
+  max-width: 760px;
+  margin: 8px 0 12px;
+  font-size: clamp(34px, 5vw, 62px);
+  line-height: 1;
+}
+
+.coachHero p {
+  max-width: 680px;
+}
+
+.coachHeroPanel {
+  border: 1px solid rgba(7, 141, 242, 0.38);
+  border-radius: 8px;
+  background: rgba(9, 10, 11, 0.72);
+  box-shadow: 0 28px 70px rgba(0, 0, 0, 0.32);
+  padding: 16px;
+  backdrop-filter: blur(18px);
+}
+
+.coachHeroPanel strong {
+  display: block;
+  margin-top: 10px;
+  font-family: var(--font-display, Arial, Helvetica, sans-serif);
+  font-size: 34px;
+}
+
+.coachBuilderCard {
+  display: grid;
+  grid-template-columns: minmax(280px, 0.42fr) minmax(0, 1fr);
+  align-items: center;
+  gap: 20px;
+  background:
+    linear-gradient(135deg, rgba(255, 255, 255, 0.04), rgba(7, 141, 242, 0.1)),
+    var(--panel);
+}
+
+.coachBuilderCard > div {
+  min-width: 0;
+}
+
+.coachBuilderCard h2 {
+  margin: 4px 0 8px;
+}
+
+.coachFlow {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.coachFlow span {
+  border: 1px solid rgba(7, 141, 242, 0.34);
+  border-radius: 999px;
+  background: rgba(7, 141, 242, 0.1);
+  color: var(--text);
+  padding: 8px 11px;
+  font-size: 13px;
+  font-weight: 800;
+}
+
+.coachQuickCreate {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(140px, 1fr)) auto;
+  gap: 12px;
+  align-items: end;
+  min-width: 0;
+}
+
+.coachMemberCreate {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(140px, 1fr)) auto;
+  gap: 12px;
+  align-items: end;
+  min-width: min(100%, 980px);
+}
+
+.coachNutritionCreate {
+  display: grid;
+  grid-template-columns: repeat(5, minmax(120px, 1fr)) auto;
+  gap: 12px;
+  align-items: end;
+  min-width: min(100%, 1080px);
+}
+
+.nutritionLabCard,
+.trainingLabCard {
+  border-color: rgba(216, 189, 107, 0.24);
+  background:
+    linear-gradient(135deg, rgba(216, 189, 107, 0.08), rgba(7, 141, 242, 0.08)),
+    var(--panel);
+}
+
+.macroLabGrid,
+.trainingBlueprintGrid {
+  display: grid;
+  grid-template-columns: minmax(0, 1.1fr) minmax(300px, 0.9fr);
+  gap: 18px;
+  align-items: start;
+}
+
+.quarterlyModuleStrip {
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  gap: 10px;
+  margin-bottom: 16px;
+}
+
+.quarterlyModuleStrip span,
+.moduleLibraryForm {
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.035);
+  color: var(--muted);
+  padding: 12px;
+}
+
+.quarterlyModuleStrip strong {
+  display: block;
+  margin-top: 4px;
+  color: var(--text);
+}
+
+.moduleLibraryForm {
+  display: grid;
+  gap: 8px;
+}
+
+.moduleLibraryForm small {
+  color: var(--muted);
+}
+
+.macroLabForm,
+.trainingBlueprintForm {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.macroResultPanel,
+.trainingPhasePanel {
+  display: grid;
+  gap: 12px;
+}
+
+.macroSplit {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.macroSplit span,
+.phaseTile {
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.035);
+  padding: 12px;
+}
+
+.macroSplit strong {
+  display: block;
+  color: var(--text);
+  font-size: 20px;
+}
+
+.notificationPlaybookGrid,
+.notificationReadinessGrid,
+.notificationPreferenceGrid {
+  display: grid;
+  gap: 12px;
+}
+
+.notificationPlaybookGrid {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.notificationComposer,
+.notificationTemplateForm {
+  display: grid;
+  gap: 12px;
+  align-items: end;
+}
+
+.notificationComposer {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.notificationTemplateForm {
+  grid-template-columns: minmax(220px, 1.4fr) minmax(140px, 0.6fr) minmax(180px, 1fr) minmax(110px, 0.45fr);
+}
+
+.notificationReadinessGrid,
+.notificationPreferenceGrid {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.notificationReadinessGrid span,
+.notificationPreferenceGrid span {
+  display: flex;
+  min-height: 48px;
+  align-items: center;
+  gap: 10px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.035);
+  color: var(--muted);
+  padding: 12px;
+}
+
+.notificationPreferenceCard,
+.memberAlertCard {
+  border-color: rgba(7, 141, 242, 0.26);
+}
+
+.checkinGridForm,
+.checkinReviewForm {
+  display: grid;
+  gap: 12px;
+  align-items: end;
+}
+
+.checkinGridForm {
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+}
+
+.checkinReviewForm {
+  margin-top: 14px;
+  grid-template-columns: minmax(160px, 0.6fr) minmax(0, 1fr);
+}
+
+.checkinFormCard {
+  border-color: rgba(7, 141, 242, 0.24);
+}
+
+.coachAlertGrid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.coachAlert {
+  display: grid;
+  gap: 8px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.035);
+  padding: 14px;
+}
+
+.coachAlert.high {
+  border-color: rgba(255, 102, 124, 0.42);
+}
+
+.coachAlert.medium {
+  border-color: rgba(7, 141, 242, 0.36);
+}
+
+.coachAlert.low {
+  border-color: rgba(88, 214, 141, 0.28);
+}
+
+.coachProgramCommand {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(220px, 0.55fr);
+  gap: 16px;
+  align-items: start;
+}
+
+.coachProgramTabs {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.coachProgramControls {
+  display: grid;
+  gap: 10px;
+  justify-items: end;
+}
+
+.coachProgramTabs .tag {
+  border-color: rgba(255, 255, 255, 0.12);
+}
+
+.coachProgramTabs .tag.isActive {
+  border-color: var(--gold);
+  background: var(--gold);
+  color: #07111d;
+}
+
+.coachProgramStats {
+  grid-column: 1 / -1;
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.coachProgramStats span {
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.035);
+  color: var(--muted);
+  padding: 12px;
+}
+
+.coachProgramStats strong {
+  display: block;
+  margin-top: 4px;
+  color: var(--text);
+  font-size: 22px;
+}
+
+.supportConversationForm,
+.contentQuickForm,
+.supportReplyForm {
+  display: grid;
+  gap: 12px;
+  align-items: end;
+}
+
+.supportConversationForm {
+  grid-template-columns: minmax(0, 1fr) 160px 140px;
+}
+
+.contentQuickForm {
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  width: 100%;
+  min-width: 0;
+}
+
+.supportReplyForm {
+  grid-template-columns: 180px minmax(0, 1fr) auto;
+}
+
+.supportComposerCard {
+  border-color: rgba(7, 141, 242, 0.28);
+}
+
+.supportThreadList,
+.supportInbox {
+  display: grid;
+  gap: 12px;
+}
+
+.supportThread,
+.supportInboxItem {
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.035);
+  padding: 14px;
+}
+
+.supportThread {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 14px;
+}
+
+.supportThread h3,
+.supportInboxItem h3 {
+  margin: 8px 0 6px;
+}
+
+.nutritionStrategyCard,
+.trainingIntelligenceCard {
+  border-color: rgba(7, 141, 242, 0.26);
+}
+
+.nutritionDecisionGrid,
+.trainingDecisionGrid {
+  display: grid;
+  grid-template-columns: minmax(0, 0.8fr) minmax(0, 1.2fr);
+  gap: 12px;
+  margin-bottom: 14px;
+}
+
+.carbCyclingGrid,
+.weeklyPeriodizationGrid {
+  display: grid;
+  gap: 10px;
+}
+
+.carbCyclingGrid {
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+}
+
+.weeklyPeriodizationGrid {
+  grid-template-columns: repeat(6, minmax(0, 1fr));
+}
+
+.carbDayCard,
+.weekLoadCard {
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.035);
+  padding: 12px;
+}
+
+.carbDayCard h3 {
+  margin: 10px 0 6px;
+}
+
+.weekLoadCard span {
+  color: var(--gold);
+  font-size: 12px;
+  font-weight: 800;
+  text-transform: uppercase;
+}
+
+.weekLoadCard strong {
+  display: block;
+  margin: 6px 0;
+}
+
+.weekLoadCard.deload {
+  border-color: rgba(88, 214, 141, 0.34);
+  background: rgba(88, 214, 141, 0.07);
+}
+
+.memberTrainingLoadPanel {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+  padding: 0 16px 16px;
+}
+
+.memberTrainingLoadPanel section,
+.memberNutritionStrategy {
+  border-color: rgba(7, 141, 242, 0.26);
+}
+
+.memberTrainingLoadPanel section {
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.035);
+  padding: 14px;
+}
+
+.memberWeekLoadStrip,
+.memberCarbDayGrid {
+  display: grid;
+  gap: 10px;
+}
+
+.memberWeekLoadStrip {
+  grid-template-columns: repeat(6, minmax(0, 1fr));
+  padding: 0 16px 16px;
+}
+
+.memberWeekLoadStrip span {
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.035);
+  color: var(--muted);
+  padding: 10px;
+}
+
+.memberWeekLoadStrip strong {
+  display: block;
+  margin-top: 4px;
+  color: var(--text);
+  font-size: 12px;
+}
+
+.memberWeekLoadStrip .isCurrent {
+  border-color: rgba(7, 141, 242, 0.56);
+  background: rgba(7, 141, 242, 0.12);
+  color: var(--text);
+}
+
+.memberWeekLoadStrip .isDeload {
+  border-color: rgba(88, 214, 141, 0.32);
+}
+
+.memberCarbDayGrid {
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  margin-bottom: 14px;
+}
+
+.phaseTile span {
+  color: var(--gold);
+  font-size: 12px;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0;
+}
+
+.phaseTile h3 {
+  margin: 6px 0;
+}
+
+.phaseTile p {
+  margin: 0 0 8px;
+}
+
+.phaseTile small {
+  color: var(--muted);
+}
+
+.exerciseImportBanner {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 18px;
+  border-color: rgba(216, 189, 107, 0.24);
+  background:
+    linear-gradient(135deg, rgba(216, 189, 107, 0.08), rgba(7, 141, 242, 0.08)),
+    var(--panel);
+}
+
+.exerciseImportBanner h2 {
+  margin: 4px 0 8px;
+}
+
+.exerciseFilters {
+  display: grid;
+  grid-template-columns: minmax(180px, 1.2fr) minmax(180px, 1.2fr) repeat(4, minmax(130px, 1fr)) auto;
+  gap: 12px;
+  align-items: end;
+}
+
+.exerciseStats {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.exerciseStats span {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.035);
+  color: var(--muted);
+  padding: 12px;
+}
+
+.exerciseStats strong {
+  color: var(--text);
+  font-size: 20px;
+}
+
+.exerciseLibraryGrid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 14px;
+}
+
+.exerciseCard {
+  overflow: hidden;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.03);
+}
+
+.exerciseMedia {
+  position: relative;
+  display: grid;
+  place-items: center;
+  aspect-ratio: 16 / 10;
+  background: #0b0d10;
+}
+
+.exerciseMedia img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  padding: 10px;
+}
+
+.videoBadge {
+  position: absolute;
+  right: 10px;
+  bottom: 10px;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 999px;
+  background: rgba(10, 12, 14, 0.86);
+  color: var(--muted);
+  padding: 6px 9px;
+  font-size: 12px;
+  font-weight: 800;
+}
+
+.videoBadge.ready {
+  border-color: rgba(44, 211, 159, 0.3);
+  color: var(--green);
+}
+
+.exerciseCardBody {
+  display: grid;
+  gap: 12px;
+  padding: 14px;
+}
+
+.exerciseCardBody h3 {
+  margin: 0 0 5px;
+  font-size: 17px;
+}
+
+.exerciseCardBody p {
+  margin: 0;
+}
+
+.exerciseTags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 7px;
+}
+
+.exerciseTags span {
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  color: var(--muted);
+  padding: 5px 8px;
+  font-size: 12px;
+}
+
+.exerciseInstructions {
+  display: -webkit-box;
+  min-height: 58px;
+  overflow: hidden;
+  color: var(--muted);
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 3;
+  line-height: 1.45;
+}
+
+.exerciseVideoForm {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+  margin-top: 10px;
+}
+
+.exerciseVideoForm label {
+  font-size: 12px;
+}
+
+.exerciseVideoDetails {
+  border-top: 1px solid var(--line);
+  padding-top: 12px;
+}
+
+.exerciseVideoDetails summary {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  min-height: 38px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.035);
+  color: var(--text);
+  cursor: pointer;
+  font-size: 13px;
+  font-weight: 800;
+  list-style: none;
+}
+
+.exerciseVideoDetails summary::-webkit-details-marker {
+  display: none;
+}
+
+.exerciseVideoForm label:nth-of-type(2),
+.exerciseVideoForm label:nth-of-type(3),
+.exerciseVideoForm button {
+  grid-column: 1 / -1;
+}
+
+.compactToggle {
+  min-height: 42px;
+  align-self: end;
+  font-size: 12px;
+}
+
+.exerciseActions {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.coachAssignForm {
+  display: grid;
+  gap: 10px;
+  margin-top: 14px;
+  border-top: 1px solid var(--line);
+  padding-top: 14px;
+}
+
+.memberAssignmentState {
+  display: grid;
+  gap: 5px;
+  border: 1px solid rgba(216, 189, 107, 0.2);
+  border-radius: 8px;
+  background: rgba(216, 189, 107, 0.055);
+  margin-top: 12px;
+  padding: 12px;
+}
+
+.memberAssignmentState strong {
+  color: var(--text);
+}
+
+.memberAssignmentState p,
+.memberAssignmentState small {
+  margin: 0;
+  color: var(--muted);
+}
+
+.workoutAppHero {
+  position: relative;
+  overflow: hidden;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(280px, 0.34fr);
+  gap: 24px;
+  align-items: stretch;
+  border: 1px solid rgba(7, 141, 242, 0.24);
+  border-radius: 8px;
+  background:
+    radial-gradient(circle at 88% 14%, rgba(7, 141, 242, 0.2), transparent 30%),
+    linear-gradient(135deg, rgba(7, 141, 242, 0.12), rgba(17, 19, 21, 0.96) 44%),
+    var(--panel);
+  padding: clamp(18px, 3vw, 28px);
+}
+
+.workoutAppHero h2 {
+  max-width: 760px;
+  margin: 8px 0 10px;
+  font-size: clamp(30px, 4vw, 48px);
+  line-height: 1.02;
+}
+
+.workoutAppHero p {
+  max-width: 720px;
+  font-size: 17px;
+}
+
+.workoutAppCard {
+  display: grid;
+  gap: 14px;
+}
+
+.workoutHeroMeta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 18px;
+}
+
+.workoutHeroMeta span {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.045);
+  color: var(--muted);
+  padding: 8px 10px;
+  font-size: 13px;
+  font-weight: 800;
+}
+
+.workoutActionRail {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-top: 18px;
+}
+
+.workoutProgressTrack {
+  overflow: hidden;
+  height: 8px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.08);
+  margin-top: 16px;
+}
+
+.workoutProgressTrack span {
+  display: block;
+  height: 100%;
+  border-radius: inherit;
+  background: var(--gold);
+}
+
+.workoutMenuGrid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 14px;
+}
+
+.workoutStatusCard {
+  display: grid;
+  gap: 14px;
+  align-content: start;
+}
+
+.workoutStatusCard > div:first-child {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.workoutStatusCard > div:first-child span {
+  display: grid;
+  gap: 4px;
+}
+
+.workoutStatusCard small {
+  color: var(--muted);
+}
+
+.workoutStatusCard > div:first-child small {
+  font-size: 11px;
+  letter-spacing: 0;
+  text-transform: uppercase;
+}
+
+.workoutStatusCard > div:first-child strong {
+  border: 1px solid rgba(216, 189, 107, 0.28);
+  border-radius: 8px;
+  color: var(--gold);
+  padding: 7px 10px;
+  white-space: nowrap;
+}
+
+.workoutStatusCard p {
+  margin: 0;
+  color: var(--muted);
+}
+
+.workoutMenuPanel {
+  padding: 0;
+}
+
+.workoutMenuPanel summary,
+.sessionExerciseAccordion summary {
+  cursor: pointer;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto auto;
+  align-items: center;
+  gap: 12px;
+  list-style: none;
+  padding: 16px;
+}
+
+.workoutMenuPanel summary::-webkit-details-marker,
+.sessionExerciseAccordion summary::-webkit-details-marker {
+  display: none;
+}
+
+.workoutMenuPanel summary::after,
+.sessionExerciseAccordion summary::after {
+  content: "+";
+  display: grid;
+  width: 28px;
+  height: 28px;
+  place-items: center;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  color: var(--gold);
+}
+
+.workoutMenuPanel[open] summary::after,
+.sessionExerciseAccordion[open] summary::after {
+  content: "-";
+}
+
+.workoutMenuPanel summary span,
+.sessionExerciseAccordion summary span {
+  display: grid;
+  gap: 3px;
+  min-width: 0;
+}
+
+.workoutMenuPanel summary small,
+.sessionExerciseAccordion summary small {
+  color: var(--muted);
+  font-size: 11px;
+  letter-spacing: 0;
+  text-transform: uppercase;
+}
+
+.workoutMenuPanel summary strong,
+.sessionExerciseAccordion summary b {
+  justify-self: end;
+  border: 1px solid rgba(216, 189, 107, 0.28);
+  border-radius: 8px;
+  color: var(--gold);
+  padding: 7px 9px;
+  white-space: nowrap;
+}
+
+.workoutSession {
+  display: grid;
+  gap: 16px;
+  border-color: rgba(216, 189, 107, 0.22);
+}
+
+.workoutSession > .sectionHeader {
+  align-items: flex-start;
+}
+
+.sessionSummaryPills {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 8px;
+}
+
+.sessionSummaryPills span {
+  border: 1px solid rgba(216, 189, 107, 0.28);
+  border-radius: 8px;
+  color: var(--gold);
+  padding: 8px 10px;
+  font-weight: 800;
+  white-space: nowrap;
+}
+
+.sessionQuickGuide {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.sessionQuickGuide span {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.035);
+  color: var(--muted);
+  padding: 11px 12px;
+  font-size: 13px;
+  font-weight: 800;
+}
+
+.sessionQuickGuide strong {
+  display: grid;
+  width: 26px;
+  height: 26px;
+  flex: 0 0 26px;
+  place-items: center;
+  border-radius: 999px;
+  background: var(--gold);
+  color: #101112;
+}
+
+.workoutMetrics {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+  padding: 0;
+}
+
+.workoutMetrics span {
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.035);
+  color: var(--muted);
+  padding: 12px;
+}
+
+.workoutMetrics strong {
+  display: block;
+  margin-top: 5px;
+  color: var(--text);
+  font-size: 20px;
+}
+
+.rotationCard {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+  border-color: rgba(216, 189, 107, 0.22);
+}
+
+.rotationCard.compact {
+  border: 0;
+  padding: 0 16px 16px;
+}
+
+.rotationCard h2 {
+  margin: 4px 0 8px;
+}
+
+.sessionCoachNotes {
+  white-space: pre-line;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.035);
+  color: var(--muted);
+  padding: 12px;
+}
+
+.sessionExerciseList {
+  display: grid;
+  gap: 14px;
+}
+
+.sessionExerciseAccordion {
+  overflow: hidden;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.025);
+}
+
+.sessionExerciseAccordion.isCurrentExercise {
+  border-color: rgba(216, 189, 107, 0.42);
+  box-shadow: 0 18px 60px rgba(0, 0, 0, 0.24);
+}
+
+.monthRoutinePanel {
+  overflow: hidden;
+  display: grid;
+  gap: 10px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.025);
+}
+
+.weekRoutinePanel {
+  overflow: hidden;
+  display: grid;
+  gap: 10px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 8px;
+  background: rgba(0, 0, 0, 0.13);
+  margin: 0 12px 12px;
+}
+
+.sessionExerciseAccordion summary {
+  background:
+    linear-gradient(135deg, rgba(255, 255, 255, 0.04), rgba(7, 141, 242, 0.06)),
+    rgba(255, 255, 255, 0.02);
+}
+
+.sessionExerciseAccordion.isCurrentExercise summary {
+  background:
+    linear-gradient(135deg, rgba(216, 189, 107, 0.11), rgba(7, 141, 242, 0.08)),
+    rgba(255, 255, 255, 0.025);
+}
+
+.monthRoutinePanel summary,
+.weekRoutinePanel summary {
+  cursor: pointer;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto auto;
+  align-items: center;
+  gap: 12px;
+  list-style: none;
+  background:
+    linear-gradient(135deg, rgba(216, 189, 107, 0.08), rgba(7, 141, 242, 0.06)),
+    rgba(255, 255, 255, 0.02);
+  padding: 12px;
+}
+
+.weekRoutinePanel summary {
+  background:
+    linear-gradient(135deg, rgba(255, 255, 255, 0.035), rgba(7, 141, 242, 0.045)),
+    rgba(255, 255, 255, 0.015);
+}
+
+.monthRoutinePanel summary::-webkit-details-marker,
+.weekRoutinePanel summary::-webkit-details-marker {
+  display: none;
+}
+
+.monthRoutinePanel summary::after,
+.weekRoutinePanel summary::after {
+  content: "+";
+  display: grid;
+  width: 28px;
+  height: 28px;
+  place-items: center;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  color: var(--gold);
+}
+
+.monthRoutinePanel[open] summary::after,
+.weekRoutinePanel[open] summary::after {
+  content: "-";
+}
+
+.monthRoutinePanel summary span,
+.weekRoutinePanel summary span {
+  display: grid;
+  gap: 3px;
+  min-width: 0;
+}
+
+.monthRoutinePanel summary small,
+.weekRoutinePanel summary small {
+  color: var(--muted);
+  font-size: 11px;
+  letter-spacing: 0;
+  text-transform: uppercase;
+}
+
+.monthRoutinePanel summary b,
+.weekRoutinePanel summary b {
+  justify-self: end;
+  border: 1px solid rgba(216, 189, 107, 0.28);
+  border-radius: 8px;
+  color: var(--gold);
+  padding: 7px 9px;
+  white-space: nowrap;
+}
+
+.monthRoutinePanel > p {
+  margin: 0;
+  color: var(--muted);
+  padding: 0 12px;
+}
+
+.monthRoutinePanel > .list,
+.coachMonthPanel > .taskItem {
+  margin: 0 12px 12px;
+}
+
+.coachMonthPanel {
+  padding-bottom: 2px;
+}
+
+.weekRoutinePanel .taskItem {
+  margin: 0 12px 12px;
+}
+
+.sessionExercise {
+  overflow: hidden;
+  display: grid;
+  grid-template-columns: minmax(170px, 0.32fr) 1fr;
+  border-top: 1px solid var(--line);
+  background: rgba(255, 255, 255, 0.03);
+}
+
+.sessionExerciseMedia {
+  position: relative;
+  display: grid;
+  place-items: center;
+  min-height: 180px;
+  background:
+    radial-gradient(circle at 50% 35%, rgba(216, 189, 107, 0.14), transparent 34%),
+    #0b0d10;
+  color: var(--gold);
+}
+
+.sessionExerciseMedia img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.sessionExerciseBody {
+  display: grid;
+  gap: 12px;
+  align-content: start;
+  padding: 16px;
+}
+
+.sessionLogForm {
+  display: grid;
+  gap: 16px;
+}
+
+.sessionExerciseBody h3 {
+  margin: 0;
+  font-size: 22px;
+}
+
+.sessionPrescription {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 8px;
+}
+
+.sessionPrescription span {
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.035);
+  color: var(--muted);
+  padding: 10px;
+  font-size: 12px;
+}
+
+.sessionPrescription strong {
+  display: block;
+  color: var(--text);
+  font-size: 19px;
+}
+
+.setLogGrid {
+  display: grid;
+  gap: 10px;
+}
+
+.setLogRow {
+  display: grid;
+  grid-template-columns: 72px minmax(90px, 0.7fr) minmax(90px, 0.7fr) minmax(150px, 1fr);
+  gap: 10px;
+  align-items: end;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.04);
+  padding: 10px;
+}
+
+.setLogRow strong {
+  align-self: center;
+  color: var(--text);
+  font-size: 14px;
+}
+
+.setLogRow label {
+  display: grid;
+  gap: 5px;
+  color: var(--muted);
+  font-size: 12px;
+  font-weight: 800;
+}
+
+.setLogRow input,
+.setLogRow select {
+  min-height: 42px;
+}
+
+.sessionSavePanel {
+  display: grid;
+  grid-template-columns: 130px 130px 1fr auto;
+  gap: 12px;
+  align-items: end;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background:
+    linear-gradient(135deg, rgba(216, 189, 107, 0.08), rgba(7, 141, 242, 0.05)),
+    rgba(255, 255, 255, 0.035);
+  padding: 14px;
+}
+
+.sessionSavePanel .btn {
+  min-height: 46px;
+}
+
+.workoutLibraryPanel {
+  overflow: hidden;
+}
+
+.workoutLibraryGrid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 14px;
+  padding: 0 16px 16px;
+}
+
+.workoutDayScroller {
+  overflow: auto;
+  max-height: 430px;
+  padding-right: 4px;
+}
+
+.mealAppHero {
+  position: relative;
+  overflow: hidden;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(280px, 0.34fr);
+  gap: 24px;
+  align-items: stretch;
+  border: 1px solid rgba(216, 189, 107, 0.26);
+  border-radius: 8px;
+  background:
+    radial-gradient(circle at 86% 18%, rgba(216, 189, 107, 0.2), transparent 30%),
+    linear-gradient(135deg, rgba(216, 189, 107, 0.12), rgba(18, 20, 18, 0.96) 46%),
+    var(--panel);
+  padding: clamp(18px, 3vw, 28px);
+}
+
+.mealAppHero h1 {
+  max-width: 760px;
+  margin: 8px 0 10px;
+  font-size: clamp(30px, 4vw, 48px);
+  line-height: 1.02;
+}
+
+.mealAppHero p {
+  max-width: 720px;
+  font-size: 17px;
+}
+
+.mealHeroMeta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 18px;
+}
+
+.mealHeroMeta span {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.045);
+  color: var(--muted);
+  padding: 8px 10px;
+  font-size: 13px;
+  font-weight: 800;
+}
+
+.mealHeroActions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-top: 18px;
+}
+
+.mealStatusGrid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 14px;
+}
+
+.mealStatusCard {
+  display: grid;
+  gap: 14px;
+  align-content: start;
+}
+
+.mealStatusCard > div:first-child {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.mealStatusCard > div:first-child span {
+  display: grid;
+  gap: 4px;
+}
+
+.mealStatusCard small {
+  color: var(--muted);
+  font-size: 11px;
+  letter-spacing: 0;
+  text-transform: uppercase;
+}
+
+.mealStatusCard strong {
+  border: 1px solid rgba(216, 189, 107, 0.28);
+  border-radius: 8px;
+  color: var(--gold);
+  padding: 7px 10px;
+  white-space: nowrap;
+}
+
+.mealStatusCard p {
+  margin: 0;
+  color: var(--muted);
+}
+
+.mealMiniProgress {
+  overflow: hidden;
+  height: 8px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.08);
+}
+
+.mealMiniProgress span {
+  display: block;
+  height: 100%;
+  border-radius: inherit;
+  background: linear-gradient(90deg, var(--gold), rgba(7, 141, 242, 0.78));
+}
+
+.mealAppCard {
+  display: grid;
+  gap: 12px;
+}
+
+.mealAppCard.isNextMeal {
+  border-color: rgba(216, 189, 107, 0.42);
+  background:
+    linear-gradient(135deg, rgba(216, 189, 107, 0.08), rgba(7, 141, 242, 0.04)),
+    var(--panel);
+}
+
+.mealAppCardTop {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.mealAppCardTop span,
+.mealAppCard small {
+  color: var(--muted);
+  font-size: 12px;
+  font-weight: 800;
+  text-transform: uppercase;
+}
+
+.mealAppCard p {
+  margin: 0;
+  color: var(--muted);
+}
+
+.mealCardActions {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+  margin-top: 4px;
+}
+
+.mealCardActions .btn {
+  width: 100%;
+}
+
+.mealMacroGrid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 6px;
+}
+
+.mealMacroGrid span {
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.04);
+  color: var(--muted);
+  padding: 8px;
+  font-size: 12px;
+}
+
+.mealMacroGrid strong {
+  display: block;
+  color: var(--text);
+  font-size: 17px;
+}
+
+.mealTemplateCard,
+.mealShoppingCard,
+.mealDailyCheckCard,
+.mealCoachNote {
+  display: grid;
+  gap: 12px;
+}
+
+.mealDailyForm {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.mealDailyForm label {
+  display: grid;
+  gap: 7px;
+  color: var(--muted);
+  font-size: 13px;
+  font-weight: 800;
+}
+
+.mealDailyForm input,
+.mealDailyForm select,
+.mealDailyForm textarea {
+  width: 100%;
+}
+
+.mealDailyForm .spanFull {
+  grid-column: 1 / -1;
+}
+
+.mealShoppingRows {
+  display: grid;
+  gap: 8px;
+}
+
+.mealShoppingRows span {
+  display: flex;
+  justify-content: space-between;
+  gap: 10px;
+  border-top: 1px solid var(--line);
+  padding-top: 10px;
+  color: var(--muted);
+}
+
+.entitlementGate {
+  display: grid;
+  min-height: calc(100vh - 48px);
+  place-items: center;
+  padding: 20px;
+}
+
+.entitlementGatePanel {
+  display: grid;
+  width: min(100%, 560px);
+  gap: 12px;
+  border: 1px solid rgba(216, 189, 107, 0.26);
+  border-radius: 8px;
+  background:
+    linear-gradient(135deg, rgba(216, 189, 107, 0.13), rgba(18, 20, 18, 0.98)),
+    var(--panel);
+  padding: clamp(22px, 5vw, 38px);
+  text-align: center;
+}
+
+.entitlementGateIcon {
+  display: inline-flex;
+  width: 52px;
+  height: 52px;
+  align-items: center;
+  justify-content: center;
+  justify-self: center;
+  border: 1px solid rgba(216, 189, 107, 0.42);
+  border-radius: 999px;
+  color: var(--gold);
+}
+
+.entitlementGatePanel h1 {
+  margin: 0;
+  font-size: clamp(30px, 5vw, 48px);
+  line-height: 1;
+}
+
+.entitlementGatePanel p {
+  margin: 0;
+  color: var(--muted);
+}
+
+.entitlementGatePanel small {
+  color: var(--muted);
+}
+
+.workoutExerciseChips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-top: 8px;
+}
+
+.workoutExerciseChips span {
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.04);
+  color: var(--muted);
+  padding: 5px 8px;
+  font-size: 12px;
+}
+
 .proofStrip {
   display: flex;
   flex-wrap: wrap;
@@ -1691,6 +3492,76 @@ textarea {
   grid-template-columns: repeat(2, minmax(0, 1fr));
 }
 
+.entitlementForm {
+  border-top: 1px solid var(--line);
+  padding-top: 16px;
+}
+
+.moduleMatrix {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+  padding: 12px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+}
+
+.moduleMatrix legend {
+  padding: 0 8px;
+  color: var(--muted);
+  font-size: 12px;
+  text-transform: uppercase;
+  letter-spacing: 0;
+}
+
+.moduleToggle {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  align-items: start;
+  gap: 10px;
+  padding: 10px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.03);
+}
+
+.moduleToggle input {
+  width: 18px;
+  min-height: 18px;
+  margin-top: 2px;
+  accent-color: var(--gold);
+}
+
+.moduleToggle strong {
+  display: block;
+  color: var(--text);
+  font-size: 13px;
+}
+
+.moduleToggle small {
+  display: block;
+  margin-top: 3px;
+  color: var(--muted);
+  line-height: 1.35;
+}
+
+.sectionHeader.compact {
+  grid-column: 1 / -1;
+  margin-bottom: 0;
+}
+
+.sectionHeader.compact h3 {
+  margin: 4px 0;
+}
+
+.sectionHeader.compact p {
+  margin: 0;
+}
+
+.span2 {
+  grid-column: span 2;
+}
+
 .formActions {
   display: flex;
 }
@@ -1848,14 +3719,106 @@ input[type="color"] {
   margin-top: 10px;
 }
 
+.workoutExerciseEditor {
+  overflow: hidden;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.025);
+}
+
+.workoutExerciseEditor + .workoutExerciseEditor {
+  margin-top: 8px;
+}
+
+.workoutExerciseEditor details > summary {
+  cursor: pointer;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto auto;
+  align-items: center;
+  gap: 10px;
+  list-style: none;
+  padding: 10px;
+}
+
+.workoutExerciseEditor details > summary::-webkit-details-marker {
+  display: none;
+}
+
+.workoutExerciseEditor details > summary::after {
+  content: "+";
+  display: grid;
+  width: 26px;
+  height: 26px;
+  place-items: center;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  color: var(--gold);
+}
+
+.workoutExerciseEditor details[open] > summary::after {
+  content: "-";
+}
+
+.workoutExerciseEditor small,
+.workoutExerciseEditor > details > p {
+  color: var(--muted);
+}
+
+.workoutExerciseEditor > details > p {
+  margin: 0;
+  padding: 0 10px 10px;
+}
+
+.coachProgramGroups {
+  display: grid;
+  gap: 14px;
+}
+
+.coachProgramGroupGrid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 14px;
+  padding: 0 16px 16px;
+}
+
+.coachProgramEmpty {
+  margin: 0;
+  padding: 0 16px 16px;
+}
+
 .workoutExerciseForm {
   display: grid;
-  grid-template-columns: minmax(180px, 1fr) 80px 100px 100px;
+  grid-template-columns: minmax(220px, 1.3fr) 80px 100px 90px 100px 100px minmax(150px, 1fr);
   gap: 10px;
   align-items: end;
   margin-top: 12px;
   border-top: 1px solid var(--line);
   padding-top: 12px;
+}
+
+.editWorkoutExerciseForm {
+  margin: 0;
+  padding: 10px;
+}
+
+.lockedExerciseField {
+  display: grid;
+  gap: 4px;
+  min-height: 44px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.035);
+  padding: 10px 12px;
+}
+
+.lockedExerciseField span,
+.lockedExerciseField small {
+  color: var(--muted);
+}
+
+.lockedExerciseField strong {
+  color: var(--text);
+  line-height: 1.2;
 }
 
 .billingPlanForm {
@@ -2295,6 +4258,111 @@ input[type="color"] {
     justify-self: stretch;
   }
 
+  .memberHero,
+  .onboardingHero {
+    grid-template-columns: 1fr;
+    min-height: auto;
+    padding: 20px;
+  }
+
+  .coachHero,
+  .coachBuilderCard,
+  .exerciseImportBanner,
+  .workoutAppHero,
+  .mealAppHero {
+    grid-template-columns: 1fr;
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .mealMacroGrid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .coachQuickCreate {
+    grid-template-columns: 1fr;
+    width: 100%;
+  }
+
+  .coachMemberCreate {
+    grid-template-columns: 1fr;
+    width: 100%;
+  }
+
+  .coachNutritionCreate {
+    grid-template-columns: 1fr;
+    width: 100%;
+  }
+
+  .macroLabGrid,
+  .trainingBlueprintGrid,
+  .quarterlyModuleStrip,
+  .exerciseFilters,
+  .exerciseStats,
+  .exerciseLibraryGrid,
+  .notificationPlaybookGrid,
+  .notificationComposer,
+  .notificationTemplateForm,
+  .notificationReadinessGrid,
+  .notificationPreferenceGrid,
+  .checkinGridForm,
+  .checkinReviewForm,
+  .coachAlertGrid,
+  .supportConversationForm,
+  .contentQuickForm,
+  .supportReplyForm,
+  .nutritionDecisionGrid,
+  .trainingDecisionGrid,
+  .carbCyclingGrid,
+  .weeklyPeriodizationGrid,
+  .coachProgramCommand,
+  .coachProgramStats,
+  .memberTrainingLoadPanel,
+  .memberWeekLoadStrip,
+  .memberCarbDayGrid,
+  .workoutMenuGrid,
+  .mealStatusGrid,
+  .workoutLibraryGrid,
+  .coachProgramGroupGrid,
+  .workoutMetrics,
+  .sessionExerciseList,
+  .sessionExercise,
+  .setLogRow,
+  .sessionSavePanel,
+  .mealCardActions,
+  .mealDailyForm,
+  .macroLabForm,
+  .trainingBlueprintForm {
+    grid-template-columns: 1fr;
+  }
+
+  .rotationCard {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .macroSplit {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .memberHeroStats {
+    grid-template-columns: 1fr;
+  }
+
+  .memberHeroSignal {
+    position: static;
+    max-width: none;
+    margin-top: 14px;
+  }
+
+  .onboardingStep {
+    grid-template-columns: 36px 1fr;
+  }
+
+  .onboardingStep small {
+    grid-column: 2;
+  }
+
   .heroProductVisual {
     min-height: 420px;
   }
@@ -2390,6 +4458,10 @@ input[type="color"] {
 
   .formGrid,
   .editForm {
+    grid-template-columns: 1fr;
+  }
+
+  .moduleMatrix {
     grid-template-columns: 1fr;
   }
 

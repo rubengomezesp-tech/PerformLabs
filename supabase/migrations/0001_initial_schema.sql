@@ -31,7 +31,7 @@ create table public.workspaces (
   support_email text,
   logo_url text,
   accent_color text not null default '#d8bd6b',
-  app_name text not null default 'CoachOS',
+  app_name text not null default 'Coach App',
   is_active boolean not null default true,
   created_at timestamptz not null default now(),
   updated_at timestamptz not null default now()

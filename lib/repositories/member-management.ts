@@ -16,6 +16,16 @@ export type ManagedMember = {
   onboardingStatus: string;
   timezone: string;
   createdAt: string;
+  activeWorkoutPlan: {
+    id: string;
+    name: string;
+    daysPerWeek: number | null;
+    currentMonth: number;
+    currentWeek: number;
+    nextReviewOn: string;
+    reviewStatus: string;
+    assignmentGoal: string;
+  } | null;
 };
 
 export type MemberInput = {
@@ -35,6 +45,12 @@ export type MemberAssignmentInput = {
   memberProfileId: string;
   workoutTemplateId: string;
   dietTemplateId: string;
+  assignmentGoal?: string;
+  assignmentNotes?: string;
+  currentMonth?: string;
+  currentWeek?: string;
+  nextReviewOn?: string;
+  assignedBy?: string | null;
 };
 
 function parseNumber(value: string) {
@@ -56,7 +72,20 @@ function fallbackMembers(): ManagedMember[] {
     onboardingStatus: "demo",
     timezone: "Europe/Madrid",
     createdAt: new Date().toISOString(),
+    activeWorkoutPlan: null,
   }));
+}
+
+function parseInteger(value: string | undefined, fallback: number, min: number, max: number) {
+  const parsed = Number.parseInt(value ?? "", 10);
+  if (!Number.isFinite(parsed)) return fallback;
+  return Math.min(Math.max(parsed, min), max);
+}
+
+function addDays(date: Date, days: number) {
+  const next = new Date(date);
+  next.setDate(next.getDate() + days);
+  return next.toISOString().slice(0, 10);
 }
 
 export async function listManagedMembers(workspaceId?: string): Promise<ManagedMember[]> {
@@ -76,6 +105,34 @@ export async function listManagedMembers(workspaceId?: string): Promise<ManagedM
   }
 
   if (!data?.length) return [];
+
+  const memberIds = data.map((member) => member.id);
+  const assignments = await supabase
+    .from("assigned_workout_plans")
+    .select("id,member_profile_id,name,days_per_week,current_month,current_week,next_review_on,review_status,assignment_goal,created_at")
+    .eq("workspace_id", workspaceId)
+    .eq("status", "active")
+    .in("member_profile_id", memberIds)
+    .order("created_at", { ascending: false });
+
+  if (assignments.error) {
+    console.error("Unable to load active workout assignments", assignments.error.message);
+  }
+
+  const assignmentByMember = new Map<string, NonNullable<ManagedMember["activeWorkoutPlan"]>>();
+  for (const assignment of assignments.data ?? []) {
+    if (assignmentByMember.has(assignment.member_profile_id)) continue;
+    assignmentByMember.set(assignment.member_profile_id, {
+      id: assignment.id,
+      name: assignment.name,
+      daysPerWeek: assignment.days_per_week,
+      currentMonth: assignment.current_month,
+      currentWeek: assignment.current_week,
+      nextReviewOn: assignment.next_review_on ?? "",
+      reviewStatus: assignment.review_status,
+      assignmentGoal: assignment.assignment_goal ?? "",
+    });
+  }
 
   const userIds = data.map((member) => member.user_id);
   const userEmailById = new Map<string, string>();
@@ -100,6 +157,7 @@ export async function listManagedMembers(workspaceId?: string): Promise<ManagedM
     onboardingStatus: member.onboarding_status,
     timezone: member.timezone,
     createdAt: member.created_at,
+    activeWorkoutPlan: assignmentByMember.get(member.id) ?? null,
   }));
 }
 
@@ -145,21 +203,40 @@ export async function createManagedMember(input: MemberInput) {
 export async function assignPlansToMember(input: MemberAssignmentInput) {
   if (!input.workspaceId || !input.memberProfileId) throw new Error("Falta marca o cliente.");
   const supabase = createServiceSupabaseClient();
-  const now = new Date().toISOString().slice(0, 10);
+  const nowDate = new Date();
+  const now = nowDate.toISOString().slice(0, 10);
 
   if (input.workoutTemplateId) {
     const workout = await supabase
       .from("workout_templates")
-      .select("name")
+      .select("name,days_per_week")
       .eq("id", input.workoutTemplateId)
       .maybeSingle();
+
+    const archive = await supabase
+      .from("assigned_workout_plans")
+      .update({ status: "archived", review_status: "completed", updated_at: new Date().toISOString() })
+      .eq("workspace_id", input.workspaceId)
+      .eq("member_profile_id", input.memberProfileId)
+      .eq("status", "active");
+
+    if (archive.error) throw new Error(`No se pudo cerrar el entrenamiento anterior: ${archive.error.message}`);
 
     const { error } = await supabase.from("assigned_workout_plans").insert({
       workspace_id: input.workspaceId,
       member_profile_id: input.memberProfileId,
       source_template_id: input.workoutTemplateId,
       name: workout.data?.name ?? "Plan de entrenamiento",
+      days_per_week: workout.data?.days_per_week ?? null,
+      current_month: parseInteger(input.currentMonth, 1, 1, 3),
+      current_week: parseInteger(input.currentWeek, 1, 1, 12),
+      assignment_goal: input.assignmentGoal?.trim() || null,
+      assignment_notes: input.assignmentNotes?.trim() || null,
       starts_on: now,
+      ends_on: addDays(nowDate, 84),
+      next_review_on: input.nextReviewOn || addDays(nowDate, 7),
+      review_status: "pending",
+      assigned_by: input.assignedBy ?? null,
       status: "active",
     });
 

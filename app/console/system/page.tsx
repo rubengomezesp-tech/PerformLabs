@@ -69,7 +69,7 @@ export default function SystemPage() {
           </p>
           <p>
             Solicita una valoración personalizada escribiendo a{" "}
-            <a href="mailto:rubengomezesp@gmail.com">rubengomezesp@gmail.com</a>.
+            <a href="mailto:contacto@performlabs.app">contacto@performlabs.app</a>.
           </p>
         </article>
         <article className="card span4">

@@ -1,4 +1,4 @@
--- CoachOS bootstrap.
+-- PerformLabs bootstrap.
 -- Run this after supabase/migrations/0001_initial_schema.sql.
 
 insert into public.workspaces (
@@ -9,11 +9,11 @@ insert into public.workspaces (
   app_name,
   accent_color
 ) values (
-  'CoachOS Mother Platform',
-  'mother',
+  'PerformLabs Operativa',
+  'platform',
   null,
-  'support@coachos.local',
-  'CoachOS',
+  'contacto@performlabs.app',
+  'PerformLabs Console',
   '#d8bd6b'
 ) on conflict (slug) do nothing;
 
@@ -25,11 +25,11 @@ insert into public.workspaces (
   app_name,
   accent_color
 ) values (
-  'Ruben Gomez Elite',
-  'rge',
-  'rubengomezelite.com',
-  'soporte@rubengomezelite.com',
-  'RGE',
+  'Marca Blanca Fitness',
+  'marca-blanca',
+  'tumarca.com',
+  'soporte@tumarca.com',
+  'Coach App',
   '#d8bd6b'
 ) on conflict (slug) do nothing;
 

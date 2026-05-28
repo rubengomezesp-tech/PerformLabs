@@ -3,7 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { requireWorkspaceMutationAccess } from "@/lib/auth/access-control";
 import { recordSecurityAuditEvent } from "@/lib/repositories/security-management";
-import { createManagedExercise } from "@/lib/repositories/training-management";
+import { addExerciseVideo, createManagedExercise } from "@/lib/repositories/training-management";
 
 function readText(formData: FormData, key: string) {
   const value = formData.get(key);
@@ -34,4 +34,33 @@ export async function createExerciseAction(formData: FormData) {
   });
 
   revalidatePath("/console/exercises");
+}
+
+export async function addExerciseVideoAction(formData: FormData) {
+  const workspaceId = readText(formData, "workspaceId");
+  const session = await requireWorkspaceMutationAccess(workspaceId);
+  const exerciseId = readText(formData, "exerciseId");
+
+  await addExerciseVideo({
+    workspaceId,
+    exerciseId,
+    title: readText(formData, "title"),
+    videoUrl: readText(formData, "videoUrl"),
+    thumbnailUrl: readText(formData, "thumbnailUrl"),
+    isDefault: readText(formData, "isDefault") === "true",
+    createdBy: session.mode === "authenticated" ? session.user.id : null,
+  });
+
+  await recordSecurityAuditEvent({
+    workspaceId,
+    actorUserId: session.mode === "authenticated" ? session.user.id : null,
+    action: "exercise.video_added",
+    entityType: "exercise",
+    entityId: exerciseId,
+    metadata: { title: readText(formData, "title"), isDefault: readText(formData, "isDefault") === "true" },
+  });
+
+  revalidatePath("/console/exercises");
+  revalidatePath("/coach/programs");
+  revalidatePath("/app/workouts");
 }

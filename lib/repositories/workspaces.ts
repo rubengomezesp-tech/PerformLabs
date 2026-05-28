@@ -1,6 +1,7 @@
 import { childApps } from "@/lib/data";
 import { tenant } from "@/lib/data";
 import { appSettingDefinitions, defaultMemberAppPages } from "@/lib/domain/platform-logic";
+import type { EntitlementModule, EntitlementStatus, WorkspaceEntitlement } from "@/lib/repositories/entitlements";
 import { getSupabaseServiceEnv } from "@/lib/supabase/env";
 import { createServiceSupabaseClient } from "@/lib/supabase/server";
 
@@ -11,11 +12,15 @@ export type WorkspaceSummary = {
   owner: string;
   supportEmail: string;
   domain: string;
+  publicDomain: string;
+  memberDomain: string;
+  fallbackSubdomain: string;
   status: string;
   isActive: boolean;
   accentColor: string;
   members: number;
   mrr: string;
+  entitlement: Pick<WorkspaceEntitlement, "status" | "reason" | "contractRef" | "enforcedAt" | "modules">;
 };
 
 export type WorkspaceInput = {
@@ -33,6 +38,9 @@ export type WorkspaceBrand = {
   appName: string;
   supportEmail: string;
   domain: string;
+  publicDomain: string;
+  memberDomain: string;
+  fallbackSubdomain: string;
   accentColor: string;
   isActive: boolean;
 };
@@ -56,6 +64,25 @@ function normalizeHexColor(value: string) {
   return /^#[0-9a-fA-F]{6}$/.test(color) ? color : "#d8bd6b";
 }
 
+function normalizeDomain(value?: string | null) {
+  return value
+    ?.trim()
+    .replace(/^https?:\/\//i, "")
+    .replace(/^www\./i, "")
+    .replace(/\/+$/g, "")
+    .replace(/:\d+$/g, "")
+    .toLowerCase() || "";
+}
+
+function memberDomainFor(publicDomain: string) {
+  return publicDomain ? `miembros.${publicDomain}` : "";
+}
+
+function fallbackSubdomainFor(slugOrName: string) {
+  const slug = slugify(slugOrName) || "app";
+  return `${slug}.performlabs.app`;
+}
+
 function fallbackWorkspaces(): WorkspaceSummary[] {
   return childApps.map((app) => ({
     id: app.name,
@@ -64,28 +91,114 @@ function fallbackWorkspaces(): WorkspaceSummary[] {
     owner: app.owner,
     supportEmail: app.owner,
     domain: app.domain,
+    publicDomain: app.domain,
+    memberDomain: memberDomainFor(app.domain),
+    fallbackSubdomain: fallbackSubdomainFor(app.name),
     status: app.status,
     isActive: app.status === "Activa",
     accentColor: "#d8bd6b",
     members: app.members,
     mrr: app.mrr,
+    entitlement: {
+      status: "active",
+      reason: "",
+      contractRef: "",
+      enforcedAt: "",
+      modules: {
+        member_app: true,
+        coach_console: true,
+        training: true,
+        nutrition: true,
+        checkins: true,
+        content: true,
+        notifications: true,
+        billing: true,
+      },
+    },
   }));
 }
 
 function fallbackBrand(): WorkspaceBrand {
   return {
-    id: tenant.slug,
+    id: "00000000-0000-0000-0000-000000000000",
     name: tenant.name,
     appName: tenant.appName,
     supportEmail: tenant.supportEmail,
-    domain: "rubengomezelite.com",
+    domain: "tumarca.com",
+    publicDomain: "tumarca.com",
+    memberDomain: "miembros.tumarca.com",
+    fallbackSubdomain: "marca-blanca.performlabs.app",
     accentColor: tenant.accent,
     isActive: true,
   };
 }
 
 function isInternalWorkspace(workspace: { name: string; slug: string }) {
-  return workspace.slug === "coachos-mother-platform" || workspace.name.toLowerCase().includes("mother platform");
+  const name = workspace.name.toLowerCase();
+  return workspace.slug === "platform" || name.includes("operativa") || name.includes("mother platform");
+}
+
+function isUuid(value: string) {
+  return /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(value);
+}
+
+function normalizeWorkspaceReference(value?: string | null) {
+  const reference = normalizeDomain(value);
+  if (!reference || reference === "localhost" || reference === "127.0.0.1") {
+    return "";
+  }
+
+  return reference;
+}
+
+function domainsFor(workspace: {
+  custom_domain: string | null;
+  public_domain?: string | null;
+  member_domain?: string | null;
+  fallback_subdomain?: string | null;
+  slug: string;
+  name: string;
+}) {
+  const publicDomain = normalizeDomain(workspace.public_domain || workspace.custom_domain);
+  const memberDomain = normalizeDomain(workspace.member_domain) || memberDomainFor(publicDomain);
+  const fallbackSubdomain = normalizeDomain(workspace.fallback_subdomain) || fallbackSubdomainFor(workspace.slug || workspace.name);
+
+  return {
+    publicDomain,
+    memberDomain,
+    fallbackSubdomain,
+    primaryDomain: publicDomain || fallbackSubdomain,
+  };
+}
+
+function mapSummaryEntitlement(row?: {
+  status: EntitlementStatus;
+  modules: unknown;
+  reason: string | null;
+  contract_ref: string | null;
+  enforced_at: string | null;
+} | null): WorkspaceSummary["entitlement"] {
+  const defaultModules: Record<EntitlementModule, boolean> = {
+    member_app: true,
+    coach_console: true,
+    training: true,
+    nutrition: true,
+    checkins: true,
+    content: true,
+    notifications: true,
+    billing: true,
+  };
+  const source = row?.modules && typeof row.modules === "object" ? row.modules as Record<string, unknown> : {};
+
+  return {
+    status: row?.status ?? "active",
+    reason: row?.reason ?? "",
+    contractRef: row?.contract_ref ?? "",
+    enforcedAt: row?.enforced_at ?? "",
+    modules: Object.fromEntries(
+      Object.entries(defaultModules).map(([key, defaultValue]) => [key, typeof source[key] === "boolean" ? source[key] : defaultValue]),
+    ) as Record<EntitlementModule, boolean>,
+  };
 }
 
 async function seedBaseWorkspaceApp(
@@ -213,7 +326,7 @@ export async function listWorkspaceSummaries(): Promise<{
   const supabase = createServiceSupabaseClient();
   const { data, error } = await supabase
     .from("workspaces")
-    .select("id,name,slug,app_name,custom_domain,support_email,is_active,accent_color,created_at")
+    .select("id,name,slug,app_name,custom_domain,public_domain,member_domain,fallback_subdomain,support_email,is_active,accent_color,created_at")
     .order("created_at", { ascending: true });
 
   if (error) {
@@ -225,22 +338,40 @@ export async function listWorkspaceSummaries(): Promise<{
   }
 
   const visibleWorkspaces = data.filter((workspace) => !isInternalWorkspace(workspace));
+  const workspaceIds = visibleWorkspaces.map((workspace) => workspace.id);
+  const entitlementResult = workspaceIds.length
+    ? await supabase
+        .from("workspace_entitlements")
+        .select("workspace_id,status,modules,reason,contract_ref,enforced_at")
+        .in("workspace_id", workspaceIds)
+    : { data: [], error: null };
+  const entitlementsByWorkspace = new Map(
+    (entitlementResult.data ?? []).map((entitlement) => [entitlement.workspace_id, entitlement]),
+  );
 
   return {
     source: "supabase",
-    workspaces: visibleWorkspaces.map((workspace) => ({
-      id: workspace.id,
-      name: workspace.name,
-      appName: workspace.app_name,
-      owner: workspace.support_email ?? "Sin owner asignado",
-      supportEmail: workspace.support_email ?? "",
-      domain: workspace.custom_domain ?? `${workspace.name.toLowerCase().replace(/\s+/g, "-")}.coachos.local`,
-      status: workspace.is_active ? "Activa" : "Pausada",
-      isActive: workspace.is_active,
-      accentColor: workspace.accent_color,
-      members: 0,
-      mrr: "0€",
-    })),
+    workspaces: visibleWorkspaces.map((workspace) => {
+      const { publicDomain, memberDomain, fallbackSubdomain, primaryDomain } = domainsFor(workspace);
+
+      return {
+        id: workspace.id,
+        name: workspace.name,
+        appName: workspace.app_name,
+        owner: workspace.support_email ?? "Sin owner asignado",
+        supportEmail: workspace.support_email ?? "",
+        domain: primaryDomain,
+        publicDomain,
+        memberDomain,
+        fallbackSubdomain,
+        status: workspace.is_active ? "Activa" : "Pausada",
+        isActive: workspace.is_active,
+        accentColor: workspace.accent_color,
+        members: 0,
+        mrr: "0€",
+        entitlement: mapSummaryEntitlement(entitlementsByWorkspace.get(workspace.id)),
+      };
+    }),
   };
 }
 
@@ -257,12 +388,18 @@ export async function createWorkspace(input: WorkspaceInput) {
 
   const supabase = createServiceSupabaseClient();
   const customDomain = cleanOptional(input.customDomain);
+  const publicDomain = normalizeDomain(customDomain);
+  const memberDomain = memberDomainFor(publicDomain);
   const accentColor = normalizeHexColor(input.accentColor);
+  const slug = `${slugBase}-${Date.now().toString(36)}`;
   const { data, error } = await supabase.from("workspaces").insert({
     name,
-    slug: `${slugBase}-${Date.now().toString(36)}`,
+    slug,
     app_name: input.appName.trim() || name,
     custom_domain: customDomain,
+    public_domain: publicDomain || null,
+    member_domain: memberDomain || null,
+    fallback_subdomain: fallbackSubdomainFor(slug),
     support_email: cleanOptional(input.supportEmail),
     accent_color: accentColor,
   }).select("id").single();
@@ -278,35 +415,83 @@ export async function createWorkspace(input: WorkspaceInput) {
     accentColor,
   });
 
+  const entitlementResult = await supabase
+    .from("workspace_entitlements")
+    .insert({ workspace_id: data.id });
+
+  if (entitlementResult.error) {
+    throw new Error(`No se pudo crear la licencia base: ${entitlementResult.error.message}`);
+  }
+
   return data.id as string;
 }
 
-export async function getWorkspaceBrand(workspaceId?: string): Promise<WorkspaceBrand> {
+export async function getWorkspaceBrand(workspaceReference?: string): Promise<WorkspaceBrand> {
   const env = getSupabaseServiceEnv();
 
-  if (!env.ok || !workspaceId) {
+  const reference = normalizeWorkspaceReference(workspaceReference);
+  if (!env.ok) {
     return fallbackBrand();
   }
 
   const supabase = createServiceSupabaseClient();
-  const result = await supabase
+  const query = supabase
     .from("workspaces")
-    .select("id,name,app_name,custom_domain,support_email,is_active,accent_color,created_at")
-    .eq("id", workspaceId)
-    .maybeSingle();
+    .select("id,name,slug,app_name,custom_domain,public_domain,member_domain,fallback_subdomain,support_email,is_active,accent_color,created_at");
+
+  if (!reference) {
+    const defaultResult = await query.order("created_at", { ascending: true });
+    const workspace = defaultResult.data?.find((item) => !isInternalWorkspace(item));
+    if (defaultResult.error || !workspace) {
+      return fallbackBrand();
+    }
+
+    const { publicDomain, memberDomain, fallbackSubdomain, primaryDomain } = domainsFor(workspace);
+
+    return {
+      id: workspace.id,
+      name: workspace.name,
+      appName: workspace.app_name,
+      supportEmail: workspace.support_email ?? tenant.supportEmail,
+      domain: primaryDomain,
+      publicDomain,
+      memberDomain,
+      fallbackSubdomain,
+      accentColor: workspace.accent_color,
+      isActive: workspace.is_active,
+    };
+  }
+
+  const filters = [
+    `slug.eq.${reference}`,
+    `public_domain.eq.${reference}`,
+    `member_domain.eq.${reference}`,
+    `fallback_subdomain.eq.${reference}`,
+    `custom_domain.eq.${reference}`,
+  ];
+
+  if (isUuid(reference)) {
+    filters.unshift(`id.eq.${reference}`);
+  }
+
+  const result = await query.or(filters.join(",")).limit(1).maybeSingle();
 
   if (result.error || !result.data) {
     return fallbackBrand();
   }
 
   const workspace = result.data;
+  const { publicDomain, memberDomain, fallbackSubdomain, primaryDomain } = domainsFor(workspace);
 
   return {
     id: workspace.id,
     name: workspace.name,
     appName: workspace.app_name,
     supportEmail: workspace.support_email ?? tenant.supportEmail,
-    domain: workspace.custom_domain ?? `${workspace.name.toLowerCase().replace(/\s+/g, "-")}.coachos.local`,
+    domain: primaryDomain,
+    publicDomain,
+    memberDomain,
+    fallbackSubdomain,
     accentColor: workspace.accent_color,
     isActive: workspace.is_active,
   };
@@ -323,12 +508,16 @@ export async function updateWorkspace(input: WorkspaceInput) {
   }
 
   const supabase = createServiceSupabaseClient();
+  const publicDomain = normalizeDomain(input.customDomain);
+  const memberDomain = memberDomainFor(publicDomain);
   const { error } = await supabase
     .from("workspaces")
     .update({
       name,
       app_name: input.appName.trim() || name,
       custom_domain: cleanOptional(input.customDomain),
+      public_domain: publicDomain || null,
+      member_domain: memberDomain || null,
       support_email: cleanOptional(input.supportEmail),
       accent_color: normalizeHexColor(input.accentColor),
       updated_at: new Date().toISOString(),

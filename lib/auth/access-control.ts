@@ -48,7 +48,7 @@ function localOpenSession(): ConsoleSession {
     mode: "open",
     user: {
       id: "local-development",
-      email: "local@coachos.dev",
+      email: "local@performlabs.dev",
     },
     topRole: "platform_owner",
     memberships: [],

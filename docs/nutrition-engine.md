@@ -1,6 +1,6 @@
 # Motor Nutricional
 
-La plataforma madre debe poder generar planes alimenticios para cualquier app hija.
+La plataforma operativa debe poder generar planes alimenticios para cualquier app de cliente.
 La consola controla las fórmulas, plantillas, categorías, recetas, ingredientes y
 reglas de sustitución.
 
@@ -42,7 +42,7 @@ volumen:        calorias = TDEE + 15% a 25%
 
 ## Macros
 
-Regla inicial editable por app hija:
+Regla inicial editable por app de cliente:
 
 ```txt
 proteinaG = pesoKg * 1.8 a 2.4
@@ -77,14 +77,14 @@ El generador debe:
 - Low carb
 - Flexible
 
-## Control Desde La Consola Madre
+## Control Desde La Consola Operativa
 
 La consola suprema puede:
 
 - Crear categorías globales.
 - Hacer plantillas base.
-- Clonar plantillas a una app hija.
+- Clonar plantillas a una app de cliente.
 - Bloquear o desbloquear funciones por plan.
-- Ver qué app hija modificó una plantilla.
+- Ver qué app de cliente modificó una plantilla.
 - Restaurar una plantilla base.
-- Publicar cambios a una app hija.
+- Publicar cambios a una app de cliente.

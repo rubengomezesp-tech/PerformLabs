@@ -25,11 +25,11 @@ import {
 } from "lucide-react";
 
 export const tenant = {
-  name: "Ruben Gomez Elite",
-  slug: "rge",
-  appName: "RGE",
+  name: "Marca Blanca Fitness",
+  slug: "marca-blanca",
+  appName: "Coach App",
   accent: "#d8bd6b",
-  supportEmail: "soporte@rubengomezelite.com",
+  supportEmail: "soporte@tumarca.com",
 };
 
 export const consoleNav = [
@@ -75,9 +75,9 @@ export const metrics = [
 
 export const childApps = [
   {
-    name: "Ruben Gomez Elite",
-    owner: "Rubén Gómez",
-    domain: "rubengomezelite.com",
+    name: "Marca Blanca Fitness",
+    owner: "Equipo Coach",
+    domain: "tumarca.com",
     status: "Activa",
     members: 438,
     mrr: "13.8k€",
@@ -85,7 +85,7 @@ export const childApps = [
   {
     name: "Fit Moms Club",
     owner: "Laura Peña",
-    domain: "fitmoms.coachos.com",
+    domain: "fitmoms.example.com",
     status: "Onboarding",
     members: 92,
     mrr: "2.1k€",
@@ -102,17 +102,17 @@ export const childApps = [
 
 export const members = [
   {
-    name: "Rubén Gomez Espin",
-    email: "test@email.com",
+    name: "Cliente Demo",
+    email: "cliente.demo@example.com",
     plan: "Soft Launch",
     status: "Expirado",
     progress: "Peso y grasa actualizados",
-    coach: "Equipo RGE",
+    coach: "Equipo Coach",
   },
   {
     name: "Lucía Martín",
     email: "lucia@example.com",
-    plan: "Elite Mensual",
+    plan: "Plan Mensual",
     status: "Activo",
     progress: "Check-in pendiente",
     coach: "Ana",
@@ -123,7 +123,7 @@ export const members = [
     plan: "Transformación 12 semanas",
     status: "Activo",
     progress: "Nuevo plan solicitado",
-    coach: "Ruben",
+    coach: "Equipo Coach",
   },
   {
     name: "Marina Soler",
@@ -131,7 +131,7 @@ export const members = [
     plan: "Nutrición",
     status: "Trial",
     progress: "Onboarding incompleto",
-    coach: "Equipo RGE",
+    coach: "Equipo Coach",
   },
 ];
 

@@ -1,7 +1,7 @@
 import { cookies } from "next/headers";
 
-export const authAccessCookie = "coachos_access_token";
-export const authRefreshCookie = "coachos_refresh_token";
+export const authAccessCookie = "performlabs_access_token";
+export const authRefreshCookie = "performlabs_refresh_token";
 
 export async function setAuthCookies(input: {
   accessToken: string;

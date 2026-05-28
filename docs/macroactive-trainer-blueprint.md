@@ -54,7 +54,7 @@ Tabla filtrable con:
 
 ### General
 
-Controla la app hija:
+Controla la app de cliente:
 
 - Logo
 - Favicon
@@ -136,10 +136,10 @@ Submódulos:
 - Unidades
 - Tags
 
-Esto implica que nuestra madre debe tener:
+Esto implica que nuestra plataforma operativa debe tener:
 
 - Taxonomías globales
-- Taxonomías clonables por app hija
+- Taxonomías clonables por app de cliente
 - Ingredientes con macros
 - Recetas con ingredientes
 - Categorías como sin gluten, vegana, alta proteína, definición, volumen
@@ -165,9 +165,9 @@ Submódulos:
 
 Esto implica:
 
-- Biblioteca madre de ejercicios
+- Biblioteca base de ejercicios
 - Vídeos base
-- Vídeos propios por app hija
+- Vídeos propios por app de cliente
 - Carga masiva de vídeos
 - Builder de rutina
 - Program sets
@@ -204,7 +204,7 @@ Submódulos:
 - Video Library
 - File Library
 
-La app hija debe poder controlar:
+La app de cliente debe poder controlar:
 
 - Menú superior
 - Menú inferior
@@ -269,22 +269,22 @@ Notificaciones programadas y únicas:
 - Tipo
 - Secuencia
 
-## Decisiones Para CoachOS
+## Decisiones Para PerformLabs
 
-Nuestra consola madre debe tener estas capas:
+Nuestra consola operativa debe tener estas capas:
 
-1. Plataforma madre: controla apps hijas, plantillas globales y feature flags.
-2. App hija: controla branding, dominio, contenido, productos, equipo y librerías clonadas.
+1. Plataforma operativa: controla apps de cliente, plantillas globales y feature flags.
+2. App de cliente: controla branding, dominio, contenido, productos, equipo y librerías clonadas.
 3. Staff: gestiona clientes, planes, check-ins y soporte.
 4. Miembro: consume app, planes y comunidad.
 
 ## Diferenciador
 
-MacroActive está orientado a plataforma cerrada. CoachOS debe ser:
+MacroActive está orientado a plataforma cerrada. PerformLabs debe ser:
 
 - Propiedad nuestra.
 - Supabase-first.
 - Más editable.
 - Multi-app desde el núcleo.
 - Con plantillas globales heredables.
-- Con trazabilidad de qué viene de la madre y qué modificó cada app hija.
+- Con trazabilidad de qué viene de la base compartida y qué modificó cada app de cliente.

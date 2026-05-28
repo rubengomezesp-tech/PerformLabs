@@ -12,31 +12,6 @@ export type Database = {
   __InternalSupabase: {
     PostgrestVersion: "14.5"
   }
-  graphql_public: {
-    Tables: {
-      [_ in never]: never
-    }
-    Views: {
-      [_ in never]: never
-    }
-    Functions: {
-      graphql: {
-        Args: {
-          extensions?: Json
-          operationName?: string
-          query?: string
-          variables?: Json
-        }
-        Returns: Json
-      }
-    }
-    Enums: {
-      [_ in never]: never
-    }
-    CompositeTypes: {
-      [_ in never]: never
-    }
-  }
   public: {
     Tables: {
       app_banners: {
@@ -256,38 +231,65 @@ export type Database = {
       }
       assigned_workout_plans: {
         Row: {
+          assigned_by: string | null
+          assignment_goal: string | null
+          assignment_notes: string | null
           created_at: string
+          current_month: number
+          current_week: number
+          days_per_week: number | null
           ends_on: string | null
           id: string
           member_profile_id: string
           name: string
+          next_review_on: string | null
+          review_status: string
           source_template_id: string | null
           starts_on: string | null
           status: Database["public"]["Enums"]["plan_status"]
+          updated_at: string
           version: number
           workspace_id: string
         }
         Insert: {
+          assigned_by?: string | null
+          assignment_goal?: string | null
+          assignment_notes?: string | null
           created_at?: string
+          current_month?: number
+          current_week?: number
+          days_per_week?: number | null
           ends_on?: string | null
           id?: string
           member_profile_id: string
           name: string
+          next_review_on?: string | null
+          review_status?: string
           source_template_id?: string | null
           starts_on?: string | null
           status?: Database["public"]["Enums"]["plan_status"]
+          updated_at?: string
           version?: number
           workspace_id: string
         }
         Update: {
+          assigned_by?: string | null
+          assignment_goal?: string | null
+          assignment_notes?: string | null
           created_at?: string
+          current_month?: number
+          current_week?: number
+          days_per_week?: number | null
           ends_on?: string | null
           id?: string
           member_profile_id?: string
           name?: string
+          next_review_on?: string | null
+          review_status?: string
           source_template_id?: string | null
           starts_on?: string | null
           status?: Database["public"]["Enums"]["plan_status"]
+          updated_at?: string
           version?: number
           workspace_id?: string
         }
@@ -757,13 +759,22 @@ export type Database = {
           default_video_url: string | null
           difficulty: string | null
           equipment: string[]
+          force_type: string | null
           id: string
+          image_urls: Json
           instructions: string | null
           is_base_library: boolean
           locations: string[]
+          mechanic: string | null
+          movement_category: string | null
           muscle_groups: string[]
           name: string
+          secondary_muscle_groups: string[]
           slug: string
+          source_dataset: string | null
+          source_id: string | null
+          source_license: string | null
+          source_url: string | null
           updated_at: string
           workspace_id: string | null
         }
@@ -774,13 +785,22 @@ export type Database = {
           default_video_url?: string | null
           difficulty?: string | null
           equipment?: string[]
+          force_type?: string | null
           id?: string
+          image_urls?: Json
           instructions?: string | null
           is_base_library?: boolean
           locations?: string[]
+          mechanic?: string | null
+          movement_category?: string | null
           muscle_groups?: string[]
           name: string
+          secondary_muscle_groups?: string[]
           slug: string
+          source_dataset?: string | null
+          source_id?: string | null
+          source_license?: string | null
+          source_url?: string | null
           updated_at?: string
           workspace_id?: string | null
         }
@@ -791,13 +811,22 @@ export type Database = {
           default_video_url?: string | null
           difficulty?: string | null
           equipment?: string[]
+          force_type?: string | null
           id?: string
+          image_urls?: Json
           instructions?: string | null
           is_base_library?: boolean
           locations?: string[]
+          mechanic?: string | null
+          movement_category?: string | null
           muscle_groups?: string[]
           name?: string
+          secondary_muscle_groups?: string[]
           slug?: string
+          source_dataset?: string | null
+          source_id?: string | null
+          source_license?: string | null
+          source_url?: string | null
           updated_at?: string
           workspace_id?: string | null
         }
@@ -829,6 +858,7 @@ export type Database = {
           lead_id: string | null
           project_name: string
           status: string
+          template_id: string | null
           updated_at: string
           workspace_id: string | null
         }
@@ -842,6 +872,7 @@ export type Database = {
           lead_id?: string | null
           project_name: string
           status?: string
+          template_id?: string | null
           updated_at?: string
           workspace_id?: string | null
         }
@@ -855,6 +886,7 @@ export type Database = {
           lead_id?: string | null
           project_name?: string
           status?: string
+          template_id?: string | null
           updated_at?: string
           workspace_id?: string | null
         }
@@ -867,6 +899,13 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
+            foreignKeyName: "implementation_projects_template_id_fkey"
+            columns: ["template_id"]
+            isOneToOne: false
+            referencedRelation: "implementation_templates"
+            referencedColumns: ["id"]
+          },
+          {
             foreignKeyName: "implementation_projects_workspace_id_fkey"
             columns: ["workspace_id"]
             isOneToOne: false
@@ -874,6 +913,148 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      implementation_template_brief_defaults: {
+        Row: {
+          brand_notes: string | null
+          content_notes: string | null
+          domain_strategy: string
+          exercise_video_notes: string | null
+          internal_risks: string | null
+          launch_notes: string | null
+          legal_notes: string | null
+          logo_status: string
+          nutrition_notes: string | null
+          offer_summary: string | null
+          payment_provider: string | null
+          pricing_notes: string | null
+          target_audience: string | null
+          template_id: string
+          updated_at: string
+        }
+        Insert: {
+          brand_notes?: string | null
+          content_notes?: string | null
+          domain_strategy?: string
+          exercise_video_notes?: string | null
+          internal_risks?: string | null
+          launch_notes?: string | null
+          legal_notes?: string | null
+          logo_status?: string
+          nutrition_notes?: string | null
+          offer_summary?: string | null
+          payment_provider?: string | null
+          pricing_notes?: string | null
+          target_audience?: string | null
+          template_id: string
+          updated_at?: string
+        }
+        Update: {
+          brand_notes?: string | null
+          content_notes?: string | null
+          domain_strategy?: string
+          exercise_video_notes?: string | null
+          internal_risks?: string | null
+          launch_notes?: string | null
+          legal_notes?: string | null
+          logo_status?: string
+          nutrition_notes?: string | null
+          offer_summary?: string | null
+          payment_provider?: string | null
+          pricing_notes?: string | null
+          target_audience?: string | null
+          template_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "implementation_template_brief_defaults_template_id_fkey"
+            columns: ["template_id"]
+            isOneToOne: true
+            referencedRelation: "implementation_templates"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      implementation_template_tasks: {
+        Row: {
+          created_at: string
+          day_offset: number
+          description: string | null
+          id: string
+          phase: string
+          sort_order: number
+          template_id: string
+          title: string
+        }
+        Insert: {
+          created_at?: string
+          day_offset?: number
+          description?: string | null
+          id?: string
+          phase: string
+          sort_order?: number
+          template_id: string
+          title: string
+        }
+        Update: {
+          created_at?: string
+          day_offset?: number
+          description?: string | null
+          id?: string
+          phase?: string
+          sort_order?: number
+          template_id?: string
+          title?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "implementation_template_tasks_template_id_fkey"
+            columns: ["template_id"]
+            isOneToOne: false
+            referencedRelation: "implementation_templates"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      implementation_templates: {
+        Row: {
+          buyer_type: string | null
+          created_at: string
+          description: string | null
+          estimated_days: number
+          id: string
+          is_active: boolean
+          name: string
+          slug: string
+          sort_order: number
+          updated_at: string
+        }
+        Insert: {
+          buyer_type?: string | null
+          created_at?: string
+          description?: string | null
+          estimated_days?: number
+          id?: string
+          is_active?: boolean
+          name: string
+          slug: string
+          sort_order?: number
+          updated_at?: string
+        }
+        Update: {
+          buyer_type?: string | null
+          created_at?: string
+          description?: string | null
+          estimated_days?: number
+          id?: string
+          is_active?: boolean
+          name?: string
+          slug?: string
+          sort_order?: number
+          updated_at?: string
+        }
+        Relationships: []
       }
       ingredients: {
         Row: {
@@ -1095,6 +1276,137 @@ export type Database = {
           },
         ]
       }
+      member_meal_logs: {
+        Row: {
+          assigned_meal_plan_id: string | null
+          created_at: string
+          id: string
+          logged_on: string
+          meal_slot: string
+          meal_title: string
+          member_profile_id: string | null
+          notes: string | null
+          recipe_id: string | null
+          satisfaction: number | null
+          status: string
+          updated_at: string
+          workspace_id: string
+        }
+        Insert: {
+          assigned_meal_plan_id?: string | null
+          created_at?: string
+          id?: string
+          logged_on?: string
+          meal_slot: string
+          meal_title: string
+          member_profile_id?: string | null
+          notes?: string | null
+          recipe_id?: string | null
+          satisfaction?: number | null
+          status?: string
+          updated_at?: string
+          workspace_id: string
+        }
+        Update: {
+          assigned_meal_plan_id?: string | null
+          created_at?: string
+          id?: string
+          logged_on?: string
+          meal_slot?: string
+          meal_title?: string
+          member_profile_id?: string | null
+          notes?: string | null
+          recipe_id?: string | null
+          satisfaction?: number | null
+          status?: string
+          updated_at?: string
+          workspace_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "member_meal_logs_assigned_meal_plan_id_fkey"
+            columns: ["assigned_meal_plan_id"]
+            isOneToOne: false
+            referencedRelation: "assigned_meal_plans"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "member_meal_logs_member_profile_id_fkey"
+            columns: ["member_profile_id"]
+            isOneToOne: false
+            referencedRelation: "member_profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "member_meal_logs_recipe_id_fkey"
+            columns: ["recipe_id"]
+            isOneToOne: false
+            referencedRelation: "recipes"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "member_meal_logs_workspace_id_fkey"
+            columns: ["workspace_id"]
+            isOneToOne: false
+            referencedRelation: "workspaces"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      member_nutrition_daily_logs: {
+        Row: {
+          created_at: string
+          energy_level: number | null
+          hunger_level: number | null
+          id: string
+          logged_on: string
+          member_profile_id: string | null
+          notes: string | null
+          updated_at: string
+          water_glasses: number
+          workspace_id: string
+        }
+        Insert: {
+          created_at?: string
+          energy_level?: number | null
+          hunger_level?: number | null
+          id?: string
+          logged_on?: string
+          member_profile_id?: string | null
+          notes?: string | null
+          updated_at?: string
+          water_glasses?: number
+          workspace_id: string
+        }
+        Update: {
+          created_at?: string
+          energy_level?: number | null
+          hunger_level?: number | null
+          id?: string
+          logged_on?: string
+          member_profile_id?: string | null
+          notes?: string | null
+          updated_at?: string
+          water_glasses?: number
+          workspace_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "member_nutrition_daily_logs_member_profile_id_fkey"
+            columns: ["member_profile_id"]
+            isOneToOne: false
+            referencedRelation: "member_profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "member_nutrition_daily_logs_workspace_id_fkey"
+            columns: ["workspace_id"]
+            isOneToOne: false
+            referencedRelation: "workspaces"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       member_profiles: {
         Row: {
           activity_level: number
@@ -1217,6 +1529,94 @@ export type Database = {
           },
           {
             foreignKeyName: "member_subscriptions_workspace_id_fkey"
+            columns: ["workspace_id"]
+            isOneToOne: false
+            referencedRelation: "workspaces"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      member_training_reviews: {
+        Row: {
+          adherence_rate: number | null
+          assigned_workout_plan_id: string | null
+          best_set_snapshot: Json
+          coach_notes: string | null
+          created_at: string
+          current_month: number
+          current_week: number
+          decision: string
+          id: string
+          member_profile_id: string
+          next_actions: string[]
+          pain_flags: number
+          planned_sessions: number
+          recommended_days_per_week: number | null
+          review_on: string
+          reviewed_by: string | null
+          sessions_completed: number
+          volume_kg: number
+          workspace_id: string
+        }
+        Insert: {
+          adherence_rate?: number | null
+          assigned_workout_plan_id?: string | null
+          best_set_snapshot?: Json
+          coach_notes?: string | null
+          created_at?: string
+          current_month?: number
+          current_week?: number
+          decision?: string
+          id?: string
+          member_profile_id: string
+          next_actions?: string[]
+          pain_flags?: number
+          planned_sessions?: number
+          recommended_days_per_week?: number | null
+          review_on?: string
+          reviewed_by?: string | null
+          sessions_completed?: number
+          volume_kg?: number
+          workspace_id: string
+        }
+        Update: {
+          adherence_rate?: number | null
+          assigned_workout_plan_id?: string | null
+          best_set_snapshot?: Json
+          coach_notes?: string | null
+          created_at?: string
+          current_month?: number
+          current_week?: number
+          decision?: string
+          id?: string
+          member_profile_id?: string
+          next_actions?: string[]
+          pain_flags?: number
+          planned_sessions?: number
+          recommended_days_per_week?: number | null
+          review_on?: string
+          reviewed_by?: string | null
+          sessions_completed?: number
+          volume_kg?: number
+          workspace_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "member_training_reviews_assigned_workout_plan_id_fkey"
+            columns: ["assigned_workout_plan_id"]
+            isOneToOne: false
+            referencedRelation: "assigned_workout_plans"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "member_training_reviews_member_profile_id_fkey"
+            columns: ["member_profile_id"]
+            isOneToOne: false
+            referencedRelation: "member_profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "member_training_reviews_workspace_id_fkey"
             columns: ["workspace_id"]
             isOneToOne: false
             referencedRelation: "workspaces"
@@ -1843,6 +2243,259 @@ export type Database = {
           },
         ]
       }
+      support_conversations: {
+        Row: {
+          category: string
+          created_at: string
+          id: string
+          last_message_at: string
+          member_profile_id: string | null
+          priority: string
+          status: string
+          subject: string
+          updated_at: string
+          workspace_id: string
+        }
+        Insert: {
+          category?: string
+          created_at?: string
+          id?: string
+          last_message_at?: string
+          member_profile_id?: string | null
+          priority?: string
+          status?: string
+          subject: string
+          updated_at?: string
+          workspace_id: string
+        }
+        Update: {
+          category?: string
+          created_at?: string
+          id?: string
+          last_message_at?: string
+          member_profile_id?: string | null
+          priority?: string
+          status?: string
+          subject?: string
+          updated_at?: string
+          workspace_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "support_conversations_member_profile_id_fkey"
+            columns: ["member_profile_id"]
+            isOneToOne: false
+            referencedRelation: "member_profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "support_conversations_workspace_id_fkey"
+            columns: ["workspace_id"]
+            isOneToOne: false
+            referencedRelation: "workspaces"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      support_messages: {
+        Row: {
+          attachments: Json
+          body: string
+          conversation_id: string
+          created_at: string
+          id: string
+          member_profile_id: string | null
+          read_at: string | null
+          sender_role: string
+          workspace_id: string
+        }
+        Insert: {
+          attachments?: Json
+          body: string
+          conversation_id: string
+          created_at?: string
+          id?: string
+          member_profile_id?: string | null
+          read_at?: string | null
+          sender_role: string
+          workspace_id: string
+        }
+        Update: {
+          attachments?: Json
+          body?: string
+          conversation_id?: string
+          created_at?: string
+          id?: string
+          member_profile_id?: string | null
+          read_at?: string | null
+          sender_role?: string
+          workspace_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "support_messages_conversation_id_fkey"
+            columns: ["conversation_id"]
+            isOneToOne: false
+            referencedRelation: "support_conversations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "support_messages_member_profile_id_fkey"
+            columns: ["member_profile_id"]
+            isOneToOne: false
+            referencedRelation: "member_profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "support_messages_workspace_id_fkey"
+            columns: ["workspace_id"]
+            isOneToOne: false
+            referencedRelation: "workspaces"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      workout_session_logs: {
+        Row: {
+          created_at: string
+          day_id: string | null
+          duration_minutes: number | null
+          id: string
+          member_profile_id: string | null
+          notes: string | null
+          perceived_effort: number | null
+          session_date: string
+          status: string
+          template_id: string | null
+          workspace_id: string
+        }
+        Insert: {
+          created_at?: string
+          day_id?: string | null
+          duration_minutes?: number | null
+          id?: string
+          member_profile_id?: string | null
+          notes?: string | null
+          perceived_effort?: number | null
+          session_date?: string
+          status?: string
+          template_id?: string | null
+          workspace_id: string
+        }
+        Update: {
+          created_at?: string
+          day_id?: string | null
+          duration_minutes?: number | null
+          id?: string
+          member_profile_id?: string | null
+          notes?: string | null
+          perceived_effort?: number | null
+          session_date?: string
+          status?: string
+          template_id?: string | null
+          workspace_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "workout_session_logs_day_id_fkey"
+            columns: ["day_id"]
+            isOneToOne: false
+            referencedRelation: "workout_template_days"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "workout_session_logs_member_profile_id_fkey"
+            columns: ["member_profile_id"]
+            isOneToOne: false
+            referencedRelation: "member_profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "workout_session_logs_template_id_fkey"
+            columns: ["template_id"]
+            isOneToOne: false
+            referencedRelation: "workout_templates"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "workout_session_logs_workspace_id_fkey"
+            columns: ["workspace_id"]
+            isOneToOne: false
+            referencedRelation: "workspaces"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      workout_set_logs: {
+        Row: {
+          actual_reps: number | null
+          completed: boolean
+          created_at: string
+          exercise_id: string | null
+          id: string
+          notes: string | null
+          planned_reps: string | null
+          rir: number | null
+          rpe: number | null
+          session_log_id: string
+          set_number: number
+          template_exercise_id: string | null
+          weight_kg: number | null
+        }
+        Insert: {
+          actual_reps?: number | null
+          completed?: boolean
+          created_at?: string
+          exercise_id?: string | null
+          id?: string
+          notes?: string | null
+          planned_reps?: string | null
+          rir?: number | null
+          rpe?: number | null
+          session_log_id: string
+          set_number: number
+          template_exercise_id?: string | null
+          weight_kg?: number | null
+        }
+        Update: {
+          actual_reps?: number | null
+          completed?: boolean
+          created_at?: string
+          exercise_id?: string | null
+          id?: string
+          notes?: string | null
+          planned_reps?: string | null
+          rir?: number | null
+          rpe?: number | null
+          session_log_id?: string
+          set_number?: number
+          template_exercise_id?: string | null
+          weight_kg?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "workout_set_logs_exercise_id_fkey"
+            columns: ["exercise_id"]
+            isOneToOne: false
+            referencedRelation: "exercises"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "workout_set_logs_session_log_id_fkey"
+            columns: ["session_log_id"]
+            isOneToOne: false
+            referencedRelation: "workout_session_logs"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "workout_set_logs_template_exercise_id_fkey"
+            columns: ["template_exercise_id"]
+            isOneToOne: false
+            referencedRelation: "workout_template_exercises"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       workout_template_days: {
         Row: {
           day_number: number
@@ -1979,6 +2632,50 @@ export type Database = {
           },
         ]
       }
+      workspace_entitlements: {
+        Row: {
+          contract_ref: string | null
+          created_at: string
+          enforced_at: string | null
+          modules: Json
+          reason: string | null
+          status: Database["public"]["Enums"]["entitlement_status"]
+          updated_at: string
+          updated_by: string | null
+          workspace_id: string
+        }
+        Insert: {
+          contract_ref?: string | null
+          created_at?: string
+          enforced_at?: string | null
+          modules?: Json
+          reason?: string | null
+          status?: Database["public"]["Enums"]["entitlement_status"]
+          updated_at?: string
+          updated_by?: string | null
+          workspace_id: string
+        }
+        Update: {
+          contract_ref?: string | null
+          created_at?: string
+          enforced_at?: string | null
+          modules?: Json
+          reason?: string | null
+          status?: Database["public"]["Enums"]["entitlement_status"]
+          updated_at?: string
+          updated_by?: string | null
+          workspace_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "workspace_entitlements_workspace_id_fkey"
+            columns: ["workspace_id"]
+            isOneToOne: true
+            referencedRelation: "workspaces"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       workspace_memberships: {
         Row: {
           created_at: string
@@ -2017,10 +2714,13 @@ export type Database = {
           app_name: string
           created_at: string
           custom_domain: string | null
+          fallback_subdomain: string | null
           id: string
           is_active: boolean
           logo_url: string | null
+          member_domain: string | null
           name: string
+          public_domain: string | null
           slug: string
           support_email: string | null
           updated_at: string
@@ -2030,10 +2730,13 @@ export type Database = {
           app_name?: string
           created_at?: string
           custom_domain?: string | null
+          fallback_subdomain?: string | null
           id?: string
           is_active?: boolean
           logo_url?: string | null
+          member_domain?: string | null
           name: string
+          public_domain?: string | null
           slug: string
           support_email?: string | null
           updated_at?: string
@@ -2043,10 +2746,13 @@ export type Database = {
           app_name?: string
           created_at?: string
           custom_domain?: string | null
+          fallback_subdomain?: string | null
           id?: string
           is_active?: boolean
           logo_url?: string | null
+          member_domain?: string | null
           name?: string
+          public_domain?: string | null
           slug?: string
           support_email?: string | null
           updated_at?: string
@@ -2065,12 +2771,19 @@ export type Database = {
         }
         Returns: boolean
       }
+      is_platform_owner: { Args: never; Returns: boolean }
       is_workspace_member: {
         Args: { target_workspace_id: string }
         Returns: boolean
       }
     }
     Enums: {
+      entitlement_status:
+        | "active"
+        | "past_due"
+        | "suspended"
+        | "revoked"
+        | "terminated"
       plan_status: "draft" | "active" | "archived"
       subscription_status:
         | "trialing"
@@ -2210,11 +2923,15 @@ export type CompositeTypes<
     : never
 
 export const Constants = {
-  graphql_public: {
-    Enums: {},
-  },
   public: {
     Enums: {
+      entitlement_status: [
+        "active",
+        "past_due",
+        "suspended",
+        "revoked",
+        "terminated",
+      ],
       plan_status: ["draft", "active", "archived"],
       subscription_status: [
         "trialing",
