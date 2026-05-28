@@ -1,6 +1,7 @@
 import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 import { createClient } from "@supabase/supabase-js";
+import { isConsoleAuthRequired } from "@/lib/auth/auth-mode";
 import { authAccessCookie } from "@/lib/auth/session";
 import {
   consoleRoles,
@@ -35,10 +36,6 @@ export type ConsoleSession = {
   topRole: WorkspaceRole;
   memberships: ConsoleMembership[];
 };
-
-function isAuthRequired() {
-  return process.env.COACHOS_AUTH_REQUIRED === "true";
-}
 
 function localOpenSession(): ConsoleSession {
   return {
@@ -122,7 +119,7 @@ async function listMembershipsForUser(userId: string): Promise<ConsoleMembership
 }
 
 export async function getConsoleSession(): Promise<ConsoleSession | null> {
-  if (!isAuthRequired()) {
+  if (!isConsoleAuthRequired()) {
     return localOpenSession();
   }
 

@@ -8,7 +8,7 @@ PerformLabs debe operar varias marcas desde una consola central sin mezclar perm
 
 - La consola pasa por `requireConsoleAccess`.
 - Las acciones internas pasan por permisos de plataforma o permisos por marca.
-- El modo local sigue abierto si `COACHOS_AUTH_REQUIRED` no es `true`.
+- El modo local solo queda abierto en desarrollo. En Vercel/producción la consola exige auth aunque falte `COACHOS_AUTH_REQUIRED`.
 - En producción, la sesión se valida contra Supabase Auth con la cookie `performlabs_access_token`.
 - Los roles operativos son `platform_owner`, `agency_admin`, `coach_admin` y `coach_staff`.
 - El rol `member` no puede entrar a consola.
@@ -34,12 +34,14 @@ PerformLabs debe operar varias marcas desde una consola central sin mezclar perm
 
 ## Activación en producción
 
-Configurar:
+Configurar en producción:
 
 ```env
 COACHOS_AUTH_REQUIRED=true
 COACHOS_OWNER_EMAIL=correo-del-propietario
 ```
+
+Aunque `COACHOS_AUTH_REQUIRED` falte o esté en `false`, producción se trata como cerrada por defecto.
 
 Después, cada usuario operativo necesita una fila en `workspace_memberships`.
 
