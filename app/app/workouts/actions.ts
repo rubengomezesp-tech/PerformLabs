@@ -1,7 +1,7 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
-import { createWorkoutSessionLog, type WorkoutSetLogInput } from "@/lib/repositories/workout-performance";
+import { createWorkoutIssueRequest, createWorkoutSessionLog, type WorkoutSetLogInput } from "@/lib/repositories/workout-performance";
 
 function readText(formData: FormData, key: string) {
   const value = formData.get(key);
@@ -55,4 +55,18 @@ export async function saveWorkoutSessionAction(formData: FormData) {
 
   revalidatePath("/app/workouts");
   revalidatePath("/app/progress");
+}
+
+export async function requestWorkoutIssueAction(formData: FormData) {
+  await createWorkoutIssueRequest({
+    workspaceId: readText(formData, "workspaceId"),
+    templateId: readText(formData, "templateId"),
+    dayId: readText(formData, "dayId"),
+    assignedDayId: readText(formData, "assignedDayId"),
+    reason: readText(formData, "issueReason"),
+    notes: readText(formData, "issueNotes"),
+  });
+
+  revalidatePath("/app/workouts");
+  revalidatePath("/coach");
 }

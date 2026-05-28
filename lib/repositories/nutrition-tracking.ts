@@ -10,6 +10,7 @@ export type MealLogInput = {
   mealTitle: string;
   status: MealLogStatus;
   satisfaction: number | null;
+  requestReason?: string;
   notes: string;
 };
 
@@ -185,7 +186,7 @@ export async function getMemberMealPlanForToday(workspaceId?: string): Promise<M
       recipeId: item.recipe_id,
       mealSlot: item.meal_slot,
       title: item.title,
-      instructions: item.instructions ?? "Sigue la comida indicada y pide cambio si no te encaja.",
+      instructions: item.instructions ?? "Sigue la comida indicada y avisa a tu coach si hay una causa concreta.",
       ingredients: 0,
       tags: ["plan"],
       calories: activePlan.hide_macros ? null : item.calories,
@@ -273,6 +274,11 @@ export async function upsertMealLog(input: MealLogInput) {
   const memberProfileId = await getDefaultMemberProfileId(input.workspaceId);
   const activeMealPlanId = await getActiveMealPlanId(supabase, input.workspaceId, memberProfileId);
   const date = todayIso();
+  const requestReason = input.requestReason?.trim() ?? "";
+  const noteText = input.notes.trim();
+  const notes = input.status === "swap_requested"
+    ? [requestReason ? `Motivo: ${requestReason}` : "", noteText].filter(Boolean).join(" · ")
+    : noteText;
   const payload = {
     workspace_id: input.workspaceId,
     member_profile_id: memberProfileId,
@@ -283,7 +289,7 @@ export async function upsertMealLog(input: MealLogInput) {
     meal_title: mealTitle,
     status: input.status,
     satisfaction: clampInteger(input.satisfaction, 1, 5),
-    notes: input.notes.trim() || null,
+    notes: notes || null,
     updated_at: new Date().toISOString(),
   };
 
@@ -307,6 +313,8 @@ export async function upsertMealLog(input: MealLogInput) {
         mealSlot,
         mealTitle,
         status: input.status,
+        requestReason: requestReason || null,
+        notes: notes || null,
         assignedMealPlanId: activeMealPlanId,
       },
     });

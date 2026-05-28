@@ -29,6 +29,7 @@ export async function saveMealLogAction(formData: FormData) {
     mealTitle: readText(formData, "mealTitle"),
     status: readMealStatus(formData),
     satisfaction: readNumber(formData, "satisfaction"),
+    requestReason: readText(formData, "requestReason"),
     notes: readText(formData, "notes"),
   });
 

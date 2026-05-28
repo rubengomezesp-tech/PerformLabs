@@ -6,7 +6,7 @@ import { getSelectedMemberAppBrand } from "@/lib/member-app";
 import { getMemberTrainingContext, type MemberAssignedWorkoutDay, type MemberAssignedWorkoutExercise } from "@/lib/repositories/member-onboarding";
 import { listManagedWorkoutTemplates, type ManagedWorkoutTemplate } from "@/lib/repositories/training-management";
 import { getWorkoutPerformanceSummary } from "@/lib/repositories/workout-performance";
-import { saveWorkoutSessionAction } from "./actions";
+import { requestWorkoutIssueAction, saveWorkoutSessionAction } from "./actions";
 
 type WorkoutTemplateDay = ManagedWorkoutTemplate["days"][number];
 type WorkoutTemplateExercise = WorkoutTemplateDay["exercises"][number];
@@ -81,12 +81,12 @@ export default async function WorkoutsPage() {
           <div>
             <span className="eyebrow">Hoy toca</span>
             <h2>{activeDay?.title ?? "Sesión pendiente"}</h2>
-            <p>{activeDay ? "Completa la rutina, apunta tus reps y kilos, y deja una nota si algo te molesta." : "Tu coach está preparando la siguiente sesión."}</p>
+            <p>{activeDay ? "Completa la rutina y apunta reps y kilos. Si algo te impide hacerla, avisa con un motivo concreto." : "Tu coach está preparando la siguiente sesión."}</p>
             <div className="workoutHeroMeta">
               <span><Dumbbell size={16} /> {sessionExercises} ejercicios</span>
               <span><Video size={16} /> {totalSessionVideos ? `${totalSessionVideos} vídeos` : "Sin vídeos"}</span>
               <span><Timer size={16} /> {estimatedMinutes} min aprox.</span>
-              <span><Repeat2 size={16} /> Puedes pedir cambio</span>
+              <span><Repeat2 size={16} /> Incidencias con motivo</span>
             </div>
             <div className="workoutActionRail">
               <a className="btn primary" href="#sesion-activa">Empezar sesión <Play size={18} /></a>
@@ -137,7 +137,7 @@ export default async function WorkoutsPage() {
               </span>
               <strong>{sessionExercises} ejercicios</strong>
             </div>
-            <p>Haz cada ejercicio con buena técnica. Si notas molestia, pide una alternativa.</p>
+            <p>Haz cada ejercicio con buena técnica. Si hay dolor, falta de material o una limitación real, avisa al coach.</p>
           </article>
         </div>
 
@@ -230,7 +230,6 @@ export default async function WorkoutsPage() {
                               <Play size={16} /> Vídeo pendiente
                             </button>
                           )}
-                          <button className="btn" type="button"><Repeat2 size={16} /> Alternativa</button>
                         </div>
                       </div>
                       </div>
@@ -241,8 +240,29 @@ export default async function WorkoutsPage() {
               <div className="sessionSavePanel">
                 <label>Tiempo<input name="durationMinutes" placeholder="60 min" type="number" min="0" /></label>
                 <label>Sensación<input name="perceivedEffort" placeholder="1-10" type="number" min="1" max="10" /></label>
-                <label className="spanFull">Nota para tu coach<textarea name="notes" rows={2} placeholder="Energía, molestias, ejercicio que cambiarías..." /></label>
-                <button className="btn primary" type="submit"><CheckCircle2 size={17} /> Guardar entreno</button>
+                <label className="spanFull">Nota del entreno<textarea name="notes" rows={2} placeholder="Energía, molestias durante la sesión, cargas que se sintieron altas o bajas..." /></label>
+                <div className="sessionIssueBox">
+                  <div>
+                    <span className="eyebrow">Aviso al coach</span>
+                    <strong>Solo si hay un motivo concreto.</strong>
+                    <p>Esto no cambia tu plan automáticamente; tu coach lo revisa y decide.</p>
+                  </div>
+                  <label>Motivo
+                    <select name="issueReason" defaultValue="" required>
+                      <option value="">Elige motivo</option>
+                      <option value="Dolor o molestia">Dolor o molestia</option>
+                      <option value="No tengo material">No tengo material</option>
+                      <option value="No entiendo la técnica">No entiendo la técnica</option>
+                      <option value="No puedo completar el tiempo">No puedo completar el tiempo</option>
+                      <option value="La carga no encaja">La carga no encaja</option>
+                    </select>
+                  </label>
+                  <label className="spanFull">Detalle
+                    <textarea name="issueNotes" rows={2} placeholder="Ej. molestia en hombro en press, no tengo polea, no llego al tiempo..." />
+                  </label>
+                  <button className="btn" formAction={requestWorkoutIssueAction} type="submit"><Repeat2 size={17} /> Enviar aviso</button>
+                </div>
+                <button className="btn primary" formNoValidate type="submit"><CheckCircle2 size={17} /> Guardar entreno</button>
               </div>
             </form>
           </article>
@@ -306,8 +326,8 @@ export default async function WorkoutsPage() {
                     )}
                   </div>
                   <div className="actions">
-                    <button className="btn primary" type="button"><CheckCircle2 size={17} /> Registrar</button>
-                    <button className="btn" type="button"><Repeat2 size={17} /> Alternativa</button>
+                    <a className="btn primary" href="#sesion-activa"><CheckCircle2 size={17} /> Registrar</a>
+                    <a className="btn" href="#sesion-activa"><Repeat2 size={17} /> Avisar si hay problema</a>
                   </div>
                 </article>
               ))
@@ -322,13 +342,13 @@ export default async function WorkoutsPage() {
                     {workout.exercises.map((exercise) => (
                       <li className="row" key={exercise}>
                         {exercise}
-                        <span className="tag">Cambiar</span>
+                        <span className="tag">Coach</span>
                       </li>
                     ))}
                   </ul>
                   <div className="actions">
-                    <button className="btn primary" type="button"><CheckCircle2 size={17} /> Registrar</button>
-                    <button className="btn" type="button"><Repeat2 size={17} /> Alternativa</button>
+                    <a className="btn primary" href="#sesion-activa"><CheckCircle2 size={17} /> Registrar</a>
+                    <a className="btn" href="#sesion-activa"><Repeat2 size={17} /> Avisar si hay problema</a>
                   </div>
                 </article>
               ))

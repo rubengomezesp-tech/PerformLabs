@@ -43,7 +43,7 @@ export default async function MealsPage() {
     title: meal.meal,
     ingredients: 4,
     tags: ["preparada"],
-    instructions: "Mantén la estructura indicada por tu coach y avisa si necesitas una alternativa.",
+    instructions: "Mantén la estructura indicada por tu coach y avisa solo si hay una causa concreta.",
     calories: null,
     proteinG: null,
   }));
@@ -68,11 +68,11 @@ export default async function MealsPage() {
           <div>
             <span className="eyebrow">Siguiente comida</span>
             <h1>{nextMeal?.title || "Plan preparado"}</h1>
-            <p>{nextMeal ? "Cuando termines, márcala como hecha. Si no te encaja, pide un cambio y tu coach lo revisa." : "Tu coach está preparando tu plan de comidas."}</p>
+            <p>{nextMeal ? "Cuando termines, márcala como hecha. Si hay una causa real que te lo impide, avisa al coach desde esa comida." : "Tu coach está preparando tu plan de comidas."}</p>
             <div className="mealHeroMeta">
               <span><Utensils size={16} /> {dailySummary.completedMeals}/{mealCards.length} comidas hechas</span>
               <span><Droplets size={16} /> {dailySummary.waterGlasses}/{waterTargetGlasses} vasos de agua</span>
-              <span><Repeat size={16} /> {dailySummary.swapRequests ? `${dailySummary.swapRequests} cambio pedido` : "Cambios disponibles"}</span>
+              <span><Repeat size={16} /> {dailySummary.swapRequests ? `${dailySummary.swapRequests} incidencia enviada` : "Plan marcado por tu coach"}</span>
             </div>
             {nextMeal ? (
               <form action={saveMealLogAction} className="mealHeroActions">
@@ -82,7 +82,7 @@ export default async function MealsPage() {
                 <input name="mealTitle" type="hidden" value={nextMeal.title} />
                 <input name="satisfaction" type="hidden" value="4" />
                 <button className="btn primary" name="status" value="done" type="submit"><CheckCircle2 size={17} /> Ya la hice</button>
-                <button className="btn" name="status" value="swap_requested" type="submit"><Repeat size={17} /> Pedir cambio</button>
+                <a className="btn" href="#comidas"><Repeat size={17} /> Reportar incidencia</a>
               </form>
             ) : null}
           </div>
@@ -97,7 +97,7 @@ export default async function MealsPage() {
         </article>
       </section>
 
-      <section className="grid">
+      <section className="grid" id="comidas">
         <div className="span12 mealStatusGrid">
           <article className="card mealStatusCard">
             <div>
@@ -143,8 +143,19 @@ export default async function MealsPage() {
               <input name="mealSlot" type="hidden" value={meal.slot} />
               <input name="mealTitle" type="hidden" value={meal.title} />
               <input name="satisfaction" type="hidden" value="4" />
-              <button className="btn primary" name="status" value="done" type="submit"><CheckCircle2 size={16} /> Hecho</button>
-              <button className="btn" name="status" value="swap_requested" type="submit"><Repeat size={16} /> Cambiar</button>
+              <label className="mealReasonSelect">
+                Motivo si no puedes hacerla
+                <select name="requestReason" defaultValue="" required>
+                  <option value="">Elige motivo</option>
+                  <option value="No me sienta bien">No me sienta bien</option>
+                  <option value="Alergia o intolerancia">Alergia o intolerancia</option>
+                  <option value="No tengo ingredientes">No tengo ingredientes</option>
+                  <option value="No encaja con mi horario">No encaja con mi horario</option>
+                  <option value="No puedo prepararla hoy">No puedo prepararla hoy</option>
+                </select>
+              </label>
+              <button className="btn primary" formNoValidate name="status" value="done" type="submit"><CheckCircle2 size={16} /> Hecho</button>
+              <button className="btn" name="status" value="swap_requested" type="submit"><Repeat size={16} /> Avisar al coach</button>
             </form>
           </article>
         ))}
@@ -176,7 +187,7 @@ export default async function MealsPage() {
               <option value="4">Buena</option>
               <option value="5">Muy buena</option>
             </select></label>
-            <label className="spanFull">Nota para tu coach<textarea name="notes" rows={3} placeholder="Hambre, digestión, comida que no te gustó, falta de tiempo..." /></label>
+            <label className="spanFull">Contexto para tu coach<textarea name="notes" rows={3} placeholder="Hambre, digestión, energía, horarios o algo concreto que pueda revisar..." /></label>
             <button className="btn primary" type="submit"><Plus size={17} /> Guardar seguimiento</button>
           </form>
         </article>
@@ -184,10 +195,10 @@ export default async function MealsPage() {
         <article className="card span5 mealCoachNote">
           <MessageSquare color="var(--gold)" />
           <h2>Mensaje para tu coach</h2>
-          <p>Si una comida no encaja, pide cambio desde la tarjeta. Tu coach verá el contexto del día antes de tocar tu plan.</p>
+          <p>Tu plan lo marca tu coach. Si algo no puedes cumplir por una causa real, avisa desde la comida concreta y el coach decide.</p>
           <div className="row"><span>Objetivo</span><strong>{planLabel}</strong></div>
           <div className="row"><span>Comidas</span><strong>{completionPercent}%</strong></div>
-          <div className="row"><span>Cambios pedidos</span><strong>{dailySummary.swapRequests}</strong></div>
+          <div className="row"><span>Incidencias enviadas</span><strong>{dailySummary.swapRequests}</strong></div>
         </article>
 
         <article className="card span12 mealShoppingCard">

@@ -24,6 +24,15 @@ export type WorkoutSessionLogInput = {
   sets: WorkoutSetLogInput[];
 };
 
+export type WorkoutIssueInput = {
+  workspaceId: string;
+  templateId: string;
+  dayId: string;
+  assignedDayId?: string;
+  reason: string;
+  notes: string;
+};
+
 export type WorkoutPerformanceSummary = {
   sessionsThisWeek: number;
   totalSetsThisWeek: number;
@@ -147,6 +156,41 @@ export async function createWorkoutSessionLog(input: WorkoutSessionLogInput) {
   });
 
   return { sessionId: sessionResult.data.id, setsLogged: completedSets.length };
+}
+
+export async function createWorkoutIssueRequest(input: WorkoutIssueInput) {
+  if (!input.workspaceId || (!input.dayId && !input.assignedDayId)) {
+    throw new Error("Falta la sesion que quieres reportar.");
+  }
+
+  const reason = input.reason.trim();
+  if (!reason) {
+    throw new Error("Elige un motivo concreto para avisar al coach.");
+  }
+
+  const supabase = createServiceSupabaseClient();
+  const memberProfileId = await getDefaultMemberProfileId(input.workspaceId);
+  if (!memberProfileId) {
+    throw new Error("No se pudo identificar tu perfil de cliente.");
+  }
+
+  const event = await supabase.from("member_activity_events").insert({
+    workspace_id: input.workspaceId,
+    member_profile_id: memberProfileId,
+    event_type: "workout_issue_reported",
+    source: "member_app",
+    metadata: {
+      templateId: input.templateId || null,
+      dayId: input.dayId || null,
+      assignedDayId: input.assignedDayId || null,
+      reason,
+      notes: input.notes.trim() || null,
+    },
+  });
+
+  if (event.error) {
+    throw new Error(`No se pudo enviar el aviso al coach: ${event.error.message}`);
+  }
 }
 
 async function markAssignedWorkoutDay(input: {

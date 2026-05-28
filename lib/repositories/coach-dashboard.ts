@@ -189,10 +189,19 @@ function activityCopy(row: ActivityRow) {
     };
   }
 
-  if (row.event_type === "meal_logged") {
+  if (row.event_type === "workout_issue_reported") {
+    const reason = typeof metadata.reason === "string" ? metadata.reason : "Motivo pendiente";
     return {
-      label: status === "swap_requested" ? "Cambio de comida pedido" : "Comida registrada",
-      detail: mealTitle || "Movimiento nutricional guardado.",
+      label: "Incidencia de entreno",
+      detail: reason,
+    };
+  }
+
+  if (row.event_type === "meal_logged") {
+    const requestReason = typeof metadata.requestReason === "string" ? metadata.requestReason : "";
+    return {
+      label: status === "swap_requested" ? "Incidencia de comida" : "Comida registrada",
+      detail: requestReason || mealTitle || "Movimiento nutricional guardado.",
     };
   }
 
@@ -343,6 +352,8 @@ export async function getCoachDashboard(workspaceId?: string): Promise<CoachDash
   const checkins = ((checkinsResult.data ?? []) as CheckinRow[]);
   const plans = ((plansResult.data ?? []) as WorkoutPlanRow[]);
   const sessions = ((sessionsResult.data ?? []) as SessionRow[]);
+  const activityRows = ((activityResult.data ?? []) as ActivityRow[]);
+  const workoutIssues = activityRows.filter((row) => row.event_type === "workout_issue_reported");
   const activeMemberIds = new Set(sessions.map((session) => session.member_profile_id).filter(Boolean));
   const activeMembers = members.filter((member) => ["active", "trialing"].includes(member.subscription_status));
   const reviewsDue = plans.filter((plan) => plan.next_review_on && plan.next_review_on <= today && plan.review_status !== "completed");
@@ -364,11 +375,26 @@ export async function getCoachDashboard(workspaceId?: string): Promise<CoachDash
   for (const meal of mealSwaps.slice(0, 4)) {
     attentionQueue.push({
       id: `meal-${meal.id}`,
-      title: `${memberName(meal)} pidio cambio`,
+      title: `${memberName(meal)} reporto una comida`,
       detail: `${meal.meal_slot}: ${meal.meal_title}${meal.notes ? ` · ${firstWords(meal.notes, 70)}` : ""}`,
       status: "Nutricion",
       area: "Comidas",
       href: "/coach/nutrition",
+      severity: "high",
+    });
+  }
+
+  for (const issue of workoutIssues.slice(0, 4)) {
+    const metadata = toRecord(issue.metadata);
+    const reason = typeof metadata.reason === "string" ? metadata.reason : "Motivo pendiente";
+    const notes = typeof metadata.notes === "string" ? metadata.notes : "";
+    attentionQueue.push({
+      id: `workout-issue-${issue.id}`,
+      title: `${memberName(issue)} reporto una incidencia`,
+      detail: `${reason}${notes ? ` · ${firstWords(notes, 70)}` : ""}`,
+      status: "Entreno",
+      area: "Entreno",
+      href: "/coach/members",
       severity: "high",
     });
   }
@@ -455,7 +481,7 @@ export async function getCoachDashboard(workspaceId?: string): Promise<CoachDash
       status: row.status,
       highlights: briefingHighlights(row).slice(0, 6),
     })),
-    recentActivity: (((activityResult.data ?? []) as ActivityRow[]).map((row) => {
+    recentActivity: (activityRows.map((row) => {
       const copy = activityCopy(row);
       return {
         id: row.id,
