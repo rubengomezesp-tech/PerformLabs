@@ -26,4 +26,6 @@ export { SubmitButton } from "./submit-button";
 export type { SubmitButtonProps } from "./submit-button";
 export { Skeleton, SkeletonText } from "./skeleton";
 export type { SkeletonProps } from "./skeleton";
+export { ProgressRing } from "./progress-ring";
+export type { ProgressRingProps } from "./progress-ring";
 export { cx } from "./cx";
