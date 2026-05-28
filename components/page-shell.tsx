@@ -30,10 +30,15 @@ export function PageShell({
   children: React.ReactNode;
 }) {
   return (
-    <div className="shell" style={brand ? ({ "--gold": brand.accentColor } as React.CSSProperties) : undefined}>
+    <div className="shell" style={brand ? ({ "--accent": brand.accentColor } as React.CSSProperties) : undefined}>
+      <a className="skip-link" href="#main">
+        Saltar al contenido
+      </a>
       <MobileBar brand={brand} href={nav[0]?.href ?? "/"} productLabel={productLabel} session={session} />
       <Sidebar brand={brand} nav={nav} active={active} productLabel={productLabel} session={session} />
-      <main className="main">{children}</main>
+      <main className="main" id="main" tabIndex={-1}>
+        {children}
+      </main>
     </div>
   );
 }
