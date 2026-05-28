@@ -72,6 +72,37 @@ PerformLabs sells the same thing, so the structure transfers directly. Adopt the
 7. **Testimonials/featured slot** — leave a structured, clearly-empty section
    ready to fill when we have real coaches (never fabricate).
 
+## Console teardown (from a live customer workspace: `*.macroactive.io`)
+
+Key finding: Rubén Gómez Élite runs the branded member app
+(`miembros.rubengomezelite.com`) **on top of Macroactive's console**
+(`apexagency-rubengomez.macroactive.io`). They are a *Macroactive customer*.
+PerformLabs is the play to replace that console and become the platform.
+
+**Full console nav (what we must match/beat):**
+- **Cuentas**: Equipo, Clientes (CRM: filtros nombre/email/género/estado, "More filters", Buscar, **Exportar**, tabla)
+- **Ajustes**: General · Finanzas · Analítica · Notificaciones · Ajustes de Subscripción · Fitness · Nutrition (Niveles de Actividad, Metas de Nutrición) · Países
+- **Nutrición**: Comidas (**1.221**) → Tipos/Categorías/Cocinas · Recetas (**1.187**, con tiempo/ingredientes/publicado) · Ingredientes → Grupos/Unidades · Tags. Filtros por Publicado y **Source: MacroActive / Custom** (librería base + propia).
+- **Fitness** · **Productos** · **Ventas** · **Área de Miembros** · **Herramientas** · **Chat** · **Community** · **Knowledge Base** · **Nutrition Agent (IA)** · **Product Updates**
+
+**Reframe honesto:** Macroactive **no está estancado en features** — es profundo
+(CRM, finanzas, analítica, 1.2k comidas / 1.2k recetas con taxonomía completa,
+suscripciones, comunidad, y ya un *Nutrition Agent* con IA). Su debilidad real es
+la **UI anticuada/densa** (formularios grises, tablas planas) y que es **terreno
+alquilado**. Su **foso = la librería de contenido**.
+
+**Dónde está PerformLabs hoy (sorprendentemente competitivo):** ya tenemos consola
+con members, nutrition (ingredientes/recetas/categorías/plantillas), training
+(ejercicios con vídeo, plantillas, blueprints, módulos trimestrales), billing,
+content, community, brand, notifications, analytics, leads, security, projects +
+un importador `import-free-exercise-db.mjs`. **El modelo de datos ya da la talla.**
+
+**El wedge para ganar (no clonar):**
+1. **Out-design**: consola premium (nuestros `SignalCard`/`Table`/`AttentionQueue`, command palette ⌘K, tablas con densidad pro) vs sus formularios grises.
+2. **AI-native**: superar su "Nutrition Agent" con copiloto del coach + generación de programa/dieta desde el briefing + análisis de check-ins.
+3. **Cerrar el foso de contenido**: sembrar librería (ejercicios ya; **falta recetas/comidas** — importación o generación con IA).
+4. **Ownership**: tu plataforma, no la de Macroactive.
+
 ## Sources
 
 - https://www.macroactive.com/
