@@ -13,6 +13,7 @@ import {
   Smartphone,
 } from "lucide-react";
 import { submitLeadAction } from "@/app/lead-actions";
+import { LandingNav } from "@/components/landing/landing-nav";
 import { LazyOrbit } from "@/components/landing/lazy-orbit";
 import { MotionReveal, SmoothScroll } from "@/components/motion-reveal";
 import { platformBrand } from "@/lib/brand";
@@ -89,26 +90,10 @@ export default function Home() {
       <a className="stickyLeadCta" href="#consulta">
         Solicitar propuesta <ArrowRight size={16} />
       </a>
+      <LandingNav brandName={platformBrand.name} markUrl={platformBrand.markUrl} items={navItems.slice(0, 3)} />
       <section className="landingHero">
         <div className="auroraField" aria-hidden="true" />
         <div className="grain" aria-hidden="true" />
-        <div className="landingNav">
-          <Link className="brand" href="/" style={{ margin: 0 }}>
-            <img className="brandImageMark" src={platformBrand.markUrl} alt="" />
-            <span>
-              <small>{platformBrand.name}</small>
-              <strong>Apps de entrenador</strong>
-            </span>
-          </Link>
-          <nav className="landingNavLinks" aria-label="Secciones">
-            {navItems.map((item) => (
-              <a href={item.href} key={item.href}>{item.label}</a>
-            ))}
-          </nav>
-          <a className="btn primary" href="#consulta">
-            Solicitar propuesta <Mail size={18} />
-          </a>
-        </div>
 
         <div className="landingHeroContent premiumHeroContent">
           <MotionReveal>
@@ -119,10 +104,11 @@ export default function Home() {
               Diseñamos e implantamos una experiencia digital de marca con branding, consola,
               dominio y módulos conectados a tu forma de entrenar, nutrir y acompañar clientes.
             </p>
-            <div className="proofStrip">
-              <span>1. Cuéntanos el proyecto</span>
-              <span>2. Recibe una propuesta</span>
-              <span>3. Lanza con acompañamiento</span>
+            <div className="heroProof">
+              <span><CheckCircle2 size={16} /> 100% tu marca</span>
+              <span><CheckCircle2 size={16} /> Sin &ldquo;powered by&rdquo;</span>
+              <span><CheckCircle2 size={16} /> Tus datos son tuyos</span>
+              <span><CheckCircle2 size={16} /> App + consola</span>
             </div>
             <div className="actions">
               <a className="btn primary" href="#consulta">
@@ -163,6 +149,21 @@ export default function Home() {
               {signal}
             </span>
           ))}
+        </MotionReveal>
+      </section>
+
+      <section className="landingSection">
+        <MotionReveal className="statementBand">
+          <span className="heroBadge">Tu plataforma, no terreno alquilado</span>
+          <h2>Deja de construir tu negocio en <span className="accentText">terreno alquilado</span>.</h2>
+          <p>
+            Tus clientes, tu contenido y tus datos no deberían vivir en una red social ni en una app
+            con el logo de otro. Con {platformBrand.name} operas sobre una plataforma con tu marca,
+            de la que eres dueño de principio a fin.
+          </p>
+          <a className="btn primary lg" href="#consulta">
+            Solicitar propuesta <ArrowRight size={18} />
+          </a>
         </MotionReveal>
       </section>
 
