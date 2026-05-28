@@ -4,32 +4,33 @@ import { getSelectedMemberAppBrand } from "@/lib/member-app";
 import { saveMemberOnboardingAction } from "./actions";
 
 const goalOptions = ["Definicion", "Volumen", "Recomposicion", "Rendimiento", "Salud"];
-const trainingOptions = ["Gimnasio", "Casa", "Exterior", "Mixto"];
-const nutritionOptions = ["Sin gluten", "Vegetariana", "Alta proteina", "Flexible", "Sin lactosa"];
+const trainingOptions = ["Gimnasio", "Casa", "Exterior"];
+const experienceOptions = ["Principiante", "Intermedio", "Avanzado"];
+const nutritionOptions = ["Flexible", "Alta proteina", "Vegetariana", "Sin gluten", "Sin lactosa"];
 const trainingDayOptions = [3, 4, 5, 6, 7];
 
 export default async function MemberOnboardingPage() {
   const brand = await getSelectedMemberAppBrand();
   const onboardingSteps = [
-    { label: "Datos", status: "Activo" },
-    { label: "Preferencias", status: "Pendiente" },
-    { label: "Revisión", status: "Coach" },
+    { label: "Perfil", status: "Activo" },
+    { label: "Plan", status: "Después" },
+    { label: "Coach", status: "Revisión" },
   ];
 
   return (
     <>
       <Topbar
         eyebrow="Inicio"
-        title={`Configura tu plan en ${brand.appName}.`}
-        text="Completa tus datos base para que el equipo pueda ajustar entrenamiento, nutrición, seguimiento y comunicación."
+        title={`Prepara tu plan en ${brand.appName}.`}
+        text="Completa este briefing una vez para que tu coach pueda ajustar entrenamiento, comida, seguimiento y soporte desde el primer día."
       />
       <form action={saveMemberOnboardingAction} className="grid">
         <input name="workspaceId" type="hidden" value={brand.id} />
         <article className="span12 onboardingHero">
           <div>
             <span className="eyebrow">Primer acceso</span>
-            <h2>Deja listo tu perfil para que el equipo pueda personalizar tu plan.</h2>
-            <p>Completa lo básico una vez. Después la app usa esta información para ajustar entrenamientos, comidas, check-ins y soporte.</p>
+            <h2>Cuéntanos lo necesario para preparar una experiencia que puedas cumplir.</h2>
+            <p>El objetivo es simple: saber qué puedes entrenar, cómo comes, qué limitaciones tienes y qué debe revisar tu coach.</p>
           </div>
           <div className="onboardingStepRail">
             {onboardingSteps.map((step, index) => (
@@ -46,9 +47,9 @@ export default async function MemberOnboardingPage() {
           <ClipboardCheck color="var(--gold)" />
           <h2>Estado</h2>
           <ul className="list">
-            <li className="row">Datos básicos <span className="tag">En curso</span></li>
-            <li className="row">Preferencias <span className="tag">Pendiente</span></li>
-            <li className="row">Revisión coach <span className="tag">Después</span></li>
+            <li className="row">Perfil corporal <span className="tag">Necesario</span></li>
+            <li className="row">Entrenamiento <span className="tag">Necesario</span></li>
+            <li className="row">Nutrición <span className="tag">Necesario</span></li>
           </ul>
           <div className="progressTrack" aria-label="Progreso de onboarding">
             <span style={{ width: "34%" }} />
@@ -59,12 +60,12 @@ export default async function MemberOnboardingPage() {
           <div className="sectionHeader">
             <div>
               <ShieldCheck color="var(--gold)" />
-              <h2>Datos para preparar tu experiencia</h2>
-              <p>Esta información ayuda a construir un plan útil desde el primer día.</p>
+              <h2>Perfil y objetivo</h2>
+              <p>Datos base para ajustar cargas, comida, revisiones y comunicación.</p>
             </div>
             <span className="tag">Privado</span>
           </div>
-          <div className="formGrid">
+          <div className="formGrid profileBriefGrid">
             <label>
               Nombre completo
               <input name="fullName" placeholder="Tu nombre" />
@@ -79,12 +80,20 @@ export default async function MemberOnboardingPage() {
               </select>
             </label>
             <label>
+              Sexo
+              <select name="sex" defaultValue="">
+                <option value="">Prefiero no decirlo</option>
+                <option value="male">Hombre</option>
+                <option value="female">Mujer</option>
+              </select>
+            </label>
+            <label>
               Altura
-              <input name="height" placeholder="Ej. 178 cm" />
+              <input name="height" placeholder="Ej. 178" />
             </label>
             <label>
               Peso actual
-              <input name="weight" placeholder="Ej. 82 kg" />
+              <input name="weight" placeholder="Ej. 82" />
             </label>
             <label>
               Fecha de nacimiento
@@ -94,10 +103,40 @@ export default async function MemberOnboardingPage() {
               Zona horaria
               <input name="timezone" placeholder="Europe/Madrid" />
             </label>
-            <label className="spanFull">
-              Lesiones o limitaciones
-              <textarea name="injuries" placeholder="Rodilla, hombro, espalda, recuperación..." rows={3} />
+            <label>
+              Actividad diaria
+              <select name="activityLevel" defaultValue="1.55">
+                <option value="1.2">Trabajo sentado, poca actividad</option>
+                <option value="1.375">Actividad ligera</option>
+                <option value="1.55">Actividad media</option>
+                <option value="1.725">Actividad alta</option>
+                <option value="1.9">Atleta / muy activo</option>
+              </select>
             </label>
+            <label>
+              Sueño medio
+              <input name="sleepHours" placeholder="Ej. 7.5" />
+            </label>
+            <label>
+              Pasos objetivo
+              <input name="stepsTarget" defaultValue="8000" min={2000} max={30000} type="number" />
+            </label>
+            <label className="spanFull">
+              Contexto importante
+              <textarea name="notes" placeholder="Horarios, trabajo, estrés, viajes, preferencias del coach, cosas que te cuesta cumplir..." rows={3} />
+            </label>
+          </div>
+        </article>
+
+        <article className="card span6 preferenceCard motionCard">
+          <Dumbbell color="var(--gold)" />
+          <h2>Entrenamiento</h2>
+          <div className="tagCloud">
+            {trainingOptions.map((option) => (
+              <span className="tag" key={option}>{option}</span>
+            ))}
+          </div>
+          <div className="formGrid compactFormGrid">
             <label>
               Entorno principal
               <select name="trainingLocation" defaultValue="gym">
@@ -107,32 +146,49 @@ export default async function MemberOnboardingPage() {
               </select>
             </label>
             <label>
+              Nivel
+              <select name="experienceLevel" defaultValue="Intermedio">
+                {experienceOptions.map((option) => <option key={option} value={option}>{option}</option>)}
+              </select>
+            </label>
+            <label>
+              Días por semana
+              <select name="daysPerWeek" defaultValue="4">
+                {trainingDayOptions.map((days) => (
+                  <option key={days} value={days}>{days} dias/semana</option>
+                ))}
+              </select>
+            </label>
+            <label>
               Minutos por sesión
               <input name="sessionMinutes" defaultValue="60" min={30} max={150} type="number" />
+            </label>
+            <label className="spanFull">
+              Equipo disponible
+              <textarea name="availableEquipment" placeholder="Máquinas, mancuernas, barra, poleas, bandas, bici, cinta..." rows={3} />
+            </label>
+            <label className="spanFull">
+              Lesiones o limitaciones
+              <textarea name="injuries" placeholder="Rodilla, hombro, espalda, recuperación, ejercicios que no puedes hacer..." rows={3} />
+            </label>
+            <label>
+              Días preferidos
+              <input name="preferredTrainingDays" placeholder="Lunes, miércoles, viernes..." />
+            </label>
+            <label>
+              Cardio
+              <select name="cardioPreference" defaultValue="Caminar">
+                <option>Caminar</option>
+                <option>Bici</option>
+                <option>Cinta</option>
+                <option>Escaleras</option>
+                <option>Prefiero mínimo cardio</option>
+              </select>
             </label>
           </div>
         </article>
 
-        <article className="card span4 preferenceCard motionCard">
-          <Dumbbell color="var(--gold)" />
-          <h2>Entrenamiento</h2>
-          <div className="tagCloud">
-            {trainingOptions.map((option) => (
-              <span className="tag" key={option}>{option}</span>
-            ))}
-          </div>
-          <label>
-            Días por semana
-            <select name="daysPerWeek" defaultValue="4">
-              {trainingDayOptions.map((days) => (
-                <option key={days} value={days}>{days} dias/semana</option>
-              ))}
-            </select>
-          </label>
-          <p className="muted">Tu coach preparará una fase de 3 meses según tu disponibilidad. Después se revisará con tus métricas y sensaciones.</p>
-        </article>
-
-        <article className="card span4 preferenceCard motionCard">
+        <article className="card span6 preferenceCard motionCard">
           <Apple color="var(--gold)" />
           <h2>Nutrición</h2>
           <div className="tagCloud">
@@ -140,20 +196,63 @@ export default async function MemberOnboardingPage() {
               <span className="tag" key={option}>{option}</span>
             ))}
           </div>
-          <label>
-            Comidas por día
-            <input min={2} max={7} name="mealsPerDay" placeholder="4" type="number" />
-          </label>
+          <div className="formGrid compactFormGrid">
+            <label>
+              Estilo de dieta
+              <select name="dietStyle" defaultValue="Flexible">
+                {nutritionOptions.map((option) => <option key={option} value={option}>{option}</option>)}
+              </select>
+            </label>
+            <label>
+              Comidas por día
+              <input min={3} max={6} name="mealsPerDay" defaultValue="4" type="number" />
+            </label>
+            <label>
+              Tiempo para cocinar
+              <input min={5} max={180} name="cookingTimeMinutes" defaultValue="20" type="number" />
+            </label>
+            <label>
+              Presupuesto
+              <select name="budgetLevel" defaultValue="Medio">
+                <option>Bajo</option>
+                <option>Medio</option>
+                <option>Alto</option>
+              </select>
+            </label>
+            <label className="spanFull">
+              Alergias o restricciones
+              <textarea name="allergies" placeholder="Frutos secos, lactosa, gluten, marisco..." rows={2} />
+            </label>
+            <label className="spanFull">
+              Comidas que te gustan
+              <textarea name="preferredFoods" placeholder="Pollo, arroz, yogur, tortilla, pasta, salmón..." rows={2} />
+            </label>
+            <label className="spanFull">
+              Comidas que no quieres
+              <textarea name="dislikedFoods" placeholder="Atún, brócoli, legumbres, picante..." rows={2} />
+            </label>
+            <label className="toggleRow spanFull">
+              <input name="hideMacros" type="checkbox" />
+              <span>Prefiero ver comidas y hábitos sin números de macros.</span>
+            </label>
+          </div>
         </article>
 
-        <article className="card span4 preferenceCard motionCard">
+        <article className="card span12 preferenceCard motionCard">
           <Activity color="var(--gold)" />
-          <h2>Seguimiento</h2>
-          <ul className="list">
-            <li className="row"><UserRound size={16} /> Check-in <span>Semanal</span></li>
-            <li className="row">Fotos <span>Frontal/lateral/espalda</span></li>
-            <li className="row">Hábitos <span>Agua, pasos, sueño</span></li>
-          </ul>
+          <div className="sectionHeader">
+            <div>
+              <h2>Qué pasa después</h2>
+              <p>Con este briefing se deja preparado tu primer bloque de entrenamiento, tu plan de comida y los puntos que revisará tu coach.</p>
+            </div>
+            <span className="tag">Revisión inicial</span>
+          </div>
+          <div className="onboardingOutcomeGrid">
+            <span><UserRound size={16} /> Perfil completo</span>
+            <span><Dumbbell size={16} /> Rutina según días disponibles</span>
+            <span><Apple size={16} /> Comidas según objetivo y preferencias</span>
+            <span><Activity size={16} /> Seguimiento de hábitos y progreso</span>
+          </div>
         </article>
 
         <article className="card span12 privacyNote">

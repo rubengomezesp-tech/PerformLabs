@@ -495,10 +495,12 @@ async function materializeMealPlan(input: {
   return { daysCreated: dayPayload.length, mealsCreated: itemPayload.length };
 }
 
-async function assignDietTemplateToMember(input: {
+export async function assignDietTemplateToMember(input: {
   workspaceId: string;
   memberProfileId: string;
   dietTemplateId: string;
+  mealsPerDay?: string;
+  hideMacros?: boolean;
   assignedBy?: string | null;
 }) {
   if (!input.dietTemplateId) return null;
@@ -526,6 +528,7 @@ async function assignDietTemplateToMember(input: {
     .select("days_per_week")
     .eq("member_profile_id", input.memberProfileId)
     .maybeSingle();
+  const mealsPerDay = parseInteger(input.mealsPerDay, 4, 3, 6);
 
   const target = member.data?.height_cm && member.data.starting_weight_kg
     ? calculateNutritionTargets({
@@ -537,7 +540,7 @@ async function assignDietTemplateToMember(input: {
         goal: normalizeNutritionGoal(diet.data.goal ?? member.data.goal),
         proteinPerKg: diet.data.protein_ratio ? Math.max(1.2, Math.min(3, Number(diet.data.protein_ratio) * 10)) : undefined,
         fatRatio: diet.data.fat_ratio ? Number(diet.data.fat_ratio) : undefined,
-        mealsPerDay: 4,
+        mealsPerDay,
         trainingDaysPerWeek: preferences.data?.days_per_week ?? 4,
       })
     : null;
@@ -569,7 +572,8 @@ async function assignDietTemplateToMember(input: {
     target_fat_g: target?.fatG ?? null,
     water_target_ml: target?.waterMl ?? null,
     fiber_target_g: target?.fiberG ?? null,
-    meals_per_day: target?.meals.length ?? null,
+    meals_per_day: target?.meals.length ?? mealsPerDay,
+    hide_macros: Boolean(input.hideMacros),
     generation_status: "published",
     status: "active",
   }).select("id").single();
@@ -589,6 +593,7 @@ async function assignDietTemplateToMember(input: {
         templateId: input.dietTemplateId,
         heightCm: member.data?.height_cm,
         weightKg: member.data?.starting_weight_kg,
+        mealsPerDay,
         trainingDaysPerWeek: preferences.data?.days_per_week ?? 4,
       },
       output_snapshot: target,
@@ -618,11 +623,12 @@ async function assignDietTemplateToMember(input: {
     source: "coach_console",
     metadata: {
       assignedMealPlanId: planResult.data.id,
-      dietTemplateId: input.dietTemplateId,
-      targetCalories: target?.targetCalories ?? null,
-      daysCreated: materialized.daysCreated,
-      mealsCreated: materialized.mealsCreated,
-    },
+        dietTemplateId: input.dietTemplateId,
+        targetCalories: target?.targetCalories ?? null,
+        mealsPerDay,
+        daysCreated: materialized.daysCreated,
+        mealsCreated: materialized.mealsCreated,
+      },
   });
 
   return { assignedMealPlanId: planResult.data.id, ...materialized };

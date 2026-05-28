@@ -2004,32 +2004,50 @@ export type Database = {
       member_diet_preferences: {
         Row: {
           allergies: string[]
+          budget_level: string | null
+          cooking_time_minutes: number | null
           created_at: string
           diet_category_ids: string[]
+          diet_style: string | null
+          disliked_foods: string[]
           disliked_ingredient_ids: string[]
           hide_macros: boolean
           id: string
+          meals_per_day: number | null
           member_profile_id: string
+          preferred_foods: string[]
           updated_at: string
         }
         Insert: {
           allergies?: string[]
+          budget_level?: string | null
+          cooking_time_minutes?: number | null
           created_at?: string
           diet_category_ids?: string[]
+          diet_style?: string | null
+          disliked_foods?: string[]
           disliked_ingredient_ids?: string[]
           hide_macros?: boolean
           id?: string
+          meals_per_day?: number | null
           member_profile_id: string
+          preferred_foods?: string[]
           updated_at?: string
         }
         Update: {
           allergies?: string[]
+          budget_level?: string | null
+          cooking_time_minutes?: number | null
           created_at?: string
           diet_category_ids?: string[]
+          diet_style?: string | null
+          disliked_foods?: string[]
           disliked_ingredient_ids?: string[]
           hide_macros?: boolean
           id?: string
+          meals_per_day?: number | null
           member_profile_id?: string
+          preferred_foods?: string[]
           updated_at?: string
         }
         Relationships: [
@@ -2045,35 +2063,53 @@ export type Database = {
       member_fitness_preferences: {
         Row: {
           available_equipment: string[]
+          cardio_preference: string | null
           created_at: string
+          daily_steps_target: number | null
           days_per_week: number | null
+          experience_level: string | null
           id: string
           injuries: string[]
           location: string | null
           member_profile_id: string
+          preferred_training_days: string[]
           session_minutes: number | null
+          sleep_hours: number | null
+          training_goal: string | null
           updated_at: string
         }
         Insert: {
           available_equipment?: string[]
+          cardio_preference?: string | null
           created_at?: string
+          daily_steps_target?: number | null
           days_per_week?: number | null
+          experience_level?: string | null
           id?: string
           injuries?: string[]
           location?: string | null
           member_profile_id: string
+          preferred_training_days?: string[]
           session_minutes?: number | null
+          sleep_hours?: number | null
+          training_goal?: string | null
           updated_at?: string
         }
         Update: {
           available_equipment?: string[]
+          cardio_preference?: string | null
           created_at?: string
+          daily_steps_target?: number | null
           days_per_week?: number | null
+          experience_level?: string | null
           id?: string
           injuries?: string[]
           location?: string | null
           member_profile_id?: string
+          preferred_training_days?: string[]
           session_minutes?: number | null
+          sleep_hours?: number | null
+          training_goal?: string | null
           updated_at?: string
         }
         Relationships: [
@@ -2270,6 +2306,75 @@ export type Database = {
           },
           {
             foreignKeyName: "member_nutrition_daily_logs_workspace_id_fkey"
+            columns: ["workspace_id"]
+            isOneToOne: false
+            referencedRelation: "workspaces"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      member_onboarding_responses: {
+        Row: {
+          activity_level: number | null
+          created_at: string
+          goal: string | null
+          id: string
+          meals_per_day: number | null
+          member_profile_id: string
+          onboarding_payload: Json
+          reviewed_at: string | null
+          session_minutes: number | null
+          status: string
+          submitted_at: string
+          training_days_per_week: number | null
+          training_location: string | null
+          updated_at: string
+          workspace_id: string
+        }
+        Insert: {
+          activity_level?: number | null
+          created_at?: string
+          goal?: string | null
+          id?: string
+          meals_per_day?: number | null
+          member_profile_id: string
+          onboarding_payload?: Json
+          reviewed_at?: string | null
+          session_minutes?: number | null
+          status?: string
+          submitted_at?: string
+          training_days_per_week?: number | null
+          training_location?: string | null
+          updated_at?: string
+          workspace_id: string
+        }
+        Update: {
+          activity_level?: number | null
+          created_at?: string
+          goal?: string | null
+          id?: string
+          meals_per_day?: number | null
+          member_profile_id?: string
+          onboarding_payload?: Json
+          reviewed_at?: string | null
+          session_minutes?: number | null
+          status?: string
+          submitted_at?: string
+          training_days_per_week?: number | null
+          training_location?: string | null
+          updated_at?: string
+          workspace_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "member_onboarding_responses_member_profile_id_fkey"
+            columns: ["member_profile_id"]
+            isOneToOne: true
+            referencedRelation: "member_profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "member_onboarding_responses_workspace_id_fkey"
             columns: ["workspace_id"]
             isOneToOne: false
             referencedRelation: "workspaces"

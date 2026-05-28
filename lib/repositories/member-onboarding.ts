@@ -1,6 +1,7 @@
 import { getSupabaseServiceEnv } from "@/lib/supabase/env";
 import { createServiceSupabaseClient } from "@/lib/supabase/server";
-import { assignWorkoutTemplateToMember } from "@/lib/repositories/member-management";
+import { assignDietTemplateToMember, assignWorkoutTemplateToMember } from "@/lib/repositories/member-management";
+import { listManagedDietTemplates, type ManagedDietTemplate } from "@/lib/repositories/nutrition-management";
 import { listManagedWorkoutTemplates, type ManagedWorkoutTemplate } from "@/lib/repositories/training-management";
 
 export type MemberAssignedWorkoutExercise = {
@@ -42,11 +43,28 @@ export type MemberOnboardingInput = {
   heightCm: string;
   weightKg: string;
   birthDate: string;
+  sex: string;
   timezone: string;
   injuries: string;
+  experienceLevel: string;
+  availableEquipment: string;
+  preferredTrainingDays: string;
+  cardioPreference: string;
+  activityLevel: string;
+  sleepHours: string;
+  stepsTarget: string;
   trainingLocation: string;
   daysPerWeek: string;
   sessionMinutes: string;
+  mealsPerDay: string;
+  dietStyle: string;
+  allergies: string;
+  preferredFoods: string;
+  dislikedFoods: string;
+  cookingTimeMinutes: string;
+  budgetLevel: string;
+  hideMacros: boolean;
+  notes: string;
 };
 
 export type MemberTrainingContext = {
@@ -84,6 +102,75 @@ function splitList(value: string) {
     .split(",")
     .map((item) => item.trim())
     .filter(Boolean);
+}
+
+function normalizeLocation(value: string) {
+  const normalized = value.trim().toLowerCase();
+  if (normalized === "home" || normalized === "casa") return "home";
+  if (normalized === "outdoor" || normalized === "exterior") return "outdoor";
+  return "gym";
+}
+
+function normalizeSex(value: string) {
+  const normalized = value.trim().toLowerCase();
+  if (normalized === "female" || normalized === "mujer") return "female";
+  if (normalized === "male" || normalized === "hombre") return "male";
+  return null;
+}
+
+function normalizeActivityLevel(value: string) {
+  const parsed = Number.parseFloat(value);
+  if (Number.isFinite(parsed)) return Math.min(1.9, Math.max(1.2, parsed));
+
+  const normalized = value.toLowerCase();
+  if (normalized.includes("sed")) return 1.2;
+  if (normalized.includes("lig")) return 1.375;
+  if (normalized.includes("alta") || normalized.includes("active")) return 1.725;
+  if (normalized.includes("atleta") || normalized.includes("athlete")) return 1.9;
+  return 1.55;
+}
+
+function goalMatches(goal: string, template: ManagedDietTemplate) {
+  const source = `${template.name} ${template.goal} ${template.tags.join(" ")}`.toLowerCase();
+  const normalized = goal.toLowerCase();
+  if (normalized.includes("volumen") || normalized.includes("masa")) {
+    return source.includes("volumen") || source.includes("gain") || source.includes("masa");
+  }
+  if (normalized.includes("recom")) {
+    return source.includes("recom") || source.includes("manten");
+  }
+  if (normalized.includes("salud") || normalized.includes("rendimiento")) {
+    return source.includes("manten") || source.includes("performance") || source.includes("salud");
+  }
+  return source.includes("defin") || source.includes("perdida") || source.includes("loss") || source.includes("grasa");
+}
+
+async function assignRecommendedDietPlan(input: {
+  workspaceId: string;
+  memberProfileId: string;
+  goal: string;
+  mealsPerDay: number;
+  hideMacros: boolean;
+}) {
+  const templates = await listManagedDietTemplates(input.workspaceId);
+  const template = templates.find((item) => goalMatches(input.goal, item)) ?? templates[0] ?? null;
+
+  if (!template) {
+    return { dietTemplateId: null, mealAssignmentCreated: false };
+  }
+
+  const assignment = await assignDietTemplateToMember({
+    workspaceId: input.workspaceId,
+    memberProfileId: input.memberProfileId,
+    dietTemplateId: template.id,
+    mealsPerDay: String(input.mealsPerDay),
+    hideMacros: input.hideMacros,
+  });
+
+  return {
+    dietTemplateId: template.id,
+    mealAssignmentCreated: Boolean(assignment?.assignedMealPlanId),
+  };
 }
 
 function daysBetween(fromIso?: string | null, toIso = new Date().toISOString().slice(0, 10)) {
@@ -174,7 +261,17 @@ export async function saveMemberOnboarding(input: MemberOnboardingInput) {
   const supabase = createServiceSupabaseClient();
   const daysPerWeek = parseInteger(input.daysPerWeek, 4, 3, 7);
   const sessionMinutes = parseInteger(input.sessionMinutes, 60, 30, 150);
+  const mealsPerDay = parseInteger(input.mealsPerDay, 4, 3, 6);
+  const activityLevel = normalizeActivityLevel(input.activityLevel);
+  const sleepHours = parseNumber(input.sleepHours);
+  const stepsTarget = parseInteger(input.stepsTarget, 8000, 2000, 30000);
   const fullName = input.fullName.trim() || member.full_name;
+  const injuries = splitList(input.injuries);
+  const availableEquipment = splitList(input.availableEquipment);
+  const preferredTrainingDays = splitList(input.preferredTrainingDays);
+  const allergies = splitList(input.allergies);
+  const preferredFoods = splitList(input.preferredFoods);
+  const dislikedFoods = splitList(input.dislikedFoods);
 
   const profileUpdate = await supabase
     .from("member_profiles")
@@ -184,8 +281,10 @@ export async function saveMemberOnboarding(input: MemberOnboardingInput) {
       height_cm: parseNumber(input.heightCm),
       starting_weight_kg: parseNumber(input.weightKg),
       birth_date: input.birthDate || null,
+      sex: normalizeSex(input.sex),
+      activity_level: activityLevel,
       timezone: input.timezone.trim() || "Europe/Madrid",
-      onboarding_status: "training_module_assigned",
+      onboarding_status: "plan_brief_submitted",
       updated_at: new Date().toISOString(),
     })
     .eq("id", member.id)
@@ -195,15 +294,21 @@ export async function saveMemberOnboarding(input: MemberOnboardingInput) {
     throw new Error(`No se pudo guardar el perfil: ${profileUpdate.error.message}`);
   }
 
-  const preferences = await supabase
+  const preferences = await (supabase as any)
     .from("member_fitness_preferences")
     .upsert({
       member_profile_id: member.id,
-      location: input.trainingLocation.trim() || "gym",
-      available_equipment: [],
-      injuries: splitList(input.injuries),
+      location: normalizeLocation(input.trainingLocation),
+      available_equipment: availableEquipment,
+      injuries,
       days_per_week: daysPerWeek,
       session_minutes: sessionMinutes,
+      experience_level: input.experienceLevel.trim() || null,
+      training_goal: input.goal.trim() || null,
+      preferred_training_days: preferredTrainingDays,
+      cardio_preference: input.cardioPreference.trim() || null,
+      daily_steps_target: stepsTarget,
+      sleep_hours: sleepHours,
       updated_at: new Date().toISOString(),
     }, { onConflict: "member_profile_id" });
 
@@ -211,13 +316,110 @@ export async function saveMemberOnboarding(input: MemberOnboardingInput) {
     throw new Error(`No se pudieron guardar las preferencias: ${preferences.error.message}`);
   }
 
-  const assignment = await assignQuarterlyWorkoutModule({
+  const dietPreferences = await (supabase as any)
+    .from("member_diet_preferences")
+    .upsert({
+      member_profile_id: member.id,
+      allergies,
+      hide_macros: input.hideMacros,
+      diet_style: input.dietStyle.trim() || null,
+      meals_per_day: mealsPerDay,
+      preferred_foods: preferredFoods,
+      disliked_foods: dislikedFoods,
+      cooking_time_minutes: parseInteger(input.cookingTimeMinutes, 20, 5, 180),
+      budget_level: input.budgetLevel.trim() || null,
+      updated_at: new Date().toISOString(),
+    }, { onConflict: "member_profile_id" });
+
+  if (dietPreferences.error) {
+    throw new Error(`No se pudieron guardar las preferencias de nutricion: ${dietPreferences.error.message}`);
+  }
+
+  const onboardingPayload = {
+    profile: {
+      fullName,
+      goal: input.goal,
+      heightCm: parseNumber(input.heightCm),
+      weightKg: parseNumber(input.weightKg),
+      birthDate: input.birthDate || null,
+      sex: normalizeSex(input.sex),
+      timezone: input.timezone.trim() || "Europe/Madrid",
+    },
+    training: {
+      daysPerWeek,
+      sessionMinutes,
+      location: normalizeLocation(input.trainingLocation),
+      experienceLevel: input.experienceLevel,
+      availableEquipment,
+      preferredTrainingDays,
+      injuries,
+      cardioPreference: input.cardioPreference,
+      activityLevel,
+      sleepHours,
+      stepsTarget,
+    },
+    nutrition: {
+      mealsPerDay,
+      dietStyle: input.dietStyle,
+      allergies,
+      preferredFoods,
+      dislikedFoods,
+      cookingTimeMinutes: parseInteger(input.cookingTimeMinutes, 20, 5, 180),
+      budgetLevel: input.budgetLevel,
+      hideMacros: input.hideMacros,
+    },
+    notes: input.notes.trim(),
+  };
+
+  const response = await (supabase as any)
+    .from("member_onboarding_responses")
+    .upsert({
+      workspace_id: input.workspaceId,
+      member_profile_id: member.id,
+      goal: input.goal.trim() || null,
+      training_days_per_week: daysPerWeek,
+      training_location: normalizeLocation(input.trainingLocation),
+      session_minutes: sessionMinutes,
+      meals_per_day: mealsPerDay,
+      activity_level: activityLevel,
+      status: "submitted",
+      onboarding_payload: onboardingPayload,
+      submitted_at: new Date().toISOString(),
+      updated_at: new Date().toISOString(),
+    }, { onConflict: "member_profile_id" });
+
+  if (response.error) {
+    throw new Error(`No se pudo guardar el briefing inicial: ${response.error.message}`);
+  }
+
+  const workoutAssignment = await assignQuarterlyWorkoutModule({
     workspaceId: input.workspaceId,
     memberProfileId: member.id,
     daysPerWeek,
   });
+  const mealAssignment = await assignRecommendedDietPlan({
+    workspaceId: input.workspaceId,
+    memberProfileId: member.id,
+    goal: input.goal,
+    mealsPerDay,
+    hideMacros: input.hideMacros,
+  });
 
-  return { memberProfileId: member.id, daysPerWeek, ...assignment };
+  await supabase.from("member_activity_events").insert({
+    workspace_id: input.workspaceId,
+    member_profile_id: member.id,
+    event_type: "onboarding_submitted",
+    source: "member_app",
+    metadata: {
+      daysPerWeek,
+      mealsPerDay,
+      goal: input.goal,
+      workoutTemplateId: workoutAssignment.templateId,
+      dietTemplateId: mealAssignment.dietTemplateId,
+    },
+  });
+
+  return { memberProfileId: member.id, daysPerWeek, mealsPerDay, ...workoutAssignment, ...mealAssignment };
 }
 
 export async function getMemberTrainingContext(workspaceId?: string): Promise<MemberTrainingContext> {
