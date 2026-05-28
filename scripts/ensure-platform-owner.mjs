@@ -15,6 +15,7 @@ for (const envFile of [".env.local", ".env"]) {
 const email = process.env.COACHOS_OWNER_EMAIL?.trim().toLowerCase();
 const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
 const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+const appUrl = (process.env.NEXT_PUBLIC_APP_URL || process.env.NEXT_PUBLIC_SITE_URL || "http://localhost:3001").replace(/\/+$/, "");
 
 if (!email || !url || !serviceRoleKey) {
   const missing = [
@@ -66,7 +67,7 @@ while (!user && page <= 10) {
 
 if (!user) {
   const invite = await supabase.auth.admin.inviteUserByEmail(email, {
-    redirectTo: process.env.NEXT_PUBLIC_APP_URL ? `${process.env.NEXT_PUBLIC_APP_URL}/login?next=/console/security` : undefined,
+    redirectTo: `${appUrl}/auth/callback?next=/console/security`,
     data: {
       invited_role: "platform_owner",
       workspace_id: workspaceResult.data.id,

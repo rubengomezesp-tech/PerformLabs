@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { Manrope, Space_Grotesk } from "next/font/google";
+import { AuthHashBridge } from "@/components/auth-hash-bridge";
 import { platformBrand } from "@/lib/brand";
 import "./globals.css";
 
@@ -27,7 +28,10 @@ export const metadata: Metadata = {
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html className={`${manrope.variable} ${spaceGrotesk.variable}`} lang="es">
-      <body>{children}</body>
+      <body>
+        <AuthHashBridge />
+        {children}
+      </body>
     </html>
   );
 }

@@ -15,8 +15,8 @@ function readText(formData: FormData, key: string) {
 }
 
 function appUrl() {
-  if (process.env.NEXT_PUBLIC_APP_URL) return process.env.NEXT_PUBLIC_APP_URL;
-  if (process.env.NEXT_PUBLIC_SITE_URL) return process.env.NEXT_PUBLIC_SITE_URL;
+  if (process.env.NEXT_PUBLIC_APP_URL) return process.env.NEXT_PUBLIC_APP_URL.replace(/\/+$/, "");
+  if (process.env.NEXT_PUBLIC_SITE_URL) return process.env.NEXT_PUBLIC_SITE_URL.replace(/\/+$/, "");
   if (process.env.VERCEL_URL) return `https://${process.env.VERCEL_URL}`;
   return undefined;
 }
@@ -39,7 +39,7 @@ export async function inviteWorkspaceTeamMemberAction(formData: FormData) {
     role: readText(formData, "role") as WorkspaceRole,
     actorRole: session.topRole,
     actorUserId: session.mode === "authenticated" ? session.user.id : null,
-    redirectTo: baseUrl ? `${baseUrl}/login?next=/coach` : undefined,
+    redirectTo: baseUrl ? `${baseUrl}/auth/callback?next=/coach` : undefined,
   });
 
   revalidatePath("/console/security");

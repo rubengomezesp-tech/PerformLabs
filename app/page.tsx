@@ -1,125 +1,84 @@
 import Link from "next/link";
 import {
-  Apple,
   ArrowRight,
   BadgeCheck,
-  BarChart3,
-  CalendarCheck,
   CheckCircle2,
-  Dumbbell,
   Globe,
   HelpCircle,
-  Layers,
   Mail,
-  MessageCircle,
   Palette,
   Play,
   Send,
   ShieldCheck,
   Smartphone,
-  TrendingUp,
-  Utensils,
-  Zap,
 } from "lucide-react";
 import { submitLeadAction } from "@/app/lead-actions";
 import { BrandOrbit } from "@/components/brand-orbit";
 import { MotionReveal, SmoothScroll } from "@/components/motion-reveal";
 import { platformBrand } from "@/lib/brand";
-import { baseAppBlueprint, baseAppBuildPhases, baseAppMetrics } from "@/lib/domain/app-blueprint";
-
-const contactEmail = "rubengomezesp@gmail.com";
+import { baseAppMetrics } from "@/lib/domain/app-blueprint";
 
 const navItems = [
-  { label: "Producto", href: "#producto" },
-  { label: "Proceso", href: "#proceso" },
+  { label: "Qué compras", href: "#producto" },
+  { label: "Cómo comprar", href: "#proceso" },
   { label: "Demo", href: "#demo" },
-  { label: "FAQs", href: "#faqs" },
+  { label: "Solicitar info", href: "#consulta" },
 ];
 
 const trustSignals = [
   "App con tu marca",
-  "Consola para operar",
-  "Contenido cargado",
-  "Lanzamiento guiado",
+  "Pago antes de activar",
+  "Entrenador con permisos propios",
+];
+
+const purchaseSteps = [
+  {
+    title: "1. Solicitas información",
+    text: "Nos dices qué vendes, cuántos clientes tienes y qué app quieres lanzar.",
+    icon: Send,
+  },
+  {
+    title: "2. Te damos propuesta",
+    text: "Definimos precio, alcance, branding, módulos y forma de activación.",
+    icon: BadgeCheck,
+  },
+  {
+    title: "3. Pagas y activamos",
+    text: "Creamos tu marca, configuramos la app y damos acceso al entrenador.",
+    icon: Play,
+  },
 ];
 
 const launchChannels = [
   {
     title: "Web app instalable",
-    text: "La forma más rápida de lanzar: dominio personalizado, acceso desde navegador y experiencia instalable en móvil.",
+    text: "La vía rápida para empezar: dominio propio y experiencia instalable en móvil.",
     icon: Globe,
   },
   {
-    title: "Google Play",
-    text: "Podemos preparar la publicación Android con ficha, assets, políticas y build listo para revisión.",
-    icon: Play,
+    title: "Branding propio",
+    text: "Logo, color, nombre, dominio, soporte y apariencia ajustados a cada entrenador.",
+    icon: Palette,
   },
   {
-    title: "Apple App Store",
-    text: "También podemos acompañar la publicación iOS con cuenta, privacidad, assets y revisión de requisitos.",
-    icon: Apple,
-  },
-];
-
-const growthPillars = [
-  {
-    title: "Convierte mejor",
-    text: "Tu oferta deja de vivir en PDFs, enlaces sueltos y chats. El cliente ve una experiencia premium desde el primer acceso.",
-    icon: TrendingUp,
-  },
-  {
-    title: "Entrega sin fricción",
-    text: "Programas, nutrición, progreso, guías y soporte quedan ordenados en una app fácil de seguir.",
+    title: "App + consola",
+    text: "El cliente final ve la app. El entrenador opera programas, nutrición, contenido y miembros.",
     icon: Smartphone,
   },
-  {
-    title: "Retiene clientes",
-    text: "Check-ins, hábitos, mensajes y métricas mantienen al usuario conectado al método del entrenador.",
-    icon: MessageCircle,
-  },
-  {
-    title: "Escala equipo",
-    text: "La consola separa marca, contenido, miembros, tareas y lanzamiento para que el negocio no dependa de improvisar.",
-    icon: BarChart3,
-  },
-];
-
-const deliverySteps = baseAppBuildPhases.map((phase, index) => ({
-  ...phase,
-  icon: [Send, Palette, Layers, BadgeCheck][index],
-}));
-
-const includedModules = [
-  { title: "Entrenamientos", text: "Programas, semanas, días, ejercicios, vídeos y sustituciones.", icon: Dumbbell },
-  { title: "Nutrición", text: "Recetas, macros, preferencias, alergias, plantillas y planes.", icon: Utensils },
-  { title: "Automatización", text: "Onboarding, avisos, check-ins, estados y procesos listos para crecer.", icon: Zap },
-];
-
-const idealClients = [
-  "Entrenadores con método propio y clientes activos.",
-  "Marcas fitness que quieren vender planes premium online.",
-  "Coaches que necesitan mejorar experiencia, seguimiento y percepción de valor.",
-  "Equipos que quieren separar su negocio de herramientas genéricas.",
-];
-
-const comparisonPoints = [
-  { label: "Herramientas genéricas", text: "Resuelven piezas sueltas, pero la experiencia no se siente como un producto propio." },
-  { label: "Desarrollo desde cero", text: "Da control, pero suele ser lento, caro y difícil de mantener sin equipo técnico estable." },
-  { label: "PerformLabs", text: "Creamos una app de marca con base sólida, configuración guiada y consola operativa." },
 ];
 
 const faqs = [
   {
-    question: "¿Tengo que saber de tecnología?",
-    answer: "No. Un agente coordina contigo lo necesario y traduce tus ideas a marca, configuración, contenido y experiencia.",
+    question: "¿Cómo compro la app?",
+    answer: "Primero envías la solicitud. Revisamos tu caso, te damos propuesta y activamos la app después del pago.",
   },
   {
-    question: "¿Puedo usar mi propio dominio y logo?",
-    answer: "Sí. Coordinamos la compra o conexión del dominio y preparamos identidad visual, iconos y nombre de app.",
+    question: "¿Puedo usar mi propio branding?",
+    answer: "Sí. Cada app puede tener nombre, logo, color, dominio, soporte y configuración propios.",
   },
   {
-    question: "¿La app sale lista para vender?",
-    answer: "La entrega incluye estructura inicial, módulos esenciales y revisión para empezar con clientes reales.",
+    question: "¿El entrenador recibe acceso antes de pagar?",
+    answer: "No. La marca nace preparada pero bloqueada. Activamos permisos cuando la licencia está pagada y aprobada.",
   },
 ];
 
@@ -127,6 +86,9 @@ export default function Home() {
   return (
     <main className="landing">
       <SmoothScroll />
+      <a className="stickyLeadCta" href="#consulta">
+        Solicitar precio <ArrowRight size={16} />
+      </a>
       <section className="landingHero">
         <div className="landingNav">
           <Link className="brand" href="/" style={{ margin: 0 }}>
@@ -141,34 +103,37 @@ export default function Home() {
               <a href={item.href} key={item.href}>{item.label}</a>
             ))}
           </nav>
-          <a className="btn" href={`mailto:${contactEmail}`}>
-            Contactar <Mail size={18} />
+          <a className="btn primary" href="#consulta">
+            Solicitar info <Mail size={18} />
           </a>
         </div>
 
         <div className="landingHeroContent premiumHeroContent">
           <MotionReveal>
             <img className="heroBrandLogo" src={platformBrand.logoUrl} alt={platformBrand.name} />
-            <span className="eyebrow">Apps, automatización y operación para coaches</span>
-            <h1>Creamos tu app de coaching con tu marca y tu método.</h1>
+            <span className="eyebrow">Apps white-label para entrenadores</span>
+            <h1>Compra una app de coaching lista para vender con tu marca.</h1>
             <p>
-              Construimos la experiencia completa: app móvil, consola, dominio,
-              identidad visual, programas, nutrición, soporte, contenido inicial y
-              lanzamiento acompañado.
+              Nosotros montamos la app, el branding, la consola, el dominio y los módulos.
+              Tú la vendes a tus clientes con tu método de entrenamiento y nutrición.
             </p>
             <div className="proofStrip">
-              <span>Tu marca</span>
-              <span>Tus clientes</span>
-              <span>Tus programas</span>
-              <span>Tu operación</span>
+              <span>1. Solicita información</span>
+              <span>2. Recibe propuesta</span>
+              <span>3. Paga y activamos</span>
             </div>
             <div className="actions">
               <a className="btn primary" href="#consulta">
-                Hablar con un agente <ArrowRight size={18} />
+                Quiero comprar una app <ArrowRight size={18} />
               </a>
               <Link className="btn" href="/app">
-                Ver ejemplo de app <Smartphone size={18} />
+                Ver demo cliente <Smartphone size={18} />
               </Link>
+            </div>
+            <div className="heroDecisionPanel">
+              <strong>¿Qué hago ahora?</strong>
+              <span>Rellena el formulario y te diremos precio, alcance y siguiente paso.</span>
+              <a href="#consulta">Ir al formulario <ArrowRight size={16} /></a>
             </div>
           </MotionReveal>
 
@@ -199,33 +164,30 @@ export default function Home() {
         </MotionReveal>
       </section>
 
-      <section className="landingSection">
+      <section className="landingSection" id="proceso">
         <MotionReveal>
           <div className="sectionHeader">
             <div>
-              <span className="eyebrow">Canales de lanzamiento</span>
-              <h2>Puede salir como web app, Google Play o Apple App Store.</h2>
+              <span className="eyebrow">Cómo comprar</span>
+              <h2>El camino es simple: consulta, propuesta y activación.</h2>
               <p>
-                Elegimos la ruta según el momento del proyecto: lanzamiento rápido
-                por web, publicación en tiendas o ambas cuando la marca ya está lista.
+                No damos acceso a entrenadores antes de pago. Primero cerramos el encaje
+                comercial y después activamos la app y sus permisos.
               </p>
             </div>
           </div>
           <div className="grid">
-            {launchChannels.map((channel) => {
-              const Icon = channel.icon;
+            {purchaseSteps.map((step) => {
+              const Icon = step.icon;
               return (
-                <article className="card span4 motionCard" key={channel.title}>
+                <article className="card span4 motionCard" key={step.title}>
                   <Icon color="var(--gold)" />
-                  <h3>{channel.title}</h3>
-                  <p>{channel.text}</p>
+                  <h3>{step.title}</h3>
+                  <p>{step.text}</p>
                 </article>
               );
             })}
           </div>
-          <p className="storeNote">
-            Nuestro equipo puede preparar y acompañar la publicación. La aprobación final depende de la revisión de Apple y Google.
-          </p>
         </MotionReveal>
       </section>
 
@@ -267,43 +229,26 @@ export default function Home() {
       </section>
 
       <section className="landingSection">
+        <MotionReveal>
+          <div className="sectionHeader">
+            <div>
+              <span className="eyebrow">Qué incluye</span>
+              <h2>Lo esencial para vender una app propia sin empezar desde cero.</h2>
+            </div>
+          </div>
+        </MotionReveal>
         <div className="grid">
-          {growthPillars.map((pillar, index) => {
-            const Icon = pillar.icon;
+          {launchChannels.map((item, index) => {
+            const Icon = item.icon;
             return (
-              <MotionReveal className="card span3 motionCard" delay={index * 0.05} key={pillar.title}>
+              <MotionReveal className="card span4 motionCard" delay={index * 0.05} key={item.title}>
                 <Icon color="var(--gold)" />
-                <h3>{pillar.title}</h3>
-                <p>{pillar.text}</p>
+                <h3>{item.title}</h3>
+                <p>{item.text}</p>
               </MotionReveal>
             );
           })}
         </div>
-      </section>
-
-      <section className="landingSection">
-        <MotionReveal>
-          <div className="sectionHeader">
-            <div>
-              <span className="eyebrow">Sistema completo</span>
-              <h2>Todo lo que necesita una app de coaching seria.</h2>
-              <p>
-                Entrenamiento, nutrición, progreso, contenido y soporte se configuran
-                desde la consola y aparecen como experiencia simple para el cliente.
-              </p>
-            </div>
-          </div>
-          <div className="engineGrid">
-            {baseAppBlueprint.map((module) => (
-              <article className="engineTile" key={module.key}>
-                <span>{module.consoleArea}</span>
-                <h3>{module.title}</h3>
-                <p>{module.description}</p>
-                <small>{module.clientExperience}</small>
-              </article>
-            ))}
-          </div>
-        </MotionReveal>
       </section>
 
       <section className="landingSection" id="demo">
@@ -328,96 +273,14 @@ export default function Home() {
         </MotionReveal>
       </section>
 
-      <section className="landingSection" id="proceso">
-        <MotionReveal>
-          <div className="sectionHeader">
-            <div>
-              <span className="eyebrow">Implantación</span>
-              <h2>Un proceso guiado para pasar de idea a app operativa.</h2>
-              <p>Convertimos la creación de la app en pasos claros, revisables y accionables.</p>
-            </div>
-          </div>
-          <div className="timeline">
-            {deliverySteps.map((step, index) => {
-              const Icon = step.icon;
-              return (
-                <div className={index < 2 ? "timelineStep isDone" : "timelineStep"} key={step.title}>
-                  <span>{index + 1}</span>
-                  <Icon color="var(--gold)" size={18} />
-                  <strong>{step.clientLabel}</strong>
-                  <p>{step.description}</p>
-                </div>
-              );
-            })}
-          </div>
-        </MotionReveal>
-      </section>
-
-      <section className="landingSection">
-        <div className="grid">
-          <MotionReveal className="card span5">
-            <Send color="var(--gold)" />
-            <h2>Para entrenadores que quieren vender más que PDFs.</h2>
-            <p>
-              Si tu cliente paga por una transformación, la experiencia tiene que
-              sentirse ordenada, premium y propia desde el primer acceso.
-            </p>
-            <a className="btn primary" href="#consulta">
-              Consultar encaje <ArrowRight size={18} />
-            </a>
-          </MotionReveal>
-          <MotionReveal className="card span7" delay={0.1}>
-            <h2>Encaja especialmente si...</h2>
-            <ul className="list">
-              {idealClients.map((item) => (
-                <li className="row" key={item}>
-                  {item}
-                  <span className="tag">Ideal</span>
-                </li>
-              ))}
-            </ul>
-          </MotionReveal>
-        </div>
-      </section>
-
-      <section className="landingSection">
-        <div className="grid">
-          <MotionReveal className="card span5">
-            <CalendarCheck color="var(--gold)" />
-            <p className="metric">
-              Proyecto a medida
-              <strong>Consultar con un agente</strong>
-            </p>
-            <p>
-              Cada entrenador tiene una oferta, contenido y marca distintos. Por
-              eso valoramos el proyecto hablando contigo.
-            </p>
-            <a className="btn primary" href="#consulta">
-              Enviar consulta <Mail size={18} />
-            </a>
-          </MotionReveal>
-          <MotionReveal className="card span7" delay={0.1}>
-            <h2>Incluido en la implantación</h2>
-            <ul className="list">
-              <li className="row">URL personalizada <span>Compra o conexión guiada</span></li>
-              <li className="row">Logo y estilo visual <span>Preparación de marca</span></li>
-              <li className="row">Contenido inicial <span>Programas, nutrición y guías</span></li>
-              <li className="row">Experiencia móvil <span>App instalable para clientes</span></li>
-              <li className="row">QA de lanzamiento <span>Prueba de flujo completo</span></li>
-              <li className="row">Acompañamiento <span>Agente asignado</span></li>
-            </ul>
-          </MotionReveal>
-        </div>
-      </section>
-
       <section className="landingSection" id="consulta">
         <div className="grid">
           <MotionReveal className="card span5">
             <Mail color="var(--gold)" />
-            <h2>Cuéntanos qué app quieres crear.</h2>
+            <h2>Solicita información y precio.</h2>
             <p>
-              Déjanos los datos clave y un agente revisará tu caso para decirte
-              cómo lo montaríamos: dominio, marca, contenido, cobro y lanzamiento.
+              Este es el paso para comprar o pedir información. Te responderemos
+              con alcance, precio y la forma de activar tu app.
             </p>
           </MotionReveal>
           <MotionReveal className="card span7" delay={0.1}>
@@ -468,72 +331,12 @@ export default function Home() {
               </label>
               <div className="spanFull formActions">
                 <button className="btn primary" type="submit">
-                  Enviar consulta <ArrowRight size={18} />
+                  Solicitar información y precio <ArrowRight size={18} />
                 </button>
               </div>
             </form>
           </MotionReveal>
         </div>
-      </section>
-
-      <section className="landingSection">
-        <MotionReveal className="card span12 noTemplateBand">
-          <div>
-            <Layers color="var(--gold)" />
-            <h2>No entregamos una plantilla vacía.</h2>
-            <p>
-              Preparamos la app contigo, cargamos la estructura inicial y dejamos
-              la experiencia lista para que tus clientes entiendan qué hacer desde
-              el primer día.
-            </p>
-          </div>
-          <a className="btn primary" href="#consulta">
-            Empezar conversación <ArrowRight size={18} />
-          </a>
-        </MotionReveal>
-      </section>
-
-      <section className="landingSection">
-        <MotionReveal>
-          <div className="sectionHeader">
-            <div>
-              <span className="eyebrow">Posicionamiento</span>
-              <h2>Ni herramienta genérica, ni desarrollo eterno.</h2>
-              <p>Buscamos el punto medio: una app propia, preparada por nuestro equipo y lista para operar.</p>
-            </div>
-          </div>
-          <div className="comparisonGrid">
-            {comparisonPoints.map((point) => (
-              <article className="comparisonCard" key={point.label}>
-                <h3>{point.label}</h3>
-                <p>{point.text}</p>
-              </article>
-            ))}
-          </div>
-        </MotionReveal>
-      </section>
-
-      <section className="landingSection">
-        <MotionReveal>
-          <div className="sectionHeader">
-            <div>
-              <span className="eyebrow">Módulos</span>
-              <h2>Una app preparada para vender coaching.</h2>
-            </div>
-          </div>
-          <div className="grid">
-            {includedModules.map((module) => {
-              const Icon = module.icon;
-              return (
-                <article className="card span4" key={module.title}>
-                  <Icon color="var(--gold)" />
-                  <h3>{module.title}</h3>
-                  <p>{module.text}</p>
-                </article>
-              );
-            })}
-          </div>
-        </MotionReveal>
       </section>
 
       <section className="landingSection" id="faqs">

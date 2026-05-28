@@ -124,6 +124,14 @@ function normalizeEmail(value: string) {
   return value.trim().toLowerCase();
 }
 
+function resolvePublicAppUrl() {
+  const rawUrl = process.env.NEXT_PUBLIC_APP_URL || process.env.NEXT_PUBLIC_SITE_URL || (
+    process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : ""
+  );
+
+  return rawUrl ? rawUrl.replace(/\/+$/, "") : "";
+}
+
 function hashToken(value: string) {
   return createHash("sha256").update(value).digest("hex");
 }
@@ -310,11 +318,12 @@ export async function ensurePlatformOwner(emailInput: string) {
 
   const supabase = createServiceSupabaseClient();
   const workspaceId = await ensurePlatformWorkspace(supabase);
+  const appUrl = resolvePublicAppUrl();
   const { userId } = await inviteOrFindAuthUser({
     email,
     role: "platform_owner",
     workspaceId,
-    redirectTo: process.env.NEXT_PUBLIC_APP_URL ? `${process.env.NEXT_PUBLIC_APP_URL}/login?next=/console/security` : undefined,
+    redirectTo: appUrl ? `${appUrl}/auth/callback?next=/console/security` : undefined,
   });
 
   const membership = await supabase
