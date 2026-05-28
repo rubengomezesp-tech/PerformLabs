@@ -920,6 +920,276 @@ textarea {
   font-size: 34px;
 }
 
+.coachCommandHero {
+  position: relative;
+  overflow: hidden;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(260px, 0.34fr);
+  gap: 22px;
+  align-items: end;
+  border: 1px solid rgba(7, 141, 242, 0.24);
+  border-radius: 8px;
+  background:
+    radial-gradient(circle at 84% 18%, rgba(216, 189, 107, 0.14), transparent 24%),
+    linear-gradient(135deg, rgba(7, 141, 242, 0.16), rgba(9, 10, 11, 0.98) 52%),
+    var(--panel);
+  padding: clamp(20px, 3vw, 30px);
+}
+
+.coachCommandHero h2 {
+  max-width: 720px;
+  margin: 8px 0 12px;
+  font-size: clamp(34px, 4.5vw, 52px);
+  line-height: 1.02;
+}
+
+.coachCommandHero p {
+  max-width: 720px;
+}
+
+.coachCommandPanel {
+  border: 1px solid rgba(7, 141, 242, 0.35);
+  border-radius: 8px;
+  background: rgba(9, 10, 11, 0.74);
+  padding: 16px;
+  backdrop-filter: blur(16px);
+}
+
+.coachCommandPanel strong {
+  display: block;
+  margin-top: 12px;
+  color: var(--text);
+  font-family: var(--font-display, Arial, Helvetica, sans-serif);
+  font-size: 56px;
+  line-height: 0.9;
+}
+
+.coachSignal {
+  position: relative;
+  overflow: hidden;
+  min-height: 170px;
+}
+
+.coachSignal::after {
+  content: "";
+  position: absolute;
+  inset: auto -40px -70px auto;
+  width: 130px;
+  height: 130px;
+  border-radius: 999px;
+  background: rgba(7, 141, 242, 0.08);
+}
+
+.coachSignal.good {
+  border-color: rgba(88, 214, 141, 0.22);
+}
+
+.coachSignal.warning {
+  border-color: rgba(216, 189, 107, 0.38);
+}
+
+.coachSignal.danger {
+  border-color: rgba(255, 102, 124, 0.34);
+}
+
+.coachSignalIcon {
+  display: inline-grid;
+  width: 36px;
+  height: 36px;
+  place-items: center;
+  border: 1px solid rgba(216, 189, 107, 0.28);
+  border-radius: 8px;
+  color: var(--gold);
+  background: rgba(216, 189, 107, 0.08);
+}
+
+.coachAttentionCard,
+.coachActivityCard {
+  min-height: 430px;
+}
+
+.coachAttentionList,
+.coachActivityTimeline,
+.coachBriefingHighlights {
+  display: grid;
+  gap: 10px;
+}
+
+.coachAttentionItem {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto auto;
+  gap: 12px;
+  align-items: center;
+  min-height: 76px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.035);
+  color: var(--text);
+  padding: 12px;
+}
+
+.coachAttentionItem:hover {
+  border-color: rgba(216, 189, 107, 0.42);
+  transform: translateY(-1px);
+}
+
+.coachAttentionItem p {
+  margin: 4px 0 0;
+  color: var(--muted);
+}
+
+.coachAttentionItem small,
+.coachAttentionItem em {
+  white-space: nowrap;
+  color: var(--muted);
+  font-size: 12px;
+  font-style: normal;
+}
+
+.coachAttentionItem em {
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 999px;
+  padding: 5px 8px;
+}
+
+.coachAttentionItem.high em {
+  border-color: rgba(255, 102, 124, 0.34);
+  color: var(--red);
+}
+
+.coachAttentionItem.medium em {
+  border-color: rgba(216, 189, 107, 0.34);
+  color: var(--gold);
+}
+
+.coachEmptyPanel {
+  display: grid;
+  min-height: 210px;
+  align-content: center;
+  justify-items: center;
+  gap: 8px;
+  border: 1px dashed rgba(255, 255, 255, 0.14);
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.025);
+  color: var(--muted);
+  padding: 22px;
+  text-align: center;
+}
+
+.coachEmptyPanel.compact {
+  min-height: 260px;
+}
+
+.coachEmptyPanel strong {
+  color: var(--text);
+}
+
+.coachActivityEvent {
+  display: grid;
+  grid-template-columns: 16px minmax(0, 1fr);
+  gap: 12px;
+  align-items: start;
+}
+
+.coachActivityEvent > span {
+  width: 11px;
+  height: 11px;
+  margin-top: 6px;
+  border: 2px solid var(--gold);
+  border-radius: 999px;
+  box-shadow: 0 0 0 6px rgba(216, 189, 107, 0.08);
+}
+
+.coachActivityEvent strong {
+  display: block;
+}
+
+.coachActivityEvent p {
+  margin: 4px 0;
+}
+
+.coachActivityEvent small {
+  color: var(--muted);
+}
+
+.coachBriefingsSection {
+  padding-top: 6px;
+}
+
+.coachBriefingGrid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 14px;
+}
+
+.coachBriefingCard {
+  display: grid;
+  gap: 14px;
+  border: 1px solid rgba(216, 189, 107, 0.2);
+  border-radius: 8px;
+  background:
+    linear-gradient(145deg, rgba(255, 255, 255, 0.04), rgba(7, 141, 242, 0.04)),
+    var(--panel);
+  padding: 16px;
+}
+
+.coachBriefingCard.reviewed,
+.coachBriefingCard.applied {
+  border-color: rgba(88, 214, 141, 0.18);
+}
+
+.coachBriefingMetrics {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 8px;
+}
+
+.coachBriefingMetrics span {
+  display: grid;
+  align-content: center;
+  min-height: 62px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.035);
+  color: var(--text);
+  padding: 10px;
+  font-weight: 800;
+}
+
+.coachBriefingMetrics small {
+  margin-top: 3px;
+  color: var(--muted);
+  font-size: 11px;
+  font-weight: 600;
+}
+
+.coachBriefingHighlights {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.coachBriefingHighlights li {
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.025);
+  color: var(--muted);
+  padding: 9px 10px;
+}
+
+.coachBriefingFooter {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  border-top: 1px solid var(--line);
+  padding-top: 12px;
+}
+
+.coachBriefingFooter small {
+  color: var(--muted);
+}
+
 .coachBuilderCard {
   display: grid;
   grid-template-columns: minmax(280px, 0.42fr) minmax(0, 1fr);
@@ -4299,6 +4569,7 @@ input[type="color"] {
   }
 
   .coachHero,
+  .coachCommandHero,
   .coachBuilderCard,
   .exerciseImportBanner,
   .workoutAppHero,
@@ -4350,6 +4621,8 @@ input[type="color"] {
   .weeklyPeriodizationGrid,
   .coachProgramCommand,
   .coachProgramStats,
+  .coachBriefingGrid,
+  .coachBriefingMetrics,
   .memberTrainingLoadPanel,
   .memberWeekLoadStrip,
   .memberCarbDayGrid,
@@ -4376,6 +4649,25 @@ input[type="color"] {
 
   .macroSplit {
     grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .coachCommandPanel strong {
+    font-size: 44px;
+  }
+
+  .coachAttentionItem,
+  .coachBriefingFooter {
+    align-items: flex-start;
+    grid-template-columns: 1fr;
+  }
+
+  .coachBriefingFooter {
+    flex-direction: column;
+  }
+
+  .coachBriefingFooter form,
+  .coachBriefingFooter button {
+    width: 100%;
   }
 
   .memberHeroStats {
