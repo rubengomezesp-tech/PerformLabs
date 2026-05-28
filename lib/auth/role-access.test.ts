@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 import {
+  canInviteWorkspaceRole,
   consoleRoles,
   formatRole,
   highestRole,
@@ -28,5 +29,14 @@ describe("role-access", () => {
     expect(formatRole("platform_owner")).toBe("Propietario plataforma");
     expect(formatRole("coach_staff")).toBe("Equipo coach");
     expect(formatRole("member")).toBe("Miembro");
+  });
+
+  it("limits operational invitations by actor role", () => {
+    expect(canInviteWorkspaceRole("platform_owner", "platform_owner")).toBe(true);
+    expect(canInviteWorkspaceRole("platform_owner", "agency_admin")).toBe(true);
+    expect(canInviteWorkspaceRole("agency_admin", "coach_admin")).toBe(true);
+    expect(canInviteWorkspaceRole("agency_admin", "platform_owner")).toBe(false);
+    expect(canInviteWorkspaceRole("coach_admin", "coach_staff")).toBe(false);
+    expect(canInviteWorkspaceRole("platform_owner", "member")).toBe(false);
   });
 });

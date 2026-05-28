@@ -218,6 +218,9 @@ export default async function CoachHomePage() {
                             </button>
                           </form>
                         ) : null}
+                        <Link className="btn" href={`/coach/briefings/${briefing.id}`}>
+                          Revisar detalle <ArrowRight size={16} />
+                        </Link>
                       </div>
                     )}
                   </div>

@@ -1,4 +1,6 @@
 import type { Json } from "@/lib/supabase/database.types";
+import { listManagedDietTemplates } from "@/lib/repositories/nutrition-management";
+import { listManagedWorkoutTemplates } from "@/lib/repositories/training-management";
 import { getSupabaseServiceEnv } from "@/lib/supabase/env";
 import { createServiceSupabaseClient } from "@/lib/supabase/server";
 
@@ -38,6 +40,24 @@ export type CoachBriefingSummary = {
     nutritionTemplate: string;
     blockers: string[];
   };
+};
+
+export type CoachBriefingDetail = CoachBriefingSummary & {
+  trainingLocationValue: string;
+  activityLevel: number | null;
+  hideMacros: boolean;
+  notes: string;
+  coachNotes: string;
+  injuries: string[];
+  allergies: string[];
+  restrictions: string[];
+  preferredFoods: string[];
+  dislikedFoods: string[];
+  availableEquipment: string[];
+  workoutTemplateId: string;
+  dietTemplateId: string;
+  workoutTemplates: Array<{ id: string; name: string; daysPerWeek: number; goal: string }>;
+  dietTemplates: Array<{ id: string; name: string; goal: string }>;
 };
 
 export type CoachRecentActivity = {
@@ -520,6 +540,91 @@ export async function getCoachDashboard(workspaceId?: string): Promise<CoachDash
         source: sourceLabel(row.source),
         occurredAt: row.occurred_at ?? row.created_at,
       };
+    })),
+  };
+}
+
+export async function getCoachBriefingDetail(input: {
+  workspaceId: string;
+  responseId: string;
+}): Promise<CoachBriefingDetail | null> {
+  const env = getSupabaseServiceEnv();
+  if (!env.ok || !input.workspaceId || !input.responseId) return null;
+
+  const supabase = createServiceSupabaseClient();
+  const [responseResult, workoutTemplates, dietTemplates] = await Promise.all([
+    (supabase as any)
+      .from("member_onboarding_responses")
+      .select("id,member_profile_id,goal,training_days_per_week,training_location,session_minutes,meals_per_day,activity_level,status,onboarding_payload,submitted_at,reviewed_at,member_profiles(full_name)")
+      .eq("workspace_id", input.workspaceId)
+      .eq("id", input.responseId)
+      .maybeSingle(),
+    listManagedWorkoutTemplates(input.workspaceId),
+    listManagedDietTemplates(input.workspaceId),
+  ]);
+
+  if (responseResult.error) {
+    throw new Error(`No se pudo leer el briefing: ${responseResult.error.message}`);
+  }
+
+  if (!responseResult.data?.id) return null;
+
+  const row = responseResult.data as OnboardingRow & { activity_level?: number | null };
+  const payload = toRecord(row.onboarding_payload);
+  const training = toRecord(payload.training);
+  const nutrition = toRecord(payload.nutrition);
+  const coachReview = toRecord(payload.coachReview);
+  const recommendation = briefingRecommendation(row);
+  const reviewInjuries = textList(coachReview.injuries);
+  const reviewAllergies = textList(coachReview.allergies);
+  const reviewRestrictions = textList(coachReview.restrictions);
+
+  return {
+    id: row.id,
+    memberProfileId: row.member_profile_id,
+    memberName: memberName(row),
+    goal: typeof coachReview.goal === "string" && coachReview.goal ? coachReview.goal : row.goal ?? "Objetivo pendiente",
+    trainingDaysPerWeek: typeof coachReview.daysPerWeek === "number" ? coachReview.daysPerWeek : row.training_days_per_week,
+    trainingLocation: locationLabel(row.training_location),
+    trainingLocationValue: row.training_location ?? "",
+    sessionMinutes: row.session_minutes,
+    mealsPerDay: typeof coachReview.mealsPerDay === "number" ? coachReview.mealsPerDay : row.meals_per_day,
+    activityLevel: row.activity_level ?? null,
+    submittedAt: row.submitted_at,
+    reviewedAt: row.reviewed_at ?? "",
+    status: row.status,
+    highlights: briefingHighlights(row).slice(0, 8),
+    recommendation,
+    hideMacros: typeof coachReview.hideMacros === "boolean"
+      ? coachReview.hideMacros
+      : typeof nutrition.hideMacros === "boolean" ? nutrition.hideMacros : false,
+    notes: typeof payload.notes === "string" ? payload.notes : "",
+    coachNotes: typeof coachReview.coachNotes === "string" ? coachReview.coachNotes : "",
+    injuries: reviewInjuries.length ? reviewInjuries : textList(training.injuries),
+    allergies: reviewAllergies.length ? reviewAllergies : textList(nutrition.allergies),
+    restrictions: reviewRestrictions.length ? reviewRestrictions : [
+      ...textList(nutrition.dislikedFoods),
+      typeof nutrition.dietStyle === "string" && nutrition.dietStyle ? nutrition.dietStyle : "",
+    ].filter(Boolean),
+    preferredFoods: textList(nutrition.preferredFoods),
+    dislikedFoods: textList(nutrition.dislikedFoods),
+    availableEquipment: textList(training.availableEquipment),
+    workoutTemplateId: typeof coachReview.workoutTemplateId === "string" && coachReview.workoutTemplateId
+      ? coachReview.workoutTemplateId
+      : recommendation.trainingTemplate ? workoutTemplates.find((template) => template.name === recommendation.trainingTemplate)?.id ?? "" : "",
+    dietTemplateId: typeof coachReview.dietTemplateId === "string" && coachReview.dietTemplateId
+      ? coachReview.dietTemplateId
+      : recommendation.nutritionTemplate ? dietTemplates.find((template) => template.name === recommendation.nutritionTemplate)?.id ?? "" : "",
+    workoutTemplates: workoutTemplates.map((template) => ({
+      id: template.id,
+      name: template.name,
+      daysPerWeek: template.daysPerWeek,
+      goal: template.goal,
+    })),
+    dietTemplates: dietTemplates.map((template) => ({
+      id: template.id,
+      name: template.name,
+      goal: template.goal,
     })),
   };
 }

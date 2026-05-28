@@ -6,7 +6,7 @@ import { redirect } from "next/navigation";
 import { createClient } from "@supabase/supabase-js";
 import { checkLoginRateLimit, clearLoginRateLimit, recordFailedLogin } from "@/lib/auth/login-rate-limit";
 import { clearAuthCookies, setAuthCookies } from "@/lib/auth/session";
-import { recordSecurityAuditEvent } from "@/lib/repositories/security-management";
+import { acceptPendingTeamInvitationsForUser, recordSecurityAuditEvent } from "@/lib/repositories/security-management";
 import type { Database } from "@/lib/supabase/database.types";
 import { getSupabasePublicEnv } from "@/lib/supabase/env";
 
@@ -106,6 +106,10 @@ export async function signInAction(formData: FormData) {
   }
 
   clearLoginRateLimit(securityContext.rateLimitKey);
+  await acceptPendingTeamInvitationsForUser({
+    userId: data.user.id,
+    email,
+  });
   await recordSecurityAuditEvent({
     actorUserId: data.user?.id ?? null,
     action: "auth.sign_in_success",
@@ -124,24 +128,39 @@ export async function signInAction(formData: FormData) {
 
 export async function signUpAction(formData: FormData) {
   const email = readText(formData, "email").toLowerCase();
-  const password = readText(formData, "password");
-  const fullName = readText(formData, "fullName");
-  const supabase = createAuthClient();
-  const { error } = await supabase.auth.signUp({
-    email,
-    password,
-    options: {
-      data: {
-        full_name: fullName,
-      },
+  await recordSecurityAuditEvent({
+    action: "access.requested",
+    entityType: "access_request",
+    metadata: {
+      email_hash: hashSensitiveValue(email),
+      email_domain: emailDomain(email),
+      source: "blocked_signup_action",
     },
   });
 
-  if (error) {
-    redirect(`/registro?error=${encodeURIComponent("No hemos podido crear la cuenta.")}`);
-  }
+  redirect("/registro?success=Solicitud recibida. El acceso real se activa por invitación del equipo PerformLabs.");
+}
 
-  redirect("/login?success=Cuenta creada. Revisa tu email si hace falta confirmar el acceso.");
+export async function requestAccessAction(formData: FormData) {
+  const email = readText(formData, "email").toLowerCase();
+  const fullName = readText(formData, "fullName");
+  const brandName = readText(formData, "brandName");
+  const notes = readText(formData, "notes");
+
+  await recordSecurityAuditEvent({
+    action: "access.requested",
+    entityType: "access_request",
+    metadata: {
+      email_hash: hashSensitiveValue(email),
+      email_domain: emailDomain(email),
+      full_name: fullName,
+      brand_name: brandName,
+      notes,
+      source: "registro",
+    },
+  });
+
+  redirect("/registro?success=Solicitud recibida. Si el acceso está confirmado, te enviaremos una invitación segura.");
 }
 
 export async function signOutAction() {

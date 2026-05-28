@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { EntitlementGate } from "@/components/entitlement-gate";
 import { PageShell } from "@/components/page-shell";
+import { requireWorkspaceMutationAccess } from "@/lib/auth/access-control";
 import { coachNav } from "@/lib/coach-console";
 import { getSelectedMemberAppBrand } from "@/lib/member-app";
 import { getWorkspaceEntitlement } from "@/lib/repositories/entitlements";
@@ -20,6 +21,7 @@ export default async function CoachConsoleLayout({
   children: React.ReactNode;
 }) {
   const brand = await getSelectedMemberAppBrand();
+  await requireWorkspaceMutationAccess(brand.id);
   const entitlement = await getWorkspaceEntitlement(brand.id);
 
   return (

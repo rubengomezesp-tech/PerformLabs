@@ -86,6 +86,38 @@ export type MemberTrainingContext = {
   activeAssignedDay: MemberAssignedWorkoutDay | null;
 };
 
+export type CoachBriefingReviewInput = {
+  workspaceId: string;
+  responseId: string;
+  goal: string;
+  daysPerWeek: string;
+  workoutTemplateId: string;
+  dietTemplateId: string;
+  mealsPerDay: string;
+  hideMacros: boolean;
+  coachNotes: string;
+  injuries: string;
+  allergies: string;
+  restrictions: string;
+  reviewedBy?: string | null;
+};
+
+export type ApplyCoachBriefingInput = {
+  workspaceId: string;
+  responseId: string;
+  goal?: string;
+  daysPerWeek?: string;
+  workoutTemplateId?: string;
+  dietTemplateId?: string;
+  mealsPerDay?: string;
+  hideMacros?: boolean;
+  coachNotes?: string;
+  injuries?: string;
+  allergies?: string;
+  restrictions?: string;
+  approvedBy?: string | null;
+};
+
 function parseNumber(value: string) {
   const parsed = Number.parseFloat(value.replace(",", "."));
   return Number.isFinite(parsed) ? parsed : null;
@@ -102,6 +134,12 @@ function splitList(value: string) {
     .split(",")
     .map((item) => item.trim())
     .filter(Boolean);
+}
+
+function textList(value: unknown) {
+  return Array.isArray(value)
+    ? value.map((item) => String(item).trim()).filter(Boolean)
+    : [];
 }
 
 function normalizeLocation(value: string) {
@@ -209,9 +247,13 @@ async function assignRecommendedDietPlan(input: {
   goal: string;
   mealsPerDay: number;
   hideMacros: boolean;
+  dietTemplateId?: string;
+  assignedBy?: string | null;
 }) {
   const templates = await listManagedDietTemplates(input.workspaceId);
-  const template = findRecommendedDietTemplate(templates, input.goal);
+  const template = input.dietTemplateId
+    ? templates.find((item) => item.id === input.dietTemplateId) ?? null
+    : findRecommendedDietTemplate(templates, input.goal);
 
   if (!template) {
     return { dietTemplateId: null, mealAssignmentCreated: false };
@@ -223,6 +265,7 @@ async function assignRecommendedDietPlan(input: {
     dietTemplateId: template.id,
     mealsPerDay: String(input.mealsPerDay),
     hideMacros: input.hideMacros,
+    assignedBy: input.assignedBy,
   });
 
   return {
@@ -268,10 +311,16 @@ export async function assignQuarterlyWorkoutModule(input: {
   workspaceId: string;
   memberProfileId: string;
   daysPerWeek: number;
+  workoutTemplateId?: string;
+  assignmentGoal?: string;
+  assignmentNotes?: string;
+  assignedBy?: string | null;
 }) {
   const supabase = createServiceSupabaseClient();
   const templates = await listManagedWorkoutTemplates(input.workspaceId);
-  const template = findQuarterlyTemplate(templates, input.daysPerWeek);
+  const template = input.workoutTemplateId
+    ? templates.find((item) => item.id === input.workoutTemplateId) ?? null
+    : findQuarterlyTemplate(templates, input.daysPerWeek);
 
   if (!template) {
     throw new Error(`No existe todavia el modulo de ${input.daysPerWeek} dias/semana. Crealo desde Programas antes de asignarlo.`);
@@ -298,9 +347,11 @@ export async function assignQuarterlyWorkoutModule(input: {
     workspaceId: input.workspaceId,
     memberProfileId: input.memberProfileId,
     workoutTemplateId: template.id,
-    assignmentGoal: template.goal,
+    assignmentGoal: input.assignmentGoal || template.goal,
+    assignmentNotes: input.assignmentNotes,
     currentMonth: "1",
     currentWeek: "1",
+    assignedBy: input.assignedBy,
   });
 
   return { templateId: template.id, assignmentCreated: Boolean(assignment?.assignmentId) };
@@ -486,11 +537,116 @@ export async function saveMemberOnboarding(input: MemberOnboardingInput) {
   };
 }
 
-export async function applyOnboardingPlanRecommendation(input: {
-  workspaceId: string;
-  responseId: string;
-  approvedBy?: string | null;
+function toRecord(value: unknown): Record<string, any> {
+  return value && typeof value === "object" && !Array.isArray(value) ? value as Record<string, any> : {};
+}
+
+function optionalInteger(value: unknown, fallback: number, min: number, max: number) {
+  const parsed = Number.parseInt(String(value ?? ""), 10);
+  if (!Number.isFinite(parsed)) return fallback;
+  return Math.min(Math.max(parsed, min), max);
+}
+
+function optionalString(value: unknown) {
+  return typeof value === "string" ? value.trim() : "";
+}
+
+function reviewFromInput(input: CoachBriefingReviewInput, payload: Record<string, any>, current: {
+  goal: string | null;
+  daysPerWeek: number | null;
+  mealsPerDay: number | null;
 }) {
+  const existingReview = toRecord(payload.coachReview);
+  const training = toRecord(payload.training);
+  const nutrition = toRecord(payload.nutrition);
+  const fallbackDays = current.daysPerWeek ?? (Number(training.daysPerWeek) || 4);
+  const fallbackMeals = current.mealsPerDay ?? (Number(nutrition.mealsPerDay) || 4);
+
+  return {
+    goal: input.goal.trim() || optionalString(existingReview.goal) || current.goal || "",
+    daysPerWeek: optionalInteger(input.daysPerWeek, fallbackDays, 1, 7),
+    workoutTemplateId: input.workoutTemplateId.trim() || optionalString(existingReview.workoutTemplateId),
+    dietTemplateId: input.dietTemplateId.trim() || optionalString(existingReview.dietTemplateId),
+    mealsPerDay: optionalInteger(input.mealsPerDay, fallbackMeals, 1, 8),
+    hideMacros: input.hideMacros,
+    coachNotes: input.coachNotes.trim(),
+    injuries: splitList(input.injuries),
+    allergies: splitList(input.allergies),
+    restrictions: splitList(input.restrictions),
+    reviewedBy: input.reviewedBy ?? null,
+    reviewedAt: new Date().toISOString(),
+  };
+}
+
+export async function saveOnboardingBriefingReview(input: CoachBriefingReviewInput) {
+  if (!input.workspaceId || !input.responseId) {
+    throw new Error("Falta el briefing que quieres revisar.");
+  }
+
+  const supabase = createServiceSupabaseClient();
+  const response = await (supabase as any)
+    .from("member_onboarding_responses")
+    .select("id,member_profile_id,goal,training_days_per_week,meals_per_day,onboarding_payload")
+    .eq("workspace_id", input.workspaceId)
+    .eq("id", input.responseId)
+    .maybeSingle();
+
+  if (response.error) {
+    throw new Error(`No se pudo leer el briefing: ${response.error.message}`);
+  }
+
+  if (!response.data?.id) {
+    throw new Error("No se encontro el briefing en esta marca.");
+  }
+
+  const payload = toRecord(response.data.onboarding_payload);
+  const review = reviewFromInput(input, payload, {
+    goal: response.data.goal,
+    daysPerWeek: response.data.training_days_per_week,
+    mealsPerDay: response.data.meals_per_day,
+  });
+  const updatedPayload = {
+    ...payload,
+    coachReview: review,
+  };
+  const now = new Date().toISOString();
+
+  const update = await (supabase as any)
+    .from("member_onboarding_responses")
+    .update({
+      goal: review.goal || null,
+      training_days_per_week: review.daysPerWeek,
+      meals_per_day: review.mealsPerDay,
+      status: "reviewed",
+      reviewed_at: now,
+      updated_at: now,
+      onboarding_payload: updatedPayload,
+    })
+    .eq("workspace_id", input.workspaceId)
+    .eq("id", input.responseId);
+
+  if (update.error) {
+    throw new Error(`No se pudo guardar la revision: ${update.error.message}`);
+  }
+
+  const profileUpdate = await supabase
+    .from("member_profiles")
+    .update({
+      goal: review.goal || null,
+      onboarding_status: "coach_reviewed",
+      updated_at: now,
+    })
+    .eq("workspace_id", input.workspaceId)
+    .eq("id", response.data.member_profile_id);
+
+  if (profileUpdate.error) {
+    throw new Error(`No se pudo actualizar el estado del miembro: ${profileUpdate.error.message}`);
+  }
+
+  return { memberProfileId: response.data.member_profile_id, review };
+}
+
+export async function applyOnboardingPlanRecommendation(input: ApplyCoachBriefingInput) {
   if (!input.workspaceId || !input.responseId) {
     throw new Error("Falta el briefing que quieres aplicar.");
   }
@@ -511,23 +667,36 @@ export async function applyOnboardingPlanRecommendation(input: {
     throw new Error("No se encontro el briefing en esta marca.");
   }
 
-  const payload = response.data.onboarding_payload && typeof response.data.onboarding_payload === "object" && !Array.isArray(response.data.onboarding_payload)
-    ? response.data.onboarding_payload as Record<string, any>
-    : {};
-  const nutrition = payload.nutrition && typeof payload.nutrition === "object" && !Array.isArray(payload.nutrition)
-    ? payload.nutrition as Record<string, any>
-    : {};
+  const payload = toRecord(response.data.onboarding_payload);
+  const nutrition = toRecord(payload.nutrition);
+  const currentReview = toRecord(payload.coachReview);
   const recommendedDays = Number(payload.recommendation?.training?.daysPerWeek);
   const recommendedMeals = Number(nutrition.mealsPerDay);
-  const daysPerWeek = response.data.training_days_per_week ?? (Number.isFinite(recommendedDays) ? recommendedDays : 4);
-  const mealsPerDay = response.data.meals_per_day ?? (Number.isFinite(recommendedMeals) ? recommendedMeals : 4);
-  const hideMacros = typeof nutrition.hideMacros === "boolean" ? nutrition.hideMacros : false;
-  const goal = response.data.goal ?? (typeof payload.profile?.goal === "string" ? payload.profile.goal : "");
+  const fallbackDays = response.data.training_days_per_week ?? (Number.isFinite(recommendedDays) ? recommendedDays : 4);
+  const fallbackMeals = response.data.meals_per_day ?? (Number.isFinite(recommendedMeals) ? recommendedMeals : 4);
+  const daysPerWeek = optionalInteger(input.daysPerWeek ?? currentReview.daysPerWeek, fallbackDays, 1, 7);
+  const mealsPerDay = optionalInteger(input.mealsPerDay ?? currentReview.mealsPerDay, fallbackMeals, 1, 8);
+  const hideMacros = typeof input.hideMacros === "boolean"
+    ? input.hideMacros
+    : typeof currentReview.hideMacros === "boolean"
+      ? currentReview.hideMacros
+      : typeof nutrition.hideMacros === "boolean" ? nutrition.hideMacros : false;
+  const goal = optionalString(input.goal)
+    || optionalString(currentReview.goal)
+    || response.data.goal
+    || (typeof payload.profile?.goal === "string" ? payload.profile.goal : "");
+  const workoutTemplateId = optionalString(input.workoutTemplateId) || optionalString(currentReview.workoutTemplateId);
+  const dietTemplateId = optionalString(input.dietTemplateId) || optionalString(currentReview.dietTemplateId);
+  const coachNotes = optionalString(input.coachNotes) || optionalString(currentReview.coachNotes);
 
   const workoutAssignment = await assignQuarterlyWorkoutModule({
     workspaceId: input.workspaceId,
     memberProfileId: response.data.member_profile_id,
     daysPerWeek,
+    workoutTemplateId,
+    assignmentGoal: goal,
+    assignmentNotes: coachNotes,
+    assignedBy: input.approvedBy ?? null,
   });
   const mealAssignment = await assignRecommendedDietPlan({
     workspaceId: input.workspaceId,
@@ -535,11 +704,29 @@ export async function applyOnboardingPlanRecommendation(input: {
     goal,
     mealsPerDay,
     hideMacros,
+    dietTemplateId,
+    assignedBy: input.approvedBy ?? null,
   });
 
   const now = new Date().toISOString();
+  const coachReview = {
+    ...currentReview,
+    goal,
+    daysPerWeek,
+    workoutTemplateId,
+    dietTemplateId,
+    mealsPerDay,
+    hideMacros,
+    coachNotes,
+    injuries: splitList(input.injuries ?? "").length ? splitList(input.injuries ?? "") : textList(currentReview.injuries),
+    allergies: splitList(input.allergies ?? "").length ? splitList(input.allergies ?? "") : textList(currentReview.allergies),
+    restrictions: splitList(input.restrictions ?? "").length ? splitList(input.restrictions ?? "") : textList(currentReview.restrictions),
+    reviewedBy: input.approvedBy ?? currentReview.reviewedBy ?? null,
+    reviewedAt: now,
+  };
   const updatedPayload = {
     ...payload,
+    coachReview,
     coachApproval: {
       appliedAt: now,
       approvedBy: input.approvedBy ?? null,
@@ -553,6 +740,9 @@ export async function applyOnboardingPlanRecommendation(input: {
   const update = await (supabase as any)
     .from("member_onboarding_responses")
     .update({
+      goal: goal || null,
+      training_days_per_week: daysPerWeek,
+      meals_per_day: mealsPerDay,
       status: "applied",
       reviewed_at: now,
       updated_at: now,
@@ -568,6 +758,7 @@ export async function applyOnboardingPlanRecommendation(input: {
   const profileUpdate = await supabase
     .from("member_profiles")
     .update({
+      goal: goal || null,
       onboarding_status: "plans_applied",
       updated_at: now,
     })
@@ -589,6 +780,7 @@ export async function applyOnboardingPlanRecommendation(input: {
       dietTemplateId: mealAssignment.dietTemplateId,
       daysPerWeek,
       mealsPerDay,
+      hideMacros,
     },
   });
 

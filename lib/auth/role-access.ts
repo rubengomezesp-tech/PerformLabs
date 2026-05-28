@@ -37,3 +37,15 @@ export function formatRole(role: WorkspaceRole) {
 
   return labels[role];
 }
+
+export function canInviteWorkspaceRole(actorRole: WorkspaceRole, invitedRole: WorkspaceRole) {
+  if (actorRole === "platform_owner") {
+    return ["platform_owner", "agency_admin", "coach_admin", "coach_staff"].includes(invitedRole);
+  }
+
+  if (actorRole === "agency_admin") {
+    return ["coach_admin", "coach_staff"].includes(invitedRole);
+  }
+
+  return false;
+}

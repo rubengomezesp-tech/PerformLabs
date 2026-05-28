@@ -294,6 +294,18 @@ textarea {
   line-height: 1.5;
 }
 
+.rowActions {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.rowActions form {
+  margin: 0;
+}
+
 .tag {
   display: inline-flex;
   align-items: center;
@@ -1257,6 +1269,29 @@ textarea {
 
 .coachBriefingActions form {
   margin: 0;
+}
+
+.coachBriefingDetailPanel {
+  display: grid;
+  align-content: start;
+  gap: 16px;
+}
+
+.coachBriefingNotes {
+  border: 1px solid rgba(216, 189, 107, 0.2);
+  border-radius: 8px;
+  background: rgba(216, 189, 107, 0.055);
+  padding: 14px;
+}
+
+.coachBriefingNotes p {
+  margin: 8px 0 0;
+}
+
+.coachBriefingReviewForm {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 12px;
 }
 
 .coachBuilderCard {
@@ -3627,6 +3662,18 @@ textarea {
   padding: 14px;
 }
 
+.accessInviteForm {
+  display: grid;
+  grid-template-columns: minmax(220px, 1.2fr) minmax(220px, 1fr) 190px auto;
+  gap: 12px;
+  align-items: end;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.035);
+  margin-bottom: 16px;
+  padding: 14px;
+}
+
 .launchCard {
   background: linear-gradient(180deg, rgba(216, 189, 107, 0.08), rgba(17, 19, 21, 1));
 }
@@ -4737,6 +4784,7 @@ input[type="color"] {
   .coachProgramCommand,
   .coachProgramStats,
   .coachBriefingGrid,
+  .coachBriefingReviewForm,
   .coachBriefingMetrics,
   .coachRecommendationGrid,
   .memberTrainingLoadPanel,
@@ -4881,6 +4929,7 @@ input[type="color"] {
   }
 
   .projectControls,
+  .accessInviteForm,
   .projectPipelineBoard,
   .taskItem,
   .addTaskForm,

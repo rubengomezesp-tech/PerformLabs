@@ -1,9 +1,19 @@
-import { Clock3, KeyRound, LockKeyhole, ShieldAlert, ShieldCheck, Unplug, UsersRound } from "lucide-react";
+import { Clock3, KeyRound, LockKeyhole, MailPlus, ShieldAlert, ShieldCheck, Trash2, Unplug, UsersRound } from "lucide-react";
 import { Topbar } from "@/components/topbar";
-import { formatRole, getConsoleSession, requirePlatformAccess } from "@/lib/auth/access-control";
+import { canManageWorkspace, formatRole, requirePlatformAccess } from "@/lib/auth/access-control";
 import { entitlementModuleLabels, entitlementStatusLabels } from "@/lib/repositories/entitlements";
-import { listLoginSecurityAlerts, listSecurityAuditEvents, listSecurityTeamMembers } from "@/lib/repositories/security-management";
+import {
+  listLoginSecurityAlerts,
+  listPendingTeamInvitations,
+  listSecurityAuditEvents,
+  listSecurityTeamMembers,
+} from "@/lib/repositories/security-management";
 import { listWorkspaceSummaries } from "@/lib/repositories/workspaces";
+import {
+  inviteWorkspaceTeamMemberAction,
+  revokeWorkspaceTeamAccessAction,
+  revokeWorkspaceTeamInvitationAction,
+} from "./actions";
 
 export const dynamic = "force-dynamic";
 
@@ -32,18 +42,31 @@ function metadataPreview(metadata: unknown) {
     .join(" · ");
 }
 
+function statusLabel(status: string) {
+  if (status === "pending") return "Pendiente";
+  if (status === "accepted") return "Aceptada";
+  if (status === "expired") return "Expirada";
+  if (status === "revoked") return "Revocada";
+  return status;
+}
+
 export default async function SecurityPage() {
-  await requirePlatformAccess();
-  const session = await getConsoleSession();
-  const [teamMembers, auditEvents, loginAlerts, workspaceResult] = await Promise.all([
-    listSecurityTeamMembers(),
-    listSecurityAuditEvents(),
-    listLoginSecurityAlerts(),
-    listWorkspaceSummaries(),
+  const session = await requirePlatformAccess();
+  const workspaceResult = await listWorkspaceSummaries();
+  const visibleWorkspaces = workspaceResult.workspaces.filter((workspace) => canManageWorkspace(session, workspace.id));
+  const scopedWorkspaceIds = session.topRole === "platform_owner" ? undefined : visibleWorkspaces.map((workspace) => workspace.id);
+  const [teamMembers, auditEvents, loginAlerts, teamInvitations] = await Promise.all([
+    listSecurityTeamMembers(scopedWorkspaceIds),
+    listSecurityAuditEvents(scopedWorkspaceIds),
+    session.topRole === "platform_owner" ? listLoginSecurityAlerts() : Promise.resolve([]),
+    listPendingTeamInvitations(scopedWorkspaceIds),
   ]);
   const consoleMembers = teamMembers.filter((member) => member.role !== "member");
   const memberOnly = teamMembers.length - consoleMembers.length;
-  const restrictedApps = workspaceResult.workspaces.filter((workspace) => workspace.entitlement.status !== "active" || !workspace.isActive);
+  const restrictedApps = visibleWorkspaces.filter((workspace) => workspace.entitlement.status !== "active" || !workspace.isActive);
+  const roleOptions = session?.topRole === "platform_owner"
+    ? ["platform_owner", "agency_admin", "coach_admin", "coach_staff"] as const
+    : ["coach_admin", "coach_staff"] as const;
 
   return (
     <>
@@ -95,9 +118,9 @@ export default async function SecurityPage() {
             </div>
             <a className="btn" href="/console/apps">Gestionar apps</a>
           </div>
-          {workspaceResult.workspaces.length ? (
+          {visibleWorkspaces.length ? (
             <ul className="list">
-              {workspaceResult.workspaces.map((workspace) => {
+              {visibleWorkspaces.map((workspace) => {
                 const disabledModules = Object.entries(workspace.entitlement.modules)
                   .filter(([, enabled]) => !enabled)
                   .map(([module]) => entitlementModuleLabels[module as keyof typeof entitlementModuleLabels]);
@@ -128,11 +151,39 @@ export default async function SecurityPage() {
           <div className="sectionHeader">
             <div>
               <KeyRound color="var(--gold)" />
-              <h2>Matriz de acceso</h2>
+              <h2>Invitar acceso operativo</h2>
               <p>Usuarios con permiso operativo por marca. La consola queda reservada a equipo interno y entrenadores autorizados.</p>
             </div>
             <span className={restrictedApps.length ? "tag danger" : "tag"}>{restrictedApps.length ? `${restrictedApps.length} restringida` : "RBAC"}</span>
           </div>
+          <form action={inviteWorkspaceTeamMemberAction} className="accessInviteForm">
+            <label>
+              Marca
+              <select name="workspaceId" required>
+                <option value="">Seleccionar marca</option>
+                {visibleWorkspaces.map((workspace) => (
+                  <option key={workspace.id} value={workspace.id}>
+                    {workspace.name}{workspace.fallbackSubdomain ? ` · ${workspace.fallbackSubdomain}` : ""}
+                  </option>
+                ))}
+              </select>
+            </label>
+            <label>
+              Email
+              <input name="email" placeholder="coach@email.com" required type="email" />
+            </label>
+            <label>
+              Rol
+              <select name="role" defaultValue="coach_admin">
+                {roleOptions.map((role) => (
+                  <option key={role} value={role}>{formatRole(role)}</option>
+                ))}
+              </select>
+            </label>
+            <button className="btn primary" type="submit">
+              Invitar acceso <MailPlus size={16} />
+            </button>
+          </form>
           {consoleMembers.length ? (
             <ul className="list">
               {consoleMembers.map((member) => (
@@ -141,7 +192,16 @@ export default async function SecurityPage() {
                     <strong>{member.email}</strong>
                     <p>{member.workspaceName}{member.workspaceSlug ? ` · ${member.workspaceSlug}` : ""}</p>
                   </div>
-                  <span className="tag">{formatRole(member.role)}</span>
+                  <div className="rowActions">
+                    <span className="tag">{formatRole(member.role)}</span>
+                    <form action={revokeWorkspaceTeamAccessAction}>
+                      <input name="workspaceId" type="hidden" value={member.workspaceId} />
+                      <input name="membershipId" type="hidden" value={member.id} />
+                      <button className="btn iconButton" type="submit" aria-label={`Revocar acceso de ${member.email}`}>
+                        <Trash2 size={16} />
+                      </button>
+                    </form>
+                  </div>
                 </li>
               ))}
             </ul>
@@ -150,6 +210,48 @@ export default async function SecurityPage() {
               <UsersRound color="var(--gold)" />
               <h3>No hay equipo operativo creado.</h3>
               <p>Cuando activemos acceso obligatorio, cada usuario necesitará rol y marca asignada.</p>
+            </div>
+          )}
+        </article>
+
+        <article className="card span12">
+          <div className="sectionHeader">
+            <div>
+              <MailPlus color="var(--gold)" />
+              <h2>Invitaciones operativas</h2>
+              <p>Invitaciones de equipo pendientes, expiradas o revocadas. El acceso real queda auditado por usuario, rol y marca.</p>
+            </div>
+            <span className="tag">{teamInvitations.length} registros</span>
+          </div>
+          {teamInvitations.length ? (
+            <ul className="list">
+              {teamInvitations.map((invitation) => (
+                <li className="row" key={invitation.id}>
+                  <div>
+                    <strong>{invitation.email}</strong>
+                    <p>{invitation.workspaceName}{invitation.workspaceSlug ? ` · ${invitation.workspaceSlug}` : ""} · expira {formatDate(invitation.expiresAt)}</p>
+                  </div>
+                  <div className="rowActions">
+                    <span className={invitation.status === "pending" ? "tag" : "tag danger"}>{statusLabel(invitation.status)}</span>
+                    <span className="tag">{formatRole(invitation.role)}</span>
+                    {invitation.status === "pending" ? (
+                      <form action={revokeWorkspaceTeamInvitationAction}>
+                        <input name="workspaceId" type="hidden" value={invitation.workspaceId} />
+                        <input name="invitationId" type="hidden" value={invitation.id} />
+                        <button className="btn iconButton" type="submit" aria-label={`Revocar invitación de ${invitation.email}`}>
+                          <Trash2 size={16} />
+                        </button>
+                      </form>
+                    ) : null}
+                  </div>
+                </li>
+              ))}
+            </ul>
+          ) : (
+            <div className="inlineEmpty">
+              <MailPlus color="var(--gold)" />
+              <h3>No hay invitaciones pendientes.</h3>
+              <p>Cuando invites a un entrenador o miembro del equipo aparecerá aquí hasta que entre o se revoque.</p>
             </div>
           )}
         </article>
