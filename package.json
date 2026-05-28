@@ -35,5 +35,10 @@
   "devDependencies": {
     "@types/three": "^0.184.1",
     "vitest": "^4.1.7"
+  },
+  "pnpm": {
+    "overrides": {
+      "postcss@<8.5.10": ">=8.5.10"
+    }
   }
 }
