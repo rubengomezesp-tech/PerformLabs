@@ -1,7 +1,7 @@
 import { Activity, ArrowRight, CheckCircle2, ClipboardCheck, Dumbbell, MessageSquareText, Plus, Rocket, Smartphone, Utensils } from "lucide-react";
 import Link from "next/link";
 import { Topbar } from "@/components/topbar";
-import { AttentionQueue, Badge, SignalCard } from "@/components/ui";
+import { AttentionQueue, Badge, SignalCard, SubmitButton } from "@/components/ui";
 import { getSelectedMemberAppBrand } from "@/lib/member-app";
 import { getCoachDashboard } from "@/lib/repositories/coach-dashboard";
 import { applyCoachBriefingRecommendationAction, markCoachBriefingReviewedAction } from "./actions";
@@ -183,21 +183,21 @@ export default async function CoachHomePage() {
                         <form action={applyCoachBriefingRecommendationAction}>
                           <input name="workspaceId" type="hidden" value={brand.id} />
                           <input name="responseId" type="hidden" value={briefing.id} />
-                          <button
-                            className="btn primary"
+                          <SubmitButton
+                            variant="primary"
                             disabled={briefing.recommendation.blockers.some((blocker) => blocker.startsWith("Falta"))}
-                            type="submit"
+                            successToast="Planes aplicados al cliente"
                           >
                             Aplicar planes <Rocket size={16} />
-                          </button>
+                          </SubmitButton>
                         </form>
                         {briefing.status !== "reviewed" ? (
                           <form action={markCoachBriefingReviewedAction}>
                             <input name="workspaceId" type="hidden" value={brand.id} />
                             <input name="responseId" type="hidden" value={briefing.id} />
-                            <button className="btn" type="submit">
+                            <SubmitButton successToast="Briefing marcado como revisado">
                               Solo revisar <CheckCircle2 size={16} />
-                            </button>
+                            </SubmitButton>
                           </form>
                         ) : null}
                         <Link className="btn" href={`/coach/briefings/${briefing.id}`}>

@@ -22,6 +22,36 @@ existing surfaces while giving new code a single, well-typed API.
 | `AnimatedNumber` | hard-coded figures | Count-up on scroll; respects reduced-motion. |
 | `Reveal` | — | Scroll-triggered entrance (framer-motion); respects reduced-motion. |
 | `SceneOrbit` | `BrandOrbit` internals | Themeable react-three-fiber mark; reads the live `--accent` token. |
+| `Skeleton` / `SkeletonText` | ad-hoc `.skeleton` spans | Consistent loading placeholders. |
+| `SubmitButton` | `<button type="submit" className="btn">` | Reads the parent form status (`useFormStatus`): spinner while pending + optional success toast. |
+
+### Coach console primitives
+
+| Primitive | Use |
+| --- | --- |
+| `SignalCard` | Tone-coded metric card (`neutral` \| `good` \| `warning` \| `danger`) for dashboards/analytics. |
+| `AttentionQueue` | Prioritised "resolve first" queue with severity coding and an empty state. |
+
+### Toasts
+
+`ToastProvider` is mounted once in `app/layout.tsx`. Anywhere below it, call
+`useToast()` for imperative toasts, or use `SubmitButton`'s `successToast` prop to
+fire one automatically when a server action finishes.
+
+```tsx
+const toast = useToast();
+toast.show("Plan publicado", { tone: "success" });
+```
+
+## Dense-surface pattern (coach & console)
+
+Operational surfaces share one rhythm so they stay scannable:
+
+1. `Topbar` — eyebrow + title + primary actions (`Button`).
+2. Tone-coded signals — a row of `SignalCard`s for the key metrics.
+3. `AttentionQueue` — what to resolve first.
+4. Data lists — `Table` with a `LoadingCard` skeleton and an `EmptyState` fallback.
+5. Mutations — `SubmitButton` for pending state + a success toast.
 
 ## Theming
 
