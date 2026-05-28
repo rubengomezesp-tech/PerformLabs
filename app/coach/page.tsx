@@ -1,9 +1,9 @@
-import { Activity, ArrowRight, CheckCircle2, ClipboardCheck, Dumbbell, MessageSquareText, Plus, Smartphone, Utensils } from "lucide-react";
+import { Activity, ArrowRight, CheckCircle2, ClipboardCheck, Dumbbell, MessageSquareText, Plus, Rocket, Smartphone, Utensils } from "lucide-react";
 import Link from "next/link";
 import { Topbar } from "@/components/topbar";
 import { getSelectedMemberAppBrand } from "@/lib/member-app";
 import { getCoachDashboard } from "@/lib/repositories/coach-dashboard";
-import { markCoachBriefingReviewedAction } from "./actions";
+import { applyCoachBriefingRecommendationAction, markCoachBriefingReviewedAction } from "./actions";
 
 export const dynamic = "force-dynamic";
 
@@ -29,7 +29,7 @@ export default async function CoachHomePage() {
       <Topbar
         eyebrow="Coach console"
         title={`Centro de mando de ${brand.name}.`}
-        text="Prioridades, briefings, cambios de dieta y actividad real de los clientes en una sola pantalla."
+        text="Prioridades, briefings, incidencias de dieta y actividad real de los clientes en una sola pantalla."
         actions={
           <>
             <Link className="btn" href="/app">Ver app cliente <Smartphone size={18} /></Link>
@@ -45,7 +45,7 @@ export default async function CoachHomePage() {
             <h2>Resuelve primero lo que mueve resultados.</h2>
             <p>
               El coach no necesita buscar por toda la consola: aqui aparecen los clientes que
-              esperan revision, los cambios de comida y las senales de adherencia.
+              esperan revision, las incidencias de comida y las senales de adherencia.
             </p>
             <div className="actions">
               <Link className="btn primary" href="/coach/checkins">
@@ -103,7 +103,7 @@ export default async function CoachHomePage() {
             <div className="coachEmptyPanel">
               <CheckCircle2 color="var(--green)" />
               <strong>Sin bloqueos abiertos.</strong>
-              <p>Cuando un cliente mande briefing, check-in o pida cambio de comida, aparecera aqui.</p>
+              <p>Cuando un cliente mande briefing, check-in o una incidencia concreta, aparecera aqui.</p>
             </div>
           )}
         </article>
@@ -156,7 +156,7 @@ export default async function CoachHomePage() {
                       <h3>{briefing.goal}</h3>
                     </div>
                     <span className={briefing.status === "reviewed" || briefing.status === "applied" ? "tag" : "tag danger"}>
-                      {briefing.status === "reviewed" || briefing.status === "applied" ? "Revisado" : "Nuevo"}
+                      {briefing.status === "applied" ? "Publicado" : briefing.status === "reviewed" ? "Revisado" : "Nuevo"}
                     </span>
                   </div>
                   <div className="coachBriefingMetrics">
@@ -170,18 +170,55 @@ export default async function CoachHomePage() {
                       <li key={highlight}>{highlight}</li>
                     ))}
                   </ul>
+                  <div className="coachRecommendationPanel">
+                    <span className="eyebrow">Propuesta interna</span>
+                    <div className="coachRecommendationGrid">
+                      <span>
+                        <small>Entreno</small>
+                        <strong>{briefing.recommendation.trainingTemplate}</strong>
+                      </span>
+                      <span>
+                        <small>Nutricion</small>
+                        <strong>{briefing.recommendation.nutritionTemplate}</strong>
+                      </span>
+                    </div>
+                    {briefing.recommendation.blockers.length ? (
+                      <ul className="coachRecommendationBlockers">
+                        {briefing.recommendation.blockers.map((blocker) => (
+                          <li key={blocker}>{blocker}</li>
+                        ))}
+                      </ul>
+                    ) : (
+                      <p>Lista para que el coach la revise y la publique al cliente.</p>
+                    )}
+                  </div>
                   <div className="coachBriefingFooter">
                     <small>Enviado {prettyDate(briefing.submittedAt)}</small>
-                    {briefing.status === "reviewed" || briefing.status === "applied" ? (
-                      <span className="tag">Listo</span>
+                    {briefing.status === "applied" ? (
+                      <span className="tag">Plan publicado</span>
                     ) : (
-                      <form action={markCoachBriefingReviewedAction}>
-                        <input name="workspaceId" type="hidden" value={brand.id} />
-                        <input name="responseId" type="hidden" value={briefing.id} />
-                        <button className="btn" type="submit">
-                          Marcar revisado <CheckCircle2 size={16} />
-                        </button>
-                      </form>
+                      <div className="coachBriefingActions">
+                        <form action={applyCoachBriefingRecommendationAction}>
+                          <input name="workspaceId" type="hidden" value={brand.id} />
+                          <input name="responseId" type="hidden" value={briefing.id} />
+                          <button
+                            className="btn primary"
+                            disabled={briefing.recommendation.blockers.some((blocker) => blocker.startsWith("Falta"))}
+                            type="submit"
+                          >
+                            Aplicar planes <Rocket size={16} />
+                          </button>
+                        </form>
+                        {briefing.status !== "reviewed" ? (
+                          <form action={markCoachBriefingReviewedAction}>
+                            <input name="workspaceId" type="hidden" value={brand.id} />
+                            <input name="responseId" type="hidden" value={briefing.id} />
+                            <button className="btn" type="submit">
+                              Solo revisar <CheckCircle2 size={16} />
+                            </button>
+                          </form>
+                        ) : null}
+                      </div>
                     )}
                   </div>
                 </article>

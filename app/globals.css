@@ -1177,6 +1177,64 @@ textarea {
   padding: 9px 10px;
 }
 
+.coachRecommendationPanel {
+  display: grid;
+  gap: 10px;
+  border: 1px solid rgba(216, 189, 107, 0.22);
+  border-radius: 8px;
+  background: rgba(216, 189, 107, 0.055);
+  padding: 12px;
+}
+
+.coachRecommendationPanel p {
+  margin: 0;
+  color: var(--muted);
+}
+
+.coachRecommendationGrid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px;
+}
+
+.coachRecommendationGrid span {
+  display: grid;
+  gap: 3px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 8px;
+  background: rgba(7, 8, 9, 0.36);
+  padding: 10px;
+}
+
+.coachRecommendationGrid small {
+  color: var(--muted);
+  font-size: 11px;
+  font-weight: 800;
+  text-transform: uppercase;
+}
+
+.coachRecommendationGrid strong {
+  color: var(--text);
+}
+
+.coachRecommendationBlockers {
+  display: grid;
+  gap: 7px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.coachRecommendationBlockers li {
+  border: 1px solid rgba(232, 192, 92, 0.22);
+  border-radius: 8px;
+  background: rgba(232, 192, 92, 0.08);
+  color: var(--gold);
+  padding: 8px 10px;
+  font-size: 13px;
+  font-weight: 800;
+}
+
 .coachBriefingFooter {
   display: flex;
   align-items: center;
@@ -1188,6 +1246,17 @@ textarea {
 
 .coachBriefingFooter small {
   color: var(--muted);
+}
+
+.coachBriefingActions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 8px;
+}
+
+.coachBriefingActions form {
+  margin: 0;
 }
 
 .coachBuilderCard {
@@ -2447,10 +2516,29 @@ textarea {
   padding: 0 16px 16px;
 }
 
+.workoutLibraryGrid.single {
+  grid-template-columns: 1fr;
+}
+
 .workoutDayScroller {
   overflow: auto;
   max-height: 430px;
   padding-right: 4px;
+}
+
+.planPendingCard {
+  display: grid;
+  justify-items: center;
+  gap: 12px;
+  border-style: dashed;
+  min-height: 220px;
+  text-align: center;
+}
+
+.planPendingCard p {
+  max-width: 640px;
+  margin: 0;
+  color: var(--muted);
 }
 
 .mealAppHero {
@@ -4650,6 +4738,7 @@ input[type="color"] {
   .coachProgramStats,
   .coachBriefingGrid,
   .coachBriefingMetrics,
+  .coachRecommendationGrid,
   .memberTrainingLoadPanel,
   .memberWeekLoadStrip,
   .memberCarbDayGrid,
@@ -4694,8 +4783,14 @@ input[type="color"] {
   }
 
   .coachBriefingFooter form,
+  .coachBriefingActions,
+  .coachBriefingActions form,
   .coachBriefingFooter button {
     width: 100%;
+  }
+
+  .coachBriefingActions {
+    flex-direction: column;
   }
 
   .memberHeroStats {

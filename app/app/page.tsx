@@ -3,16 +3,33 @@ import Link from "next/link";
 import { Topbar } from "@/components/topbar";
 import { getSelectedMemberAppBrand } from "@/lib/member-app";
 import { listWorkspaceProducts } from "@/lib/repositories/member-experience";
-
-const todayPlan = [
-  { icon: Dumbbell, label: "Push hipertrofia", detail: "58 min · 7 ejercicios", href: "/app/workouts" },
-  { icon: Soup, label: "Comida principal", detail: "780 kcal · 58 g proteína", href: "/app/meals" },
-  { icon: Camera, label: "Check-in semanal", detail: "Fotos y peso pendiente", href: "/app/progress" },
-];
+import { getMemberTrainingContext } from "@/lib/repositories/member-onboarding";
+import { getMemberMealPlanForToday } from "@/lib/repositories/nutrition-tracking";
 
 export default async function MemberDashboard() {
   const brand = await getSelectedMemberAppBrand();
-  const products = await listWorkspaceProducts(brand.id);
+  const [products, trainingContext, mealPlan] = await Promise.all([
+    listWorkspaceProducts(brand.id),
+    getMemberTrainingContext(brand.id),
+    getMemberMealPlanForToday(brand.id),
+  ]);
+  const activeDay = trainingContext.activeAssignment ? trainingContext.activeAssignedDay : null;
+  const hasNutrition = Boolean(mealPlan?.items.length);
+  const todayPlan = [
+    {
+      icon: Dumbbell,
+      label: activeDay?.title ?? "Entreno en revisión",
+      detail: activeDay ? `${activeDay.estimatedMinutes ?? 60} min · ${activeDay.exercises.length} ejercicios` : "El coach lo publicará al aprobar tu briefing",
+      href: activeDay ? "/app/workouts" : "/app/onboarding",
+    },
+    {
+      icon: Soup,
+      label: mealPlan?.items[0]?.title ?? "Nutrición en revisión",
+      detail: hasNutrition ? `${mealPlan?.items.length} comidas planificadas hoy` : "Sin comidas genéricas hasta aprobación",
+      href: hasNutrition ? "/app/meals" : "/app/onboarding",
+    },
+    { icon: Camera, label: "Check-in semanal", detail: "Fotos, peso y sensaciones", href: "/app/progress" },
+  ];
 
   return (
     <>
@@ -26,11 +43,11 @@ export default async function MemberDashboard() {
           <div className="memberHero">
             <div>
               <span className="eyebrow">{brand.appName}</span>
-              <h1>Tu siguiente sesión está lista.</h1>
-              <p>{brand.name} reúne tu entrenamiento, comidas, progreso y soporte para que solo tengas que ejecutar el plan de hoy.</p>
+              <h1>{activeDay ? "Tu siguiente sesión está lista." : "Tu coach está preparando tu plan."}</h1>
+              <p>{activeDay || hasNutrition ? `${brand.name} reúne tu entrenamiento, comidas, progreso y soporte para que solo tengas que ejecutar el plan de hoy.` : "Completa tu briefing inicial y el coach activará tu entrenamiento y nutrición cuando estén revisados."}</p>
               <div className="actions">
-                <Link className="btn primary" href="/app/workouts">
-                  Empezar entreno <Play size={18} />
+                <Link className="btn primary" href={activeDay ? "/app/workouts" : "/app/onboarding"}>
+                  {activeDay ? "Empezar entreno" : "Completar briefing"} <Play size={18} />
                 </Link>
                 <Link className="btn" href="/app/onboarding">
                   Revisar inicio <ArrowRight size={18} />
@@ -40,21 +57,21 @@ export default async function MemberDashboard() {
             <div className="memberHeroStats">
               <span>
                 Adherencia
-                <strong>86%</strong>
+                <strong>{activeDay || hasNutrition ? "86%" : "Pendiente"}</strong>
               </span>
               <span>
                 Semana
-                <strong>4/12</strong>
+                <strong>{trainingContext.activeAssignment ? `${trainingContext.activeAssignment.currentWeek}/12` : "Revisión"}</strong>
               </span>
               <span>
                 Racha
-                <strong>6 días</strong>
+                <strong>{activeDay || hasNutrition ? "Activa" : "0 días"}</strong>
               </span>
             </div>
             <div className="memberHeroSignal">
-              <span className="tag">Plan activo</span>
-              <strong>Transformación 12 semanas</strong>
-              <p>Entreno, nutrición y check-ins sincronizados con tu coach.</p>
+              <span className="tag">{activeDay || hasNutrition ? "Plan activo" : "Revisión del coach"}</span>
+              <strong>{trainingContext.activeAssignment?.name ?? mealPlan?.planName ?? "Briefing inicial"}</strong>
+              <p>{activeDay || hasNutrition ? "Entreno, nutrición y check-ins sincronizados con tu coach." : "Sin rutinas ni comidas genéricas antes de aprobación."}</p>
             </div>
           </div>
         </article>
@@ -120,14 +137,14 @@ export default async function MemberDashboard() {
         </article>
 
         <article className="card span6 memberCoachCard motionCard">
-          <h2>Actualización de plan</h2>
+          <h2>Revisión del plan</h2>
           <p>
-            Tras completar el check-in, el coach puede revisar medidas, fotos,
-            preferencias y generar una nueva versión del plan.
+            Tras completar el check-in, el coach revisa medidas, fotos y sensaciones.
+            Si hay algo concreto que no puedes cumplir, avisa desde esa comida o ejercicio.
           </p>
           <div className="actions">
             <Link className="btn" href="/app/onboarding">Completar inicio</Link>
-            <button className="btn" type="button">Solicitar actualización</button>
+            <Link className="btn" href="/app/progress">Enviar check-in</Link>
           </div>
         </article>
         {products.map((product) => (

@@ -46,5 +46,6 @@ export async function saveMemberOnboardingAction(formData: FormData) {
   revalidatePath("/app/meals");
   revalidatePath("/app");
   revalidatePath("/coach/members");
-  redirect("/app/workouts");
+  revalidatePath("/coach");
+  redirect("/app");
 }

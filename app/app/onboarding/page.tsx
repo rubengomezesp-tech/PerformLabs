@@ -243,7 +243,7 @@ export default async function MemberOnboardingPage() {
           <div className="sectionHeader">
             <div>
               <h2>Qué pasa después</h2>
-              <p>Con este briefing se deja preparado tu primer bloque de entrenamiento, tu plan de comida y los puntos que revisará tu coach.</p>
+              <p>Con este briefing tu coach recibe una propuesta interna de entrenamiento, comida y puntos de revisión antes de publicar tu plan.</p>
             </div>
             <span className="tag">Revisión inicial</span>
           </div>
@@ -259,10 +259,10 @@ export default async function MemberOnboardingPage() {
           <CheckCircle2 color="var(--green)" />
           <div>
             <strong>Tu información se usa para preparar tu experiencia dentro de {brand.name}.</strong>
-            <p>El equipo la revisa antes de activar cambios de entrenamiento, nutrición o seguimiento.</p>
+            <p>El coach la revisa antes de activar entrenamiento, nutrición o seguimiento en tu app.</p>
           </div>
           <button className="btn primary" type="submit">
-            Guardar y preparar mi plan <Save size={18} />
+            Enviar briefing al coach <Save size={18} />
           </button>
         </article>
       </form>

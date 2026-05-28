@@ -1,10 +1,9 @@
 import { CheckCircle2, Dumbbell, Play, Repeat2, Timer, Video } from "lucide-react";
 import Link from "next/link";
 import { Topbar } from "@/components/topbar";
-import { workouts } from "@/lib/data";
 import { getSelectedMemberAppBrand } from "@/lib/member-app";
 import { getMemberTrainingContext, type MemberAssignedWorkoutDay, type MemberAssignedWorkoutExercise } from "@/lib/repositories/member-onboarding";
-import { listManagedWorkoutTemplates, type ManagedWorkoutTemplate } from "@/lib/repositories/training-management";
+import type { ManagedWorkoutTemplate } from "@/lib/repositories/training-management";
 import { getWorkoutPerformanceSummary } from "@/lib/repositories/workout-performance";
 import { requestWorkoutIssueAction, saveWorkoutSessionAction } from "./actions";
 
@@ -25,7 +24,7 @@ function monthForWeek(weekNumber: number) {
   return 3;
 }
 
-function groupDaysByMonth(days: WorkoutTemplateDay[]) {
+function groupDaysByMonth(days: WorkoutDayView[]) {
   return [1, 2, 3].map((month) => ({
     month,
     ...monthLabels[month],
@@ -52,21 +51,24 @@ function estimatedMinutesFor(day: WorkoutDayView | null) {
 
 export default async function WorkoutsPage() {
   const brand = await getSelectedMemberAppBrand();
-  const [templates, performance, trainingContext] = await Promise.all([
-    listManagedWorkoutTemplates(brand.id),
+  const [performance, trainingContext] = await Promise.all([
     getWorkoutPerformanceSummary(brand.id),
     getMemberTrainingContext(brand.id),
   ]);
+  const hasApprovedTraining = Boolean(trainingContext.activeAssignment);
   const assignedDay = trainingContext.activeAssignedDay;
-  const activeTemplate = trainingContext.activeTemplate ?? templates[0];
-  const activeDay = assignedDay ?? activeTemplate?.days[0] ?? null;
-  const templateIdForLog = trainingContext.activeAssignment?.sourceTemplateId ?? activeTemplate?.id ?? "";
-  const dayIdForLog = assignedDay?.sourceTemplateDayId ?? activeDay?.id ?? "";
+  const activeTemplate = hasApprovedTraining ? trainingContext.activeTemplate : null;
+  const activeDay = hasApprovedTraining ? assignedDay ?? activeTemplate?.days[0] ?? null : null;
+  const calendarDays: WorkoutDayView[] = hasApprovedTraining
+    ? trainingContext.assignedDays.length ? trainingContext.assignedDays : activeTemplate?.days ?? []
+    : [];
+  const templateIdForLog = hasApprovedTraining ? trainingContext.activeAssignment?.sourceTemplateId ?? activeTemplate?.id ?? "" : "";
+  const dayIdForLog = hasApprovedTraining ? assignedDay?.sourceTemplateDayId ?? activeDay?.id ?? "" : "";
   const totalSessionVideos = activeDay?.exercises.filter((exercise) => exercise.videoUrl).length ?? 0;
   const sessionExercises = activeDay?.exercises.length ?? 0;
   const activeWeekNumber = activeDay?.weekNumber ?? 1;
   const weekProgressPercent = Math.min(100, Math.max(8, Math.round((activeWeekNumber / 12) * 100)));
-  const weeklyGoal = trainingContext.activeAssignment?.daysPerWeek ?? activeTemplate?.daysPerWeek ?? trainingContext.preferredDaysPerWeek ?? 4;
+  const weeklyGoal = hasApprovedTraining ? trainingContext.activeAssignment?.daysPerWeek ?? activeTemplate?.daysPerWeek ?? trainingContext.preferredDaysPerWeek ?? 4 : 0;
   const estimatedMinutes = estimatedMinutesFor(activeDay);
 
   return (
@@ -80,25 +82,29 @@ export default async function WorkoutsPage() {
         <article className="span12 workoutAppHero">
           <div>
             <span className="eyebrow">Hoy toca</span>
-            <h2>{activeDay?.title ?? "Sesión pendiente"}</h2>
-            <p>{activeDay ? "Completa la rutina y apunta reps y kilos. Si algo te impide hacerla, avisa con un motivo concreto." : "Tu coach está preparando la siguiente sesión."}</p>
+            <h2>{activeDay?.title ?? "Plan en revisión"}</h2>
+            <p>{activeDay ? "Completa la rutina y apunta reps y kilos. Si algo te impide hacerla, avisa con un motivo concreto." : "Tu coach está revisando tu briefing antes de activar tu primera rutina."}</p>
             <div className="workoutHeroMeta">
-              <span><Dumbbell size={16} /> {sessionExercises} ejercicios</span>
-              <span><Video size={16} /> {totalSessionVideos ? `${totalSessionVideos} vídeos` : "Sin vídeos"}</span>
-              <span><Timer size={16} /> {estimatedMinutes} min aprox.</span>
-              <span><Repeat2 size={16} /> Incidencias con motivo</span>
+              <span><Dumbbell size={16} /> {activeDay ? `${sessionExercises} ejercicios` : "Pendiente de activar"}</span>
+              <span><Video size={16} /> {activeDay ? totalSessionVideos ? `${totalSessionVideos} vídeos` : "Sin vídeos" : "Vídeos después"}</span>
+              <span><Timer size={16} /> {activeDay ? `${estimatedMinutes} min aprox.` : "Revisión coach"}</span>
+              <span><Repeat2 size={16} /> Avisos con motivo</span>
             </div>
             <div className="workoutActionRail">
-              <a className="btn primary" href="#sesion-activa">Empezar sesión <Play size={18} /></a>
+              {activeDay ? (
+                <a className="btn primary" href="#sesion-activa">Empezar sesión <Play size={18} /></a>
+              ) : (
+                <Link className="btn primary" href="/app/onboarding">Completar briefing <Play size={18} /></Link>
+              )}
               <Link className="btn" href="/app/progress">Ver progreso</Link>
             </div>
           </div>
           <div className="memberHeroSignal">
-            <span className="tag">Tu avance</span>
-            <strong>Semana {activeWeekNumber}</strong>
-            <p>Vas avanzando en tu plan. Guarda cada entrenamiento para ver mejoras reales.</p>
-            <div className="workoutProgressTrack" aria-label={`Semana ${activeWeekNumber}`}>
-              <span style={{ width: `${weekProgressPercent}%` }} />
+            <span className="tag">{activeDay ? "Tu avance" : "Revisión del coach"}</span>
+            <strong>{activeDay ? `Semana ${activeWeekNumber}` : "Plan pendiente"}</strong>
+            <p>{activeDay ? "Vas avanzando en tu plan. Guarda cada entrenamiento para ver mejoras reales." : "Cuando el coach lo publique, aquí aparecerá exactamente qué entrenar."}</p>
+            <div className="workoutProgressTrack" aria-label={activeDay ? `Semana ${activeWeekNumber}` : "Plan pendiente"}>
+              <span style={{ width: `${activeDay ? weekProgressPercent : 18}%` }} />
             </div>
           </div>
         </article>
@@ -110,7 +116,7 @@ export default async function WorkoutsPage() {
                 <small>Esta semana</small>
                 Entrenos completados
               </span>
-              <strong>{performance.sessionsThisWeek}/{weeklyGoal}</strong>
+              <strong>{activeDay ? `${performance.sessionsThisWeek}/${weeklyGoal}` : "Pendiente"}</strong>
             </div>
             <div className="workoutMetrics">
               <span>Sesiones<strong>{performance.sessionsThisWeek}</strong></span>
@@ -135,9 +141,9 @@ export default async function WorkoutsPage() {
                 <small>Objetivo de hoy</small>
                 Completar y guardar
               </span>
-              <strong>{sessionExercises} ejercicios</strong>
+              <strong>{activeDay ? `${sessionExercises} ejercicios` : "Coach revisa"}</strong>
             </div>
-            <p>Haz cada ejercicio con buena técnica. Si hay dolor, falta de material o una limitación real, avisa al coach.</p>
+            <p>{activeDay ? "Haz cada ejercicio con buena técnica. Si hay dolor, falta de material o una limitación real, avisa al coach." : "Tu plan no se publica hasta que el entrenador lo aprueba."}</p>
           </article>
         </div>
 
@@ -268,93 +274,77 @@ export default async function WorkoutsPage() {
           </article>
         ) : null}
 
-        <details className="card span12 workoutMenuPanel workoutLibraryPanel">
-          <summary>
-            <span>
-              <small>Calendario</small>
-              Ver próximas sesiones
-            </span>
-            <strong>{templates.length || workouts.length} bloques</strong>
-          </summary>
-          <div className="workoutLibraryGrid">
-            {templates.length ? (
-              templates.map((template) => (
-                <article className="card motionCard workoutAppCard" key={template.id}>
-                  <div className="sectionHeader">
-                    <div>
-                      <Dumbbell color="var(--gold)" />
-                      <h3>{publicTemplateName(template)}</h3>
-                      <h2>{template.goal || "Plan activo"}</h2>
-                    </div>
-                    <span className="tag">{template.status}</span>
+        {hasApprovedTraining ? (
+          <details className="card span12 workoutMenuPanel workoutLibraryPanel">
+            <summary>
+              <span>
+                <small>Calendario</small>
+                Ver próximas sesiones
+              </span>
+              <strong>{calendarDays.length} sesiones</strong>
+            </summary>
+            <div className="workoutLibraryGrid single">
+              <article className="card motionCard workoutAppCard">
+                <div className="sectionHeader">
+                  <div>
+                    <Dumbbell color="var(--gold)" />
+                    <h3>{publicTemplateName(activeTemplate)}</h3>
+                    <h2>{activeTemplate?.goal || trainingContext.activeAssignment?.name || "Plan activo"}</h2>
                   </div>
-                  <p><Timer size={16} /> {template.daysPerWeek} días por semana</p>
-                  <div className="workoutDayScroller">
-                    {template.days.length ? groupDaysByMonth(template.days).map((monthGroup) => (
-                      <details className="monthRoutinePanel" key={`${template.id}-${monthGroup.month}`} open={monthGroup.month === 1}>
-                        <summary>
-                          <span>
-                            <small>{monthGroup.weeks}</small>
-                            {monthGroup.title}
-                          </span>
-                          <b>{monthGroup.days.length} sesiones</b>
-                        </summary>
-                        <p>{monthGroup.focus}</p>
-                        <ul className="list">
-                          {monthGroup.days.map((day) => (
-                            <li className="row workoutAppDay" key={day.id}>
-                              <div>
-                                <strong>Semana {day.weekNumber} · Día {day.dayNumber}</strong>
-                                <p>{day.title}</p>
-                                {day.exercises.length ? (
-                                  <div className="workoutExerciseChips">
-                                    {day.exercises.map((exercise) => (
-                                      <span key={exercise.id}>{exercise.videoUrl ? "▶ " : ""}{exercise.exerciseName}</span>
-                                    ))}
-                                  </div>
-                                ) : null}
-                              </div>
-                              <span className="tag">{day.exercises.filter((exercise) => exercise.videoUrl).length}/{day.exercises.length} vídeos</span>
-                            </li>
-                          ))}
-                        </ul>
-                      </details>
-                    )) : (
+                  <span className="tag">Activo</span>
+                </div>
+                <p><Timer size={16} /> {weeklyGoal || "-"} días por semana</p>
+                <div className="workoutDayScroller">
+                  {calendarDays.length ? groupDaysByMonth(calendarDays).map((monthGroup) => (
+                    <details className="monthRoutinePanel" key={`active-${monthGroup.month}`} open={monthGroup.month === monthForWeek(activeWeekNumber)}>
+                      <summary>
+                        <span>
+                          <small>{monthGroup.weeks}</small>
+                          {monthGroup.title}
+                        </span>
+                        <b>{monthGroup.days.length} sesiones</b>
+                      </summary>
+                      <p>{monthGroup.focus}</p>
                       <ul className="list">
-                        <li className="row">Días pendientes <span className="tag">Preparando</span></li>
+                        {monthGroup.days.map((day) => (
+                          <li className="row workoutAppDay" key={day.id}>
+                            <div>
+                              <strong>Semana {day.weekNumber} · Día {day.dayNumber}</strong>
+                              <p>{day.title}</p>
+                              {day.exercises.length ? (
+                                <div className="workoutExerciseChips">
+                                  {day.exercises.map((exercise) => (
+                                    <span key={exercise.id}>{exercise.videoUrl ? "▶ " : ""}{exercise.exerciseName}</span>
+                                  ))}
+                                </div>
+                              ) : null}
+                            </div>
+                            <span className="tag">{day.exercises.filter((exercise) => exercise.videoUrl).length}/{day.exercises.length} vídeos</span>
+                          </li>
+                        ))}
                       </ul>
-                    )}
-                  </div>
-                  <div className="actions">
-                    <a className="btn primary" href="#sesion-activa"><CheckCircle2 size={17} /> Registrar</a>
-                    <a className="btn" href="#sesion-activa"><Repeat2 size={17} /> Avisar si hay problema</a>
-                  </div>
-                </article>
-              ))
-            ) : (
-              workouts.map((workout) => (
-                <article className="card motionCard workoutAppCard" key={workout.day}>
-                  <Dumbbell color="var(--gold)" />
-                  <h3>{workout.day}</h3>
-                  <h2>{workout.title}</h2>
-                  <p><Timer size={16} /> {workout.duration}</p>
-                  <ul className="list">
-                    {workout.exercises.map((exercise) => (
-                      <li className="row" key={exercise}>
-                        {exercise}
-                        <span className="tag">Coach</span>
-                      </li>
-                    ))}
-                  </ul>
-                  <div className="actions">
-                    <a className="btn primary" href="#sesion-activa"><CheckCircle2 size={17} /> Registrar</a>
-                    <a className="btn" href="#sesion-activa"><Repeat2 size={17} /> Avisar si hay problema</a>
-                  </div>
-                </article>
-              ))
-            )}
-          </div>
-        </details>
+                    </details>
+                  )) : (
+                    <ul className="list">
+                      <li className="row">Días pendientes <span className="tag">Preparando</span></li>
+                    </ul>
+                  )}
+                </div>
+                <div className="actions">
+                  <a className="btn primary" href="#sesion-activa"><CheckCircle2 size={17} /> Registrar</a>
+                  <a className="btn" href="#sesion-activa"><Repeat2 size={17} /> Avisar si hay problema</a>
+                </div>
+              </article>
+            </div>
+          </details>
+        ) : (
+          <article className="card span12 planPendingCard">
+            <Dumbbell color="var(--gold)" size={30} />
+            <h2>Tu rutina todavía no está publicada.</h2>
+            <p>Completa el briefing y tu coach activará el plan cuando esté revisado. Hasta entonces no verás rutinas genéricas.</p>
+            <Link className="btn primary" href="/app/onboarding">Ir al briefing</Link>
+          </article>
+        )}
       </section>
     </>
   );

@@ -32,6 +32,12 @@ export type CoachBriefingSummary = {
   reviewedAt: string;
   status: string;
   highlights: string[];
+  recommendation: {
+    status: string;
+    trainingTemplate: string;
+    nutritionTemplate: string;
+    blockers: string[];
+  };
 };
 
 export type CoachRecentActivity = {
@@ -226,9 +232,31 @@ function activityCopy(row: ActivityRow) {
     };
   }
 
+  if (row.event_type === "onboarding_plan_applied") {
+    return {
+      label: "Plan activado",
+      detail: "Entrenamiento y nutricion publicados por el coach.",
+    };
+  }
+
   return {
     label: "Actividad",
     detail: row.event_type.replaceAll("_", " "),
+  };
+}
+
+function briefingRecommendation(row: OnboardingRow) {
+  const payload = toRecord(row.onboarding_payload);
+  const recommendation = toRecord(payload.recommendation);
+  const training = toRecord(recommendation.training);
+  const nutrition = toRecord(recommendation.nutrition);
+  const blockers = textList(recommendation.blockers);
+
+  return {
+    status: typeof recommendation.status === "string" ? recommendation.status : "coach_approval_required",
+    trainingTemplate: typeof training.templateName === "string" && training.templateName ? training.templateName : "Modulo pendiente",
+    nutritionTemplate: typeof nutrition.templateName === "string" && nutrition.templateName ? nutrition.templateName : "Plantilla pendiente",
+    blockers,
   };
 }
 
@@ -259,7 +287,7 @@ function emptyDashboard(): CoachDashboard {
       { label: "Miembros activos", value: "0", detail: "Sin datos conectados todavia", tone: "neutral" },
       { label: "Briefings nuevos", value: "0", detail: "Sin formularios pendientes", tone: "good" },
       { label: "Entrenos 7 dias", value: "0", detail: "Sin sesiones registradas", tone: "neutral" },
-      { label: "Cambios de comida", value: "0", detail: "Sin solicitudes abiertas", tone: "good" },
+      { label: "Incidencias comida", value: "0", detail: "Sin avisos abiertos", tone: "good" },
     ],
     attentionQueue: [],
     briefings: [],
@@ -457,9 +485,9 @@ export async function getCoachDashboard(workspaceId?: string): Promise<CoachDash
       tone: sessions.length ? "good" : "neutral",
     },
     {
-      label: "Cambios de comida",
+      label: "Incidencias comida",
       value: String(mealSwaps.length),
-      detail: mealSwaps.length ? "Solicitudes abiertas" : "Sin bloqueos de dieta",
+      detail: mealSwaps.length ? "Pendientes de revision" : "Sin avisos de dieta",
       tone: mealSwaps.length ? "danger" : "good",
     },
   ];
@@ -480,6 +508,7 @@ export async function getCoachDashboard(workspaceId?: string): Promise<CoachDash
       reviewedAt: row.reviewed_at ?? "",
       status: row.status,
       highlights: briefingHighlights(row).slice(0, 6),
+      recommendation: briefingRecommendation(row),
     })),
     recentActivity: (activityRows.map((row) => {
       const copy = activityCopy(row);
