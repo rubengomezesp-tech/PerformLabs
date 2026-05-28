@@ -2,11 +2,20 @@ import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 import { createClient } from "@supabase/supabase-js";
 import { authAccessCookie } from "@/lib/auth/session";
+import {
+  consoleRoles,
+  formatRole,
+  highestRole,
+  platformRoles,
+  roleAllowed,
+  workspaceManagerRoles,
+  type WorkspaceRole,
+} from "@/lib/auth/role-access";
 import type { Database } from "@/lib/supabase/database.types";
 import { getSupabasePublicEnv, getSupabaseServiceEnv } from "@/lib/supabase/env";
 import { createServiceSupabaseClient } from "@/lib/supabase/server";
 
-export type WorkspaceRole = Database["public"]["Enums"]["workspace_role"];
+export type { WorkspaceRole } from "@/lib/auth/role-access";
 
 export type ConsoleMembership = {
   id: string;
@@ -27,18 +36,6 @@ export type ConsoleSession = {
   memberships: ConsoleMembership[];
 };
 
-const consoleRoles: WorkspaceRole[] = ["platform_owner", "agency_admin", "coach_admin", "coach_staff"];
-const platformRoles: WorkspaceRole[] = ["platform_owner", "agency_admin"];
-const workspaceManagerRoles: WorkspaceRole[] = ["platform_owner", "agency_admin", "coach_admin", "coach_staff"];
-
-const roleWeight: Record<WorkspaceRole, number> = {
-  member: 0,
-  coach_staff: 10,
-  coach_admin: 20,
-  agency_admin: 30,
-  platform_owner: 40,
-};
-
 function isAuthRequired() {
   return process.env.COACHOS_AUTH_REQUIRED === "true";
 }
@@ -53,17 +50,6 @@ function localOpenSession(): ConsoleSession {
     topRole: "platform_owner",
     memberships: [],
   };
-}
-
-function highestRole(roles: WorkspaceRole[]): WorkspaceRole {
-  return roles.reduce<WorkspaceRole>((topRole, role) => (
-    roleWeight[role] > roleWeight[topRole] ? role : topRole
-  ), "member");
-}
-
-function roleAllowed(role: WorkspaceRole, allowedRoles: WorkspaceRole[]) {
-  const minimumWeight = Math.min(...allowedRoles.map((allowedRole) => roleWeight[allowedRole]));
-  return roleWeight[role] >= minimumWeight;
 }
 
 async function getVerifiedUser() {
@@ -214,14 +200,4 @@ export async function requireWorkspaceMutationAccess(workspaceId?: string) {
   return session;
 }
 
-export function formatRole(role: WorkspaceRole) {
-  const labels: Record<WorkspaceRole, string> = {
-    platform_owner: "Propietario plataforma",
-    agency_admin: "Dirección agencia",
-    coach_admin: "Administrador coach",
-    coach_staff: "Equipo coach",
-    member: "Miembro",
-  };
-
-  return labels[role];
-}
+export { formatRole };

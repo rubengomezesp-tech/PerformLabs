@@ -14,6 +14,10 @@ PerformLabs debe operar varias marcas desde una consola central sin mezclar perm
 - El rol `member` no puede entrar a consola.
 - Las acciones críticas escriben en `audit_log`.
 - El login conserva el destino interno con `next` y evita redirects externos.
+- El login aplica rate limit por IP/email y registra intentos fallidos/rate-limited en `audit_log` con hashes.
+- La app sirve headers base de seguridad: CSP, frame deny, nosniff, referrer policy, permissions policy y HSTS.
+- Las reglas puras de roles y rate limiting tienen tests automatizados con Vitest.
+- CI fuerza acciones JavaScript en Node 24 para anticipar el cambio de GitHub Actions de junio de 2026.
 
 ## Roles
 
@@ -42,3 +46,4 @@ Después, cada usuario operativo necesita una fila en `workspace_memberships`.
 - Proteger `/app` por miembro real cuando dejemos la demo pública.
 - Añadir tests e2e para login, bloqueo de consola y mutaciones protegidas.
 - Revisar políticas RLS tabla por tabla antes de abrir tráfico real.
+- Rediseñar funciones `SECURITY DEFINER` (`is_platform_owner`, `is_workspace_member`, `has_workspace_role`) para eliminar exposición RPC sin romper políticas RLS.
