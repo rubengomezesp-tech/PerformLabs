@@ -1,0 +1,125 @@
+{
+  "$comment": "Starter base nutrition library for PerformLabs. Macros are per 100g, approximate, coach-editable. Extend this file or point the importer at an open dataset to scale toward thousands of recipes. Items are tagged 'base' to distinguish the platform library from coach-custom content.",
+  "ingredients": [
+    { "name": "Pechuga de pollo", "kcal": 165, "protein": 31, "carbs": 0, "fat": 3.6, "allergens": [], "tags": ["proteina", "carne"] },
+    { "name": "Arroz blanco cocido", "kcal": 130, "protein": 2.7, "carbs": 28, "fat": 0.3, "allergens": [], "tags": ["carbohidrato"] },
+    { "name": "Arroz integral cocido", "kcal": 123, "protein": 2.7, "carbs": 26, "fat": 1, "allergens": [], "tags": ["carbohidrato", "integral"] },
+    { "name": "Avena", "kcal": 389, "protein": 16.9, "carbs": 66, "fat": 6.9, "allergens": ["gluten"], "tags": ["carbohidrato", "desayuno"] },
+    { "name": "Huevo entero", "kcal": 143, "protein": 13, "carbs": 1.1, "fat": 9.5, "allergens": ["huevo"], "tags": ["proteina", "desayuno"] },
+    { "name": "Clara de huevo", "kcal": 52, "protein": 11, "carbs": 0.7, "fat": 0.2, "allergens": ["huevo"], "tags": ["proteina"] },
+    { "name": "Salmon", "kcal": 208, "protein": 20, "carbs": 0, "fat": 13, "allergens": ["pescado"], "tags": ["proteina", "omega3"] },
+    { "name": "Atun al natural", "kcal": 116, "protein": 26, "carbs": 0, "fat": 1, "allergens": ["pescado"], "tags": ["proteina"] },
+    { "name": "Ternera magra", "kcal": 187, "protein": 26, "carbs": 0, "fat": 9, "allergens": [], "tags": ["proteina", "carne"] },
+    { "name": "Boniato", "kcal": 86, "protein": 1.6, "carbs": 20, "fat": 0.1, "allergens": [], "tags": ["carbohidrato"] },
+    { "name": "Patata cocida", "kcal": 87, "protein": 1.9, "carbs": 20, "fat": 0.1, "allergens": [], "tags": ["carbohidrato"] },
+    { "name": "Brocoli", "kcal": 34, "protein": 2.8, "carbs": 7, "fat": 0.4, "allergens": [], "tags": ["verdura", "fibra"] },
+    { "name": "Espinacas", "kcal": 23, "protein": 2.9, "carbs": 3.6, "fat": 0.4, "allergens": [], "tags": ["verdura", "fibra"] },
+    { "name": "Aguacate", "kcal": 160, "protein": 2, "carbs": 9, "fat": 15, "allergens": [], "tags": ["grasa", "fibra"] },
+    { "name": "Aceite de oliva virgen extra", "kcal": 884, "protein": 0, "carbs": 0, "fat": 100, "allergens": [], "tags": ["grasa"] },
+    { "name": "Almendras", "kcal": 579, "protein": 21, "carbs": 22, "fat": 50, "allergens": ["frutos secos"], "tags": ["grasa", "snack"] },
+    { "name": "Yogur griego natural", "kcal": 97, "protein": 9, "carbs": 3.6, "fat": 5, "allergens": ["lactosa"], "tags": ["proteina", "lacteo"] },
+    { "name": "Queso fresco batido 0%", "kcal": 56, "protein": 10, "carbs": 4, "fat": 0.2, "allergens": ["lactosa"], "tags": ["proteina", "lacteo"] },
+    { "name": "Platano", "kcal": 89, "protein": 1.1, "carbs": 23, "fat": 0.3, "allergens": [], "tags": ["fruta", "carbohidrato"] },
+    { "name": "Frutos rojos", "kcal": 43, "protein": 1, "carbs": 10, "fat": 0.3, "allergens": [], "tags": ["fruta", "antioxidante"] },
+    { "name": "Pan integral", "kcal": 247, "protein": 13, "carbs": 41, "fat": 3.4, "allergens": ["gluten"], "tags": ["carbohidrato", "integral"] },
+    { "name": "Lentejas cocidas", "kcal": 116, "protein": 9, "carbs": 20, "fat": 0.4, "allergens": [], "tags": ["proteina", "legumbre", "fibra"] },
+    { "name": "Garbanzos cocidos", "kcal": 164, "protein": 8.9, "carbs": 27, "fat": 2.6, "allergens": [], "tags": ["proteina", "legumbre", "fibra"] },
+    { "name": "Proteina whey", "kcal": 380, "protein": 78, "carbs": 8, "fat": 5, "allergens": ["lactosa"], "tags": ["proteina", "suplemento"] }
+  ],
+  "recipes": [
+    {
+      "name": "Pollo con arroz y brocoli",
+      "mealSlot": "lunch",
+      "instructions": "Cocina la pechuga a la plancha, hierve el arroz y el brocoli al vapor. Alina con aceite de oliva.",
+      "tags": ["alto en proteina", "clasico"],
+      "items": [
+        { "ingredient": "Pechuga de pollo", "grams": 180 },
+        { "ingredient": "Arroz blanco cocido", "grams": 200 },
+        { "ingredient": "Brocoli", "grams": 150 },
+        { "ingredient": "Aceite de oliva virgen extra", "grams": 8 }
+      ]
+    },
+    {
+      "name": "Avena con whey y frutos rojos",
+      "mealSlot": "breakfast",
+      "instructions": "Cocina la avena con agua o bebida, anade la proteina whey fuera del fuego y corona con frutos rojos.",
+      "tags": ["desayuno", "pre-entreno"],
+      "items": [
+        { "ingredient": "Avena", "grams": 60 },
+        { "ingredient": "Proteina whey", "grams": 30 },
+        { "ingredient": "Frutos rojos", "grams": 80 }
+      ]
+    },
+    {
+      "name": "Salmon con boniato y espinacas",
+      "mealSlot": "dinner",
+      "instructions": "Hornea el salmon, asa el boniato y saltea las espinacas con un toque de aceite.",
+      "tags": ["omega3", "cena"],
+      "items": [
+        { "ingredient": "Salmon", "grams": 170 },
+        { "ingredient": "Boniato", "grams": 200 },
+        { "ingredient": "Espinacas", "grams": 100 },
+        { "ingredient": "Aceite de oliva virgen extra", "grams": 8 }
+      ]
+    },
+    {
+      "name": "Tortilla de claras con pan integral y aguacate",
+      "mealSlot": "breakfast",
+      "instructions": "Cuaja las claras con el huevo, sirve con pan integral tostado y aguacate.",
+      "tags": ["desayuno", "alto en proteina"],
+      "items": [
+        { "ingredient": "Clara de huevo", "grams": 200 },
+        { "ingredient": "Huevo entero", "grams": 50 },
+        { "ingredient": "Pan integral", "grams": 60 },
+        { "ingredient": "Aguacate", "grams": 50 }
+      ]
+    },
+    {
+      "name": "Bowl de lentejas con verduras",
+      "mealSlot": "lunch",
+      "instructions": "Mezcla lentejas cocidas con espinacas y brocoli, alina con aceite de oliva.",
+      "tags": ["vegetariano", "fibra"],
+      "items": [
+        { "ingredient": "Lentejas cocidas", "grams": 250 },
+        { "ingredient": "Espinacas", "grams": 80 },
+        { "ingredient": "Brocoli", "grams": 120 },
+        { "ingredient": "Aceite de oliva virgen extra", "grams": 8 }
+      ]
+    },
+    {
+      "name": "Yogur griego con platano y almendras",
+      "mealSlot": "snack",
+      "instructions": "Mezcla el yogur con platano en rodajas y almendras troceadas.",
+      "tags": ["snack", "post-entreno"],
+      "items": [
+        { "ingredient": "Yogur griego natural", "grams": 200 },
+        { "ingredient": "Platano", "grams": 120 },
+        { "ingredient": "Almendras", "grams": 20 }
+      ]
+    },
+    {
+      "name": "Ternera magra con patata y ensalada",
+      "mealSlot": "dinner",
+      "instructions": "Plancha la ternera, acompana con patata cocida y una ensalada de espinacas.",
+      "tags": ["cena", "alto en proteina"],
+      "items": [
+        { "ingredient": "Ternera magra", "grams": 160 },
+        { "ingredient": "Patata cocida", "grams": 220 },
+        { "ingredient": "Espinacas", "grams": 80 },
+        { "ingredient": "Aceite de oliva virgen extra", "grams": 8 }
+      ]
+    },
+    {
+      "name": "Wrap de atun y garbanzos",
+      "mealSlot": "lunch",
+      "instructions": "Mezcla atun con garbanzos y aguacate, envuelve en pan integral.",
+      "tags": ["rapido", "alto en proteina"],
+      "items": [
+        { "ingredient": "Atun al natural", "grams": 120 },
+        { "ingredient": "Garbanzos cocidos", "grams": 120 },
+        { "ingredient": "Aguacate", "grams": 50 },
+        { "ingredient": "Pan integral", "grams": 70 }
+      ]
+    }
+  ]
+}

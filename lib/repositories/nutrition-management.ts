@@ -32,6 +32,7 @@ export type ManagedIngredient = {
   fatPer100g: number;
   allergens: string[];
   tags: string[];
+  isBase?: boolean;
 };
 
 export type ManagedRecipe = {
@@ -48,6 +49,7 @@ export type ManagedRecipe = {
     name: string;
     grams: number;
   }>;
+  isBase?: boolean;
 };
 
 export type DietCategoryInput = {
@@ -294,7 +296,7 @@ export async function listManagedIngredients(workspaceId?: string): Promise<Mana
   const supabase = createServiceSupabaseClient();
   const { data, error } = await supabase
     .from("ingredients")
-    .select("id,name,calories_per_100g,protein_per_100g,carbs_per_100g,fat_per_100g,allergens,tags,created_at")
+    .select("id,name,calories_per_100g,protein_per_100g,carbs_per_100g,fat_per_100g,allergens,tags,is_base_library,created_at")
     .or(`workspace_id.eq.${workspaceId},workspace_id.is.null`)
     .order("created_at", { ascending: false })
     .limit(120);
@@ -313,19 +315,25 @@ export async function listManagedIngredients(workspaceId?: string): Promise<Mana
     fatPer100g: ingredient.fat_per_100g,
     allergens: ingredient.allergens,
     tags: ingredient.tags,
+    isBase: ingredient.is_base_library ?? false,
   }));
 }
 
-export async function listManagedRecipes(workspaceId?: string): Promise<ManagedRecipe[]> {
+export async function listManagedRecipes(
+  workspaceId?: string,
+  options: { includeBase?: boolean } = {},
+): Promise<ManagedRecipe[]> {
   const env = getSupabaseServiceEnv();
   if (!env.ok || !isUuid(workspaceId)) return [];
 
   const supabase = createServiceSupabaseClient();
-  const { data, error } = await supabase
+  const baseQuery = supabase
     .from("recipes")
-    .select("id,name,meal_slot,instructions,tags,created_at")
-    .eq("workspace_id", workspaceId)
-    .order("created_at", { ascending: false });
+    .select("id,name,meal_slot,instructions,tags,is_base_library,created_at");
+  const { data, error } = await (options.includeBase
+    ? baseQuery.or(`workspace_id.eq.${workspaceId},workspace_id.is.null`)
+    : baseQuery.eq("workspace_id", workspaceId)
+  ).order("created_at", { ascending: false });
 
   if (error) {
     console.error("Unable to load recipes", error.message);
@@ -378,6 +386,7 @@ export async function listManagedRecipes(workspaceId?: string): Promise<ManagedR
       carbs: Math.round(macros.carbs),
       fat: Math.round(macros.fat),
       ingredients: ingredientsByRecipe.get(recipe.id) ?? [],
+      isBase: recipe.is_base_library ?? false,
     };
   });
 }

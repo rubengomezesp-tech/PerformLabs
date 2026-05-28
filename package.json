@@ -12,7 +12,8 @@
     "test:watch": "vitest",
     "typecheck": "next typegen && tsc --noEmit",
     "admin:ensure-owner": "node scripts/ensure-platform-owner.mjs",
-    "import:exercises": "node scripts/import-free-exercise-db.mjs"
+    "import:exercises": "node scripts/import-free-exercise-db.mjs",
+    "import:nutrition": "node scripts/seed-nutrition-library.mjs"
   },
   "dependencies": {
     "@react-three/drei": "^10.7.7",
