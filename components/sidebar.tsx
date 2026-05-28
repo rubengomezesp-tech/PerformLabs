@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { NavLink } from "@/components/nav-link";
 import { platformBrand } from "@/lib/brand";
+import type { ShellSession } from "@/components/page-shell";
 import type { WorkspaceBrand } from "@/lib/repositories/workspaces";
 
 type NavItem = {
@@ -13,11 +14,13 @@ export function Sidebar({
   nav,
   productLabel,
   brand,
+  session,
 }: {
   nav: NavItem[];
   active: string;
   productLabel: string;
   brand?: WorkspaceBrand;
+  session?: ShellSession;
 }) {
   const displayBrand = brand ?? {
     appName: platformBrand.monogram,
@@ -53,6 +56,14 @@ export function Sidebar({
           );
         })}
       </nav>
+      {session ? (
+        <div className="sessionBadge">
+          <span>{session.mode === "authenticated" ? "Estás dentro" : "Modo local"}</span>
+          <strong>{session.email}</strong>
+          <small>{session.roleLabel}</small>
+          {session.mode === "authenticated" ? <a href="/logout">Cerrar sesión</a> : null}
+        </div>
+      ) : null}
     </aside>
   );
 }

@@ -1,15 +1,18 @@
 import Link from "next/link";
 import { platformBrand } from "@/lib/brand";
+import type { ShellSession } from "@/components/page-shell";
 import type { WorkspaceBrand } from "@/lib/repositories/workspaces";
 
 export function MobileBar({
   href,
   productLabel = platformBrand.name,
   brand,
+  session,
 }: {
   href: string;
   productLabel?: string;
   brand?: WorkspaceBrand;
+  session?: ShellSession;
 }) {
   const displayBrand = brand ?? {
     appName: platformBrand.monogram,
@@ -33,6 +36,11 @@ export function MobileBar({
           <strong>{displayBrand.name}</strong>
         </span>
       </Link>
+      {session ? (
+        <span className={session.mode === "authenticated" ? "mobileSession isAuthenticated" : "mobileSession"}>
+          {session.mode === "authenticated" ? "Dentro" : "Local"}
+        </span>
+      ) : null}
     </div>
   );
 }

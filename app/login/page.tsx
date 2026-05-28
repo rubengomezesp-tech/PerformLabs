@@ -23,7 +23,7 @@ export default async function LoginPage({ searchParams }: LoginPageProps) {
         <div>
           <span className="eyebrow">Login</span>
           <h1>Entra a tu consola.</h1>
-          <p>Acceso para equipo, agentes y entrenadores con implantación activa.</p>
+          <p>Si ya aceptaste la invitación, entra aquí con tu email y contraseña. Al entrar verás “Estás dentro” en la barra lateral.</p>
         </div>
         {params?.error ? <p className="formMessage danger">{params.error}</p> : null}
         {params?.success ? <p className="formMessage success">{params.success}</p> : null}

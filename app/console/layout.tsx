@@ -1,5 +1,5 @@
 import { PageShell } from "@/components/page-shell";
-import { requireConsoleAccess } from "@/lib/auth/access-control";
+import { formatRole, requireConsoleAccess } from "@/lib/auth/access-control";
 import { consoleNav } from "@/lib/data";
 
 export default async function ConsoleLayout({
@@ -7,10 +7,19 @@ export default async function ConsoleLayout({
 }: {
   children: React.ReactNode;
 }) {
-  await requireConsoleAccess();
+  const session = await requireConsoleAccess();
 
   return (
-    <PageShell nav={consoleNav} active="/console" productLabel="Consola">
+    <PageShell
+      nav={consoleNav}
+      active="/console"
+      productLabel="Consola"
+      session={{
+        mode: session.mode,
+        email: session.user.email,
+        roleLabel: formatRole(session.topRole),
+      }}
+    >
       {children}
     </PageShell>
   );

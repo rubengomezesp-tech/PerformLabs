@@ -69,6 +69,9 @@ textarea {
 }
 
 .sidebar {
+  display: flex;
+  min-height: 100vh;
+  flex-direction: column;
   border-right: 1px solid var(--line);
   background: #050606;
   padding: 28px 20px;
@@ -150,6 +153,56 @@ textarea {
 .nav a:hover {
   background: var(--gold);
   color: #111;
+}
+
+.sessionBadge {
+  display: grid;
+  gap: 5px;
+  margin-top: auto;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.04);
+  padding: 12px;
+}
+
+.sessionBadge span {
+  color: var(--gold);
+  font-size: 12px;
+  font-weight: 800;
+  letter-spacing: 0;
+  text-transform: uppercase;
+}
+
+.sessionBadge strong {
+  overflow-wrap: anywhere;
+  font-size: 13px;
+}
+
+.sessionBadge small {
+  color: var(--muted);
+  font-size: 12px;
+}
+
+.sessionBadge a {
+  width: fit-content;
+  margin-top: 4px;
+  color: var(--gold);
+  font-size: 12px;
+  font-weight: 800;
+}
+
+.mobileSession {
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  color: var(--muted);
+  font-size: 12px;
+  font-weight: 800;
+  padding: 7px 10px;
+}
+
+.mobileSession.isAuthenticated {
+  border-color: var(--gold);
+  color: var(--gold);
 }
 
 .main {

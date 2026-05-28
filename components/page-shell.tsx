@@ -8,23 +8,31 @@ type NavItem = {
   icon: React.ComponentType<{ size?: number }>;
 };
 
+export type ShellSession = {
+  mode: "open" | "authenticated";
+  email: string;
+  roleLabel: string;
+};
+
 export function PageShell({
   nav,
   active,
   productLabel,
   brand,
+  session,
   children,
 }: {
   nav: NavItem[];
   active: string;
   productLabel: string;
   brand?: WorkspaceBrand;
+  session?: ShellSession;
   children: React.ReactNode;
 }) {
   return (
     <div className="shell" style={brand ? ({ "--gold": brand.accentColor } as React.CSSProperties) : undefined}>
-      <MobileBar brand={brand} href={nav[0]?.href ?? "/"} productLabel={productLabel} />
-      <Sidebar brand={brand} nav={nav} active={active} productLabel={productLabel} />
+      <MobileBar brand={brand} href={nav[0]?.href ?? "/"} productLabel={productLabel} session={session} />
+      <Sidebar brand={brand} nav={nav} active={active} productLabel={productLabel} session={session} />
       <main className="main">{children}</main>
     </div>
   );

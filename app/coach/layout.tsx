@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import { EntitlementGate } from "@/components/entitlement-gate";
 import { PageShell } from "@/components/page-shell";
-import { requireWorkspaceMutationAccess } from "@/lib/auth/access-control";
+import { formatRole, requireWorkspaceMutationAccess } from "@/lib/auth/access-control";
 import { coachNav } from "@/lib/coach-console";
 import { getSelectedMemberAppBrand } from "@/lib/member-app";
 import { getWorkspaceEntitlement } from "@/lib/repositories/entitlements";
@@ -21,11 +21,21 @@ export default async function CoachConsoleLayout({
   children: React.ReactNode;
 }) {
   const brand = await getSelectedMemberAppBrand();
-  await requireWorkspaceMutationAccess(brand.id);
+  const session = await requireWorkspaceMutationAccess(brand.id);
   const entitlement = await getWorkspaceEntitlement(brand.id);
 
   return (
-    <PageShell brand={brand} nav={coachNav} active="/coach" productLabel="Coach console">
+    <PageShell
+      brand={brand}
+      nav={coachNav}
+      active="/coach"
+      productLabel="Coach console"
+      session={{
+        mode: session.mode,
+        email: session.user.email,
+        roleLabel: formatRole(session.topRole),
+      }}
+    >
       <EntitlementGate brand={brand} entitlement={entitlement} module="coach_console">
         {children}
       </EntitlementGate>
