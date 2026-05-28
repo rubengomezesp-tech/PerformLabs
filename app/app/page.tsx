@@ -1,5 +1,6 @@
 import { ArrowRight, Bell, Camera, Check, ChevronRight, Droplets, Dumbbell, Footprints, Moon, Play, Soup, TrendingUp } from "lucide-react";
 import Link from "next/link";
+import { AnimatedNumber } from "@/components/ui";
 import { Topbar } from "@/components/topbar";
 import { getSelectedMemberAppBrand } from "@/lib/member-app";
 import { listWorkspaceProducts } from "@/lib/repositories/member-experience";
@@ -57,7 +58,7 @@ export default async function MemberDashboard() {
             <div className="memberHeroStats">
               <span>
                 Adherencia
-                <strong>{activeDay || hasNutrition ? "86%" : "Pendiente"}</strong>
+                <strong>{activeDay || hasNutrition ? <AnimatedNumber value={86} suffix="%" /> : "Pendiente"}</strong>
               </span>
               <span>
                 Semana
@@ -84,8 +85,8 @@ export default async function MemberDashboard() {
           </div>
           <div className="memberStatsGrid">
             <span>Foto <strong>Pendiente</strong></span>
-            <span>Peso <strong>54.0 kg</strong></span>
-            <span>Grasa <strong>16%</strong></span>
+            <span>Peso <strong><AnimatedNumber value={54} decimals={1} suffix=" kg" /></strong></span>
+            <span>Grasa <strong><AnimatedNumber value={16} suffix="%" /></strong></span>
           </div>
           <Link className="btn primary fullWidth" href="/app/progress">
             Registrar progreso <Camera size={18} />
