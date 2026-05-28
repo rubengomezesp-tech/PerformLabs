@@ -58,6 +58,105 @@ export type Database = {
           },
         ]
       }
+      app_message_reads: {
+        Row: {
+          app_message_id: string
+          id: string
+          member_profile_id: string
+          read_at: string
+          workspace_id: string
+        }
+        Insert: {
+          app_message_id: string
+          id?: string
+          member_profile_id: string
+          read_at?: string
+          workspace_id: string
+        }
+        Update: {
+          app_message_id?: string
+          id?: string
+          member_profile_id?: string
+          read_at?: string
+          workspace_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "app_message_reads_app_message_id_fkey"
+            columns: ["app_message_id"]
+            isOneToOne: false
+            referencedRelation: "app_messages"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "app_message_reads_member_profile_id_fkey"
+            columns: ["member_profile_id"]
+            isOneToOne: false
+            referencedRelation: "member_profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "app_message_reads_workspace_id_fkey"
+            columns: ["workspace_id"]
+            isOneToOne: false
+            referencedRelation: "workspaces"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      app_messages: {
+        Row: {
+          audience_filter: Json
+          body: Json
+          created_at: string
+          created_by: string | null
+          ends_at: string | null
+          id: string
+          starts_at: string | null
+          status: Database["public"]["Enums"]["plan_status"]
+          target_route: string | null
+          title: string
+          updated_at: string
+          workspace_id: string
+        }
+        Insert: {
+          audience_filter?: Json
+          body?: Json
+          created_at?: string
+          created_by?: string | null
+          ends_at?: string | null
+          id?: string
+          starts_at?: string | null
+          status?: Database["public"]["Enums"]["plan_status"]
+          target_route?: string | null
+          title: string
+          updated_at?: string
+          workspace_id: string
+        }
+        Update: {
+          audience_filter?: Json
+          body?: Json
+          created_at?: string
+          created_by?: string | null
+          ends_at?: string | null
+          id?: string
+          starts_at?: string | null
+          status?: Database["public"]["Enums"]["plan_status"]
+          target_route?: string | null
+          title?: string
+          updated_at?: string
+          workspace_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "app_messages_workspace_id_fkey"
+            columns: ["workspace_id"]
+            isOneToOne: false
+            referencedRelation: "workspaces"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       app_pages: {
         Row: {
           content_page_id: string | null
@@ -153,14 +252,182 @@ export type Database = {
           },
         ]
       }
-      assigned_meal_plans: {
+      assigned_meal_plan_days: {
         Row: {
+          assigned_meal_plan_id: string
           created_at: string
-          ends_on: string | null
-          formula_snapshot: Json
+          day_number: number
           id: string
           member_profile_id: string
+          notes: string | null
+          target_calories: number | null
+          target_carbs_g: number | null
+          target_fat_g: number | null
+          target_protein_g: number | null
+          title: string | null
+          updated_at: string
+          workspace_id: string
+        }
+        Insert: {
+          assigned_meal_plan_id: string
+          created_at?: string
+          day_number: number
+          id?: string
+          member_profile_id: string
+          notes?: string | null
+          target_calories?: number | null
+          target_carbs_g?: number | null
+          target_fat_g?: number | null
+          target_protein_g?: number | null
+          title?: string | null
+          updated_at?: string
+          workspace_id: string
+        }
+        Update: {
+          assigned_meal_plan_id?: string
+          created_at?: string
+          day_number?: number
+          id?: string
+          member_profile_id?: string
+          notes?: string | null
+          target_calories?: number | null
+          target_carbs_g?: number | null
+          target_fat_g?: number | null
+          target_protein_g?: number | null
+          title?: string | null
+          updated_at?: string
+          workspace_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "assigned_meal_plan_days_assigned_meal_plan_id_fkey"
+            columns: ["assigned_meal_plan_id"]
+            isOneToOne: false
+            referencedRelation: "assigned_meal_plans"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "assigned_meal_plan_days_member_profile_id_fkey"
+            columns: ["member_profile_id"]
+            isOneToOne: false
+            referencedRelation: "member_profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "assigned_meal_plan_days_workspace_id_fkey"
+            columns: ["workspace_id"]
+            isOneToOne: false
+            referencedRelation: "workspaces"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      assigned_meal_plan_items: {
+        Row: {
+          assigned_meal_plan_day_id: string
+          calories: number | null
+          carbs_g: number | null
+          created_at: string
+          fat_g: number | null
+          id: string
+          instructions: string | null
+          meal_slot: string
+          member_profile_id: string
+          protein_g: number | null
+          recipe_id: string | null
+          serving_multiplier: number
+          sort_order: number
+          swap_options: Json
+          title: string
+          updated_at: string
+          workspace_id: string
+        }
+        Insert: {
+          assigned_meal_plan_day_id: string
+          calories?: number | null
+          carbs_g?: number | null
+          created_at?: string
+          fat_g?: number | null
+          id?: string
+          instructions?: string | null
+          meal_slot: string
+          member_profile_id: string
+          protein_g?: number | null
+          recipe_id?: string | null
+          serving_multiplier?: number
+          sort_order?: number
+          swap_options?: Json
+          title: string
+          updated_at?: string
+          workspace_id: string
+        }
+        Update: {
+          assigned_meal_plan_day_id?: string
+          calories?: number | null
+          carbs_g?: number | null
+          created_at?: string
+          fat_g?: number | null
+          id?: string
+          instructions?: string | null
+          meal_slot?: string
+          member_profile_id?: string
+          protein_g?: number | null
+          recipe_id?: string | null
+          serving_multiplier?: number
+          sort_order?: number
+          swap_options?: Json
+          title?: string
+          updated_at?: string
+          workspace_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "assigned_meal_plan_items_assigned_meal_plan_day_id_fkey"
+            columns: ["assigned_meal_plan_day_id"]
+            isOneToOne: false
+            referencedRelation: "assigned_meal_plan_days"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "assigned_meal_plan_items_member_profile_id_fkey"
+            columns: ["member_profile_id"]
+            isOneToOne: false
+            referencedRelation: "member_profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "assigned_meal_plan_items_recipe_id_fkey"
+            columns: ["recipe_id"]
+            isOneToOne: false
+            referencedRelation: "recipes"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "assigned_meal_plan_items_workspace_id_fkey"
+            columns: ["workspace_id"]
+            isOneToOne: false
+            referencedRelation: "workspaces"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      assigned_meal_plans: {
+        Row: {
+          coach_notes: string | null
+          created_at: string
+          ends_on: string | null
+          fiber_target_g: number | null
+          formula_snapshot: Json
+          generation_status: Database["public"]["Enums"]["plan_generation_status"]
+          hide_macros: boolean
+          id: string
+          meals_per_day: number | null
+          member_notes: string | null
+          member_profile_id: string
           name: string
+          next_review_on: string | null
+          review_status: string
+          sodium_target_mg: number | null
           source_template_id: string | null
           starts_on: string | null
           status: Database["public"]["Enums"]["plan_status"]
@@ -168,16 +435,27 @@ export type Database = {
           target_carbs_g: number | null
           target_fat_g: number | null
           target_protein_g: number | null
+          updated_at: string
           version: number
+          water_target_ml: number | null
           workspace_id: string
         }
         Insert: {
+          coach_notes?: string | null
           created_at?: string
           ends_on?: string | null
+          fiber_target_g?: number | null
           formula_snapshot?: Json
+          generation_status?: Database["public"]["Enums"]["plan_generation_status"]
+          hide_macros?: boolean
           id?: string
+          meals_per_day?: number | null
+          member_notes?: string | null
           member_profile_id: string
           name: string
+          next_review_on?: string | null
+          review_status?: string
+          sodium_target_mg?: number | null
           source_template_id?: string | null
           starts_on?: string | null
           status?: Database["public"]["Enums"]["plan_status"]
@@ -185,16 +463,27 @@ export type Database = {
           target_carbs_g?: number | null
           target_fat_g?: number | null
           target_protein_g?: number | null
+          updated_at?: string
           version?: number
+          water_target_ml?: number | null
           workspace_id: string
         }
         Update: {
+          coach_notes?: string | null
           created_at?: string
           ends_on?: string | null
+          fiber_target_g?: number | null
           formula_snapshot?: Json
+          generation_status?: Database["public"]["Enums"]["plan_generation_status"]
+          hide_macros?: boolean
           id?: string
+          meals_per_day?: number | null
+          member_notes?: string | null
           member_profile_id?: string
           name?: string
+          next_review_on?: string | null
+          review_status?: string
+          sodium_target_mg?: number | null
           source_template_id?: string | null
           starts_on?: string | null
           status?: Database["public"]["Enums"]["plan_status"]
@@ -202,7 +491,9 @@ export type Database = {
           target_carbs_g?: number | null
           target_fat_g?: number | null
           target_protein_g?: number | null
+          updated_at?: string
           version?: number
+          water_target_ml?: number | null
           workspace_id?: string
         }
         Relationships: [
@@ -229,17 +520,215 @@ export type Database = {
           },
         ]
       }
+      assigned_workout_days: {
+        Row: {
+          assigned_workout_plan_id: string
+          completed_at: string | null
+          created_at: string
+          day_number: number
+          estimated_minutes: number | null
+          focus: string | null
+          id: string
+          instructions: string | null
+          member_profile_id: string
+          month_number: number
+          scheduled_on: string | null
+          source_template_day_id: string | null
+          status: string
+          title: string
+          updated_at: string
+          week_number: number
+          workspace_id: string
+        }
+        Insert: {
+          assigned_workout_plan_id: string
+          completed_at?: string | null
+          created_at?: string
+          day_number: number
+          estimated_minutes?: number | null
+          focus?: string | null
+          id?: string
+          instructions?: string | null
+          member_profile_id: string
+          month_number: number
+          scheduled_on?: string | null
+          source_template_day_id?: string | null
+          status?: string
+          title: string
+          updated_at?: string
+          week_number: number
+          workspace_id: string
+        }
+        Update: {
+          assigned_workout_plan_id?: string
+          completed_at?: string | null
+          created_at?: string
+          day_number?: number
+          estimated_minutes?: number | null
+          focus?: string | null
+          id?: string
+          instructions?: string | null
+          member_profile_id?: string
+          month_number?: number
+          scheduled_on?: string | null
+          source_template_day_id?: string | null
+          status?: string
+          title?: string
+          updated_at?: string
+          week_number?: number
+          workspace_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "assigned_workout_days_assigned_workout_plan_id_fkey"
+            columns: ["assigned_workout_plan_id"]
+            isOneToOne: false
+            referencedRelation: "assigned_workout_plans"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "assigned_workout_days_member_profile_id_fkey"
+            columns: ["member_profile_id"]
+            isOneToOne: false
+            referencedRelation: "member_profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "assigned_workout_days_source_template_day_id_fkey"
+            columns: ["source_template_day_id"]
+            isOneToOne: false
+            referencedRelation: "workout_template_days"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "assigned_workout_days_workspace_id_fkey"
+            columns: ["workspace_id"]
+            isOneToOne: false
+            referencedRelation: "workspaces"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      assigned_workout_exercises: {
+        Row: {
+          assigned_workout_day_id: string
+          block_type: string
+          created_at: string
+          exercise_id: string | null
+          id: string
+          load_guidance: string | null
+          member_profile_id: string
+          notes: string | null
+          reps: string | null
+          rest_seconds: number | null
+          sets: number | null
+          sort_order: number
+          source_template_exercise_id: string | null
+          swap_options: Json
+          target_rir: string | null
+          tempo: string | null
+          title: string
+          updated_at: string
+          video_url: string | null
+          workspace_id: string
+        }
+        Insert: {
+          assigned_workout_day_id: string
+          block_type?: string
+          created_at?: string
+          exercise_id?: string | null
+          id?: string
+          load_guidance?: string | null
+          member_profile_id: string
+          notes?: string | null
+          reps?: string | null
+          rest_seconds?: number | null
+          sets?: number | null
+          sort_order?: number
+          source_template_exercise_id?: string | null
+          swap_options?: Json
+          target_rir?: string | null
+          tempo?: string | null
+          title: string
+          updated_at?: string
+          video_url?: string | null
+          workspace_id: string
+        }
+        Update: {
+          assigned_workout_day_id?: string
+          block_type?: string
+          created_at?: string
+          exercise_id?: string | null
+          id?: string
+          load_guidance?: string | null
+          member_profile_id?: string
+          notes?: string | null
+          reps?: string | null
+          rest_seconds?: number | null
+          sets?: number | null
+          sort_order?: number
+          source_template_exercise_id?: string | null
+          swap_options?: Json
+          target_rir?: string | null
+          tempo?: string | null
+          title?: string
+          updated_at?: string
+          video_url?: string | null
+          workspace_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "assigned_workout_exercises_assigned_workout_day_id_fkey"
+            columns: ["assigned_workout_day_id"]
+            isOneToOne: false
+            referencedRelation: "assigned_workout_days"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "assigned_workout_exercises_exercise_id_fkey"
+            columns: ["exercise_id"]
+            isOneToOne: false
+            referencedRelation: "exercises"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "assigned_workout_exercises_member_profile_id_fkey"
+            columns: ["member_profile_id"]
+            isOneToOne: false
+            referencedRelation: "member_profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "assigned_workout_exercises_source_template_exercise_id_fkey"
+            columns: ["source_template_exercise_id"]
+            isOneToOne: false
+            referencedRelation: "workout_template_exercises"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "assigned_workout_exercises_workspace_id_fkey"
+            columns: ["workspace_id"]
+            isOneToOne: false
+            referencedRelation: "workspaces"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       assigned_workout_plans: {
         Row: {
+          algorithm_snapshot: Json
           assigned_by: string | null
           assignment_goal: string | null
           assignment_notes: string | null
+          coach_notes: string | null
           created_at: string
           current_month: number
           current_week: number
           days_per_week: number | null
           ends_on: string | null
+          generation_status: Database["public"]["Enums"]["plan_generation_status"]
           id: string
+          member_notes: string | null
           member_profile_id: string
           name: string
           next_review_on: string | null
@@ -252,15 +741,19 @@ export type Database = {
           workspace_id: string
         }
         Insert: {
+          algorithm_snapshot?: Json
           assigned_by?: string | null
           assignment_goal?: string | null
           assignment_notes?: string | null
+          coach_notes?: string | null
           created_at?: string
           current_month?: number
           current_week?: number
           days_per_week?: number | null
           ends_on?: string | null
+          generation_status?: Database["public"]["Enums"]["plan_generation_status"]
           id?: string
+          member_notes?: string | null
           member_profile_id: string
           name: string
           next_review_on?: string | null
@@ -273,15 +766,19 @@ export type Database = {
           workspace_id: string
         }
         Update: {
+          algorithm_snapshot?: Json
           assigned_by?: string | null
           assignment_goal?: string | null
           assignment_notes?: string | null
+          coach_notes?: string | null
           created_at?: string
           current_month?: number
           current_week?: number
           days_per_week?: number | null
           ends_on?: string | null
+          generation_status?: Database["public"]["Enums"]["plan_generation_status"]
           id?: string
+          member_notes?: string | null
           member_profile_id?: string
           name?: string
           next_review_on?: string | null
@@ -351,6 +848,153 @@ export type Database = {
         Relationships: [
           {
             foreignKeyName: "audit_log_workspace_id_fkey"
+            columns: ["workspace_id"]
+            isOneToOne: false
+            referencedRelation: "workspaces"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      checkin_answers: {
+        Row: {
+          answer: Json
+          checkin_id: string
+          created_at: string
+          id: string
+          member_profile_id: string
+          question_key: string
+          workspace_id: string
+        }
+        Insert: {
+          answer?: Json
+          checkin_id: string
+          created_at?: string
+          id?: string
+          member_profile_id: string
+          question_key: string
+          workspace_id: string
+        }
+        Update: {
+          answer?: Json
+          checkin_id?: string
+          created_at?: string
+          id?: string
+          member_profile_id?: string
+          question_key?: string
+          workspace_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "checkin_answers_checkin_id_fkey"
+            columns: ["checkin_id"]
+            isOneToOne: false
+            referencedRelation: "customer_checkins"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "checkin_answers_member_profile_id_fkey"
+            columns: ["member_profile_id"]
+            isOneToOne: false
+            referencedRelation: "member_profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "checkin_answers_workspace_id_fkey"
+            columns: ["workspace_id"]
+            isOneToOne: false
+            referencedRelation: "workspaces"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      checkin_templates: {
+        Row: {
+          cadence: string
+          created_at: string
+          created_by: string | null
+          id: string
+          name: string
+          questions: Json
+          status: Database["public"]["Enums"]["plan_status"]
+          updated_at: string
+          workspace_id: string
+        }
+        Insert: {
+          cadence?: string
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          name: string
+          questions?: Json
+          status?: Database["public"]["Enums"]["plan_status"]
+          updated_at?: string
+          workspace_id: string
+        }
+        Update: {
+          cadence?: string
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          name?: string
+          questions?: Json
+          status?: Database["public"]["Enums"]["plan_status"]
+          updated_at?: string
+          workspace_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "checkin_templates_workspace_id_fkey"
+            columns: ["workspace_id"]
+            isOneToOne: false
+            referencedRelation: "workspaces"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      coach_member_notes: {
+        Row: {
+          author_user_id: string | null
+          body: string
+          created_at: string
+          id: string
+          is_pinned: boolean
+          member_profile_id: string
+          note_type: string
+          updated_at: string
+          workspace_id: string
+        }
+        Insert: {
+          author_user_id?: string | null
+          body: string
+          created_at?: string
+          id?: string
+          is_pinned?: boolean
+          member_profile_id: string
+          note_type?: string
+          updated_at?: string
+          workspace_id: string
+        }
+        Update: {
+          author_user_id?: string | null
+          body?: string
+          created_at?: string
+          id?: string
+          is_pinned?: boolean
+          member_profile_id?: string
+          note_type?: string
+          updated_at?: string
+          workspace_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "coach_member_notes_member_profile_id_fkey"
+            columns: ["member_profile_id"]
+            isOneToOne: false
+            referencedRelation: "member_profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "coach_member_notes_workspace_id_fkey"
             columns: ["workspace_id"]
             isOneToOne: false
             referencedRelation: "workspaces"
@@ -1056,6 +1700,61 @@ export type Database = {
         }
         Relationships: []
       }
+      ingredient_substitutions: {
+        Row: {
+          conversion_ratio: number
+          created_at: string
+          id: string
+          ingredient_id: string
+          reason: string | null
+          substitute_ingredient_id: string
+          tags: string[]
+          workspace_id: string | null
+        }
+        Insert: {
+          conversion_ratio?: number
+          created_at?: string
+          id?: string
+          ingredient_id: string
+          reason?: string | null
+          substitute_ingredient_id: string
+          tags?: string[]
+          workspace_id?: string | null
+        }
+        Update: {
+          conversion_ratio?: number
+          created_at?: string
+          id?: string
+          ingredient_id?: string
+          reason?: string | null
+          substitute_ingredient_id?: string
+          tags?: string[]
+          workspace_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "ingredient_substitutions_ingredient_id_fkey"
+            columns: ["ingredient_id"]
+            isOneToOne: false
+            referencedRelation: "ingredients"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "ingredient_substitutions_substitute_ingredient_id_fkey"
+            columns: ["substitute_ingredient_id"]
+            isOneToOne: false
+            referencedRelation: "ingredients"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "ingredient_substitutions_workspace_id_fkey"
+            columns: ["workspace_id"]
+            isOneToOne: false
+            referencedRelation: "workspaces"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       ingredients: {
         Row: {
           allergens: string[]
@@ -1191,6 +1890,117 @@ export type Database = {
           },
         ]
       }
+      member_activity_events: {
+        Row: {
+          created_at: string
+          event_type: string
+          id: string
+          member_profile_id: string
+          metadata: Json
+          occurred_at: string
+          source: string
+          workspace_id: string
+        }
+        Insert: {
+          created_at?: string
+          event_type: string
+          id?: string
+          member_profile_id: string
+          metadata?: Json
+          occurred_at?: string
+          source?: string
+          workspace_id: string
+        }
+        Update: {
+          created_at?: string
+          event_type?: string
+          id?: string
+          member_profile_id?: string
+          metadata?: Json
+          occurred_at?: string
+          source?: string
+          workspace_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "member_activity_events_member_profile_id_fkey"
+            columns: ["member_profile_id"]
+            isOneToOne: false
+            referencedRelation: "member_profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "member_activity_events_workspace_id_fkey"
+            columns: ["workspace_id"]
+            isOneToOne: false
+            referencedRelation: "workspaces"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      member_devices: {
+        Row: {
+          created_at: string
+          endpoint: string | null
+          id: string
+          is_active: boolean
+          last_seen_at: string | null
+          member_profile_id: string
+          platform: string
+          push_token: string | null
+          subscription: Json
+          updated_at: string
+          user_agent: string | null
+          user_id: string | null
+          workspace_id: string
+        }
+        Insert: {
+          created_at?: string
+          endpoint?: string | null
+          id?: string
+          is_active?: boolean
+          last_seen_at?: string | null
+          member_profile_id: string
+          platform: string
+          push_token?: string | null
+          subscription?: Json
+          updated_at?: string
+          user_agent?: string | null
+          user_id?: string | null
+          workspace_id: string
+        }
+        Update: {
+          created_at?: string
+          endpoint?: string | null
+          id?: string
+          is_active?: boolean
+          last_seen_at?: string | null
+          member_profile_id?: string
+          platform?: string
+          push_token?: string | null
+          subscription?: Json
+          updated_at?: string
+          user_agent?: string | null
+          user_id?: string | null
+          workspace_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "member_devices_member_profile_id_fkey"
+            columns: ["member_profile_id"]
+            isOneToOne: false
+            referencedRelation: "member_profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "member_devices_workspace_id_fkey"
+            columns: ["workspace_id"]
+            isOneToOne: false
+            referencedRelation: "workspaces"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       member_diet_preferences: {
         Row: {
           allergies: string[]
@@ -1272,6 +2082,66 @@ export type Database = {
             columns: ["member_profile_id"]
             isOneToOne: true
             referencedRelation: "member_profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      member_invitations: {
+        Row: {
+          accepted_at: string | null
+          accepted_by: string | null
+          created_at: string
+          email: string
+          expires_at: string
+          id: string
+          invited_by: string | null
+          member_profile_id: string | null
+          status: Database["public"]["Enums"]["invitation_status"]
+          token_hash: string
+          updated_at: string
+          workspace_id: string
+        }
+        Insert: {
+          accepted_at?: string | null
+          accepted_by?: string | null
+          created_at?: string
+          email: string
+          expires_at?: string
+          id?: string
+          invited_by?: string | null
+          member_profile_id?: string | null
+          status?: Database["public"]["Enums"]["invitation_status"]
+          token_hash: string
+          updated_at?: string
+          workspace_id: string
+        }
+        Update: {
+          accepted_at?: string | null
+          accepted_by?: string | null
+          created_at?: string
+          email?: string
+          expires_at?: string
+          id?: string
+          invited_by?: string | null
+          member_profile_id?: string | null
+          status?: Database["public"]["Enums"]["invitation_status"]
+          token_hash?: string
+          updated_at?: string
+          workspace_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "member_invitations_member_profile_id_fkey"
+            columns: ["member_profile_id"]
+            isOneToOne: false
+            referencedRelation: "member_profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "member_invitations_workspace_id_fkey"
+            columns: ["workspace_id"]
+            isOneToOne: false
+            referencedRelation: "workspaces"
             referencedColumns: ["id"]
           },
         ]
@@ -1624,6 +2494,95 @@ export type Database = {
           },
         ]
       }
+      notification_deliveries: {
+        Row: {
+          channel: string
+          delivered_at: string | null
+          error_message: string | null
+          failed_at: string | null
+          id: string
+          member_profile_id: string | null
+          payload: Json
+          provider: string | null
+          provider_message_id: string | null
+          queued_at: string
+          recipient: string | null
+          scheduled_notification_id: string | null
+          sent_at: string | null
+          status: Database["public"]["Enums"]["delivery_status"]
+          subject: string | null
+          template_id: string | null
+          workspace_id: string
+        }
+        Insert: {
+          channel: string
+          delivered_at?: string | null
+          error_message?: string | null
+          failed_at?: string | null
+          id?: string
+          member_profile_id?: string | null
+          payload?: Json
+          provider?: string | null
+          provider_message_id?: string | null
+          queued_at?: string
+          recipient?: string | null
+          scheduled_notification_id?: string | null
+          sent_at?: string | null
+          status?: Database["public"]["Enums"]["delivery_status"]
+          subject?: string | null
+          template_id?: string | null
+          workspace_id: string
+        }
+        Update: {
+          channel?: string
+          delivered_at?: string | null
+          error_message?: string | null
+          failed_at?: string | null
+          id?: string
+          member_profile_id?: string | null
+          payload?: Json
+          provider?: string | null
+          provider_message_id?: string | null
+          queued_at?: string
+          recipient?: string | null
+          scheduled_notification_id?: string | null
+          sent_at?: string | null
+          status?: Database["public"]["Enums"]["delivery_status"]
+          subject?: string | null
+          template_id?: string | null
+          workspace_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "notification_deliveries_member_profile_id_fkey"
+            columns: ["member_profile_id"]
+            isOneToOne: false
+            referencedRelation: "member_profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "notification_deliveries_scheduled_notification_id_fkey"
+            columns: ["scheduled_notification_id"]
+            isOneToOne: false
+            referencedRelation: "scheduled_notifications"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "notification_deliveries_template_id_fkey"
+            columns: ["template_id"]
+            isOneToOne: false
+            referencedRelation: "notification_templates"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "notification_deliveries_workspace_id_fkey"
+            columns: ["workspace_id"]
+            isOneToOne: false
+            referencedRelation: "workspaces"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       notification_templates: {
         Row: {
           body: Json
@@ -1661,6 +2620,92 @@ export type Database = {
         Relationships: [
           {
             foreignKeyName: "notification_templates_workspace_id_fkey"
+            columns: ["workspace_id"]
+            isOneToOne: false
+            referencedRelation: "workspaces"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      nutrition_calculation_runs: {
+        Row: {
+          assigned_meal_plan_id: string | null
+          confidence_score: number | null
+          created_at: string
+          created_by: string | null
+          formula_id: string | null
+          goal: string
+          id: string
+          input_snapshot: Json
+          member_profile_id: string
+          output_snapshot: Json
+          status: Database["public"]["Enums"]["plan_generation_status"]
+          target_calories: number | null
+          target_carbs_g: number | null
+          target_fat_g: number | null
+          target_protein_g: number | null
+          workspace_id: string
+        }
+        Insert: {
+          assigned_meal_plan_id?: string | null
+          confidence_score?: number | null
+          created_at?: string
+          created_by?: string | null
+          formula_id?: string | null
+          goal: string
+          id?: string
+          input_snapshot?: Json
+          member_profile_id: string
+          output_snapshot?: Json
+          status?: Database["public"]["Enums"]["plan_generation_status"]
+          target_calories?: number | null
+          target_carbs_g?: number | null
+          target_fat_g?: number | null
+          target_protein_g?: number | null
+          workspace_id: string
+        }
+        Update: {
+          assigned_meal_plan_id?: string | null
+          confidence_score?: number | null
+          created_at?: string
+          created_by?: string | null
+          formula_id?: string | null
+          goal?: string
+          id?: string
+          input_snapshot?: Json
+          member_profile_id?: string
+          output_snapshot?: Json
+          status?: Database["public"]["Enums"]["plan_generation_status"]
+          target_calories?: number | null
+          target_carbs_g?: number | null
+          target_fat_g?: number | null
+          target_protein_g?: number | null
+          workspace_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "nutrition_calculation_runs_assigned_meal_plan_id_fkey"
+            columns: ["assigned_meal_plan_id"]
+            isOneToOne: false
+            referencedRelation: "assigned_meal_plans"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "nutrition_calculation_runs_formula_id_fkey"
+            columns: ["formula_id"]
+            isOneToOne: false
+            referencedRelation: "nutrition_formulas"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "nutrition_calculation_runs_member_profile_id_fkey"
+            columns: ["member_profile_id"]
+            isOneToOne: false
+            referencedRelation: "member_profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "nutrition_calculation_runs_workspace_id_fkey"
             columns: ["workspace_id"]
             isOneToOne: false
             referencedRelation: "workspaces"
@@ -2031,6 +3076,61 @@ export type Database = {
           },
         ]
       }
+      recipe_alternatives: {
+        Row: {
+          alternative_recipe_id: string
+          created_at: string
+          id: string
+          priority: number
+          reason: string | null
+          recipe_id: string
+          tags: string[]
+          workspace_id: string | null
+        }
+        Insert: {
+          alternative_recipe_id: string
+          created_at?: string
+          id?: string
+          priority?: number
+          reason?: string | null
+          recipe_id: string
+          tags?: string[]
+          workspace_id?: string | null
+        }
+        Update: {
+          alternative_recipe_id?: string
+          created_at?: string
+          id?: string
+          priority?: number
+          reason?: string | null
+          recipe_id?: string
+          tags?: string[]
+          workspace_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "recipe_alternatives_alternative_recipe_id_fkey"
+            columns: ["alternative_recipe_id"]
+            isOneToOne: false
+            referencedRelation: "recipes"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "recipe_alternatives_recipe_id_fkey"
+            columns: ["recipe_id"]
+            isOneToOne: false
+            referencedRelation: "recipes"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "recipe_alternatives_workspace_id_fkey"
+            columns: ["workspace_id"]
+            isOneToOne: false
+            referencedRelation: "workspaces"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       recipe_ingredients: {
         Row: {
           grams: number
@@ -2243,6 +3343,70 @@ export type Database = {
           },
         ]
       }
+      shopping_lists: {
+        Row: {
+          assigned_meal_plan_id: string | null
+          created_at: string
+          ends_on: string | null
+          id: string
+          items: Json
+          member_profile_id: string
+          starts_on: string | null
+          status: string
+          title: string
+          updated_at: string
+          workspace_id: string
+        }
+        Insert: {
+          assigned_meal_plan_id?: string | null
+          created_at?: string
+          ends_on?: string | null
+          id?: string
+          items?: Json
+          member_profile_id: string
+          starts_on?: string | null
+          status?: string
+          title: string
+          updated_at?: string
+          workspace_id: string
+        }
+        Update: {
+          assigned_meal_plan_id?: string | null
+          created_at?: string
+          ends_on?: string | null
+          id?: string
+          items?: Json
+          member_profile_id?: string
+          starts_on?: string | null
+          status?: string
+          title?: string
+          updated_at?: string
+          workspace_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "shopping_lists_assigned_meal_plan_id_fkey"
+            columns: ["assigned_meal_plan_id"]
+            isOneToOne: false
+            referencedRelation: "assigned_meal_plans"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "shopping_lists_member_profile_id_fkey"
+            columns: ["member_profile_id"]
+            isOneToOne: false
+            referencedRelation: "member_profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "shopping_lists_workspace_id_fkey"
+            columns: ["workspace_id"]
+            isOneToOne: false
+            referencedRelation: "workspaces"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       support_conversations: {
         Row: {
           category: string
@@ -2348,6 +3512,64 @@ export type Database = {
           },
           {
             foreignKeyName: "support_messages_workspace_id_fkey"
+            columns: ["workspace_id"]
+            isOneToOne: false
+            referencedRelation: "workspaces"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      workout_exercise_alternatives: {
+        Row: {
+          alternative_exercise_id: string
+          created_at: string
+          equipment_tags: string[]
+          exercise_id: string
+          id: string
+          injury_tags: string[]
+          priority: number
+          reason: string | null
+          workspace_id: string | null
+        }
+        Insert: {
+          alternative_exercise_id: string
+          created_at?: string
+          equipment_tags?: string[]
+          exercise_id: string
+          id?: string
+          injury_tags?: string[]
+          priority?: number
+          reason?: string | null
+          workspace_id?: string | null
+        }
+        Update: {
+          alternative_exercise_id?: string
+          created_at?: string
+          equipment_tags?: string[]
+          exercise_id?: string
+          id?: string
+          injury_tags?: string[]
+          priority?: number
+          reason?: string | null
+          workspace_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "workout_exercise_alternatives_alternative_exercise_id_fkey"
+            columns: ["alternative_exercise_id"]
+            isOneToOne: false
+            referencedRelation: "exercises"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "workout_exercise_alternatives_exercise_id_fkey"
+            columns: ["exercise_id"]
+            isOneToOne: false
+            referencedRelation: "exercises"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "workout_exercise_alternatives_workspace_id_fkey"
             columns: ["workspace_id"]
             isOneToOne: false
             referencedRelation: "workspaces"
@@ -2496,27 +3718,93 @@ export type Database = {
           },
         ]
       }
+      workout_template_blocks: {
+        Row: {
+          block_type: string
+          created_at: string
+          id: string
+          notes: string | null
+          sort_order: number
+          template_day_id: string
+          title: string
+          updated_at: string
+          workspace_id: string
+        }
+        Insert: {
+          block_type?: string
+          created_at?: string
+          id?: string
+          notes?: string | null
+          sort_order?: number
+          template_day_id: string
+          title: string
+          updated_at?: string
+          workspace_id: string
+        }
+        Update: {
+          block_type?: string
+          created_at?: string
+          id?: string
+          notes?: string | null
+          sort_order?: number
+          template_day_id?: string
+          title?: string
+          updated_at?: string
+          workspace_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "workout_template_blocks_template_day_id_fkey"
+            columns: ["template_day_id"]
+            isOneToOne: false
+            referencedRelation: "workout_template_days"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "workout_template_blocks_workspace_id_fkey"
+            columns: ["workspace_id"]
+            isOneToOne: false
+            referencedRelation: "workspaces"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       workout_template_days: {
         Row: {
           day_number: number
+          estimated_minutes: number | null
+          focus: string | null
           id: string
+          intensity: string | null
+          month_number: number | null
           notes: string | null
+          phase_title: string | null
           template_id: string
           title: string
           week_number: number
         }
         Insert: {
           day_number: number
+          estimated_minutes?: number | null
+          focus?: string | null
           id?: string
+          intensity?: string | null
+          month_number?: number | null
           notes?: string | null
+          phase_title?: string | null
           template_id: string
           title: string
           week_number?: number
         }
         Update: {
           day_number?: number
+          estimated_minutes?: number | null
+          focus?: string | null
           id?: string
+          intensity?: string | null
+          month_number?: number | null
           notes?: string | null
+          phase_title?: string | null
           template_id?: string
           title?: string
           week_number?: number
@@ -2533,40 +3821,52 @@ export type Database = {
       }
       workout_template_exercises: {
         Row: {
+          block_type: string
           day_id: string
           exercise_id: string
           id: string
+          load_guidance: string | null
           notes: string | null
           reps: string | null
           rest_seconds: number | null
           sets: number | null
           sort_order: number
           swap_rules: Json
+          target_rir: string | null
           tempo: string | null
+          video_required: boolean
         }
         Insert: {
+          block_type?: string
           day_id: string
           exercise_id: string
           id?: string
+          load_guidance?: string | null
           notes?: string | null
           reps?: string | null
           rest_seconds?: number | null
           sets?: number | null
           sort_order: number
           swap_rules?: Json
+          target_rir?: string | null
           tempo?: string | null
+          video_required?: boolean
         }
         Update: {
+          block_type?: string
           day_id?: string
           exercise_id?: string
           id?: string
+          load_guidance?: string | null
           notes?: string | null
           reps?: string | null
           rest_seconds?: number | null
           sets?: number | null
           sort_order?: number
           swap_rules?: Json
+          target_rir?: string | null
           tempo?: string | null
+          video_required?: boolean
         }
         Relationships: [
           {
@@ -2590,10 +3890,13 @@ export type Database = {
           created_at: string
           created_by: string | null
           days_per_week: number
+          duration_weeks: number
           goal: string | null
           id: string
           level: string | null
           name: string
+          phase_structure: Json
+          rotation_rules: Json
           status: Database["public"]["Enums"]["plan_status"]
           updated_at: string
           workspace_id: string
@@ -2602,10 +3905,13 @@ export type Database = {
           created_at?: string
           created_by?: string | null
           days_per_week: number
+          duration_weeks?: number
           goal?: string | null
           id?: string
           level?: string | null
           name: string
+          phase_structure?: Json
+          rotation_rules?: Json
           status?: Database["public"]["Enums"]["plan_status"]
           updated_at?: string
           workspace_id: string
@@ -2614,10 +3920,13 @@ export type Database = {
           created_at?: string
           created_by?: string | null
           days_per_week?: number
+          duration_weeks?: number
           goal?: string | null
           id?: string
           level?: string | null
           name?: string
+          phase_structure?: Json
+          rotation_rules?: Json
           status?: Database["public"]["Enums"]["plan_status"]
           updated_at?: string
           workspace_id?: string
@@ -2625,6 +3934,62 @@ export type Database = {
         Relationships: [
           {
             foreignKeyName: "workout_templates_workspace_id_fkey"
+            columns: ["workspace_id"]
+            isOneToOne: false
+            referencedRelation: "workspaces"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      workspace_domains: {
+        Row: {
+          created_at: string
+          dns_target: string | null
+          domain: string
+          domain_type: Database["public"]["Enums"]["workspace_domain_type"]
+          failure_reason: string | null
+          id: string
+          is_primary: boolean
+          last_checked_at: string | null
+          status: Database["public"]["Enums"]["verification_status"]
+          updated_at: string
+          verification_token: string
+          verified_at: string | null
+          workspace_id: string
+        }
+        Insert: {
+          created_at?: string
+          dns_target?: string | null
+          domain: string
+          domain_type: Database["public"]["Enums"]["workspace_domain_type"]
+          failure_reason?: string | null
+          id?: string
+          is_primary?: boolean
+          last_checked_at?: string | null
+          status?: Database["public"]["Enums"]["verification_status"]
+          updated_at?: string
+          verification_token?: string
+          verified_at?: string | null
+          workspace_id: string
+        }
+        Update: {
+          created_at?: string
+          dns_target?: string | null
+          domain?: string
+          domain_type?: Database["public"]["Enums"]["workspace_domain_type"]
+          failure_reason?: string | null
+          id?: string
+          is_primary?: boolean
+          last_checked_at?: string | null
+          status?: Database["public"]["Enums"]["verification_status"]
+          updated_at?: string
+          verification_token?: string
+          verified_at?: string | null
+          workspace_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "workspace_domains_workspace_id_fkey"
             columns: ["workspace_id"]
             isOneToOne: false
             referencedRelation: "workspaces"
@@ -2708,6 +4073,59 @@ export type Database = {
           },
         ]
       }
+      workspace_team_invitations: {
+        Row: {
+          accepted_at: string | null
+          accepted_by: string | null
+          created_at: string
+          email: string
+          expires_at: string
+          id: string
+          invited_by: string | null
+          role: Database["public"]["Enums"]["workspace_role"]
+          status: Database["public"]["Enums"]["invitation_status"]
+          token_hash: string
+          updated_at: string
+          workspace_id: string
+        }
+        Insert: {
+          accepted_at?: string | null
+          accepted_by?: string | null
+          created_at?: string
+          email: string
+          expires_at?: string
+          id?: string
+          invited_by?: string | null
+          role: Database["public"]["Enums"]["workspace_role"]
+          status?: Database["public"]["Enums"]["invitation_status"]
+          token_hash: string
+          updated_at?: string
+          workspace_id: string
+        }
+        Update: {
+          accepted_at?: string | null
+          accepted_by?: string | null
+          created_at?: string
+          email?: string
+          expires_at?: string
+          id?: string
+          invited_by?: string | null
+          role?: Database["public"]["Enums"]["workspace_role"]
+          status?: Database["public"]["Enums"]["invitation_status"]
+          token_hash?: string
+          updated_at?: string
+          workspace_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "workspace_team_invitations_workspace_id_fkey"
+            columns: ["workspace_id"]
+            isOneToOne: false
+            referencedRelation: "workspaces"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       workspaces: {
         Row: {
           accent_color: string
@@ -2778,12 +4196,20 @@ export type Database = {
       }
     }
     Enums: {
+      delivery_status: "queued" | "sent" | "delivered" | "failed" | "cancelled"
       entitlement_status:
         | "active"
         | "past_due"
         | "suspended"
         | "revoked"
         | "terminated"
+      invitation_status: "pending" | "accepted" | "expired" | "revoked"
+      plan_generation_status:
+        | "draft"
+        | "generated"
+        | "reviewed"
+        | "published"
+        | "archived"
       plan_status: "draft" | "active" | "archived"
       subscription_status:
         | "trialing"
@@ -2792,6 +4218,12 @@ export type Database = {
         | "paused"
         | "cancelled"
         | "expired"
+      verification_status: "pending" | "verified" | "failed" | "disabled"
+      workspace_domain_type:
+        | "public_site"
+        | "member_app"
+        | "fallback"
+        | "custom_app"
       workspace_role:
         | "platform_owner"
         | "agency_admin"
@@ -2925,12 +4357,21 @@ export type CompositeTypes<
 export const Constants = {
   public: {
     Enums: {
+      delivery_status: ["queued", "sent", "delivered", "failed", "cancelled"],
       entitlement_status: [
         "active",
         "past_due",
         "suspended",
         "revoked",
         "terminated",
+      ],
+      invitation_status: ["pending", "accepted", "expired", "revoked"],
+      plan_generation_status: [
+        "draft",
+        "generated",
+        "reviewed",
+        "published",
+        "archived",
       ],
       plan_status: ["draft", "active", "archived"],
       subscription_status: [
@@ -2940,6 +4381,13 @@ export const Constants = {
         "paused",
         "cancelled",
         "expired",
+      ],
+      verification_status: ["pending", "verified", "failed", "disabled"],
+      workspace_domain_type: [
+        "public_site",
+        "member_app",
+        "fallback",
+        "custom_app",
       ],
       workspace_role: [
         "platform_owner",
