@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { Manrope, Space_Grotesk } from "next/font/google";
 import { AuthHashBridge } from "@/components/auth-hash-bridge";
+import { ToastProvider } from "@/components/ui";
 import { platformBrand } from "@/lib/brand";
 import "./globals.css";
 
@@ -30,7 +31,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
     <html className={`${manrope.variable} ${spaceGrotesk.variable}`} lang="es">
       <body>
         <AuthHashBridge />
-        {children}
+        <ToastProvider>{children}</ToastProvider>
       </body>
     </html>
   );

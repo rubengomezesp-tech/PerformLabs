@@ -1,8 +1,15 @@
 import { BarChart3, TrendingUp } from "lucide-react";
 import { Topbar } from "@/components/topbar";
-import { coachStats } from "@/lib/coach-console";
+import { SignalCard } from "@/components/ui";
+import { getSelectedMemberAppBrand } from "@/lib/member-app";
+import { getCoachDashboard } from "@/lib/repositories/coach-dashboard";
 
-export default function CoachAnalyticsPage() {
+export const dynamic = "force-dynamic";
+
+export default async function CoachAnalyticsPage() {
+  const brand = await getSelectedMemberAppBrand();
+  const dashboard = await getCoachDashboard(brand.id);
+
   return (
     <>
       <Topbar
@@ -11,18 +18,18 @@ export default function CoachAnalyticsPage() {
         text="Actividad, adherencia, retencion, check-ins y uso de programas desde la perspectiva del entrenador."
       />
       <section className="grid">
-        {coachStats.map((stat) => (
-          <article className="card span3 motionCard" key={stat.label}>
-            <BarChart3 color="var(--gold)" />
-            <span className="metric">
-              {stat.label}
-              <strong>{stat.value}</strong>
-            </span>
-            <p>{stat.detail}</p>
-          </article>
+        {dashboard.stats.map((stat) => (
+          <SignalCard
+            key={stat.label}
+            tone={stat.tone}
+            label={stat.label}
+            value={stat.value}
+            detail={stat.detail}
+            icon={BarChart3}
+          />
         ))}
         <article className="card span12 coachBuilderCard">
-          <TrendingUp color="var(--gold)" />
+          <TrendingUp color="var(--accent)" />
           <div>
             <h2>Lo que mediremos despues</h2>
             <p>Adherencia por programa, miembros en riesgo, comidas completadas, entrenamientos registrados y tiempo medio de respuesta.</p>

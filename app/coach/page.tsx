@@ -1,17 +1,12 @@
 import { Activity, ArrowRight, CheckCircle2, ClipboardCheck, Dumbbell, MessageSquareText, Plus, Rocket, Smartphone, Utensils } from "lucide-react";
 import Link from "next/link";
 import { Topbar } from "@/components/topbar";
+import { AttentionQueue, Badge, SignalCard, SubmitButton } from "@/components/ui";
 import { getSelectedMemberAppBrand } from "@/lib/member-app";
 import { getCoachDashboard } from "@/lib/repositories/coach-dashboard";
 import { applyCoachBriefingRecommendationAction, markCoachBriefingReviewedAction } from "./actions";
 
 export const dynamic = "force-dynamic";
-
-const severityLabels = {
-  high: "Alta",
-  medium: "Media",
-  low: "Baja",
-};
 
 const statIcons = [Dumbbell, ClipboardCheck, Activity, Utensils];
 
@@ -57,55 +52,42 @@ export default async function CoachHomePage() {
             </div>
           </div>
           <div className="coachCommandPanel">
-            <span className={hasAttention ? "tag danger" : "tag"}>{hasAttention ? "Requiere accion" : "Todo en orden"}</span>
+            <Badge tone={hasAttention ? "danger" : "accent"}>{hasAttention ? "Requiere accion" : "Todo en orden"}</Badge>
             <strong>{dashboard.attentionQueue.length}</strong>
             <p>tareas de coach priorizadas para proteger entreno, nutricion y retencion.</p>
           </div>
         </article>
 
-        {dashboard.stats.map((stat, index) => {
-          const Icon = statIcons[index] ?? Activity;
-          return (
-            <article className={`card span3 motionCard coachSignal ${stat.tone}`} key={stat.label}>
-              <div className="coachSignalIcon"><Icon size={18} /></div>
-              <span className="metric">
-                {stat.label}
-                <strong>{stat.value}</strong>
-              </span>
-              <p>{stat.detail}</p>
-            </article>
-          );
-        })}
+        {dashboard.stats.map((stat, index) => (
+          <SignalCard
+            key={stat.label}
+            tone={stat.tone}
+            label={stat.label}
+            value={stat.value}
+            detail={stat.detail}
+            icon={statIcons[index] ?? Activity}
+          />
+        ))}
 
         <article className="card span7 motionCard coachAttentionCard">
           <div className="sectionHeader">
             <div>
-              <ClipboardCheck color="var(--gold)" />
+              <ClipboardCheck color="var(--accent)" />
               <h2>Prioridad de hoy</h2>
               <p>Lo que el entrenador debe resolver antes de tocar detalles secundarios.</p>
             </div>
-            <span className="tag">{dashboard.attentionQueue.length} acciones</span>
+            <Badge>{dashboard.attentionQueue.length} acciones</Badge>
           </div>
-          {hasAttention ? (
-            <div className="coachAttentionList">
-              {dashboard.attentionQueue.map((item) => (
-                <Link className={`coachAttentionItem ${item.severity}`} href={item.href} key={item.id}>
-                  <span>
-                    <strong>{item.title}</strong>
-                    <p>{item.detail}</p>
-                  </span>
-                  <small>{item.area}</small>
-                  <em>{severityLabels[item.severity]}</em>
-                </Link>
-              ))}
-            </div>
-          ) : (
-            <div className="coachEmptyPanel">
-              <CheckCircle2 color="var(--green)" />
-              <strong>Sin bloqueos abiertos.</strong>
-              <p>Cuando un cliente mande briefing, check-in o una incidencia concreta, aparecera aqui.</p>
-            </div>
-          )}
+          <AttentionQueue
+            items={dashboard.attentionQueue}
+            empty={
+              <div className="coachEmptyPanel">
+                <CheckCircle2 color="var(--success)" />
+                <strong>Sin bloqueos abiertos.</strong>
+                <p>Cuando un cliente mande briefing, check-in o una incidencia concreta, aparecera aqui.</p>
+              </div>
+            }
+          />
         </article>
 
         <article className="card span5 motionCard coachActivityCard">
@@ -201,21 +183,21 @@ export default async function CoachHomePage() {
                         <form action={applyCoachBriefingRecommendationAction}>
                           <input name="workspaceId" type="hidden" value={brand.id} />
                           <input name="responseId" type="hidden" value={briefing.id} />
-                          <button
-                            className="btn primary"
+                          <SubmitButton
+                            variant="primary"
                             disabled={briefing.recommendation.blockers.some((blocker) => blocker.startsWith("Falta"))}
-                            type="submit"
+                            successToast="Planes aplicados al cliente"
                           >
                             Aplicar planes <Rocket size={16} />
-                          </button>
+                          </SubmitButton>
                         </form>
                         {briefing.status !== "reviewed" ? (
                           <form action={markCoachBriefingReviewedAction}>
                             <input name="workspaceId" type="hidden" value={brand.id} />
                             <input name="responseId" type="hidden" value={briefing.id} />
-                            <button className="btn" type="submit">
+                            <SubmitButton successToast="Briefing marcado como revisado">
                               Solo revisar <CheckCircle2 size={16} />
-                            </button>
+                            </SubmitButton>
                           </form>
                         ) : null}
                         <Link className="btn" href={`/coach/briefings/${briefing.id}`}>
