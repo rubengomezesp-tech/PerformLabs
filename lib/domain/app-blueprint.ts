@@ -17,7 +17,7 @@ export const baseAppMetrics = [
   {
     label: "Motor base",
     value: "1 core",
-    text: "Una app mantenible que se personaliza por marca, dominio, contenido y permisos.",
+    text: "Una app mantenible que se personaliza por marca, dominio, contenido y soporte.",
   },
   {
     label: "Entrega",

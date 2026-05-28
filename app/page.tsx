@@ -19,32 +19,32 @@ import { platformBrand } from "@/lib/brand";
 import { baseAppMetrics } from "@/lib/domain/app-blueprint";
 
 const navItems = [
-  { label: "Qué compras", href: "#producto" },
-  { label: "Cómo comprar", href: "#proceso" },
+  { label: "Qué incluye", href: "#producto" },
+  { label: "Proceso", href: "#proceso" },
   { label: "Demo", href: "#demo" },
-  { label: "Solicitar info", href: "#consulta" },
+  { label: "Solicitar propuesta", href: "#consulta" },
 ];
 
 const trustSignals = [
   "App con tu marca",
-  "Pago antes de activar",
-  "Entrenador con permisos propios",
+  "Implantación guiada",
+  "Consola para operar",
 ];
 
 const purchaseSteps = [
   {
-    title: "1. Solicitas información",
-    text: "Nos dices qué vendes, cuántos clientes tienes y qué app quieres lanzar.",
+    title: "1. Cuéntanos tu proyecto",
+    text: "Revisamos tu marca, tu método, tu oferta y el tipo de experiencia que quieres entregar.",
     icon: Send,
   },
   {
-    title: "2. Te damos propuesta",
-    text: "Definimos precio, alcance, branding, módulos y forma de activación.",
+    title: "2. Definimos la propuesta",
+    text: "Aterrizamos alcance, branding, módulos, contenidos iniciales y calendario de implantación.",
     icon: BadgeCheck,
   },
   {
-    title: "3. Pagas y activamos",
-    text: "Creamos tu marca, configuramos la app y damos acceso al entrenador.",
+    title: "3. Implantamos la experiencia",
+    text: "Preparamos la app, la consola y el lanzamiento para que tu equipo pueda operar con clientes reales.",
     icon: Play,
   },
 ];
@@ -69,16 +69,16 @@ const launchChannels = [
 
 const faqs = [
   {
-    question: "¿Cómo compro la app?",
-    answer: "Primero envías la solicitud. Revisamos tu caso, te damos propuesta y activamos la app después del pago.",
+    question: "¿Cómo empezamos?",
+    answer: "Rellenas la solicitud, revisamos el encaje del proyecto y te enviamos una propuesta con alcance, fases y próximos pasos.",
   },
   {
     question: "¿Puedo usar mi propio branding?",
     answer: "Sí. Cada app puede tener nombre, logo, color, dominio, soporte y configuración propios.",
   },
   {
-    question: "¿El entrenador recibe acceso antes de pagar?",
-    answer: "No. La marca nace preparada pero bloqueada. Activamos permisos cuando la licencia está pagada y aprobada.",
+    question: "¿Es una plantilla genérica?",
+    answer: "No. Partimos de una base sólida y la adaptamos a la marca, oferta, contenido y operación de cada entrenador.",
   },
 ];
 
@@ -87,7 +87,7 @@ export default function Home() {
     <main className="landing">
       <SmoothScroll />
       <a className="stickyLeadCta" href="#consulta">
-        Solicitar precio <ArrowRight size={16} />
+        Solicitar propuesta <ArrowRight size={16} />
       </a>
       <section className="landingHero">
         <div className="landingNav">
@@ -104,36 +104,36 @@ export default function Home() {
             ))}
           </nav>
           <a className="btn primary" href="#consulta">
-            Solicitar info <Mail size={18} />
+            Solicitar propuesta <Mail size={18} />
           </a>
         </div>
 
         <div className="landingHeroContent premiumHeroContent">
           <MotionReveal>
             <img className="heroBrandLogo" src={platformBrand.logoUrl} alt={platformBrand.name} />
-            <span className="eyebrow">Apps white-label para entrenadores</span>
-            <h1>Compra una app de coaching lista para vender con tu marca.</h1>
+            <span className="eyebrow">Apps de marca para entrenadores</span>
+            <h1>Lanza una app de coaching con tu marca y tu método.</h1>
             <p>
-              Nosotros montamos la app, el branding, la consola, el dominio y los módulos.
-              Tú la vendes a tus clientes con tu método de entrenamiento y nutrición.
+              Diseñamos e implantamos una experiencia digital de marca con branding, consola,
+              dominio y módulos conectados a tu forma de entrenar, nutrir y acompañar clientes.
             </p>
             <div className="proofStrip">
-              <span>1. Solicita información</span>
-              <span>2. Recibe propuesta</span>
-              <span>3. Paga y activamos</span>
+              <span>1. Cuéntanos el proyecto</span>
+              <span>2. Recibe una propuesta</span>
+              <span>3. Lanza con acompañamiento</span>
             </div>
             <div className="actions">
               <a className="btn primary" href="#consulta">
-                Quiero comprar una app <ArrowRight size={18} />
+                Solicitar propuesta <ArrowRight size={18} />
               </a>
               <Link className="btn" href="/app">
-                Ver demo cliente <Smartphone size={18} />
+                Ver experiencia demo <Smartphone size={18} />
               </Link>
             </div>
             <div className="heroDecisionPanel">
               <strong>¿Qué hago ahora?</strong>
-              <span>Rellena el formulario y te diremos precio, alcance y siguiente paso.</span>
-              <a href="#consulta">Ir al formulario <ArrowRight size={16} /></a>
+              <span>Cuéntanos tu caso y prepararemos una propuesta con alcance y próximos pasos.</span>
+              <a href="#consulta">Solicitar propuesta <ArrowRight size={16} /></a>
             </div>
           </MotionReveal>
 
@@ -168,11 +168,11 @@ export default function Home() {
         <MotionReveal>
           <div className="sectionHeader">
             <div>
-              <span className="eyebrow">Cómo comprar</span>
-              <h2>El camino es simple: consulta, propuesta y activación.</h2>
+              <span className="eyebrow">Proceso</span>
+              <h2>De idea a app operativa, con implantación guiada.</h2>
               <p>
-                No damos acceso a entrenadores antes de pago. Primero cerramos el encaje
-                comercial y después activamos la app y sus permisos.
+                Trabajamos contigo el encaje, la marca, el contenido y la experiencia
+                antes de preparar el lanzamiento para clientes reales.
               </p>
             </div>
           </div>
@@ -277,10 +277,10 @@ export default function Home() {
         <div className="grid">
           <MotionReveal className="card span5">
             <Mail color="var(--gold)" />
-            <h2>Solicita información y precio.</h2>
+            <h2>Solicita una propuesta.</h2>
             <p>
-              Este es el paso para comprar o pedir información. Te responderemos
-              con alcance, precio y la forma de activar tu app.
+              Cuéntanos qué quieres construir y revisaremos el encaje, el alcance
+              y la mejor forma de lanzar tu app de marca.
             </p>
           </MotionReveal>
           <MotionReveal className="card span7" delay={0.1}>
@@ -327,11 +327,11 @@ export default function Home() {
               </label>
               <label className="spanFull">
                 Notas
-                <textarea name="notes" placeholder="Cuéntanos qué vendes, qué contenido tienes y qué te gustaría que haga la app." rows={5} />
+                <textarea name="notes" placeholder="Cuéntanos tu oferta, el contenido disponible y qué experiencia quieres entregar." rows={5} />
               </label>
               <div className="spanFull formActions">
                 <button className="btn primary" type="submit">
-                  Solicitar información y precio <ArrowRight size={18} />
+                  Enviar solicitud <ArrowRight size={18} />
                 </button>
               </div>
             </form>
