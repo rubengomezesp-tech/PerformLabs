@@ -58,7 +58,7 @@ export default async function ChildAppsPage() {
             <div>
               <Layers color="var(--gold)" />
               <h2>Nueva implantación</h2>
-              <p>Registra un proyecto premium y lo dejamos conectado a app base, ajustes, páginas y producto inicial.</p>
+              <p>Registra un proyecto premium. Nace preparado, pero bloqueado hasta pago y activación comercial.</p>
             </div>
           </div>
           <form action={createWorkspaceAction} className="formGrid">

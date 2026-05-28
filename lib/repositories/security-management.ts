@@ -1,5 +1,6 @@
 import { createHash, randomBytes } from "node:crypto";
 import { canInviteWorkspaceRole } from "@/lib/auth/role-access";
+import { getWorkspaceEntitlement } from "@/lib/repositories/entitlements";
 import type { Json } from "@/lib/supabase/database.types";
 import { getSupabaseServiceEnv } from "@/lib/supabase/env";
 import { createServiceSupabaseClient } from "@/lib/supabase/server";
@@ -202,6 +203,32 @@ async function ensurePlatformWorkspace(supabase: ReturnType<typeof createService
   return result.data.id;
 }
 
+async function assertWorkspaceReadyForTeamAccess(
+  supabase: ReturnType<typeof createServiceSupabaseClient>,
+  workspaceId: string,
+  role: WorkspaceRole,
+) {
+  if (role === "platform_owner") {
+    return;
+  }
+
+  const workspace = await supabase
+    .from("workspaces")
+    .select("id,name,is_active")
+    .eq("id", workspaceId)
+    .single();
+
+  if (workspace.error || !workspace.data) {
+    throw new Error(`No se pudo validar la marca: ${workspace.error?.message ?? "no existe"}`);
+  }
+
+  const entitlement = await getWorkspaceEntitlement(workspaceId);
+
+  if (!workspace.data.is_active || entitlement.status !== "active" || entitlement.modules.coach_console === false) {
+    throw new Error("Esta app todavia no esta pagada y activa. Activa la licencia en Apps antes de dar acceso al entrenador.");
+  }
+}
+
 function metadataValue(metadata: Json, key: string) {
   if (!metadata || typeof metadata !== "object" || Array.isArray(metadata)) {
     return "";
@@ -327,6 +354,8 @@ export async function inviteWorkspaceTeamMember(input: TeamInviteInput) {
   }
 
   const supabase = createServiceSupabaseClient();
+  await assertWorkspaceReadyForTeamAccess(supabase, input.workspaceId, input.role);
+
   const { userId, inviteSent } = await inviteOrFindAuthUser({
     email,
     role: input.role,

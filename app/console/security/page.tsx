@@ -64,6 +64,11 @@ export default async function SecurityPage() {
   const consoleMembers = teamMembers.filter((member) => member.role !== "member");
   const memberOnly = teamMembers.length - consoleMembers.length;
   const restrictedApps = visibleWorkspaces.filter((workspace) => workspace.entitlement.status !== "active" || !workspace.isActive);
+  const inviteableWorkspaces = visibleWorkspaces.filter((workspace) => (
+    workspace.isActive
+    && workspace.entitlement.status === "active"
+    && workspace.entitlement.modules.coach_console !== false
+  ));
   const roleOptions = session?.topRole === "platform_owner"
     ? ["platform_owner", "agency_admin", "coach_admin", "coach_staff"] as const
     : ["coach_admin", "coach_staff"] as const;
@@ -152,7 +157,7 @@ export default async function SecurityPage() {
             <div>
               <KeyRound color="var(--gold)" />
               <h2>Invitar acceso operativo</h2>
-              <p>Usuarios con permiso operativo por marca. La consola queda reservada a equipo interno y entrenadores autorizados.</p>
+              <p>Primero se paga y se activa la licencia de la marca. Después se invita al entrenador o equipo operativo.</p>
             </div>
             <span className={restrictedApps.length ? "tag danger" : "tag"}>{restrictedApps.length ? `${restrictedApps.length} restringida` : "RBAC"}</span>
           </div>
@@ -161,11 +166,15 @@ export default async function SecurityPage() {
               Marca
               <select name="workspaceId" required>
                 <option value="">Seleccionar marca</option>
-                {visibleWorkspaces.map((workspace) => (
-                  <option key={workspace.id} value={workspace.id}>
-                    {workspace.name}{workspace.fallbackSubdomain ? ` · ${workspace.fallbackSubdomain}` : ""}
+                {visibleWorkspaces.map((workspace) => {
+                  const canInvite = inviteableWorkspaces.some((item) => item.id === workspace.id);
+
+                  return (
+                  <option disabled={!canInvite} key={workspace.id} value={workspace.id}>
+                    {workspace.name}{workspace.fallbackSubdomain ? ` · ${workspace.fallbackSubdomain}` : ""}{canInvite ? "" : " · pendiente de pago"}
                   </option>
-                ))}
+                  );
+                })}
               </select>
             </label>
             <label>
@@ -184,6 +193,9 @@ export default async function SecurityPage() {
               Invitar acceso <MailPlus size={16} />
             </button>
           </form>
+          {!inviteableWorkspaces.length ? (
+            <p className="formMessage danger">No hay marcas pagadas y activas. Activa la licencia en Apps antes de invitar entrenadores.</p>
+          ) : null}
           {consoleMembers.length ? (
             <ul className="list">
               {consoleMembers.map((member) => (

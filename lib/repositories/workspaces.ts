@@ -417,7 +417,11 @@ export async function createWorkspace(input: WorkspaceInput) {
 
   const entitlementResult = await supabase
     .from("workspace_entitlements")
-    .insert({ workspace_id: data.id });
+    .insert({
+      workspace_id: data.id,
+      status: "suspended",
+      reason: "Pendiente de pago y activacion comercial.",
+    });
 
   if (entitlementResult.error) {
     throw new Error(`No se pudo crear la licencia base: ${entitlementResult.error.message}`);

@@ -176,7 +176,11 @@ export async function getWorkspaceEntitlement(workspaceId?: string): Promise<Wor
 
   const created = await supabase
     .from("workspace_entitlements")
-    .insert({ workspace_id: workspaceId })
+    .insert({
+      workspace_id: workspaceId,
+      status: "suspended",
+      reason: "Pendiente de pago y activacion comercial.",
+    })
     .select("workspace_id,status,modules,contract_ref,reason,enforced_at,updated_at")
     .single();
 
