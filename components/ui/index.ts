@@ -16,4 +16,8 @@ export { Reveal } from "./reveal";
 export type { RevealProps } from "./reveal";
 export { SceneOrbit } from "./scene-orbit";
 export type { SceneOrbitProps } from "./scene-orbit";
+export { SignalCard } from "./signal-card";
+export type { SignalCardProps, SignalTone } from "./signal-card";
+export { AttentionQueue } from "./attention-queue";
+export type { AttentionQueueProps, AttentionItem, AttentionSeverity } from "./attention-queue";
 export { cx } from "./cx";
