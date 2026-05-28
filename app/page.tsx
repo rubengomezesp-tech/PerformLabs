@@ -13,7 +13,7 @@ import {
   Smartphone,
 } from "lucide-react";
 import { submitLeadAction } from "@/app/lead-actions";
-import { BrandOrbit } from "@/components/brand-orbit";
+import { LazyOrbit } from "@/components/landing/lazy-orbit";
 import { MotionReveal, SmoothScroll } from "@/components/motion-reveal";
 import { platformBrand } from "@/lib/brand";
 import { baseAppMetrics } from "@/lib/domain/app-blueprint";
@@ -90,6 +90,8 @@ export default function Home() {
         Solicitar propuesta <ArrowRight size={16} />
       </a>
       <section className="landingHero">
+        <div className="auroraField" aria-hidden="true" />
+        <div className="grain" aria-hidden="true" />
         <div className="landingNav">
           <Link className="brand" href="/" style={{ margin: 0 }}>
             <img className="brandImageMark" src={platformBrand.markUrl} alt="" />
@@ -111,8 +113,8 @@ export default function Home() {
         <div className="landingHeroContent premiumHeroContent">
           <MotionReveal>
             <img className="heroBrandLogo" src={platformBrand.logoUrl} alt={platformBrand.name} />
-            <span className="eyebrow">Apps de marca para entrenadores</span>
-            <h1>Lanza una app de coaching con tu marca y tu método.</h1>
+            <span className="heroBadge">Apps de marca para entrenadores</span>
+            <h1>Lanza una app de coaching con <span className="accentText">tu marca y tu método</span>.</h1>
             <p>
               Diseñamos e implantamos una experiencia digital de marca con branding, consola,
               dominio y módulos conectados a tu forma de entrenar, nutrir y acompañar clientes.
@@ -138,7 +140,7 @@ export default function Home() {
           </MotionReveal>
 
           <MotionReveal className="heroProductVisual" delay={0.14}>
-            <BrandOrbit />
+            <LazyOrbit />
             <img
               className="heroMockupImage"
               src="/brand/performlabs-app-hero.png"
