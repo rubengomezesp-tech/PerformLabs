@@ -1,4 +1,5 @@
 import { Brain, MessageCircleQuestion, ShieldCheck, Sparkles, Wand2 } from "lucide-react";
+import Link from "next/link";
 import { SubmitButton } from "@/components/submit-button";
 import { Topbar } from "@/components/topbar";
 import { isCoachBrainAiConfigured } from "@/lib/ai/coach-brain";
@@ -117,6 +118,12 @@ export default async function CoachAiPage() {
         </form>
 
         <div className="span4 coachBrainSide">
+          <article className="card coachBrainGenerator">
+            <Wand2 color="var(--accent)" />
+            <h3>Generador de planes IA</h3>
+            <p>Convierte tu metodología en programas: la IA redacta el borrador con tus reglas y tú lo apruebas en un clic.</p>
+            <Link className="btn primary" href="/coach/ai/plans"><Wand2 size={16} /> Abrir generador</Link>
+          </article>
           <article className="card">
             <ShieldCheck color="var(--accent)" />
             <h3>Tú mandas, siempre</h3>
