@@ -7,6 +7,7 @@ import {
   Dumbbell,
   LayoutDashboard,
   ListChecks,
+  MessagesSquare,
   Palette,
   Users,
 } from "lucide-react";
@@ -30,6 +31,7 @@ export const coachNav = [
   },
   { label: "Miembros", href: "/coach/members", icon: Users, group: "Clientes" },
   { label: "Check-ins", href: "/coach/checkins", icon: ClipboardCheck, group: "Clientes" },
+  { label: "Comunidad", href: "/coach/community", icon: MessagesSquare, group: "Clientes" },
   { label: "Contenido", href: "/coach/content", icon: BookOpen, group: "Marca y contenido" },
   { label: "Marca", href: "/coach/brand", icon: Palette, group: "Marca y contenido" },
   { label: "Avisos", href: "/coach/notifications", icon: Bell, group: "Marca y contenido" },

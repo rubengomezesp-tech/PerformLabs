@@ -1,4 +1,4 @@
-import { Heart, MessageSquare, Send, Trash2 } from "lucide-react";
+import { Heart, MessageSquare, Pin, Send, Sparkles, Trash2 } from "lucide-react";
 import { SubmitButton } from "@/components/submit-button";
 import { Topbar } from "@/components/topbar";
 import { getSelectedMemberAppBrand } from "@/lib/member-app";
@@ -46,11 +46,17 @@ export default async function MemberCommunityPage() {
         {posts.length ? (
           <div className="span12 communityFeed">
             {posts.map((post) => (
-              <article className="card communityPost" key={post.id}>
+              <article className={post.isCoach ? "card communityPost coachPost" : "card communityPost"} key={post.id}>
                 <div className="communityPostHead">
-                  <span className="communityAvatar">{initials(post.authorName)}</span>
+                  <span className={post.isCoach ? "communityAvatar coach" : "communityAvatar"}>
+                    {post.isCoach ? <Sparkles size={16} /> : initials(post.authorName)}
+                  </span>
                   <div>
-                    <strong>{post.authorName}</strong>
+                    <strong>
+                      {post.authorName}
+                      {post.isCoach ? <span className="coachBadge">Coach</span> : null}
+                      {post.pinned ? <span className="pinnedBadge"><Pin size={11} /> Fijado</span> : null}
+                    </strong>
                     <small>{timeAgo(post.createdAt)}</small>
                   </div>
                   {post.mine ? (
