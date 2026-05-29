@@ -33,25 +33,61 @@ export const tenant = {
 };
 
 export const consoleNav = [
-  { label: "Dashboard", href: "/console", icon: Crown },
-  { label: "Leads", href: "/console/leads", icon: BriefcaseBusiness },
-  { label: "Proyectos", href: "/console/projects", icon: ClipboardCheck },
-  { label: "Plantillas", href: "/console/templates", icon: ListChecks },
-  { label: "Marcas", href: "/console/apps", icon: LayoutDashboard },
-  { label: "Estrategia", href: "/console/strategy", icon: Radar },
-  { label: "Lanzamiento", href: "/console/launch", icon: ShieldCheck },
-  { label: "Seguridad", href: "/console/security", icon: LockKeyhole },
-  { label: "Producto", href: "/console/system", icon: Cpu },
-  { label: "Clientes", href: "/console/members", icon: Users },
-  { label: "Ejercicios", href: "/console/exercises", icon: Dumbbell },
-  { label: "Programas", href: "/console/programs", icon: Dumbbell },
-  { label: "Dietas", href: "/console/diet-templates", icon: Soup },
-  { label: "Nutrición", href: "/console/nutrition", icon: Apple },
-  { label: "Contenido", href: "/console/content", icon: BookOpen },
-  { label: "Notificaciones", href: "/console/notifications", icon: Bell },
-  { label: "Comunidad", href: "/console/community", icon: MessageSquare },
-  { label: "Pagos", href: "/console/billing", icon: CreditCard },
-  { label: "Marca", href: "/console/brand", icon: Settings },
+  { label: "Inicio", href: "/console", icon: Crown },
+  {
+    label: "Captación",
+    icon: BriefcaseBusiness,
+    children: [
+      { label: "Leads", href: "/console/leads", icon: BriefcaseBusiness },
+      { label: "Proyectos", href: "/console/projects", icon: ClipboardCheck },
+      { label: "Plantillas de proyecto", href: "/console/templates", icon: ListChecks },
+      { label: "Estrategia", href: "/console/strategy", icon: Radar },
+      { label: "Lanzamiento", href: "/console/launch", icon: ShieldCheck },
+    ],
+  },
+  {
+    label: "Marcas y plataforma",
+    icon: LayoutDashboard,
+    children: [
+      { label: "Marcas y apps", href: "/console/apps", icon: LayoutDashboard },
+      { label: "Producto y sistema", href: "/console/system", icon: Cpu },
+      { label: "Seguridad y equipo", href: "/console/security", icon: LockKeyhole },
+    ],
+  },
+  {
+    label: "Entrenamiento",
+    icon: Dumbbell,
+    children: [
+      { label: "Programas", href: "/console/programs", icon: Dumbbell },
+      { label: "Ejercicios", href: "/console/exercises", icon: Dumbbell },
+    ],
+  },
+  {
+    label: "Nutrición",
+    icon: Apple,
+    children: [
+      { label: "Nutrición", href: "/console/nutrition", icon: Apple },
+      { label: "Plantillas de dieta", href: "/console/diet-templates", icon: Soup },
+    ],
+  },
+  {
+    label: "Clientes y contenido",
+    icon: Users,
+    children: [
+      { label: "Clientes", href: "/console/members", icon: Users },
+      { label: "Contenido", href: "/console/content", icon: BookOpen },
+      { label: "Comunidad", href: "/console/community", icon: MessageSquare },
+      { label: "Notificaciones", href: "/console/notifications", icon: Bell },
+    ],
+  },
+  {
+    label: "Negocio",
+    icon: CreditCard,
+    children: [
+      { label: "Pagos", href: "/console/billing", icon: CreditCard },
+      { label: "Marca y dominio", href: "/console/brand", icon: Settings },
+    ],
+  },
 ];
 
 export const memberNav = [
