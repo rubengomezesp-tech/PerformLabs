@@ -7888,3 +7888,147 @@ button[aria-busy="true"] {
   opacity: 0.8;
   cursor: progress;
 }
+
+/* ---- Coach IA: config (coach) ---- */
+.aiStatus {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+.aiStatus > div {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+.aiStatus > div > div p {
+  margin: 2px 0 0;
+  color: var(--text-muted);
+  font-size: 13px;
+}
+.aiStatus.live {
+  border-color: color-mix(in srgb, var(--accent) 45%, var(--border));
+  background: color-mix(in srgb, var(--accent) 8%, var(--surface));
+}
+.tag.tagOn {
+  background: var(--accent);
+  color: var(--accent-contrast, #fff);
+  border-color: transparent;
+}
+.coachBrainForm {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+.coachBrainForm textarea {
+  width: 100%;
+  resize: vertical;
+}
+.coachBrainToggle {
+  flex-direction: row !important;
+  align-items: center;
+  gap: 10px;
+}
+.coachBrainToggle input {
+  width: 18px;
+  height: 18px;
+  flex: 0 0 auto;
+}
+.coachBrainSide {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+.coachBrainSide h3 {
+  margin: 8px 0 4px;
+}
+.coachBrainSide p {
+  color: var(--text-muted);
+  font-size: 13px;
+}
+.coachBrainQuestions {
+  gap: 12px;
+}
+.coachBrainQuestions li {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  align-items: flex-start;
+}
+.coachBrainQuestions small {
+  color: var(--text-muted);
+  font-size: 11px;
+}
+
+/* ---- Coach IA: chat (member) ---- */
+.coachChat {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+.coachChatThread {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 4px 0;
+}
+.coachChatRow {
+  display: flex;
+  align-items: flex-end;
+  gap: 8px;
+  max-width: 88%;
+}
+.coachChatRow.user {
+  align-self: flex-end;
+  flex-direction: row-reverse;
+}
+.coachChatRow.assistant {
+  align-self: flex-start;
+}
+.coachChatAvatar {
+  display: grid;
+  place-items: center;
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  background: var(--accent);
+  color: var(--accent-contrast, #fff);
+  flex-shrink: 0;
+}
+.coachChatBubble {
+  padding: 11px 14px;
+  border-radius: 16px;
+  font-size: 14px;
+  line-height: 1.45;
+  white-space: pre-wrap;
+}
+.coachChatRow.assistant .coachChatBubble {
+  background: var(--surface-2, color-mix(in srgb, var(--accent) 6%, var(--surface)));
+  border: 1px solid var(--line);
+  border-bottom-left-radius: 5px;
+  color: var(--text);
+}
+.coachChatRow.user .coachChatBubble {
+  background: var(--accent);
+  color: var(--accent-contrast, #fff);
+  border-bottom-right-radius: 5px;
+}
+.coachChatComposer {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  position: sticky;
+  bottom: 0;
+}
+.coachChatComposer input {
+  flex: 1;
+}
+.coachChatComposer .btn {
+  flex: 0 0 auto;
+}
+.coachChatHint {
+  color: var(--text-muted);
+  font-size: 12px;
+  margin: 0;
+}

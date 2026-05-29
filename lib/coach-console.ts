@@ -9,11 +9,13 @@ import {
   ListChecks,
   MessagesSquare,
   Palette,
+  Sparkles,
   Users,
 } from "lucide-react";
 
 export const coachNav = [
   { label: "Inicio", href: "/coach", icon: LayoutDashboard },
+  { label: "Coach IA", href: "/coach/ai", icon: Sparkles },
   {
     label: "Fitness",
     icon: Dumbbell,
