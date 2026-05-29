@@ -16,6 +16,14 @@ const statusLabels: Record<string, string> = {
   archived: "Archivado",
 };
 
+const basePresets = [
+  { name: "Hipertrofia 12 semanas", label: "Hipertrofia", detail: "4 días · gimnasio · intermedio", goal: "hypertrophy", level: "intermediate", location: "gym", daysPerWeek: 4, sessionMinutes: 60 },
+  { name: "Pérdida de grasa 12 semanas", label: "Pérdida de grasa", detail: "4 días · gimnasio · intermedio", goal: "fat_loss", level: "intermediate", location: "gym", daysPerWeek: 4, sessionMinutes: 50 },
+  { name: "Fuerza 12 semanas", label: "Fuerza", detail: "3 días · gimnasio · intermedio", goal: "strength", level: "intermediate", location: "gym", daysPerWeek: 3, sessionMinutes: 70 },
+  { name: "Full-body principiante", label: "Full-body principiante", detail: "3 días · gimnasio · principiante", goal: "hypertrophy", level: "beginner", location: "gym", daysPerWeek: 3, sessionMinutes: 45 },
+  { name: "En casa sin material", label: "En casa", detail: "3 días · casa · principiante", goal: "recomposition", level: "beginner", location: "home", daysPerWeek: 3, sessionMinutes: 40 },
+];
+
 type WorkoutTemplateDay = ManagedWorkoutTemplate["days"][number];
 
 type CoachProgramsPageProps = {
@@ -205,6 +213,33 @@ export default async function CoachProgramsPage({ searchParams }: CoachProgramsP
             <li><span>3</span><div><strong>Publicar</strong><p>Pasa la rutina a “Activo” cuando esté lista.</p></div></li>
             <li><span>4</span><div><strong>Asignar</strong><p>Asígnala a un miembro y la verá en su app.</p></div></li>
           </ol>
+        </article>
+
+        <article className="card span12 motionCard">
+          <div className="sectionHeader">
+            <div>
+              <Dumbbell color="var(--accent)" />
+              <h2>Plantillas base · empieza en 1 clic.</h2>
+              <p>Genera un programa completo de 12 semanas por objetivo y luego ajústalo. (Necesita la librería de ejercicios cargada.)</p>
+            </div>
+          </div>
+          <div className="basePresetGrid">
+            {basePresets.map((preset) => (
+              <form action={createCoachWorkoutBlueprintAction} className="basePresetCard" key={preset.name}>
+                <input name="workspaceId" type="hidden" value={brand.id} />
+                <input name="name" type="hidden" value={preset.name} />
+                <input name="goal" type="hidden" value={preset.goal} />
+                <input name="level" type="hidden" value={preset.level} />
+                <input name="location" type="hidden" value={preset.location} />
+                <input name="daysPerWeek" type="hidden" value={String(preset.daysPerWeek)} />
+                <input name="sessionMinutes" type="hidden" value={String(preset.sessionMinutes)} />
+                <input name="injuries" type="hidden" value="" />
+                <strong>{preset.label}</strong>
+                <span>{preset.detail}</span>
+                <button className="btn primary sm" type="submit">Crear programa <Plus size={15} /></button>
+              </form>
+            ))}
+          </div>
         </article>
 
         <details className="card span12 trainingIntelligenceCard advancedProgramPanel">
