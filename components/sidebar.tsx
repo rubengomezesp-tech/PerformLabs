@@ -1,4 +1,6 @@
 import Link from "next/link";
+import { Fragment } from "react";
+import { CommandPalette } from "@/components/command-palette";
 import { NavLink } from "@/components/nav-link";
 import { platformBrand } from "@/lib/brand";
 import type { ShellSession } from "@/components/page-shell";
@@ -8,6 +10,7 @@ type NavItem = {
   label: string;
   href: string;
   icon: React.ComponentType<{ size?: number }>;
+  group?: string;
 };
 
 export function Sidebar({
@@ -44,15 +47,20 @@ export function Sidebar({
           <strong>{displayBrand.name}</strong>
         </span>
       </Link>
+      <CommandPalette items={nav.map((item) => ({ label: item.label, href: item.href, group: item.group }))} />
       <nav className="nav">
-        {nav.map((item) => {
+        {nav.map((item, index) => {
           const Icon = item.icon;
+          const showGroup = Boolean(item.group) && item.group !== nav[index - 1]?.group;
 
           return (
-            <NavLink href={item.href} key={item.href}>
-              <Icon size={18} />
-              {item.label}
-            </NavLink>
+            <Fragment key={item.href}>
+              {showGroup ? <p className="navGroupLabel">{item.group}</p> : null}
+              <NavLink href={item.href}>
+                <Icon size={18} />
+                {item.label}
+              </NavLink>
+            </Fragment>
           );
         })}
       </nav>

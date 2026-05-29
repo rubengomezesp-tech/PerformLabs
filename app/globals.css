@@ -5921,3 +5921,233 @@ input[type="color"] {
     grid-template-columns: 1fr;
   }
 }
+
+/* ============================================================
+   Coach console — 2026 premium refresh
+   Scoped to .shell--coach so /console and /app stay untouched.
+   Token overrides cascade to every coach surface; structural
+   tweaks are scoped. The per-brand --accent is preserved.
+   ============================================================ */
+.shell--coach {
+  --surface: #131619;
+  --surface-2: #181c20;
+  --surface-3: #1e2329;
+  --border: #242a31;
+  --border-strong: #333b44;
+  --text-muted: #aab2bc;
+  --text-soft: #79808a;
+  --radius-sm: 8px;
+  --radius: 11px;
+  --radius-lg: 18px;
+  --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.5);
+  --shadow: 0 16px 38px -18px rgba(0, 0, 0, 0.62);
+  --shadow-lg: 0 40px 80px -30px rgba(0, 0, 0, 0.7);
+  background:
+    radial-gradient(1100px 560px at 82% -12%, color-mix(in srgb, var(--accent) 9%, transparent), transparent 62%),
+    #0a0b0d;
+}
+
+/* Roomier, centered content column */
+.shell--coach .main {
+  padding: 40px clamp(22px, 4vw, 56px) 64px;
+}
+.shell--coach .main > * {
+  max-width: 1280px;
+  margin-inline: auto;
+}
+
+/* Sidebar */
+.shell--coach .sidebar {
+  background: color-mix(in srgb, #06070a 92%, var(--accent) 8%);
+  border-right: 1px solid var(--border);
+  padding: 24px 16px;
+}
+.shell--coach .brand {
+  margin-bottom: 18px;
+  padding: 2px 8px;
+}
+
+/* Grouped navigation labels */
+.navGroupLabel {
+  margin: 16px 12px 6px;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--text-soft);
+}
+.shell--coach .nav {
+  gap: 2px;
+}
+.shell--coach .nav a {
+  border-radius: 10px;
+  padding: 9px 12px;
+  color: var(--text-muted);
+  font-weight: 500;
+}
+.shell--coach .nav a:hover {
+  background: color-mix(in srgb, var(--accent) 10%, transparent);
+  color: var(--text);
+}
+.shell--coach .nav a.active {
+  background: color-mix(in srgb, var(--accent) 16%, transparent);
+  color: var(--text);
+}
+
+/* Topbar — tighter, more refined heading */
+.shell--coach .topbar {
+  margin-bottom: 26px;
+  align-items: flex-end;
+  border-bottom: 1px solid color-mix(in srgb, var(--border) 70%, transparent);
+  padding-bottom: 22px;
+}
+.shell--coach .titleBlock h1 {
+  font-size: clamp(26px, 2.6vw, 34px);
+  letter-spacing: -0.025em;
+  line-height: 1.08;
+}
+.shell--coach .titleBlock p {
+  font-size: 15px;
+}
+
+/* Cards — rounder, subtler border, gentle hover lift */
+.shell--coach .card {
+  border-radius: var(--radius-lg);
+  border-color: color-mix(in srgb, var(--border) 82%, transparent);
+  padding: 20px;
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.018), transparent 130px),
+    var(--surface);
+}
+.shell--coach .card:hover {
+  border-color: var(--border-strong);
+  box-shadow: var(--shadow);
+}
+.shell--coach .btn {
+  border-radius: 10px;
+}
+
+/* ---- Command palette (⌘K) — global trigger + overlay ---- */
+.cmdkTrigger {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+  margin: 0 0 14px;
+  padding: 9px 12px;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  background: var(--surface-2);
+  color: var(--text-soft);
+  font: inherit;
+  font-size: 13px;
+  cursor: pointer;
+  transition: border-color var(--dur) var(--ease), color var(--dur) var(--ease);
+}
+.cmdkTrigger:hover {
+  border-color: var(--border-strong);
+  color: var(--text-muted);
+}
+.cmdkTrigger span {
+  flex: 1;
+  text-align: left;
+}
+.cmdkTrigger kbd,
+.cmdkKbd {
+  font: inherit;
+  font-size: 11px;
+  padding: 2px 6px;
+  border: 1px solid var(--border-strong);
+  border-radius: 6px;
+  background: var(--surface-3);
+  color: var(--text-muted);
+}
+.cmdkOverlay {
+  position: fixed;
+  inset: 0;
+  z-index: 100;
+  display: flex;
+  align-items: flex-start;
+  justify-content: center;
+  padding-top: 14vh;
+  background: rgba(4, 5, 7, 0.62);
+  backdrop-filter: blur(6px);
+}
+.cmdkPanel {
+  width: min(560px, calc(100vw - 32px));
+  background: var(--surface);
+  border: 1px solid var(--border-strong);
+  border-radius: 16px;
+  box-shadow: 0 40px 80px -24px rgba(0, 0, 0, 0.72);
+  overflow: hidden;
+}
+.cmdkInputRow {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 14px 16px;
+  border-bottom: 1px solid var(--border);
+  color: var(--text-soft);
+}
+.cmdkInputRow input {
+  flex: 1;
+  background: transparent;
+  border: 0;
+  outline: none;
+  color: var(--text);
+  font: inherit;
+  font-size: 16px;
+}
+.cmdkList {
+  list-style: none;
+  margin: 0;
+  padding: 8px;
+  max-height: 50vh;
+  overflow: auto;
+  display: grid;
+  gap: 2px;
+}
+.cmdkItem {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  padding: 11px 12px;
+  border: 0;
+  border-radius: 10px;
+  background: transparent;
+  color: var(--text);
+  font: inherit;
+  font-size: 14px;
+  text-align: left;
+  cursor: pointer;
+}
+.cmdkItem span {
+  flex: 1;
+}
+.cmdkItem small {
+  color: var(--text-soft);
+  font-size: 12px;
+}
+.cmdkItem .cmdkEnter {
+  opacity: 0;
+  color: var(--text-soft);
+}
+.cmdkItem.active {
+  background: color-mix(in srgb, var(--accent) 16%, transparent);
+}
+.cmdkItem.active .cmdkEnter {
+  opacity: 1;
+}
+.cmdkEmpty {
+  padding: 22px 14px;
+  text-align: center;
+  color: var(--text-soft);
+  font-size: 14px;
+}
+
+@media (max-width: 980px) {
+  .shell--coach .main {
+    padding: 18px;
+  }
+}

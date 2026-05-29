@@ -6,6 +6,7 @@ type NavItem = {
   label: string;
   href: string;
   icon: React.ComponentType<{ size?: number }>;
+  group?: string;
 };
 
 export type ShellSession = {
@@ -20,6 +21,7 @@ export function PageShell({
   productLabel,
   brand,
   session,
+  variant,
   children,
 }: {
   nav: NavItem[];
@@ -27,10 +29,14 @@ export function PageShell({
   productLabel: string;
   brand?: WorkspaceBrand;
   session?: ShellSession;
+  variant?: "coach" | "console" | "app";
   children: React.ReactNode;
 }) {
   return (
-    <div className="shell" style={brand ? ({ "--accent": brand.accentColor } as React.CSSProperties) : undefined}>
+    <div
+      className={variant ? `shell shell--${variant}` : "shell"}
+      style={brand ? ({ "--accent": brand.accentColor } as React.CSSProperties) : undefined}
+    >
       <a className="skip-link" href="#main">
         Saltar al contenido
       </a>
