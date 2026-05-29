@@ -3,6 +3,7 @@
 import { cookies } from "next/headers";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
+import { canManageWorkspace, getConsoleSession } from "@/lib/auth/access-control";
 import { applyOnboardingPlanRecommendation, saveMemberOnboarding } from "@/lib/repositories/member-onboarding";
 
 function readText(formData: FormData, key: string) {
@@ -13,12 +14,18 @@ function readText(formData: FormData, key: string) {
 export async function saveMemberOnboardingAction(formData: FormData) {
   const workspaceId = readText(formData, "workspaceId");
   const email = (await cookies()).get("performlabs_member_email")?.value ?? "";
+  // Self-provisioning a client profile is allowed only for an authenticated
+  // workspace admin/owner (so the founder can test). Public visitors cannot
+  // enroll without a profile provisioned by payment / the coach.
+  const session = await getConsoleSession();
+  const allowProvision = Boolean(session && canManageWorkspace(session, workspaceId));
   let errorMessage = "";
 
   try {
     const result = await saveMemberOnboarding({
       workspaceId,
       email,
+      allowProvision,
       fullName: readText(formData, "fullName"),
       goal: readText(formData, "goal"),
       heightCm: readText(formData, "height"),

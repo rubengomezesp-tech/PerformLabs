@@ -67,6 +67,8 @@ export type MemberOnboardingInput = {
   hideMacros: boolean;
   notes: string;
   email?: string;
+  /** Only true for an authenticated workspace admin/owner — gates self-provision. */
+  allowProvision?: boolean;
 };
 
 export type MemberTrainingContext = {
@@ -411,6 +413,11 @@ export async function saveMemberOnboarding(input: MemberOnboardingInput) {
 
   let member = await getDefaultMemberProfile(input.workspaceId);
   if (!member) {
+    // Only an authenticated workspace admin/owner may bootstrap a client profile.
+    // Public visitors without a provisioned (paid) profile cannot self-enroll.
+    if (!input.allowProvision) {
+      throw new Error("Tu acceso aún no está activo. Tu entrenador debe darte de alta para empezar.");
+    }
     member = await ensureDefaultMemberProfile(input.workspaceId, input.fullName, input.email);
   }
 
