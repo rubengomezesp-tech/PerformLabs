@@ -1,4 +1,5 @@
 import { Apple, CheckCircle2, Droplets, MessageSquare, Plus, Repeat, ShoppingBasket, Sparkles, Utensils } from "lucide-react";
+import { MacroStrip } from "@/components/macro-strip";
 import { Topbar } from "@/components/topbar";
 import { getSelectedMemberAppBrand } from "@/lib/member-app";
 import { getMemberMealPlanForToday, getNutritionDailySummary } from "@/lib/repositories/nutrition-tracking";
@@ -20,8 +21,14 @@ export default async function MealsPage() {
     instructions: item.instructions,
     calories: item.calories,
     proteinG: item.proteinG,
+    carbsG: item.carbsG,
+    fatG: item.fatG,
   })) ?? [];
   const hasApprovedMealPlan = mealCards.length > 0;
+  const hideMacros = assignedMealPlan?.hideMacros ?? false;
+  const hasDailyTargets = Boolean(
+    assignedMealPlan && (assignedMealPlan.targetCalories || assignedMealPlan.targetProteinG || assignedMealPlan.targetCarbsG || assignedMealPlan.targetFatG),
+  );
   const mealLogBySlot = new Map(dailySummary.mealLogs.map((log) => [log.mealSlot, log]));
   const nextMeal = hasApprovedMealPlan
     ? mealCards.find((meal) => mealLogBySlot.get(meal.slot)?.status !== "done") ?? mealCards[0]
@@ -99,6 +106,32 @@ export default async function MealsPage() {
           </article>
         </div>
 
+        {hasApprovedMealPlan && !hideMacros && hasDailyTargets ? (
+          <article className="card span12 macroDailyCard">
+            <div className="sectionHeader">
+              <div>
+                <Apple color="var(--gold)" size={26} />
+                <h2>Tu objetivo de hoy</h2>
+                <p>Referencia diaria de tu plan. Tu coach la ajusta cuando lo necesites.</p>
+              </div>
+            </div>
+            <MacroStrip
+              variant="card"
+              proteinG={assignedMealPlan?.targetProteinG}
+              fatG={assignedMealPlan?.targetFatG}
+              carbsG={assignedMealPlan?.targetCarbsG}
+              calories={assignedMealPlan?.targetCalories}
+            />
+          </article>
+        ) : null}
+
+        {hasApprovedMealPlan && hideMacros ? (
+          <article className="card span12 macroHiddenNote">
+            <Apple color="var(--gold)" size={20} />
+            <p>Tu coach ha ocultado calorías y macros para que te centres en comer bien y cumplir tu plan, sin contar números.</p>
+          </article>
+        ) : null}
+
         {!mealCards.length ? (
           <article className="card span12 planPendingCard">
             <Utensils color="var(--gold)" size={30} />
@@ -118,10 +151,9 @@ export default async function MealsPage() {
             <p>{meal.instructions || "Comida preparada para cumplir tu plan de hoy."}</p>
             <div className="workoutExerciseChips">
               <span>{meal.ingredients ? `${meal.ingredients} ingredientes` : "Plan de hoy"}</span>
-              {meal.calories ? <span>{meal.calories} kcal</span> : null}
-              {meal.proteinG ? <span>{meal.proteinG} g proteína</span> : null}
               {meal.tags.slice(0, 2).map((tag) => <span key={tag}>{tag}</span>)}
             </div>
+            <MacroStrip proteinG={meal.proteinG} fatG={meal.fatG} carbsG={meal.carbsG} calories={meal.calories} hidden={hideMacros} />
             <form action={saveMealLogAction} className="mealCardActions">
               <input name="workspaceId" type="hidden" value={brand.id} />
               <input name="recipeId" type="hidden" value={meal.recipeId} />
