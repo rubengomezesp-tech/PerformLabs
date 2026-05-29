@@ -1,4 +1,5 @@
-import { Bell, CalendarClock, CheckCircle2, Mail, MessageSquare, Moon, Ruler, ShieldCheck, Smartphone, UserRound } from "lucide-react";
+import { Bell, CalendarClock, CheckCircle2, Mail, MessageSquare, Moon, Ruler, ShieldCheck, Share2, Smartphone, UserRound } from "lucide-react";
+import { ReferralCard } from "@/components/referral-card";
 import { Topbar } from "@/components/topbar";
 import { getSelectedMemberAppBrand } from "@/lib/member-app";
 
@@ -56,6 +57,17 @@ export default async function ProfilePage() {
             <span><Moon color="var(--gold)" size={17} /> Modo descanso</span>
           </div>
         </article>
+        <article className="card span12">
+          <div className="sectionHeader">
+            <div>
+              <Share2 color="var(--gold)" />
+              <h2>Invita a un amigo.</h2>
+              <p>Comparte tu enlace de {brand.name}. Quien lo use solicitará acceso y tu coach verá que llega por tu invitación.</p>
+            </div>
+          </div>
+          <ReferralCard refCode={brand.id} appName={brand.appName ?? brand.name} />
+        </article>
+
         <article className="card span12">
           <ShieldCheck color="var(--gold)" />
           <h2>Privacidad y seguridad</h2>

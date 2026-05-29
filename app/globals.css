@@ -6356,3 +6356,15 @@ input[type="color"] {
   min-height: 0;
   accent-color: var(--accent);
 }
+
+/* ---- Referral / invite card ---- */
+.referralBox {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  align-items: center;
+}
+.referralBox input {
+  flex: 1 1 260px;
+  min-width: 0;
+}
