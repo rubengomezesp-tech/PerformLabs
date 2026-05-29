@@ -1,4 +1,5 @@
-import { HelpCircle, Mail, MessageSquare, Send, ShieldCheck } from "lucide-react";
+import { BookOpen, ChevronRight, Dumbbell, HelpCircle, Mail, MessageSquare, PlayCircle, Send, ShieldCheck, Utensils } from "lucide-react";
+import Link from "next/link";
 import { Topbar } from "@/components/topbar";
 import { getSelectedMemberAppBrand } from "@/lib/member-app";
 import { listWorkspaceContentPages } from "@/lib/repositories/member-experience";
@@ -14,6 +15,12 @@ export default async function SupportPage() {
     listSupportConversations(brand.id),
   ]);
   const supportPage = pages.find((page) => page.slug === "soporte");
+  const guides = [
+    { icon: BookOpen, title: "Guía inicial", text: "Empieza por aquí" },
+    { icon: PlayCircle, title: "Cómo usar la app", text: "Consejos rápidos" },
+    { icon: Utensils, title: "Nutrición", text: "Guías y consejos" },
+    { icon: Dumbbell, title: "Entrenamiento", text: "Guías y consejos" },
+  ];
 
   return (
     <>
@@ -78,11 +85,36 @@ export default async function SupportPage() {
           </ul>
         </article>
 
+        <article className="card span12 supportGuidesCard">
+          <div className="sectionHeader">
+            <div>
+              <BookOpen color="var(--accent)" />
+              <h2>Guías.</h2>
+              <p>Lo esencial para sacarle partido a tu plan y a la app.</p>
+            </div>
+          </div>
+          <div className="supportGuideList">
+            {guides.map((guide) => {
+              const Icon = guide.icon;
+              return (
+                <Link className="supportGuide" href="/app/guides" key={guide.title}>
+                  <span className="supportGuideIcon"><Icon size={18} /></span>
+                  <span>
+                    <strong>{guide.title}</strong>
+                    <small>{guide.text}</small>
+                  </span>
+                  <ChevronRight size={18} />
+                </Link>
+              );
+            })}
+          </div>
+        </article>
+
         <article className="card span12">
           <div className="sectionHeader">
             <div>
-              <MessageSquare color="var(--gold)" />
-              <h2>Conversaciones recientes.</h2>
+              <MessageSquare color="var(--accent)" />
+              <h2>Mensajes del equipo.</h2>
               <p>Todo queda ordenado dentro de la app, separado de WhatsApp y mensajes sueltos.</p>
             </div>
             <span className="tag">{conversations.length}</span>

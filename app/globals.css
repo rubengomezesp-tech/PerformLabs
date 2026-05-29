@@ -930,10 +930,12 @@ a.card:hover {
 
 .landingHero h1 {
   margin: 14px 0 18px;
-  max-width: 880px;
-  font-size: clamp(46px, 7.2vw, 92px);
-  line-height: 0.96;
-  letter-spacing: -0.035em;
+  max-width: 920px;
+  font-family: var(--font-sans, "Manrope", system-ui, sans-serif);
+  font-weight: 800;
+  font-size: clamp(48px, 7.6vw, 100px);
+  line-height: 0.98;
+  letter-spacing: -0.03em;
   text-wrap: balance;
 }
 
@@ -7538,4 +7540,130 @@ a.diaryEntryTitle:hover {
   gap: 6px;
   color: var(--text-muted);
   font-size: 13px;
+}
+
+/* ---- Member mobile header (☰ + título + 🔔) + drawer ---- */
+.memberMobileHeader {
+  display: none;
+}
+@media (max-width: 980px) {
+  .memberMobileHeader {
+    position: sticky;
+    top: 0;
+    z-index: 21;
+    display: grid;
+    grid-template-columns: 40px 1fr 40px;
+    align-items: center;
+    gap: 8px;
+    padding: calc(12px + env(safe-area-inset-top, 0px)) 14px 12px;
+    background: rgba(8, 9, 10, 0.92);
+    backdrop-filter: blur(12px);
+    border-bottom: 1px solid var(--line);
+  }
+}
+.memberHeaderBtn {
+  display: grid;
+  place-items: center;
+  width: 40px;
+  height: 40px;
+  border-radius: 12px;
+  border: 0;
+  background: transparent;
+  color: var(--text);
+  cursor: pointer;
+  text-decoration: none;
+}
+.memberHeaderBtn:hover {
+  background: var(--surface-2, var(--surface));
+}
+.memberHeaderTitle {
+  text-align: center;
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--text);
+}
+.memberDrawer {
+  position: fixed;
+  inset: 0;
+  z-index: 40;
+}
+.memberDrawerBackdrop {
+  position: absolute;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.5);
+  border: 0;
+  cursor: pointer;
+}
+.memberDrawerPanel {
+  position: absolute;
+  top: 0;
+  left: 0;
+  bottom: 0;
+  width: min(82vw, 320px);
+  background: #0c0d0f;
+  border-right: 1px solid var(--line);
+  padding: calc(16px + env(safe-area-inset-top, 0px)) 12px calc(16px + env(safe-area-inset-bottom, 0px));
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  overflow-y: auto;
+}
+.memberDrawerHead {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 8px;
+}
+.memberDrawerItem {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px;
+  border-radius: 12px;
+  color: var(--text-muted);
+  text-decoration: none;
+  font-weight: 600;
+  font-size: 15px;
+}
+.memberDrawerItem.active {
+  background: color-mix(in srgb, var(--accent) 16%, transparent);
+  color: var(--accent);
+}
+
+/* ---- Soporte guías ---- */
+.supportGuideList {
+  display: grid;
+  gap: 8px;
+}
+.supportGuide {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px;
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  background: var(--surface);
+  color: inherit;
+  text-decoration: none;
+}
+.supportGuide:hover {
+  border-color: color-mix(in srgb, var(--accent) 45%, var(--border));
+}
+.supportGuideIcon {
+  display: grid;
+  place-items: center;
+  width: 38px;
+  height: 38px;
+  border-radius: 10px;
+  border: 1px solid var(--border-strong);
+  color: var(--accent);
+  flex-shrink: 0;
+}
+.supportGuide span:nth-child(2) {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+}
+.supportGuide small {
+  color: var(--text-muted);
 }
