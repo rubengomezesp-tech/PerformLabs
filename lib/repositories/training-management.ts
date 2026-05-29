@@ -1,4 +1,5 @@
 import { exerciseLibrary, workouts } from "@/lib/data";
+import { baseExerciseSeed } from "@/lib/domain/base-exercise-seed";
 import { buildPeriodizedWorkoutPlan, type ExperienceLevel, type TrainingLocation, type WorkoutGoal } from "@/lib/domain/workout-engine";
 import { getSupabaseServiceEnv } from "@/lib/supabase/env";
 import { createServiceSupabaseClient } from "@/lib/supabase/server";
@@ -626,6 +627,55 @@ export async function createManagedExercise(input: ExerciseInput) {
   if (error) {
     throw new Error(`No se pudo crear el ejercicio: ${error.message}`);
   }
+}
+
+/**
+ * Loads the shared base exercise library (~85 Spanish exercises) into the
+ * `exercises` table as base library (workspace_id null, is_base_library true).
+ * Idempotent: only inserts the slugs that are missing. Lets the coach skip
+ * running SQL by hand — one click in /coach/exercises does it.
+ */
+export async function seedBaseExerciseLibrary(): Promise<{ inserted: number; total: number }> {
+  const env = getSupabaseServiceEnv();
+  if (!env.ok) {
+    throw new Error(`No conectado a la base de datos (falta ${env.missing.join(", ")}). No se puede cargar la librería base.`);
+  }
+
+  const supabase = createServiceSupabaseClient();
+  const existing = await supabase
+    .from("exercises")
+    .select("slug")
+    .is("workspace_id", null)
+    .eq("is_base_library", true);
+
+  if (existing.error) {
+    throw new Error(`No se pudo leer la librería actual: ${existing.error.message}`);
+  }
+
+  const existingSlugs = new Set((existing.data ?? []).map((row) => row.slug));
+  const missing = baseExerciseSeed.filter((exercise) => !existingSlugs.has(exercise.slug));
+
+  if (!missing.length) {
+    return { inserted: 0, total: baseExerciseSeed.length };
+  }
+
+  const payload = missing.map((exercise) => ({
+    workspace_id: null,
+    name: exercise.name,
+    slug: exercise.slug,
+    muscle_groups: exercise.muscles,
+    equipment: exercise.equipment,
+    locations: exercise.locations,
+    difficulty: exercise.difficulty,
+    is_base_library: true,
+  }));
+
+  const { error } = await supabase.from("exercises").insert(payload);
+  if (error) {
+    throw new Error(`No se pudo cargar la librería base: ${error.message}`);
+  }
+
+  return { inserted: missing.length, total: baseExerciseSeed.length };
 }
 
 export type WorkoutTemplateGroupSummary = {

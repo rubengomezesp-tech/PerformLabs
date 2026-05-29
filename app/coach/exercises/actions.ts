@@ -2,7 +2,7 @@
 
 import { revalidatePath } from "next/cache";
 import { requireWorkspaceMutationAccess } from "@/lib/auth/access-control";
-import { createManagedExercise } from "@/lib/repositories/training-management";
+import { createManagedExercise, seedBaseExerciseLibrary } from "@/lib/repositories/training-management";
 import { recordSecurityAuditEvent } from "@/lib/repositories/security-management";
 
 function readText(formData: FormData, key: string) {
@@ -32,6 +32,24 @@ export async function createCoachExerciseAction(formData: FormData) {
     action: "coach.exercise.created",
     entityType: "exercise",
     metadata: { name: readText(formData, "name") },
+  });
+
+  revalidatePath("/coach/exercises");
+  revalidatePath("/coach/programs");
+}
+
+export async function seedBaseExerciseLibraryAction(formData: FormData) {
+  const workspaceId = readText(formData, "workspaceId");
+  const session = await requireWorkspaceMutationAccess(workspaceId);
+
+  const result = await seedBaseExerciseLibrary();
+
+  await recordSecurityAuditEvent({
+    workspaceId,
+    actorUserId: session.mode === "authenticated" ? session.user.id : null,
+    action: "coach.exercise_library.seeded",
+    entityType: "exercise",
+    metadata: { inserted: result.inserted, total: result.total },
   });
 
   revalidatePath("/coach/exercises");

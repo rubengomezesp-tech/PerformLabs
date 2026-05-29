@@ -1,9 +1,10 @@
-import { Dumbbell, ListChecks, Plus } from "lucide-react";
+import { Dumbbell, ListChecks, Plus, Library } from "lucide-react";
 import { Dialog } from "@/components/dialog";
 import { Topbar } from "@/components/topbar";
 import { getSelectedMemberAppBrand } from "@/lib/member-app";
 import { listManagedExercises } from "@/lib/repositories/training-management";
-import { createCoachExerciseAction } from "./actions";
+import { baseExerciseSeed } from "@/lib/domain/base-exercise-seed";
+import { createCoachExerciseAction, seedBaseExerciseLibraryAction } from "./actions";
 
 export const dynamic = "force-dynamic";
 
@@ -13,6 +14,8 @@ export default async function CoachExercisesPage() {
   const brand = await getSelectedMemberAppBrand();
   const exercises = await listManagedExercises(brand.id);
   const ownCount = exercises.filter((exercise) => !exercise.isBaseLibrary).length;
+  const baseLoaded = exercises.filter((exercise) => exercise.isBaseLibrary).length;
+  const baseMissing = Math.max(0, baseExerciseSeed.length - baseLoaded);
 
   return (
     <>
@@ -21,6 +24,13 @@ export default async function CoachExercisesPage() {
         title="Biblioteca de ejercicios."
         text="Los ejercicios que aparecen al montar programas. Usa los base o crea los tuyos con su grupo muscular y vídeo."
         actions={
+          <>
+          {baseMissing > 0 ? (
+            <form action={seedBaseExerciseLibraryAction}>
+              <input name="workspaceId" type="hidden" value={brand.id} />
+              <button className="btn" type="submit">Cargar librería base ({baseMissing}) <Library size={18} /></button>
+            </form>
+          ) : null}
           <Dialog
             triggerClassName="btn primary"
             trigger={<>Nuevo ejercicio <Plus size={18} /></>}
@@ -71,6 +81,7 @@ export default async function CoachExercisesPage() {
               <button className="btn primary spanFull" type="submit">Crear ejercicio</button>
             </form>
           </Dialog>
+          </>
         }
       />
       <section className="grid">
@@ -79,7 +90,10 @@ export default async function CoachExercisesPage() {
             <div>
               <ListChecks color="var(--accent)" />
               <h2>Tu librería.</h2>
-              <p>{exercises.length} ejercicios disponibles · {ownCount} propios · el resto, base de PerformLabs.</p>
+              <p>
+                {exercises.length} ejercicios disponibles · {ownCount} propios · {baseLoaded} base de PerformLabs.
+                {baseMissing > 0 ? ` Faltan ${baseMissing} base: pulsa “Cargar librería base”.` : ""}
+              </p>
             </div>
             <span className="tag">{exercises.length}</span>
           </div>
@@ -103,7 +117,7 @@ export default async function CoachExercisesPage() {
             <div className="inlineEmpty">
               <Dumbbell color="var(--accent)" />
               <strong>Tu librería está vacía.</strong>
-              <p>Carga la librería base (scripts/sql/base-exercise-library.sql) o crea ejercicios con “Nuevo ejercicio”. Sin ejercicios, los programas se generan sin movimientos.</p>
+              <p>Pulsa “Cargar librería base” para añadir ~85 ejercicios listos, o crea los tuyos con “Nuevo ejercicio”. Sin ejercicios, los programas se generan sin movimientos.</p>
             </div>
           )}
         </article>

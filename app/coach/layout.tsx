@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { CoachDataHealthBanner } from "@/components/coach-data-health-banner";
 import { EntitlementGate } from "@/components/entitlement-gate";
 import { PageShell } from "@/components/page-shell";
 import { formatRole, requireWorkspaceMutationAccess } from "@/lib/auth/access-control";
@@ -37,6 +38,7 @@ export default async function CoachConsoleLayout({
         roleLabel: formatRole(session.topRole),
       }}
     >
+      <CoachDataHealthBanner brandId={brand.id} />
       <EntitlementGate brand={brand} entitlement={entitlement} module="coach_console">
         {children}
       </EntitlementGate>
