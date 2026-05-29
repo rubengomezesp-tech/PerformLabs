@@ -88,7 +88,7 @@ export default async function CoachProgramsPage({ searchParams }: CoachProgramsP
   const activeDaysPerWeek = requestedDays ?? templateGroups.find((group) => group.count)?.daysPerWeek ?? 4;
   const activeMonth = parseMonthParam(params?.month);
   const [templates, exercises] = await Promise.all([
-    listManagedWorkoutTemplates(brand.id, { daysPerWeek: activeDaysPerWeek }),
+    listManagedWorkoutTemplates(brand.id),
     listManagedExercises(brand.id),
   ]);
   const exerciseOptions = exercises.slice(0, 80);
@@ -305,64 +305,34 @@ export default async function CoachProgramsPage({ searchParams }: CoachProgramsP
         </details>
 
         <article className="card span12 coachProgramCommand" id="editar-rutinas">
-          <div>
-            <span className="eyebrow">Editor de rutinas</span>
-            <h2>Elige lo que quieres editar.</h2>
-            <p>Selecciona cuántos días entrena el cliente y el mes del bloque. Después abre una semana y ajusta ejercicios, series, reps, tempo, descanso, técnica y notas.</p>
-          </div>
-          <div className="coachProgramControls">
-            <nav className="coachProgramTabs" aria-label="Grupos de entrenamiento">
-              {templateGroups.map((group) => (
-                <Link
-                  className={group.daysPerWeek === activeDaysPerWeek ? "tag isActive" : "tag"}
-                  href={`/coach/programs?days=${group.daysPerWeek}&month=${activeMonth}`}
-                  key={group.daysPerWeek}
-                >
-                  {group.daysPerWeek} días · {group.count}
-                </Link>
-              ))}
-            </nav>
-            <nav className="coachProgramTabs" aria-label="Mes del bloque">
-              {[1, 2, 3].map((month) => (
-                <Link
-                  className={month === activeMonth ? "tag isActive" : "tag"}
-                  href={`/coach/programs?days=${activeDaysPerWeek}&month=${month}`}
-                  key={month}
-                >
-                  Mes {month}
-                </Link>
-              ))}
-            </nav>
+          <div className="sectionHeader">
+            <div>
+              <Dumbbell color="var(--accent)" />
+              <h2>Tus rutinas.</h2>
+              <p>Cada programa son 12 semanas (3 meses). Abre un mes y una semana para ajustar ejercicios, series, reps, descanso y notas. Publícalo cuando esté listo y asígnalo en Miembros.</p>
+            </div>
           </div>
           <div className="coachProgramStats">
-            <span>Rutinas<strong>{activeGroup.templates.length}</strong></span>
+            <span>Rutinas<strong>{templates.length}</strong></span>
             <span>Sesiones<strong>{activeSessions}</strong></span>
             <span>Ejercicios<strong>{activeExercises}</strong></span>
           </div>
         </article>
 
         <div className="span12 coachProgramGroups">
-          {[activeGroup].map((group) => (
-            <details className="card workoutMenuPanel coachProgramGroup" key={group.daysPerWeek} open>
-              <summary>
-                <span>
-                  <small>Rutinas disponibles</small>
-                  Clientes que entrenan {group.daysPerWeek} dias/semana
-                </span>
-                  <strong>Mes {activeMonth}</strong>
-              </summary>
-              <div className="coachProgramGroupGrid">
-                {group.templates.map((template) => {
-                  const visibleMonthGroups = groupDaysByMonth(template.days).filter((monthGroup) => monthGroup.month === activeMonth);
-                  const visibleSessions = visibleMonthGroups.reduce((total, monthGroup) => total + monthGroup.days.length, 0);
+          <div className="coachProgramGroupGrid">
+            {templates.map((template) => {
+              const visibleMonthGroups = groupDaysByMonth(template.days);
+              const visibleSessions = template.days.length;
+              const totalExercises = template.days.reduce((total, day) => total + day.exercises.length, 0);
 
-                  return (
+              return (
           <article className="card motionCard" key={template.id}>
             <div className="sectionHeader">
               <div>
                 <Dumbbell color="var(--gold)" />
-                <h2>Plan {template.daysPerWeek} días/semana</h2>
-                <p>{template.name} · {monthLabels[activeMonth].title}</p>
+                <h2>{template.name}</h2>
+                <p>Plan {template.daysPerWeek} días/semana · {template.goal || "objetivo libre"}</p>
               </div>
               <div className="statusControls">
                 <span className="tag">{statusLabels[template.status] ?? template.status}</span>
@@ -394,13 +364,13 @@ export default async function CoachProgramsPage({ searchParams }: CoachProgramsP
 
             <ul className="list">
               <li className="row">Disponibilidad <strong>{template.daysPerWeek} días/semana</strong></li>
-              <li className="row">Mes visible <strong>Mes {activeMonth}</strong></li>
-              <li className="row">Sesiones del mes <strong>{visibleSessions}</strong></li>
+              <li className="row">Programa <strong>12 semanas · {visibleSessions} sesiones</strong></li>
+              <li className="row">Ejercicios <strong>{totalExercises}</strong></li>
             </ul>
 
             <div className="taskList monthlyRoutineEditor" style={{ marginTop: 12 }}>
               {visibleMonthGroups.map((monthGroup) => (
-                <details className="monthRoutinePanel coachMonthPanel" key={`${template.id}-${monthGroup.month}`} open>
+                <details className="monthRoutinePanel coachMonthPanel" key={`${template.id}-${monthGroup.month}`} open={monthGroup.month === 1}>
                   <summary>
                     <span>
                       <small>{monthGroup.weeks}</small>
@@ -580,12 +550,10 @@ export default async function CoachProgramsPage({ searchParams }: CoachProgramsP
           </article>
                   );
                 })}
-                {!group.templates.length ? (
-                  <p className="muted coachProgramEmpty">Todavia no hay rutinas para {group.daysPerWeek} dias/semana.</p>
+                {!templates.length ? (
+                  <p className="muted coachProgramEmpty">Todavía no hay rutinas. Usa “Generar 12 semanas” o una plantilla base de arriba.</p>
                 ) : null}
               </div>
-            </details>
-          ))}
         </div>
 
         {templates.length === 0 ? (
