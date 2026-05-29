@@ -6368,3 +6368,35 @@ input[type="color"] {
   flex: 1 1 260px;
   min-width: 0;
 }
+
+/* ---- Collapsible nav folders (sidebar) ---- */
+.navFolder {
+  display: block;
+}
+.navFolder > summary {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 9px 12px;
+  border-radius: 10px;
+  cursor: pointer;
+  list-style: none;
+  color: var(--text-muted);
+  font-weight: 600;
+}
+.navFolder > summary::-webkit-details-marker {
+  display: none;
+}
+.navFolder > summary::marker {
+  content: "";
+}
+.navFolder > summary:hover {
+  color: var(--text);
+}
+.navFolderItems {
+  display: grid;
+  gap: 2px;
+  margin: 2px 0 6px 16px;
+  padding-left: 8px;
+  border-left: 1px solid var(--border);
+}

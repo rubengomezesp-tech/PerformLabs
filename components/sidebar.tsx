@@ -8,9 +8,10 @@ import type { WorkspaceBrand } from "@/lib/repositories/workspaces";
 
 type NavItem = {
   label: string;
-  href: string;
+  href?: string;
   icon: React.ComponentType<{ size?: number }>;
   group?: string;
+  children?: NavItem[];
 };
 
 export function Sidebar({
@@ -47,16 +48,46 @@ export function Sidebar({
           <strong>{displayBrand.name}</strong>
         </span>
       </Link>
-      <CommandPalette items={nav.map((item) => ({ label: item.label, href: item.href, group: item.group }))} />
+      <CommandPalette
+        items={nav.flatMap((item) =>
+          item.children?.length
+            ? item.children.filter((child) => child.href).map((child) => ({ label: child.label, href: child.href as string, group: item.label }))
+            : item.href
+              ? [{ label: item.label, href: item.href, group: item.group }]
+              : [],
+        )}
+      />
       <nav className="nav">
         {nav.map((item, index) => {
           const Icon = item.icon;
-          const showGroup = Boolean(item.group) && item.group !== nav[index - 1]?.group;
 
+          if (item.children?.length) {
+            return (
+              <details className="navFolder" key={item.label} open>
+                <summary>
+                  <Icon size={18} />
+                  {item.label}
+                </summary>
+                <div className="navFolderItems">
+                  {item.children.map((child) => {
+                    const ChildIcon = child.icon;
+                    return (
+                      <NavLink href={child.href ?? "#"} key={child.href}>
+                        <ChildIcon size={16} />
+                        {child.label}
+                      </NavLink>
+                    );
+                  })}
+                </div>
+              </details>
+            );
+          }
+
+          const showGroup = Boolean(item.group) && item.group !== nav[index - 1]?.group;
           return (
             <Fragment key={item.href}>
               {showGroup ? <p className="navGroupLabel">{item.group}</p> : null}
-              <NavLink href={item.href}>
+              <NavLink href={item.href ?? "#"}>
                 <Icon size={18} />
                 {item.label}
               </NavLink>
