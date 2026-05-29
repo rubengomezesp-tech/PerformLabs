@@ -166,6 +166,110 @@ export async function setMemberHideMacros(workspaceId: string, hide: boolean) {
   }
 }
 
+export type FoodDiaryEntry = {
+  id: string;
+  name: string;
+  source: string;
+  protein: number | null;
+  fat: number | null;
+  carbs: number | null;
+  calories: number | null;
+};
+
+/** Free-form food diary entries (Smart Add / manual) for a given day. */
+export async function listFoodDiaryEntries(workspaceId?: string, dateInput?: string): Promise<FoodDiaryEntry[]> {
+  const env = getSupabaseServiceEnv();
+  if (!env.ok || !isUuid(workspaceId)) return [];
+
+  const date = dateInput && /^\d{4}-\d{2}-\d{2}$/.test(dateInput) ? dateInput : todayIso();
+  const supabase = createServiceSupabaseClient();
+  const memberProfileId = await getDefaultMemberProfileId(workspaceId);
+  if (!memberProfileId) return [];
+
+  const { data, error } = await (supabase as any)
+    .from("food_diary_entries")
+    .select("id,name,source,protein_g,fat_g,carbs_g,calories")
+    .eq("member_profile_id", memberProfileId)
+    .eq("logged_on", date)
+    .order("created_at", { ascending: true });
+
+  if (error || !data) return [];
+
+  return data.map((row: any) => ({
+    id: row.id,
+    name: row.name,
+    source: row.source ?? "manual",
+    protein: row.protein_g === null || row.protein_g === undefined ? null : Number(row.protein_g),
+    fat: row.fat_g === null || row.fat_g === undefined ? null : Number(row.fat_g),
+    carbs: row.carbs_g === null || row.carbs_g === undefined ? null : Number(row.carbs_g),
+    calories: row.calories === null || row.calories === undefined ? null : Number(row.calories),
+  }));
+}
+
+export async function addFoodDiaryEntry(input: {
+  workspaceId: string;
+  name: string;
+  protein: number;
+  fat: number;
+  carbs: number;
+  calories: number;
+  source?: string;
+  date?: string;
+}) {
+  if (!isUuid(input.workspaceId)) {
+    throw new Error("No se pudo identificar la app del cliente.");
+  }
+  const name = input.name.trim();
+  if (!name) {
+    throw new Error("Falta el nombre de la comida.");
+  }
+
+  const supabase = createServiceSupabaseClient();
+  const memberProfileId = await getDefaultMemberProfileId(input.workspaceId);
+  if (!memberProfileId) {
+    throw new Error("Todavía no hay perfil de cliente.");
+  }
+
+  const date = input.date && /^\d{4}-\d{2}-\d{2}$/.test(input.date) ? input.date : todayIso();
+  const { error } = await (supabase as any).from("food_diary_entries").insert({
+    workspace_id: input.workspaceId,
+    member_profile_id: memberProfileId,
+    logged_on: date,
+    name,
+    source: input.source ?? "manual",
+    protein_g: input.protein,
+    fat_g: input.fat,
+    carbs_g: input.carbs,
+    calories: input.calories,
+  });
+
+  if (error) {
+    throw new Error(`No se pudo guardar la comida: ${error.message}`);
+  }
+}
+
+export async function deleteFoodDiaryEntry(workspaceId: string, entryId: string) {
+  if (!isUuid(workspaceId) || !isUuid(entryId)) {
+    throw new Error("Entrada no válida.");
+  }
+
+  const supabase = createServiceSupabaseClient();
+  const memberProfileId = await getDefaultMemberProfileId(workspaceId);
+  if (!memberProfileId) {
+    throw new Error("Todavía no hay perfil de cliente.");
+  }
+
+  const { error } = await (supabase as any)
+    .from("food_diary_entries")
+    .delete()
+    .eq("id", entryId)
+    .eq("member_profile_id", memberProfileId);
+
+  if (error) {
+    throw new Error(`No se pudo eliminar la comida: ${error.message}`);
+  }
+}
+
 export async function getMemberMealPlanForToday(workspaceId?: string): Promise<MemberMealPlanForToday | null> {
   const env = getSupabaseServiceEnv();
   if (!env.ok || !isUuid(workspaceId)) return null;

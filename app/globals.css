@@ -7123,3 +7123,16 @@ a.diaryEntryTitle:hover {
     grid-template-columns: 1fr;
   }
 }
+
+/* ---- Smart Add (AI food logging) ---- */
+.smartAddForm {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.smartAddForm textarea {
+  width: 100%;
+}
+.smartAddForm .btn {
+  align-self: flex-start;
+}
