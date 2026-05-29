@@ -80,6 +80,9 @@ export type MemberTrainingContext = {
     currentWeek: number;
     currentMonth: number;
     daysPerWeek: number | null;
+    goal: string;
+    notes: string;
+    nextReviewOn: string;
   } | null;
   activeTemplate: ManagedWorkoutTemplate | null;
   assignedDays: MemberAssignedWorkoutDay[];
@@ -812,7 +815,7 @@ export async function getMemberTrainingContext(workspaceId?: string): Promise<Me
       .maybeSingle(),
     supabase
       .from("assigned_workout_plans")
-      .select("id,name,source_template_id,starts_on,ends_on,version,current_week,current_month,days_per_week")
+      .select("id,name,source_template_id,starts_on,ends_on,version,current_week,current_month,days_per_week,assignment_goal,assignment_notes,next_review_on")
       .eq("workspace_id", workspaceId)
       .eq("member_profile_id", member.id)
       .eq("status", "active")
@@ -914,6 +917,9 @@ export async function getMemberTrainingContext(workspaceId?: string): Promise<Me
             currentWeek: assignment.data.current_week,
             currentMonth: assignment.data.current_month,
             daysPerWeek: assignment.data.days_per_week,
+            goal: assignment.data.assignment_goal ?? "",
+            notes: assignment.data.assignment_notes ?? "",
+            nextReviewOn: assignment.data.next_review_on ?? "",
           }
         : null,
     activeTemplate,

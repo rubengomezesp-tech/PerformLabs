@@ -4815,6 +4815,17 @@ input[type="color"] {
   padding-right: 4px;
 }
 
+.statusControls {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.statusControls form {
+  margin: 0;
+}
+
 .tagCloud {
   display: flex;
   flex-wrap: wrap;

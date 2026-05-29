@@ -4,7 +4,7 @@ import { revalidatePath } from "next/cache";
 import { requireWorkspaceMutationAccess } from "@/lib/auth/access-control";
 import type { ExperienceLevel, TrainingLocation, WorkoutGoal } from "@/lib/domain/workout-engine";
 import { recordSecurityAuditEvent } from "@/lib/repositories/security-management";
-import { createManagedWorkoutBlueprint, createManagedWorkoutDay, createManagedWorkoutExercise, createManagedWorkoutTemplate, createQuarterlyModuleLibrary, updateManagedWorkoutExercise } from "@/lib/repositories/training-management";
+import { createManagedWorkoutBlueprint, createManagedWorkoutDay, createManagedWorkoutExercise, createManagedWorkoutTemplate, createQuarterlyModuleLibrary, setWorkoutTemplateStatus, updateManagedWorkoutExercise } from "@/lib/repositories/training-management";
 
 function readText(formData: FormData, key: string) {
   const value = formData.get(key);
@@ -166,6 +166,28 @@ export async function updateCoachWorkoutExerciseAction(formData: FormData) {
     entityType: "workout_template_exercise",
     entityId: readText(formData, "templateExerciseId") || null,
     metadata: { exerciseId: readText(formData, "exerciseId") },
+  });
+
+  revalidatePath("/coach/programs");
+  revalidatePath("/app/workouts");
+}
+
+export async function setCoachWorkoutTemplateStatusAction(formData: FormData) {
+  const workspaceId = readText(formData, "workspaceId");
+  const templateId = readText(formData, "templateId");
+  const next = readText(formData, "status");
+  const status = next === "active" ? "active" : next === "archived" ? "archived" : "draft";
+  const session = await requireWorkspaceMutationAccess(workspaceId);
+
+  await setWorkoutTemplateStatus(templateId, status, workspaceId);
+
+  await recordSecurityAuditEvent({
+    workspaceId,
+    actorUserId: session.mode === "authenticated" ? session.user.id : null,
+    action: "coach.workout_template.status_changed",
+    entityType: "workout_template",
+    entityId: templateId || null,
+    metadata: { status },
   });
 
   revalidatePath("/coach/programs");
