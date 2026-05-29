@@ -30,6 +30,7 @@ export default async function CoachConsoleLayout({
       nav={coachNav}
       active="/coach"
       productLabel="Coach console"
+      variant="coach"
       session={{
         mode: session.mode,
         email: session.user.email,
