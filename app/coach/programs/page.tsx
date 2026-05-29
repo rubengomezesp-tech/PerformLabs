@@ -374,7 +374,7 @@ export default async function CoachProgramsPage({ searchParams }: CoachProgramsP
                   <summary>
                     <span>
                       <small>{monthGroup.weeks}</small>
-                      Editando {monthGroup.title}
+                      {monthGroup.title}
                     </span>
                     <b>{monthGroup.days.length} sesiones</b>
                   </summary>
@@ -384,65 +384,40 @@ export default async function CoachProgramsPage({ searchParams }: CoachProgramsP
                       <summary>
                         <span>
                           <small>Semana {weekGroup.weekNumber}</small>
-                          Abrir {weekGroup.days.length} dias de entrenamiento
+                          Semana {weekGroup.weekNumber} · {weekGroup.days.length} día(s)
                         </span>
                         <b>{weekGroup.days.reduce((total, day) => total + day.exercises.length, 0)} ejercicios</b>
                       </summary>
                       {weekGroup.days.map((day) => (
                         <article className="taskItem workoutDayItem" key={day.id}>
                           <div>
-                            <strong>Día {day.dayNumber} · Semana {day.weekNumber}</strong>
-                            <p>{day.title}</p>
-                            {day.notes ? <p>{day.notes}</p> : null}
+                            <strong>Día {day.dayNumber} · {day.title}</strong>
+                            {day.notes ? <p className="muted">{day.notes}</p> : null}
                             {day.exercises.length ? (
                               <ul className="list workoutExerciseList">
                                 {day.exercises.map((exercise) => (
-                                  <li className="workoutExerciseEditor" key={exercise.id}>
-                                    <details>
-                                      <summary>
-                                        <span>
-                                          <strong>{exercise.exerciseName}</strong>
-                                          <small>
-                                            {exercise.tempo ? `Tempo ${exercise.tempo}` : "Tempo libre"}
-                                            {exercise.targetRir ? ` · RIR ${exercise.targetRir}` : ""}
-                                            {exercise.intensityTechnique ? ` · ${exercise.intensityTechnique}` : ""}
-                                          </small>
-                                        </span>
-                                        <b>{exercise.sets ?? "-"}x{exercise.reps || "?"} · {exercise.restSeconds ?? "-"}s</b>
-                                      </summary>
-                                      {exercise.notes ? <p>{exercise.notes}</p> : null}
-                                      <form action={updateCoachWorkoutExerciseAction} className="workoutExerciseForm editWorkoutExerciseForm">
+                                  <li className="row" key={exercise.id}>
+                                    <div>
+                                      <strong>{exercise.exerciseName}</strong>
+                                      <p>{exercise.sets ?? "-"}x{exercise.reps || "?"} · {exercise.restSeconds ?? "-"}s{exercise.tempo ? ` · tempo ${exercise.tempo}` : ""}{exercise.targetRir ? ` · RIR ${exercise.targetRir}` : ""}{exercise.intensityTechnique ? ` · ${exercise.intensityTechnique}` : ""}</p>
+                                    </div>
+                                    <Dialog
+                                      triggerClassName="btn ghost sm"
+                                      trigger={<>Editar</>}
+                                      title={`Editar · ${exercise.exerciseName}`}
+                                      description="Ajusta la prescripción de este ejercicio."
+                                    >
+                                      <form action={updateCoachWorkoutExerciseAction} className="editForm">
                                         <input name="workspaceId" type="hidden" value={brand.id} />
                                         <input name="templateExerciseId" type="hidden" value={exercise.id} />
                                         <input name="dayId" type="hidden" value={day.id} />
                                         <input name="exerciseId" type="hidden" value={exercise.exerciseId} />
-                                        <div className="lockedExerciseField">
-                                          <span>Ejercicio</span>
-                                          <strong>{exercise.exerciseName}</strong>
-                                          <small>Prescripcion editable. Para cambiar el movimiento, anade una sustitucion o usa biblioteca.</small>
-                                        </div>
-                                        <label>
-                                          Series
-                                          <input name="sets" defaultValue={String(exercise.sets ?? 3)} min="1" type="number" />
-                                        </label>
-                                        <label>
-                                          Reps
-                                          <input name="reps" defaultValue={exercise.reps || "8-12"} />
-                                        </label>
-                                        <label>
-                                          Tempo
-                                          <input name="tempo" defaultValue={exercise.tempo || "3-1-1"} placeholder="3-1-1" />
-                                        </label>
-                                        <label>
-                                          Descanso
-                                          <input name="restSeconds" defaultValue={String(exercise.restSeconds ?? 90)} min="0" type="number" />
-                                        </label>
-                                        <label>
-                                          RIR objetivo
-                                          <input name="targetRir" defaultValue={exercise.targetRir || "2"} placeholder="0-3" />
-                                        </label>
-                                        <label>
-                                          Técnica
+                                        <label>Series<input name="sets" defaultValue={String(exercise.sets ?? 3)} min="1" type="number" /></label>
+                                        <label>Reps<input name="reps" defaultValue={exercise.reps || "8-12"} /></label>
+                                        <label>Tempo<input name="tempo" defaultValue={exercise.tempo || "3-1-1"} placeholder="3-1-1" /></label>
+                                        <label>Descanso (s)<input name="restSeconds" defaultValue={String(exercise.restSeconds ?? 90)} min="0" type="number" /></label>
+                                        <label>RIR objetivo<input name="targetRir" defaultValue={exercise.targetRir || "2"} placeholder="0-3" /></label>
+                                        <label>Técnica
                                           <select name="intensityTechnique" defaultValue={exercise.intensityTechnique}>
                                             <option value="">Sin técnica avanzada</option>
                                             <option value="Dropset">Dropset</option>
@@ -453,13 +428,10 @@ export default async function CoachProgramsPage({ searchParams }: CoachProgramsP
                                             <option value="AMRAP controlado">AMRAP controlado</option>
                                           </select>
                                         </label>
-                                        <label className="spanFull">
-                                          Notas
-                                          <input name="notes" defaultValue={exercise.notes} placeholder="Dropset, sustitución, técnica, molestias..." />
-                                        </label>
-                                        <button className="btn primary" type="submit">Guardar cambios</button>
+                                        <label className="spanFull">Notas<input name="notes" defaultValue={exercise.notes} placeholder="Dropset, sustitución, técnica, molestias..." /></label>
+                                        <button className="btn primary spanFull" type="submit">Guardar cambios</button>
                                       </form>
-                                    </details>
+                                    </Dialog>
                                   </li>
                                 ))}
                               </ul>
@@ -467,56 +439,43 @@ export default async function CoachProgramsPage({ searchParams }: CoachProgramsP
                               <p className="muted">Todavia no hay ejercicios en este dia.</p>
                             )}
 
-                            <form action={createCoachWorkoutExerciseAction} className="workoutExerciseForm">
-                              <input name="workspaceId" type="hidden" value={brand.id} />
-                              <input name="dayId" type="hidden" value={day.id} />
-                              <label>
-                                Ejercicio
-                                <select name="exerciseId" defaultValue="" required>
-                                  <option value="">Selecciona</option>
-                                  {exerciseOptions.map((exercise) => (
-                                    <option key={exercise.id} value={exercise.id}>{exercise.name}</option>
-                                  ))}
-                                </select>
-                              </label>
-                              <label>
-                                Series
-                                <input name="sets" defaultValue="3" min="1" type="number" />
-                              </label>
-                              <label>
-                                Reps
-                                <input name="reps" defaultValue="8-12" />
-                              </label>
-                              <label>
-                                Tempo
-                                <input name="tempo" defaultValue="3-1-1" placeholder="3-1-1" />
-                              </label>
-                              <label>
-                                Descanso
-                                <input name="restSeconds" defaultValue="90" min="0" type="number" />
-                              </label>
-                              <label>
-                                RIR objetivo
-                                <input name="targetRir" defaultValue="2" placeholder="0-3" />
-                              </label>
-                              <label>
-                                Técnica
-                                <select name="intensityTechnique" defaultValue="">
-                                  <option value="">Sin técnica avanzada</option>
-                                  <option value="Dropset">Dropset</option>
-                                  <option value="Rest-pause">Rest-pause</option>
-                                  <option value="Superserie">Superserie</option>
-                                  <option value="Myo-reps">Myo-reps</option>
-                                  <option value="Top set + back off">Top set + back off</option>
-                                  <option value="AMRAP controlado">AMRAP controlado</option>
-                                </select>
-                              </label>
-                              <label className="spanFull">
-                                Notas
-                                <input name="notes" placeholder="Dropset: -20% carga x 8-12, técnica, lesión, sustituciones..." />
-                              </label>
-                              <button className="btn" type="submit">Añadir ejercicio <Video size={16} /></button>
-                            </form>
+                            <Dialog
+                              triggerClassName="btn sm"
+                              trigger={<>Añadir ejercicio <Plus size={15} /></>}
+                              title={`Añadir ejercicio · Día ${day.dayNumber}`}
+                              description="Elige el ejercicio de tu librería y su prescripción."
+                            >
+                              <form action={createCoachWorkoutExerciseAction} className="editForm">
+                                <input name="workspaceId" type="hidden" value={brand.id} />
+                                <input name="dayId" type="hidden" value={day.id} />
+                                <label className="spanFull">Ejercicio
+                                  <select name="exerciseId" defaultValue="" required>
+                                    <option value="" disabled>Selecciona…</option>
+                                    {exerciseOptions.map((exercise) => (
+                                      <option key={exercise.id} value={exercise.id}>{exercise.name}</option>
+                                    ))}
+                                  </select>
+                                </label>
+                                <label>Series<input name="sets" defaultValue="3" min="1" type="number" /></label>
+                                <label>Reps<input name="reps" defaultValue="8-12" /></label>
+                                <label>Tempo<input name="tempo" defaultValue="3-1-1" placeholder="3-1-1" /></label>
+                                <label>Descanso (s)<input name="restSeconds" defaultValue="90" min="0" type="number" /></label>
+                                <label>RIR objetivo<input name="targetRir" defaultValue="2" placeholder="0-3" /></label>
+                                <label>Técnica
+                                  <select name="intensityTechnique" defaultValue="">
+                                    <option value="">Sin técnica avanzada</option>
+                                    <option value="Dropset">Dropset</option>
+                                    <option value="Rest-pause">Rest-pause</option>
+                                    <option value="Superserie">Superserie</option>
+                                    <option value="Myo-reps">Myo-reps</option>
+                                    <option value="Top set + back off">Top set + back off</option>
+                                    <option value="AMRAP controlado">AMRAP controlado</option>
+                                  </select>
+                                </label>
+                                <label className="spanFull">Notas<input name="notes" placeholder="Dropset, sustitución, técnica, lesión..." /></label>
+                                <button className="btn primary spanFull" type="submit">Añadir ejercicio</button>
+                              </form>
+                            </Dialog>
                           </div>
                         </article>
                       ))}
