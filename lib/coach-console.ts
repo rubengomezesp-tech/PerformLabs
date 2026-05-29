@@ -3,6 +3,7 @@ import {
   BarChart3,
   Bell,
   BookOpen,
+  Brain,
   ClipboardCheck,
   Dumbbell,
   LayoutDashboard,
@@ -11,11 +12,19 @@ import {
   Palette,
   Sparkles,
   Users,
+  Wand2,
 } from "lucide-react";
 
 export const coachNav = [
   { label: "Inicio", href: "/coach", icon: LayoutDashboard },
-  { label: "Coach IA", href: "/coach/ai", icon: Sparkles },
+  {
+    label: "Coach IA",
+    icon: Sparkles,
+    children: [
+      { label: "Cerebro", href: "/coach/ai", icon: Brain },
+      { label: "Generador de planes", href: "/coach/ai/plans", icon: Wand2 },
+    ],
+  },
   {
     label: "Fitness",
     icon: Dumbbell,

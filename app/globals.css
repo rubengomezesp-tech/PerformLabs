@@ -8032,3 +8032,112 @@ button[aria-busy="true"] {
   font-size: 12px;
   margin: 0;
 }
+
+/* ---- Coach IA: plan generator ---- */
+.coachBrainGenerator {
+  border-color: color-mix(in srgb, var(--accent) 40%, var(--border));
+  background: color-mix(in srgb, var(--accent) 7%, var(--surface));
+}
+.coachBrainGenerator h3 {
+  margin: 8px 0 4px;
+}
+.coachBrainGenerator p {
+  color: var(--text-muted);
+  font-size: 13px;
+  margin: 0 0 12px;
+}
+.planDraftList {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+.planDraft {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+.planDraft.approved {
+  border-color: color-mix(in srgb, var(--accent) 45%, var(--border));
+}
+.planDraftHead {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+.planDraftHead > div {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.planDraftHead small {
+  color: var(--text-muted);
+  font-size: 12px;
+}
+.planDraftSummary {
+  margin: 0;
+  color: var(--text-muted);
+  font-size: 13px;
+  line-height: 1.5;
+}
+.planDraftDays {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 10px;
+}
+.planDraftDay {
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  padding: 12px;
+  background: color-mix(in srgb, var(--accent) 4%, var(--surface));
+}
+.planDraftDay > strong {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-bottom: 8px;
+  font-size: 14px;
+}
+.planDraftDay ul {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.planDraftDay li {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+}
+.planDraftDay li span {
+  font-size: 13px;
+  font-weight: 600;
+}
+.planDraftDay li small {
+  color: var(--text-muted);
+  font-size: 11px;
+}
+.planDraftProgression {
+  margin: 0;
+  font-size: 13px;
+  color: var(--text-muted);
+  line-height: 1.5;
+}
+.planDraftActions {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+.tag.tagOn {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+.btn.ghost {
+  background: transparent;
+  border: 1px solid var(--line);
+  color: var(--text-muted);
+}
