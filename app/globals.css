@@ -6965,3 +6965,12 @@ a.diaryEntryTitle:hover {
     grid-template-columns: 1fr;
   }
 }
+.dietVisibilityForm {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  align-items: flex-start;
+}
+.dietVisibilityForm .muted {
+  margin: 0;
+}

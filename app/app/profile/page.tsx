@@ -1,10 +1,13 @@
-import { Bell, CalendarClock, CheckCircle2, Mail, MessageSquare, Moon, Ruler, ShieldCheck, Share2, Smartphone, UserRound } from "lucide-react";
+import { Bell, CalendarClock, CheckCircle2, Eye, EyeOff, Mail, MessageSquare, Moon, Ruler, ShieldCheck, Share2, Smartphone, UserRound } from "lucide-react";
 import { ReferralCard } from "@/components/referral-card";
 import { Topbar } from "@/components/topbar";
 import { getSelectedMemberAppBrand } from "@/lib/member-app";
+import { getMemberNutritionVisibility } from "@/lib/repositories/nutrition-tracking";
+import { setMemberMacroVisibilityAction } from "./actions";
 
 export default async function ProfilePage() {
   const brand = await getSelectedMemberAppBrand();
+  const visibility = await getMemberNutritionVisibility(brand.id);
 
   return (
     <>
@@ -41,6 +44,29 @@ export default async function ProfilePage() {
             <li className="row">Check-ins <strong>Semanal</strong></li>
           </ul>
         </article>
+        <article className="card span12 dietVisibilityCard">
+          <div className="sectionHeader">
+            <div>
+              {visibility.hideMacros ? <EyeOff color="var(--gold)" /> : <Eye color="var(--gold)" />}
+              <h2>Calorías y macros.</h2>
+              <p>Decide si quieres ver los números (proteínas, grasas, carbos y calorías) en tu plan, recetas y diario, o una experiencia limpia centrada en cumplir.</p>
+            </div>
+            <span className="tag">{visibility.hideMacros ? "Ocultos" : "Visibles"}</span>
+          </div>
+          <form action={setMemberMacroVisibilityAction} className="dietVisibilityForm">
+            <input name="workspaceId" type="hidden" value={brand.id} />
+            <input name="hideMacros" type="hidden" value={visibility.hideMacros ? "off" : "on"} />
+            <p className="muted">
+              {visibility.hideMacros
+                ? "Ahora mismo no ves números de macros en tu área."
+                : "Ahora mismo ves calorías y macros en tu área."}
+            </p>
+            <button className="btn" type="submit">
+              {visibility.hideMacros ? <><Eye size={16} /> Mostrar calorías y macros</> : <><EyeOff size={16} /> Ocultar calorías y macros</>}
+            </button>
+          </form>
+        </article>
+
         <article className="card span12 notificationPreferenceCard">
           <div className="sectionHeader">
             <div>

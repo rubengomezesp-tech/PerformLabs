@@ -3,14 +3,15 @@ import Link from "next/link";
 import { MacroStrip } from "@/components/macro-strip";
 import { Topbar } from "@/components/topbar";
 import { getSelectedMemberAppBrand } from "@/lib/member-app";
-import { getMemberMealPlanForToday, getNutritionDailySummary } from "@/lib/repositories/nutrition-tracking";
+import { getMemberMealPlanForToday, getMemberNutritionVisibility, getNutritionDailySummary } from "@/lib/repositories/nutrition-tracking";
 import { saveMealLogAction, saveNutritionDayAction } from "./actions";
 
 export default async function MealsPage() {
   const brand = await getSelectedMemberAppBrand();
-  const [dailySummary, assignedMealPlan] = await Promise.all([
+  const [dailySummary, assignedMealPlan, visibility] = await Promise.all([
     getNutritionDailySummary(brand.id),
     getMemberMealPlanForToday(brand.id),
+    getMemberNutritionVisibility(brand.id),
   ]);
   const mealCards = assignedMealPlan?.items.map((item) => ({
     id: item.id,
@@ -26,7 +27,7 @@ export default async function MealsPage() {
     fatG: item.fatG,
   })) ?? [];
   const hasApprovedMealPlan = mealCards.length > 0;
-  const hideMacros = assignedMealPlan?.hideMacros ?? false;
+  const hideMacros = (assignedMealPlan?.hideMacros ?? false) || visibility.hideMacros;
   const hasDailyTargets = Boolean(
     assignedMealPlan && (assignedMealPlan.targetCalories || assignedMealPlan.targetProteinG || assignedMealPlan.targetCarbsG || assignedMealPlan.targetFatG),
   );

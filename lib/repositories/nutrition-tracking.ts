@@ -141,6 +141,31 @@ export async function getMemberNutritionVisibility(workspaceId?: string): Promis
   return { hideMacros: Boolean(data?.hide_macros) };
 }
 
+/** Sets the member's own "hide calories & macros" preference. */
+export async function setMemberHideMacros(workspaceId: string, hide: boolean) {
+  const env = getSupabaseServiceEnv();
+  if (!env.ok || !isUuid(workspaceId)) {
+    throw new Error("No se pudo identificar la app del cliente.");
+  }
+
+  const supabase = createServiceSupabaseClient();
+  const memberProfileId = await getDefaultMemberProfileId(workspaceId);
+  if (!memberProfileId) {
+    throw new Error("Todavía no hay perfil de cliente para guardar la preferencia.");
+  }
+
+  const { error } = await (supabase as any)
+    .from("member_diet_preferences")
+    .upsert(
+      { member_profile_id: memberProfileId, hide_macros: hide, updated_at: new Date().toISOString() },
+      { onConflict: "member_profile_id" },
+    );
+
+  if (error) {
+    throw new Error(`No se pudo guardar la preferencia de macros: ${error.message}`);
+  }
+}
+
 export async function getMemberMealPlanForToday(workspaceId?: string): Promise<MemberMealPlanForToday | null> {
   const env = getSupabaseServiceEnv();
   if (!env.ok || !isUuid(workspaceId)) return null;
