@@ -2294,6 +2294,10 @@ a.card:hover {
   align-items: end;
 }
 
+.exerciseFilters .formActions {
+  gap: 8px;
+}
+
 .exerciseStats {
   display: grid;
   grid-template-columns: repeat(4, minmax(0, 1fr));

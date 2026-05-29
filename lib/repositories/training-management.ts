@@ -83,6 +83,18 @@ export type ExerciseInput = {
   isBaseLibrary: boolean;
 };
 
+export type ExerciseUpdateInput = {
+  id: string;
+  workspaceId: string;
+  name: string;
+  muscleGroups: string;
+  equipment: string;
+  locations: string;
+  difficulty: string;
+  instructions: string;
+  defaultVideoUrl: string;
+};
+
 export type ExerciseVideoInput = {
   workspaceId: string;
   exerciseId: string;
@@ -625,6 +637,82 @@ export async function createManagedExercise(input: ExerciseInput) {
 
   if (error) {
     throw new Error(`No se pudo crear el ejercicio: ${error.message}`);
+  }
+}
+
+/**
+ * Updates a brand-owned exercise. Guarded to the workspace and to non-base
+ * rows so a coach can never edit the shared PerformLabs library.
+ */
+export async function updateManagedExercise(input: ExerciseUpdateInput) {
+  if (!isUuid(input.id)) {
+    throw new Error("Ejercicio no válido.");
+  }
+  if (!isUuid(input.workspaceId)) {
+    throw new Error("Selecciona una marca válida.");
+  }
+
+  const name = input.name.trim();
+  if (!name) {
+    throw new Error("El nombre del ejercicio es obligatorio.");
+  }
+
+  const supabase = createServiceSupabaseClient();
+  const { data, error } = await supabase
+    .from("exercises")
+    .update({
+      name,
+      muscle_groups: splitList(input.muscleGroups),
+      equipment: splitList(input.equipment),
+      locations: splitList(input.locations),
+      difficulty: input.difficulty.trim() || null,
+      instructions: input.instructions.trim() || null,
+      default_video_url: input.defaultVideoUrl.trim() || null,
+      updated_at: new Date().toISOString(),
+    })
+    .eq("id", input.id)
+    .eq("workspace_id", input.workspaceId)
+    .eq("is_base_library", false)
+    .select("id");
+
+  if (error) {
+    throw new Error(`No se pudo actualizar el ejercicio: ${error.message}`);
+  }
+  if (!data?.length) {
+    throw new Error("Solo puedes editar los ejercicios propios de tu marca.");
+  }
+}
+
+/**
+ * Deletes a brand-owned exercise. Base-library rows are protected, and the
+ * `on delete restrict` FK from workout templates is surfaced as a friendly
+ * message instead of a raw Postgres error.
+ */
+export async function deleteManagedExercise(input: { id: string; workspaceId: string }) {
+  if (!isUuid(input.id)) {
+    throw new Error("Ejercicio no válido.");
+  }
+  if (!isUuid(input.workspaceId)) {
+    throw new Error("Selecciona una marca válida.");
+  }
+
+  const supabase = createServiceSupabaseClient();
+  const { data, error } = await supabase
+    .from("exercises")
+    .delete()
+    .eq("id", input.id)
+    .eq("workspace_id", input.workspaceId)
+    .eq("is_base_library", false)
+    .select("id");
+
+  if (error) {
+    if (error.code === "23503") {
+      throw new Error("Este ejercicio está en uso en una rutina. Quítalo de los programas antes de eliminarlo.");
+    }
+    throw new Error(`No se pudo eliminar el ejercicio: ${error.message}`);
+  }
+  if (!data?.length) {
+    throw new Error("Solo puedes eliminar los ejercicios propios de tu marca.");
   }
 }
 
