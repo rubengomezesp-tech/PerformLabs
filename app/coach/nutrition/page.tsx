@@ -26,7 +26,7 @@ export default async function CoachNutritionPage() {
     listManagedDietCategories(brand.id),
     listManagedDietTemplates(brand.id, { withMeals: true }),
     listManagedIngredients(brand.id),
-    listManagedRecipes(brand.id),
+    listManagedRecipes(brand.id, { includeBase: true }),
   ]);
   const recipeById = new Map(recipes.map((recipe) => [recipe.id, recipe]));
   const demoTargets = calculateNutritionTargets({
@@ -173,6 +173,22 @@ export default async function CoachNutritionPage() {
           <div className="sectionHeader">
             <div>
               <UtensilsCrossed color="var(--accent)" />
+              <h2>Cómo montar una dieta.</h2>
+              <p>Cuatro pasos. Usa los alimentos y recetas base (con macros), o crea los tuyos.</p>
+            </div>
+          </div>
+          <ol className="stepper">
+            <li><span>1</span><div><strong>Alimentos</strong><p>Parte de la librería base o crea los tuyos con sus macros por 100 g.</p></div></li>
+            <li><span>2</span><div><strong>Recetas</strong><p>Combina alimentos; los macros se calculan solos.</p></div></li>
+            <li><span>3</span><div><strong>Plan</strong><p>Añade recetas por día y momento a una plantilla.</p></div></li>
+            <li><span>4</span><div><strong>Asignar</strong><p>Asígnalo a un miembro y lo verá en su app.</p></div></li>
+          </ol>
+        </article>
+
+        <article className="card span12 motionCard">
+          <div className="sectionHeader">
+            <div>
+              <UtensilsCrossed color="var(--accent)" />
               <h2>Planes de comidas.</h2>
               <p>Monta cada plantilla con recetas por día y momento. Al asignarla a un miembro, estas comidas aparecen en su app.</p>
             </div>
@@ -312,7 +328,9 @@ export default async function CoachNutritionPage() {
                 <li className="row" key={`${recipe.id}-ing-${index}`}>{ingredient.name}<span>{ingredient.grams} g</span></li>
               )) : <li className="row">Sin ingredientes todavía <span className="tag">Añade abajo</span></li>}
             </ul>
-            {ingredients.length ? (
+            {recipe.isBase ? (
+              <span className="tag">Receta base · lista para usar en tus planes</span>
+            ) : ingredients.length ? (
               <Dialog
                 triggerClassName="btn"
                 trigger={<>Añadir ingrediente <Plus size={16} /></>}
@@ -348,18 +366,25 @@ export default async function CoachNutritionPage() {
           </article>
         )}
 
-        <article className="card span6 motionCard">
-          <h2>Ingredientes</h2>
-          <ul className="list">
-            {ingredients.length ? ingredients.slice(0, 8).map((ingredient) => (
+        <article className="card span12 motionCard">
+          <div className="sectionHeader">
+            <div>
+              <Apple color="var(--accent)" />
+              <h2>Alimentos.</h2>
+              <p>Valores por 100 g. La librería base es compartida; los tuyos se añaden con “Nuevo ingrediente”.</p>
+            </div>
+            <span className="tag">{ingredients.length} alimentos</span>
+          </div>
+          <ul className="list compactList">
+            {ingredients.length ? ingredients.map((ingredient) => (
               <li className="row" key={ingredient.id}>
                 <div>
                   <strong>{ingredient.name}</strong>
-                  <p>{ingredient.caloriesPer100g} kcal · {ingredient.proteinPer100g}P / 100g</p>
+                  <p>{ingredient.caloriesPer100g} kcal · {ingredient.proteinPer100g}P · {ingredient.carbsPer100g}C · {ingredient.fatPer100g}G / 100g</p>
                 </div>
-                <span className="tag">{ingredient.tags[0] ?? "base"}</span>
+                <span className="tag">{ingredient.isBase ? "base" : (ingredient.tags[0] ?? "propio")}</span>
               </li>
-            )) : <li className="row">Sin ingredientes todavia <span className="tag">Crear arriba</span></li>}
+            )) : <li className="row">Sin alimentos todavía <span className="tag">Carga la librería base</span></li>}
           </ul>
         </article>
 
