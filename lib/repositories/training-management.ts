@@ -996,3 +996,103 @@ export async function createManagedWorkoutDay(input: WorkoutDayInput) {
     throw new Error(`No se pudo crear el dia de rutina: ${error.message}`);
   }
 }
+
+/** Deep-clones a workout template (days + exercises) into a workspace as a draft. */
+export async function cloneWorkoutTemplate(templateId: string, workspaceId: string) {
+  if (!templateId || !workspaceId) throw new Error("Falta la rutina o la marca destino.");
+
+  const supabase = createServiceSupabaseClient();
+  const { data: source, error } = await supabase
+    .from("workout_templates")
+    .select("name,goal,level,days_per_week,duration_weeks,phase_structure,rotation_rules")
+    .eq("id", templateId)
+    .maybeSingle();
+  if (error || !source) throw new Error("No se encontró la rutina de origen.");
+
+  const { data: created, error: createError } = await supabase
+    .from("workout_templates")
+    .insert({
+      workspace_id: workspaceId,
+      name: `${source.name} (copia)`,
+      goal: source.goal,
+      level: source.level,
+      days_per_week: source.days_per_week,
+      duration_weeks: source.duration_weeks,
+      phase_structure: source.phase_structure,
+      rotation_rules: source.rotation_rules,
+      status: "draft",
+    })
+    .select("id")
+    .single();
+  if (createError) throw new Error(`No se pudo clonar la rutina: ${createError.message}`);
+
+  const { data: days } = await supabase
+    .from("workout_template_days")
+    .select("id,week_number,day_number,title,notes")
+    .eq("template_id", templateId);
+
+  const dayIdMap = new Map<string, string>();
+  for (const day of days ?? []) {
+    const { data: newDay, error: dayError } = await supabase
+      .from("workout_template_days")
+      .insert({
+        template_id: created.id,
+        week_number: day.week_number,
+        day_number: day.day_number,
+        title: day.title,
+        notes: day.notes,
+      })
+      .select("id")
+      .single();
+    if (dayError) throw new Error(`No se pudo copiar un día: ${dayError.message}`);
+    dayIdMap.set(day.id, newDay.id);
+  }
+
+  const oldDayIds = [...dayIdMap.keys()];
+  if (oldDayIds.length) {
+    const { data: exercises } = await supabase
+      .from("workout_template_exercises")
+      .select("day_id,exercise_id,sort_order,sets,reps,tempo,rest_seconds,notes,swap_rules,block_type,load_guidance,target_rir,video_required")
+      .in("day_id", oldDayIds);
+
+    const rows = (exercises ?? [])
+      .map((exercise) => {
+        const dayId = dayIdMap.get(exercise.day_id);
+        if (!dayId) return null;
+        return {
+          day_id: dayId,
+          exercise_id: exercise.exercise_id,
+          sort_order: exercise.sort_order,
+          sets: exercise.sets,
+          reps: exercise.reps,
+          tempo: exercise.tempo,
+          rest_seconds: exercise.rest_seconds,
+          notes: exercise.notes,
+          swap_rules: exercise.swap_rules,
+          block_type: exercise.block_type,
+          load_guidance: exercise.load_guidance,
+          target_rir: exercise.target_rir,
+          video_required: exercise.video_required,
+        };
+      })
+      .filter((row): row is NonNullable<typeof row> => row !== null);
+
+    if (rows.length) {
+      const { error: exerciseError } = await supabase.from("workout_template_exercises").insert(rows);
+      if (exerciseError) throw new Error(`No se pudieron copiar los ejercicios: ${exerciseError.message}`);
+    }
+  }
+
+  return { id: created.id as string };
+}
+
+/** Toggles a workout template between draft and active (publish/unpublish). */
+export async function setWorkoutTemplateStatus(
+  templateId: string,
+  status: "draft" | "active" | "archived",
+) {
+  if (!templateId) throw new Error("Falta la rutina.");
+  const supabase = createServiceSupabaseClient();
+  const { error } = await supabase.from("workout_templates").update({ status }).eq("id", templateId);
+  if (error) throw new Error(`No se pudo actualizar el estado: ${error.message}`);
+}

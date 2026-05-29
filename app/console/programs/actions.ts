@@ -3,7 +3,13 @@
 import { revalidatePath } from "next/cache";
 import { requireWorkspaceMutationAccess } from "@/lib/auth/access-control";
 import { recordSecurityAuditEvent } from "@/lib/repositories/security-management";
-import { createManagedWorkoutDay, createManagedWorkoutExercise, createManagedWorkoutTemplate } from "@/lib/repositories/training-management";
+import {
+  cloneWorkoutTemplate,
+  createManagedWorkoutDay,
+  createManagedWorkoutExercise,
+  createManagedWorkoutTemplate,
+  setWorkoutTemplateStatus,
+} from "@/lib/repositories/training-management";
 
 function readText(formData: FormData, key: string) {
   const value = formData.get(key);
@@ -78,4 +84,44 @@ export async function createWorkoutExerciseAction(formData: FormData) {
 
   revalidatePath("/console/programs");
   revalidatePath("/app/workouts");
+}
+
+export async function cloneWorkoutTemplateAction(formData: FormData) {
+  const workspaceId = readText(formData, "workspaceId");
+  const templateId = readText(formData, "templateId");
+  const session = await requireWorkspaceMutationAccess(workspaceId);
+
+  const { id } = await cloneWorkoutTemplate(templateId, workspaceId);
+
+  await recordSecurityAuditEvent({
+    workspaceId,
+    actorUserId: session.mode === "authenticated" ? session.user.id : null,
+    action: "training.template.cloned",
+    entityType: "workout_template",
+    entityId: id,
+    metadata: { source: templateId },
+  });
+
+  revalidatePath("/console/programs");
+}
+
+export async function setWorkoutTemplateStatusAction(formData: FormData) {
+  const workspaceId = readText(formData, "workspaceId");
+  const templateId = readText(formData, "templateId");
+  const next = readText(formData, "status");
+  const status = next === "active" ? "active" : next === "archived" ? "archived" : "draft";
+  const session = await requireWorkspaceMutationAccess(workspaceId);
+
+  await setWorkoutTemplateStatus(templateId, status);
+
+  await recordSecurityAuditEvent({
+    workspaceId,
+    actorUserId: session.mode === "authenticated" ? session.user.id : null,
+    action: "training.template.status_changed",
+    entityType: "workout_template",
+    entityId: templateId,
+    metadata: { status },
+  });
+
+  revalidatePath("/console/programs");
 }

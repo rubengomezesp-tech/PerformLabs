@@ -1,14 +1,20 @@
 import { Dumbbell, Plus, Save } from "lucide-react";
 import { EmptyState } from "@/components/empty-state";
 import { Topbar } from "@/components/topbar";
-import { Badge, Table, type BadgeTone } from "@/components/ui";
+import { Badge, SubmitButton, Table, type BadgeTone } from "@/components/ui";
 import {
   listManagedExercises,
   listManagedWorkoutTemplates,
   type ManagedWorkoutTemplate,
 } from "@/lib/repositories/training-management";
 import { listWorkspaceSummaries } from "@/lib/repositories/workspaces";
-import { createWorkoutDayAction, createWorkoutExerciseAction, createWorkoutTemplateAction } from "./actions";
+import {
+  cloneWorkoutTemplateAction,
+  createWorkoutDayAction,
+  createWorkoutExerciseAction,
+  createWorkoutTemplateAction,
+  setWorkoutTemplateStatusAction,
+} from "./actions";
 
 export const dynamic = "force-dynamic";
 
@@ -97,6 +103,33 @@ export default async function ProgramsPage({ searchParams }: ProgramsPageProps) 
                       {statusLabels[template.status] ?? template.status}
                     </Badge>
                   ),
+                },
+                {
+                  key: "actions",
+                  header: "",
+                  cell: (template) =>
+                    selectedWorkspace ? (
+                      <div style={{ display: "flex", gap: 8 }}>
+                        <form action={cloneWorkoutTemplateAction}>
+                          <input type="hidden" name="workspaceId" value={selectedWorkspace.id} />
+                          <input type="hidden" name="templateId" value={template.id} />
+                          <SubmitButton size="sm" successToast="Rutina clonada">
+                            Clonar
+                          </SubmitButton>
+                        </form>
+                        <form action={setWorkoutTemplateStatusAction}>
+                          <input type="hidden" name="workspaceId" value={selectedWorkspace.id} />
+                          <input type="hidden" name="templateId" value={template.id} />
+                          <input type="hidden" name="status" value={template.status === "active" ? "draft" : "active"} />
+                          <SubmitButton
+                            size="sm"
+                            successToast={template.status === "active" ? "Despublicada" : "Publicada"}
+                          >
+                            {template.status === "active" ? "Despublicar" : "Publicar"}
+                          </SubmitButton>
+                        </form>
+                      </div>
+                    ) : null,
                 },
               ]}
               rows={templates}

@@ -1,7 +1,8 @@
 import { Apple, Calculator, ShoppingBasket, Sparkles } from "lucide-react";
 import Link from "next/link";
 import { Topbar } from "@/components/topbar";
-import { Badge, Table } from "@/components/ui";
+import { Badge, SubmitButton, Table } from "@/components/ui";
+import { cloneRecipeAction } from "./actions";
 import { calculateNutritionTargets, splitCaloriesByMeal } from "@/lib/domain/nutrition-engine";
 import {
   listManagedDietTemplates,
@@ -158,6 +159,20 @@ export default async function NutritionPage({ searchParams }: NutritionPageProps
                   cell: (recipe) => (
                     <Badge tone={recipe.isBase ? "info" : "accent"}>{recipe.isBase ? "Base" : "Propia"}</Badge>
                   ),
+                },
+                {
+                  key: "action",
+                  header: "",
+                  cell: (recipe) =>
+                    recipe.isBase && selectedWorkspace ? (
+                      <form action={cloneRecipeAction}>
+                        <input type="hidden" name="workspaceId" value={selectedWorkspace.id} />
+                        <input type="hidden" name="recipeId" value={recipe.id} />
+                        <SubmitButton size="sm" successToast="Receta clonada a tu marca">
+                          Clonar
+                        </SubmitButton>
+                      </form>
+                    ) : null,
                 },
               ]}
               rows={recipes}

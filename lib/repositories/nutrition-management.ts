@@ -505,3 +505,50 @@ export async function saveAiRecipe(workspaceId: string, recipe: AiRecipeDraft) {
 
   return { id: created.id as string };
 }
+
+/** Clones a recipe (base or custom) into a workspace as editable coach-custom content. */
+export async function cloneRecipeToWorkspace(recipeId: string, workspaceId: string) {
+  if (!isUuid(workspaceId)) throw new Error("Selecciona una marca destino.");
+  if (!isUuid(recipeId)) throw new Error("Receta no válida.");
+
+  const supabase = createServiceSupabaseClient();
+  const { data: source, error } = await supabase
+    .from("recipes")
+    .select("name,meal_slot,instructions,tags")
+    .eq("id", recipeId)
+    .maybeSingle();
+  if (error || !source) throw new Error("No se encontró la receta de origen.");
+
+  const stamp = Date.now().toString(36);
+  const { data: created, error: createError } = await supabase
+    .from("recipes")
+    .insert({
+      workspace_id: workspaceId,
+      name: `${source.name} (copia)`,
+      slug: `${slugify(source.name)}-copia-${stamp}`,
+      meal_slot: source.meal_slot,
+      instructions: source.instructions,
+      tags: source.tags,
+      is_base_library: false,
+    })
+    .select("id")
+    .single();
+  if (createError) throw new Error(`No se pudo clonar la receta: ${createError.message}`);
+
+  const { data: links } = await supabase
+    .from("recipe_ingredients")
+    .select("ingredient_id,grams,sort_order")
+    .eq("recipe_id", recipeId);
+  if (links?.length) {
+    const rows = links.map((link) => ({
+      recipe_id: created.id,
+      ingredient_id: link.ingredient_id,
+      grams: link.grams,
+      sort_order: link.sort_order,
+    }));
+    const { error: linkError } = await supabase.from("recipe_ingredients").insert(rows);
+    if (linkError) throw new Error(`No se pudieron copiar los ingredientes: ${linkError.message}`);
+  }
+
+  return { id: created.id as string };
+}
