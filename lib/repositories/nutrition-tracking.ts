@@ -219,7 +219,7 @@ export async function getMemberMealPlanForToday(workspaceId?: string): Promise<M
   };
 }
 
-export async function getNutritionDailySummary(workspaceId?: string): Promise<NutritionDailySummary> {
+export async function getNutritionDailySummary(workspaceId?: string, dateInput?: string): Promise<NutritionDailySummary> {
   const empty: NutritionDailySummary = {
     completedMeals: 0,
     swapRequests: 0,
@@ -233,7 +233,7 @@ export async function getNutritionDailySummary(workspaceId?: string): Promise<Nu
 
   const supabase = createServiceSupabaseClient();
   const memberProfileId = await getDefaultMemberProfileId(workspaceId);
-  const date = todayIso();
+  const date = dateInput && /^\d{4}-\d{2}-\d{2}$/.test(dateInput) ? dateInput : todayIso();
 
   let mealQuery = (supabase as any)
     .from("member_meal_logs")
