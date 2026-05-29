@@ -7362,3 +7362,63 @@ a.diaryEntryTitle:hover {
     padding-bottom: 96px;
   }
 }
+
+/* ---- Panel (home) — mockup alignment ---- */
+.miRecorridoMeta {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  margin-top: 8px;
+  color: var(--text-muted);
+  font-size: 14px;
+}
+.miRecorridoMeta strong {
+  color: var(--text);
+  font-size: 18px;
+}
+.panelHabitList {
+  gap: 4px;
+}
+.panelHabitRow {
+  justify-content: space-between;
+}
+.panelHabitName {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+.panelHabitCheck {
+  display: grid;
+  place-items: center;
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  border: 1.5px solid var(--border-strong);
+  background: transparent;
+  color: transparent;
+  cursor: pointer;
+  transition: background 0.15s ease, border-color 0.15s ease, color 0.15s ease;
+}
+.panelHabitCheck.done {
+  background: var(--accent);
+  border-color: var(--accent);
+  color: #07121f;
+}
+.panelCheckinCard {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+  text-decoration: none;
+  color: inherit;
+}
+.panelCheckinCard p {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  color: var(--text-muted);
+  margin: 6px 0 0;
+}
+.panelCheckinCard:hover {
+  border-color: color-mix(in srgb, var(--accent) 45%, var(--border));
+}
