@@ -4,7 +4,7 @@ import { useActionState } from "react";
 import { Sparkles } from "lucide-react";
 import { Badge } from "@/components/ui";
 import { recipeMacros, type AiRecipeResult } from "@/lib/ai/nutrition-agent";
-import { generateRecipeAction, saveRecipeAction, type SaveRecipeState } from "./actions";
+import { generateRecipeAction, saveRecipeAction, type SaveRecipeState } from "./nutrition-agent-actions";
 
 const MEAL_SLOT_LABELS: Record<string, string> = {
   breakfast: "Desayuno",
