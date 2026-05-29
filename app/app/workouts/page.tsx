@@ -1,11 +1,12 @@
 import { CalendarClock, CheckCircle2, Dumbbell, Play, Repeat2, Timer, Video } from "lucide-react";
 import Link from "next/link";
+import { Dialog } from "@/components/dialog";
 import { Topbar } from "@/components/topbar";
 import { getSelectedMemberAppBrand } from "@/lib/member-app";
 import { getMemberTrainingContext, type MemberAssignedWorkoutDay, type MemberAssignedWorkoutExercise } from "@/lib/repositories/member-onboarding";
-import type { ManagedWorkoutTemplate } from "@/lib/repositories/training-management";
+import { listManagedExercises, type ManagedWorkoutTemplate } from "@/lib/repositories/training-management";
 import { getWorkoutPerformanceSummary } from "@/lib/repositories/workout-performance";
-import { requestWorkoutIssueAction, saveWorkoutSessionAction } from "./actions";
+import { requestWorkoutIssueAction, saveWorkoutSessionAction, swapWorkoutExerciseAction } from "./actions";
 
 type WorkoutTemplateDay = ManagedWorkoutTemplate["days"][number];
 type WorkoutTemplateExercise = WorkoutTemplateDay["exercises"][number];
@@ -58,12 +59,14 @@ function formatReviewDate(value: string) {
 
 export default async function WorkoutsPage() {
   const brand = await getSelectedMemberAppBrand();
-  const [performance, trainingContext] = await Promise.all([
+  const [performance, trainingContext, exerciseOptions] = await Promise.all([
     getWorkoutPerformanceSummary(brand.id),
     getMemberTrainingContext(brand.id),
+    listManagedExercises(brand.id, { limit: 200 }),
   ]);
   const hasApprovedTraining = Boolean(trainingContext.activeAssignment);
   const assignedDay = trainingContext.activeAssignedDay;
+  const canSwap = Boolean(assignedDay) && exerciseOptions.length > 0;
   const activeTemplate = hasApprovedTraining ? trainingContext.activeTemplate : null;
   const activeDay = hasApprovedTraining ? assignedDay ?? activeTemplate?.days[0] ?? null : null;
   const calendarDays: WorkoutDayView[] = hasApprovedTraining
@@ -173,6 +176,31 @@ export default async function WorkoutsPage() {
                 <span>{totalSessionVideos} vídeos</span>
                 <span>Progreso guardado</span>
               </div>
+              {canSwap ? (
+                <Dialog
+                  triggerClassName="btn ghost sm"
+                  trigger={<><Repeat2 size={15} /> Cambiar ejercicio</>}
+                  title="Cambiar un ejercicio"
+                  description="Si no puedes hacer un ejercicio, elige un sustituto de tu librería. Se actualiza en tu plan."
+                >
+                  <div className="swapList">
+                    {activeDay.exercises.map((exercise) => (
+                      <form action={swapWorkoutExerciseAction} className="swapRow" key={exercise.id}>
+                        <input name="workspaceId" type="hidden" value={brand.id} />
+                        <input name="assignedExerciseId" type="hidden" value={exercise.id} />
+                        <span className="swapRowName">{exercise.exerciseName}</span>
+                        <select name="newExerciseId" defaultValue="" required>
+                          <option value="" disabled>Cambiar por…</option>
+                          {exerciseOptions.map((option) => (
+                            <option key={option.id} value={option.id}>{option.name}</option>
+                          ))}
+                        </select>
+                        <button className="btn sm" type="submit">Cambiar</button>
+                      </form>
+                    ))}
+                  </div>
+                </Dialog>
+              ) : null}
             </div>
             <div className="sessionQuickGuide">
               <span><strong>1</strong> Haz el ejercicio</span>

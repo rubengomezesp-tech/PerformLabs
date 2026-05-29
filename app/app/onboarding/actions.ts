@@ -20,6 +20,7 @@ export async function saveMemberOnboardingAction(formData: FormData) {
     sex: readText(formData, "sex"),
     timezone: readText(formData, "timezone"),
     injuries: readText(formData, "injuries"),
+    healthConditions: readText(formData, "healthConditions"),
     experienceLevel: readText(formData, "experienceLevel"),
     availableEquipment: readText(formData, "availableEquipment"),
     preferredTrainingDays: readText(formData, "preferredTrainingDays"),

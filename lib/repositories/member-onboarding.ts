@@ -46,6 +46,7 @@ export type MemberOnboardingInput = {
   sex: string;
   timezone: string;
   injuries: string;
+  healthConditions: string;
   experienceLevel: string;
   availableEquipment: string;
   preferredTrainingDays: string;
@@ -198,6 +199,7 @@ async function buildOnboardingRecommendation(input: {
   mealsPerDay: number;
   trainingLocation: string;
   injuries: string[];
+  healthConditions: string[];
   allergies: string[];
   hideMacros: boolean;
 }) {
@@ -210,6 +212,7 @@ async function buildOnboardingRecommendation(input: {
   const blockers = [
     !workoutTemplate ? `Falta modulo de ${input.daysPerWeek} dias/semana` : null,
     !dietTemplate ? "Falta plantilla nutricional compatible" : null,
+    input.healthConditions.length ? `Revisar condiciones de salud: ${input.healthConditions.join(", ")}` : null,
     input.injuries.length ? "Revisar molestias antes de publicar entreno" : null,
     input.allergies.length ? "Revisar alergias antes de publicar comida" : null,
   ].filter(Boolean);
@@ -379,6 +382,7 @@ export async function saveMemberOnboarding(input: MemberOnboardingInput) {
   const stepsTarget = parseInteger(input.stepsTarget, 8000, 2000, 30000);
   const fullName = input.fullName.trim() || member.full_name;
   const injuries = splitList(input.injuries);
+  const healthConditions = splitList(input.healthConditions);
   const availableEquipment = splitList(input.availableEquipment);
   const preferredTrainingDays = splitList(input.preferredTrainingDays);
   const allergies = splitList(input.allergies);
@@ -392,6 +396,7 @@ export async function saveMemberOnboarding(input: MemberOnboardingInput) {
     mealsPerDay,
     trainingLocation: input.trainingLocation,
     injuries,
+    healthConditions,
     allergies,
     hideMacros: input.hideMacros,
   });
@@ -467,7 +472,9 @@ export async function saveMemberOnboarding(input: MemberOnboardingInput) {
       birthDate: input.birthDate || null,
       sex: normalizeSex(input.sex),
       timezone: input.timezone.trim() || "Europe/Madrid",
+      healthConditions,
     },
+    health: { conditions: healthConditions },
     training: {
       daysPerWeek,
       sessionMinutes,

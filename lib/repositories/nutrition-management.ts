@@ -53,6 +53,7 @@ export type ManagedRecipe = {
   mealSlot: string;
   instructions: string;
   tags: string[];
+  imageUrl: string;
   calories: number;
   protein: number;
   carbs: number;
@@ -398,7 +399,7 @@ export async function listManagedRecipes(
   const supabase = createServiceSupabaseClient();
   const baseQuery = supabase
     .from("recipes")
-    .select("id,name,meal_slot,instructions,tags,is_base_library,created_at");
+    .select("id,name,meal_slot,instructions,tags,image_url,is_base_library,created_at");
   const { data, error } = await (options.includeBase
     ? baseQuery.or(`workspace_id.eq.${workspaceId},workspace_id.is.null`)
     : baseQuery.eq("workspace_id", workspaceId)
@@ -450,6 +451,7 @@ export async function listManagedRecipes(
       mealSlot: recipe.meal_slot,
       instructions: recipe.instructions ?? "",
       tags: recipe.tags,
+      imageUrl: recipe.image_url ?? "",
       calories: Math.round(macros.calories),
       protein: Math.round(macros.protein),
       carbs: Math.round(macros.carbs),
@@ -458,6 +460,45 @@ export async function listManagedRecipes(
       isBase: recipe.is_base_library ?? false,
     };
   });
+}
+
+/**
+ * Member self-service: swap an assigned meal for another brand recipe.
+ * Updates the member's assigned_meal_plan_items row (recipe + macros) in place.
+ */
+export async function swapAssignedMealItem(input: { workspaceId: string; itemId: string; recipeId: string }) {
+  if (!isUuid(input.workspaceId) || !isUuid(input.itemId) || !isUuid(input.recipeId)) {
+    throw new Error("Cambio de comida no válido.");
+  }
+
+  const recipes = await listManagedRecipes(input.workspaceId, { includeBase: true });
+  const recipe = recipes.find((item) => item.id === input.recipeId);
+  if (!recipe) {
+    throw new Error("Esa receta no existe.");
+  }
+
+  const supabase = createServiceSupabaseClient();
+  const { data, error } = await (supabase as any)
+    .from("assigned_meal_plan_items")
+    .update({
+      recipe_id: recipe.id,
+      title: recipe.name,
+      calories: recipe.calories,
+      protein_g: recipe.protein,
+      carbs_g: recipe.carbs,
+      fat_g: recipe.fat,
+      updated_at: new Date().toISOString(),
+    })
+    .eq("id", input.itemId)
+    .eq("workspace_id", input.workspaceId)
+    .select("id");
+
+  if (error) {
+    throw new Error(`No se pudo cambiar la comida: ${error.message}`);
+  }
+  if (!data?.length) {
+    throw new Error("No se encontró la comida a cambiar.");
+  }
 }
 
 export async function createManagedIngredient(input: IngredientInput) {

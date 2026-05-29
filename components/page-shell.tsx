@@ -4,9 +4,10 @@ import type { WorkspaceBrand } from "@/lib/repositories/workspaces";
 
 type NavItem = {
   label: string;
-  href: string;
+  href?: string;
   icon: React.ComponentType<{ size?: number }>;
   group?: string;
+  children?: NavItem[];
 };
 
 export type ShellSession = {

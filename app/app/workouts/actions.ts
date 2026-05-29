@@ -2,6 +2,7 @@
 
 import { revalidatePath } from "next/cache";
 import { createWorkoutIssueRequest, createWorkoutSessionLog, type WorkoutSetLogInput } from "@/lib/repositories/workout-performance";
+import { swapAssignedWorkoutExercise } from "@/lib/repositories/training-management";
 
 function readText(formData: FormData, key: string) {
   const value = formData.get(key);
@@ -55,6 +56,16 @@ export async function saveWorkoutSessionAction(formData: FormData) {
 
   revalidatePath("/app/workouts");
   revalidatePath("/app/progress");
+}
+
+export async function swapWorkoutExerciseAction(formData: FormData) {
+  await swapAssignedWorkoutExercise({
+    workspaceId: readText(formData, "workspaceId"),
+    assignedExerciseId: readText(formData, "assignedExerciseId"),
+    newExerciseId: readText(formData, "newExerciseId"),
+  });
+
+  revalidatePath("/app/workouts");
 }
 
 export async function requestWorkoutIssueAction(formData: FormData) {

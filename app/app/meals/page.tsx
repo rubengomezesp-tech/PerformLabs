@@ -1,14 +1,20 @@
-import { Apple, CheckCircle2, Droplets, MessageSquare, Plus, Repeat, ShoppingBasket, Sparkles, Utensils } from "lucide-react";
+import { Apple, CheckCircle2, ChefHat, Droplets, MessageSquare, NotebookPen, Plus, Repeat, ShoppingBasket, Sparkles, Utensils } from "lucide-react";
+import Link from "next/link";
+import { MacroStrip } from "@/components/macro-strip";
 import { Topbar } from "@/components/topbar";
 import { getSelectedMemberAppBrand } from "@/lib/member-app";
-import { getMemberMealPlanForToday, getNutritionDailySummary } from "@/lib/repositories/nutrition-tracking";
-import { saveMealLogAction, saveNutritionDayAction } from "./actions";
+import { Dialog } from "@/components/dialog";
+import { getMemberMealPlanForToday, getMemberNutritionVisibility, getNutritionDailySummary } from "@/lib/repositories/nutrition-tracking";
+import { listManagedRecipes } from "@/lib/repositories/nutrition-management";
+import { saveMealLogAction, saveNutritionDayAction, swapMealAction } from "./actions";
 
 export default async function MealsPage() {
   const brand = await getSelectedMemberAppBrand();
-  const [dailySummary, assignedMealPlan] = await Promise.all([
+  const [dailySummary, assignedMealPlan, visibility, recipeOptions] = await Promise.all([
     getNutritionDailySummary(brand.id),
     getMemberMealPlanForToday(brand.id),
+    getMemberNutritionVisibility(brand.id),
+    listManagedRecipes(brand.id, { includeBase: true }),
   ]);
   const mealCards = assignedMealPlan?.items.map((item) => ({
     id: item.id,
@@ -20,8 +26,14 @@ export default async function MealsPage() {
     instructions: item.instructions,
     calories: item.calories,
     proteinG: item.proteinG,
+    carbsG: item.carbsG,
+    fatG: item.fatG,
   })) ?? [];
   const hasApprovedMealPlan = mealCards.length > 0;
+  const hideMacros = (assignedMealPlan?.hideMacros ?? false) || visibility.hideMacros;
+  const hasDailyTargets = Boolean(
+    assignedMealPlan && (assignedMealPlan.targetCalories || assignedMealPlan.targetProteinG || assignedMealPlan.targetCarbsG || assignedMealPlan.targetFatG),
+  );
   const mealLogBySlot = new Map(dailySummary.mealLogs.map((log) => [log.mealSlot, log]));
   const nextMeal = hasApprovedMealPlan
     ? mealCards.find((meal) => mealLogBySlot.get(meal.slot)?.status !== "done") ?? mealCards[0]
@@ -39,6 +51,12 @@ export default async function MealsPage() {
         eyebrow="Comida"
         title="Tu plan de hoy."
         text="Sigue tu día sin complicarte: marca comidas, agua y sensaciones para que tu coach pueda ajustar mejor."
+        actions={
+          <>
+            <Link className="btn" href="/app/diary"><NotebookPen size={16} /> Diario</Link>
+            <Link className="btn ghost" href="/app/recipes"><ChefHat size={16} /> Recetas</Link>
+          </>
+        }
       />
       <section className="grid">
         <article className="span12 mealAppHero">
@@ -99,6 +117,32 @@ export default async function MealsPage() {
           </article>
         </div>
 
+        {hasApprovedMealPlan && !hideMacros && hasDailyTargets ? (
+          <article className="card span12 macroDailyCard">
+            <div className="sectionHeader">
+              <div>
+                <Apple color="var(--gold)" size={26} />
+                <h2>Tu objetivo de hoy</h2>
+                <p>Referencia diaria de tu plan. Tu coach la ajusta cuando lo necesites.</p>
+              </div>
+            </div>
+            <MacroStrip
+              variant="card"
+              proteinG={assignedMealPlan?.targetProteinG}
+              fatG={assignedMealPlan?.targetFatG}
+              carbsG={assignedMealPlan?.targetCarbsG}
+              calories={assignedMealPlan?.targetCalories}
+            />
+          </article>
+        ) : null}
+
+        {hasApprovedMealPlan && hideMacros ? (
+          <article className="card span12 macroHiddenNote">
+            <Apple color="var(--gold)" size={20} />
+            <p>Tu coach ha ocultado calorías y macros para que te centres en comer bien y cumplir tu plan, sin contar números.</p>
+          </article>
+        ) : null}
+
         {!mealCards.length ? (
           <article className="card span12 planPendingCard">
             <Utensils color="var(--gold)" size={30} />
@@ -118,10 +162,9 @@ export default async function MealsPage() {
             <p>{meal.instructions || "Comida preparada para cumplir tu plan de hoy."}</p>
             <div className="workoutExerciseChips">
               <span>{meal.ingredients ? `${meal.ingredients} ingredientes` : "Plan de hoy"}</span>
-              {meal.calories ? <span>{meal.calories} kcal</span> : null}
-              {meal.proteinG ? <span>{meal.proteinG} g proteína</span> : null}
               {meal.tags.slice(0, 2).map((tag) => <span key={tag}>{tag}</span>)}
             </div>
+            <MacroStrip proteinG={meal.proteinG} fatG={meal.fatG} carbsG={meal.carbsG} calories={meal.calories} hidden={hideMacros} />
             <form action={saveMealLogAction} className="mealCardActions">
               <input name="workspaceId" type="hidden" value={brand.id} />
               <input name="recipeId" type="hidden" value={meal.recipeId} />
@@ -142,6 +185,31 @@ export default async function MealsPage() {
               <button className="btn primary" formNoValidate name="status" value="done" type="submit"><CheckCircle2 size={16} /> Hecho</button>
               <button className="btn" name="status" value="swap_requested" type="submit"><Repeat size={16} /> Avisar al coach</button>
             </form>
+            {recipeOptions.length ? (
+              <Dialog
+                triggerClassName="btn ghost sm mealSwapTrigger"
+                trigger={<><Repeat size={15} /> Cambiar comida</>}
+                title={`Cambiar ${meal.title}`}
+                description="Elige otra receta de tu marca para esta comida. Se actualiza en tu plan y tu diario."
+              >
+                <form action={swapMealAction} className="editForm">
+                  <input name="workspaceId" type="hidden" value={brand.id} />
+                  <input name="itemId" type="hidden" value={meal.id} />
+                  <label className="spanFull">
+                    Nueva receta
+                    <select name="recipeId" defaultValue="" required>
+                      <option value="" disabled>Elige una receta…</option>
+                      {recipeOptions.map((recipe) => (
+                        <option key={recipe.id} value={recipe.id}>
+                          {recipe.name}{!hideMacros && recipe.calories ? ` · ${recipe.calories} kcal` : ""}
+                        </option>
+                      ))}
+                    </select>
+                  </label>
+                  <button className="btn primary spanFull" type="submit">Cambiar comida</button>
+                </form>
+              </Dialog>
+            ) : null}
           </article>
         ))}
 

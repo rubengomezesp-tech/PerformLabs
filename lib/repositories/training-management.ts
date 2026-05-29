@@ -83,6 +83,18 @@ export type ExerciseInput = {
   isBaseLibrary: boolean;
 };
 
+export type ExerciseUpdateInput = {
+  id: string;
+  workspaceId: string;
+  name: string;
+  muscleGroups: string;
+  equipment: string;
+  locations: string;
+  difficulty: string;
+  instructions: string;
+  defaultVideoUrl: string;
+};
+
 export type ExerciseVideoInput = {
   workspaceId: string;
   exerciseId: string;
@@ -628,6 +640,82 @@ export async function createManagedExercise(input: ExerciseInput) {
   }
 }
 
+/**
+ * Updates a brand-owned exercise. Guarded to the workspace and to non-base
+ * rows so a coach can never edit the shared PerformLabs library.
+ */
+export async function updateManagedExercise(input: ExerciseUpdateInput) {
+  if (!isUuid(input.id)) {
+    throw new Error("Ejercicio no válido.");
+  }
+  if (!isUuid(input.workspaceId)) {
+    throw new Error("Selecciona una marca válida.");
+  }
+
+  const name = input.name.trim();
+  if (!name) {
+    throw new Error("El nombre del ejercicio es obligatorio.");
+  }
+
+  const supabase = createServiceSupabaseClient();
+  const { data, error } = await supabase
+    .from("exercises")
+    .update({
+      name,
+      muscle_groups: splitList(input.muscleGroups),
+      equipment: splitList(input.equipment),
+      locations: splitList(input.locations),
+      difficulty: input.difficulty.trim() || null,
+      instructions: input.instructions.trim() || null,
+      default_video_url: input.defaultVideoUrl.trim() || null,
+      updated_at: new Date().toISOString(),
+    })
+    .eq("id", input.id)
+    .eq("workspace_id", input.workspaceId)
+    .eq("is_base_library", false)
+    .select("id");
+
+  if (error) {
+    throw new Error(`No se pudo actualizar el ejercicio: ${error.message}`);
+  }
+  if (!data?.length) {
+    throw new Error("Solo puedes editar los ejercicios propios de tu marca.");
+  }
+}
+
+/**
+ * Deletes a brand-owned exercise. Base-library rows are protected, and the
+ * `on delete restrict` FK from workout templates is surfaced as a friendly
+ * message instead of a raw Postgres error.
+ */
+export async function deleteManagedExercise(input: { id: string; workspaceId: string }) {
+  if (!isUuid(input.id)) {
+    throw new Error("Ejercicio no válido.");
+  }
+  if (!isUuid(input.workspaceId)) {
+    throw new Error("Selecciona una marca válida.");
+  }
+
+  const supabase = createServiceSupabaseClient();
+  const { data, error } = await supabase
+    .from("exercises")
+    .delete()
+    .eq("id", input.id)
+    .eq("workspace_id", input.workspaceId)
+    .eq("is_base_library", false)
+    .select("id");
+
+  if (error) {
+    if (error.code === "23503") {
+      throw new Error("Este ejercicio está en uso en una rutina. Quítalo de los programas antes de eliminarlo.");
+    }
+    throw new Error(`No se pudo eliminar el ejercicio: ${error.message}`);
+  }
+  if (!data?.length) {
+    throw new Error("Solo puedes eliminar los ejercicios propios de tu marca.");
+  }
+}
+
 export type WorkoutTemplateGroupSummary = {
   daysPerWeek: number;
   count: number;
@@ -844,6 +932,128 @@ export async function updateManagedWorkoutExercise(input: WorkoutExerciseUpdateI
 
   if (error) {
     throw new Error(`No se pudo actualizar el ejercicio: ${error.message}`);
+  }
+}
+
+/** Verifies a template day belongs to a template owned by the workspace. */
+async function assertTemplateDayInWorkspace(
+  supabase: ReturnType<typeof createServiceSupabaseClient>,
+  dayId: string,
+  workspaceId: string,
+) {
+  const day = await supabase
+    .from("workout_template_days")
+    .select("template_id")
+    .eq("id", dayId)
+    .maybeSingle();
+  if (day.error || !day.data) {
+    throw new Error("No se encontró el día de la rutina.");
+  }
+
+  const template = await supabase
+    .from("workout_templates")
+    .select("id")
+    .eq("id", day.data.template_id)
+    .eq("workspace_id", workspaceId)
+    .maybeSingle();
+  if (template.error || !template.data) {
+    throw new Error("Esa rutina no pertenece a tu marca.");
+  }
+}
+
+/** Removes a single exercise from a template day (guarded to the workspace). */
+export async function deleteWorkoutTemplateExercise(input: { templateExerciseId: string; workspaceId: string }) {
+  if (!isUuid(input.templateExerciseId)) {
+    throw new Error("Ejercicio de rutina no válido.");
+  }
+  if (!isUuid(input.workspaceId)) {
+    throw new Error("Selecciona una marca válida.");
+  }
+
+  const supabase = createServiceSupabaseClient();
+  const exercise = await supabase
+    .from("workout_template_exercises")
+    .select("id,day_id")
+    .eq("id", input.templateExerciseId)
+    .maybeSingle();
+  if (exercise.error || !exercise.data) {
+    throw new Error("No se encontró el ejercicio de la rutina.");
+  }
+
+  await assertTemplateDayInWorkspace(supabase, exercise.data.day_id, input.workspaceId);
+
+  const { error } = await supabase
+    .from("workout_template_exercises")
+    .delete()
+    .eq("id", input.templateExerciseId);
+  if (error) {
+    throw new Error(`No se pudo quitar el ejercicio: ${error.message}`);
+  }
+}
+
+/**
+ * Deletes a template day and (via FK cascade) its exercises. Guarded to the
+ * workspace so a coach can only edit their own programs.
+ */
+export async function deleteWorkoutTemplateDay(input: { dayId: string; workspaceId: string }) {
+  if (!isUuid(input.dayId)) {
+    throw new Error("Día no válido.");
+  }
+  if (!isUuid(input.workspaceId)) {
+    throw new Error("Selecciona una marca válida.");
+  }
+
+  const supabase = createServiceSupabaseClient();
+  await assertTemplateDayInWorkspace(supabase, input.dayId, input.workspaceId);
+
+  const { error } = await supabase
+    .from("workout_template_days")
+    .delete()
+    .eq("id", input.dayId);
+  if (error) {
+    throw new Error(`No se pudo eliminar el día: ${error.message}`);
+  }
+}
+
+/**
+ * Member self-service: swap an assigned exercise for another from the brand
+ * library. Updates the member's assigned_workout_exercises row in place.
+ */
+export async function swapAssignedWorkoutExercise(input: { workspaceId: string; assignedExerciseId: string; newExerciseId: string }) {
+  if (!isUuid(input.workspaceId) || !isUuid(input.assignedExerciseId) || !isUuid(input.newExerciseId)) {
+    throw new Error("Cambio de ejercicio no válido.");
+  }
+
+  const supabase = createServiceSupabaseClient();
+  const exercise = await supabase
+    .from("exercises")
+    .select("id,name,default_video_url,workspace_id")
+    .eq("id", input.newExerciseId)
+    .maybeSingle();
+  if (exercise.error || !exercise.data) {
+    throw new Error("Ese ejercicio no existe.");
+  }
+  if (exercise.data.workspace_id && exercise.data.workspace_id !== input.workspaceId) {
+    throw new Error("Ese ejercicio no es de tu marca.");
+  }
+
+  const { data, error } = await (supabase as any)
+    .from("assigned_workout_exercises")
+    .update({
+      exercise_id: exercise.data.id,
+      title: exercise.data.name,
+      video_url: exercise.data.default_video_url ?? null,
+      updated_at: new Date().toISOString(),
+    })
+    .eq("id", input.assignedExerciseId)
+    .eq("workspace_id", input.workspaceId)
+    .select("id");
+
+  if (error) {
+    throw new Error(`No se pudo cambiar el ejercicio: ${error.message}`);
+  }
+  if (!data?.length) {
+    throw new Error("No se encontró el ejercicio a cambiar.");
   }
 }
 

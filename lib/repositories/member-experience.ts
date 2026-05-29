@@ -35,6 +35,7 @@ const defaultAppPages: MemberAppPage[] = [
   { title: "Entreno", route: "/app/workouts", pageType: "workouts", menuArea: "main", sortOrder: 20, status: "active", isSystem: true },
   { title: "Comida", route: "/app/meals", pageType: "nutrition", menuArea: "main", sortOrder: 30, status: "active", isSystem: true },
   { title: "Progreso", route: "/app/progress", pageType: "progress", menuArea: "main", sortOrder: 40, status: "active", isSystem: true },
+  { title: "Hábitos", route: "/app/habits", pageType: "habits", menuArea: "main", sortOrder: 42, status: "active", isSystem: true },
   { title: "Cardio", route: "/app/cardio", pageType: "cardio", menuArea: "main", sortOrder: 45, status: "active", isSystem: true },
   { title: "Guías", route: "/app/guides", pageType: "content", menuArea: "main", sortOrder: 50, status: "active", isSystem: true },
   { title: "Soporte", route: "/app/support", pageType: "support", menuArea: "main", sortOrder: 60, status: "active", isSystem: true },
