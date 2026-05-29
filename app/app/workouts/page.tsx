@@ -1,4 +1,4 @@
-import { CheckCircle2, Dumbbell, Play, Repeat2, Timer, Video } from "lucide-react";
+import { CalendarClock, CheckCircle2, Dumbbell, Play, Repeat2, Timer, Video } from "lucide-react";
 import Link from "next/link";
 import { Topbar } from "@/components/topbar";
 import { getSelectedMemberAppBrand } from "@/lib/member-app";
@@ -49,6 +49,13 @@ function estimatedMinutesFor(day: WorkoutDayView | null) {
   return day && "estimatedMinutes" in day && day.estimatedMinutes ? day.estimatedMinutes : 60;
 }
 
+function formatReviewDate(value: string) {
+  if (!value) return "";
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return value;
+  return date.toLocaleDateString("es-ES", { day: "numeric", month: "long" });
+}
+
 export default async function WorkoutsPage() {
   const brand = await getSelectedMemberAppBrand();
   const [performance, trainingContext] = await Promise.all([
@@ -70,6 +77,8 @@ export default async function WorkoutsPage() {
   const weekProgressPercent = Math.min(100, Math.max(8, Math.round((activeWeekNumber / 12) * 100)));
   const weeklyGoal = hasApprovedTraining ? trainingContext.activeAssignment?.daysPerWeek ?? activeTemplate?.daysPerWeek ?? trainingContext.preferredDaysPerWeek ?? 4 : 0;
   const estimatedMinutes = estimatedMinutesFor(activeDay);
+  const coachAssignment = hasApprovedTraining ? trainingContext.activeAssignment : null;
+  const coachReview = formatReviewDate(coachAssignment?.nextReviewOn ?? "");
 
   return (
     <>
@@ -88,7 +97,11 @@ export default async function WorkoutsPage() {
               <span><Dumbbell size={16} /> {activeDay ? `${sessionExercises} ejercicios` : "Pendiente de activar"}</span>
               <span><Video size={16} /> {activeDay ? totalSessionVideos ? `${totalSessionVideos} vídeos` : "Sin vídeos" : "Vídeos después"}</span>
               <span><Timer size={16} /> {activeDay ? `${estimatedMinutes} min aprox.` : "Revisión coach"}</span>
-              <span><Repeat2 size={16} /> Avisos con motivo</span>
+              {activeDay && coachReview ? (
+                <span><CalendarClock size={16} /> Revisión {coachReview}</span>
+              ) : (
+                <span><Repeat2 size={16} /> Avisos con motivo</span>
+              )}
             </div>
             <div className="workoutActionRail">
               {activeDay ? (
@@ -167,7 +180,14 @@ export default async function WorkoutsPage() {
               <span><strong>3</strong> Marca cómo fue</span>
               <span><strong>4</strong> Guarda sesión</span>
             </div>
-            {activeDay.notes ? <p className="sessionCoachNotes">Controla la técnica, respeta los descansos y avisa a tu coach si aparece alguna molestia.</p> : null}
+            {coachAssignment?.goal || coachAssignment?.notes ? (
+              <p className="sessionCoachNotes">
+                {coachAssignment?.goal ? <strong>Objetivo del bloque: {coachAssignment.goal}. </strong> : null}
+                {coachAssignment?.notes || "Controla la técnica, respeta los descansos y avisa a tu coach si aparece una molestia."}
+              </p>
+            ) : (
+              <p className="sessionCoachNotes">Controla la técnica, respeta los descansos y avisa a tu coach si aparece alguna molestia.</p>
+            )}
             <form action={saveWorkoutSessionAction} className="sessionLogForm">
               <input name="workspaceId" type="hidden" value={brand.id} />
               <input name="templateId" type="hidden" value={templateIdForLog} />

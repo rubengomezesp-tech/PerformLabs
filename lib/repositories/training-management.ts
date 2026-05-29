@@ -1090,9 +1090,21 @@ export async function cloneWorkoutTemplate(templateId: string, workspaceId: stri
 export async function setWorkoutTemplateStatus(
   templateId: string,
   status: "draft" | "active" | "archived",
+  workspaceId?: string,
 ) {
   if (!templateId) throw new Error("Falta la rutina.");
   const supabase = createServiceSupabaseClient();
+
+  if (workspaceId) {
+    const { data: template } = await supabase
+      .from("workout_templates")
+      .select("id")
+      .eq("id", templateId)
+      .eq("workspace_id", workspaceId)
+      .maybeSingle();
+    if (!template) throw new Error("La rutina no pertenece a tu marca.");
+  }
+
   const { error } = await supabase.from("workout_templates").update({ status }).eq("id", templateId);
   if (error) throw new Error(`No se pudo actualizar el estado: ${error.message}`);
 }

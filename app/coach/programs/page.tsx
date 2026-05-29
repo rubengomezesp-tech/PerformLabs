@@ -5,7 +5,7 @@ import { Topbar } from "@/components/topbar";
 import { buildPeriodizedWorkoutPlan, buildWeeklyPeriodizationTargets, estimateTrainingStress, recommendWorkoutAdjustment } from "@/lib/domain/workout-engine";
 import { getSelectedMemberAppBrand } from "@/lib/member-app";
 import { listManagedExercises, listManagedWorkoutTemplates, listWorkoutTemplateGroupSummaries, type ManagedWorkoutTemplate } from "@/lib/repositories/training-management";
-import { createCoachWorkoutBlueprintAction, createCoachWorkoutDayAction, createCoachWorkoutExerciseAction, createCoachWorkoutTemplateAction, createQuarterlyModuleLibraryAction, updateCoachWorkoutExerciseAction } from "./actions";
+import { createCoachWorkoutBlueprintAction, createCoachWorkoutDayAction, createCoachWorkoutExerciseAction, createCoachWorkoutTemplateAction, createQuarterlyModuleLibraryAction, setCoachWorkoutTemplateStatusAction, updateCoachWorkoutExerciseAction } from "./actions";
 
 export const dynamic = "force-dynamic";
 
@@ -350,7 +350,32 @@ export default async function CoachProgramsPage({ searchParams }: CoachProgramsP
                 <h2>Plan {template.daysPerWeek} días/semana</h2>
                 <p>{template.name} · {monthLabels[activeMonth].title}</p>
               </div>
-              <span className="tag">{statusLabels[template.status] ?? template.status}</span>
+              <div className="statusControls">
+                <span className="tag">{statusLabels[template.status] ?? template.status}</span>
+                {template.status !== "active" ? (
+                  <form action={setCoachWorkoutTemplateStatusAction}>
+                    <input name="workspaceId" type="hidden" value={brand.id} />
+                    <input name="templateId" type="hidden" value={template.id} />
+                    <input name="status" type="hidden" value="active" />
+                    <button className="btn sm" type="submit">Publicar</button>
+                  </form>
+                ) : (
+                  <form action={setCoachWorkoutTemplateStatusAction}>
+                    <input name="workspaceId" type="hidden" value={brand.id} />
+                    <input name="templateId" type="hidden" value={template.id} />
+                    <input name="status" type="hidden" value="draft" />
+                    <button className="btn ghost sm" type="submit">Pasar a borrador</button>
+                  </form>
+                )}
+                {template.status !== "archived" ? (
+                  <form action={setCoachWorkoutTemplateStatusAction}>
+                    <input name="workspaceId" type="hidden" value={brand.id} />
+                    <input name="templateId" type="hidden" value={template.id} />
+                    <input name="status" type="hidden" value="archived" />
+                    <button className="btn ghost sm" type="submit">Archivar</button>
+                  </form>
+                ) : null}
+              </div>
             </div>
 
             <ul className="list">
