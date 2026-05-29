@@ -1,4 +1,5 @@
 import { Heart, MessageSquare, Send, Trash2 } from "lucide-react";
+import { SubmitButton } from "@/components/submit-button";
 import { Topbar } from "@/components/topbar";
 import { getSelectedMemberAppBrand } from "@/lib/member-app";
 import { listCommunityPosts } from "@/lib/repositories/community";
@@ -38,7 +39,7 @@ export default async function MemberCommunityPage() {
           <form action={createCommunityPostAction} className="communityComposerForm">
             <input name="workspaceId" type="hidden" value={brand.id} />
             <textarea name="body" rows={3} required placeholder="¿Cómo va tu semana? Comparte un logro, una duda o un tip…" />
-            <button className="btn primary" type="submit"><Send size={16} /> Publicar</button>
+            <SubmitButton className="btn primary" pendingLabel="Publicando…"><Send size={16} /> Publicar</SubmitButton>
           </form>
         </article>
 

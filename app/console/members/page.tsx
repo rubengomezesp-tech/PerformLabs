@@ -1,5 +1,6 @@
 import { UserPlus, Users } from "lucide-react";
 import { EmptyState } from "@/components/empty-state";
+import { SubmitButton } from "@/components/submit-button";
 import { Topbar } from "@/components/topbar";
 import { listManagedDietTemplates } from "@/lib/repositories/nutrition-management";
 import { listManagedMembers } from "@/lib/repositories/member-management";
@@ -89,7 +90,7 @@ export default async function MembersPage({ searchParams }: MembersPageProps) {
                 Zona horaria
                 <input name="timezone" defaultValue="Europe/Madrid" />
               </label>
-              <button className="btn primary" type="submit">Crear cliente <UserPlus size={18} /></button>
+              <SubmitButton className="btn primary" pendingLabel="Creando…">Crear cliente <UserPlus size={18} /></SubmitButton>
             </form>
           </article>
         ) : null}
