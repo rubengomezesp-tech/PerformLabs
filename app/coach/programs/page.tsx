@@ -1,11 +1,12 @@
-import { Activity, Dumbbell, Gauge, Plus, Save, Video } from "lucide-react";
+import { Activity, Dumbbell, Gauge, Plus, Video } from "lucide-react";
 import Link from "next/link";
+import { Dialog } from "@/components/dialog";
 import { EmptyState } from "@/components/empty-state";
 import { Topbar } from "@/components/topbar";
-import { buildPeriodizedWorkoutPlan, buildWeeklyPeriodizationTargets, estimateTrainingStress, recommendWorkoutAdjustment } from "@/lib/domain/workout-engine";
+import { buildWeeklyPeriodizationTargets, estimateTrainingStress, recommendWorkoutAdjustment } from "@/lib/domain/workout-engine";
 import { getSelectedMemberAppBrand } from "@/lib/member-app";
 import { listManagedExercises, listManagedWorkoutTemplates, listWorkoutTemplateGroupSummaries, type ManagedWorkoutTemplate } from "@/lib/repositories/training-management";
-import { createCoachWorkoutBlueprintAction, createCoachWorkoutDayAction, createCoachWorkoutExerciseAction, createCoachWorkoutTemplateAction, createQuarterlyModuleLibraryAction, setCoachWorkoutTemplateStatusAction, updateCoachWorkoutExerciseAction } from "./actions";
+import { createCoachWorkoutBlueprintAction, createCoachWorkoutDayAction, createCoachWorkoutExerciseAction, createCoachWorkoutTemplateAction, setCoachWorkoutTemplateStatusAction, updateCoachWorkoutExerciseAction } from "./actions";
 
 export const dynamic = "force-dynamic";
 
@@ -78,14 +79,6 @@ export default async function CoachProgramsPage({ searchParams }: CoachProgramsP
     (total, template) => total + template.days.reduce((dayTotal, day) => dayTotal + day.exercises.length, 0),
     0,
   );
-  const previewPlan = buildPeriodizedWorkoutPlan({
-    goals: ["hypertrophy"],
-    weeks: 12,
-    daysPerWeek: 4,
-    sessionMinutes: 60,
-    experience: "intermediate",
-    location: "gym",
-  });
   const weeklyTargets = buildWeeklyPeriodizationTargets(12);
   const trainingStress = estimateTrainingStress({
     daysPerWeek: 4,
@@ -107,107 +100,111 @@ export default async function CoachProgramsPage({ searchParams }: CoachProgramsP
         eyebrow="Programas"
         title="Rutinas de entrenamiento."
         text="Crea y edita los planes que verá cada cliente en su app: días por semana, meses, semanas, ejercicios, series, reps, descanso, técnica y notas."
-        actions={<a className="btn primary" href="#editar-rutinas">Editar rutinas <Dumbbell size={18} /></a>}
+        actions={
+          <>
+            <Dialog
+              triggerClassName="btn primary"
+              trigger={<>Generar 12 semanas <Dumbbell size={18} /></>}
+              title="Generar rutina de 12 semanas"
+              description="Crea una estructura periodizada con ejercicios. Luego la editas a mano."
+            >
+              <form action={createCoachWorkoutBlueprintAction} className="editForm">
+                <input name="workspaceId" type="hidden" value={brand.id} />
+                <label>
+                  Nombre
+                  <input name="name" defaultValue="Hipertrofia elite 12 semanas" required />
+                </label>
+                <label>
+                  Objetivo
+                  <select name="goal" defaultValue="hypertrophy">
+                    <option value="hypertrophy">Hipertrofia</option>
+                    <option value="strength">Fuerza</option>
+                    <option value="fat_loss">Perdida de grasa</option>
+                    <option value="recomposition">Recomposicion</option>
+                    <option value="mobility">Movilidad</option>
+                  </select>
+                </label>
+                <label>
+                  Nivel
+                  <select name="level" defaultValue="intermediate">
+                    <option value="beginner">Principiante</option>
+                    <option value="intermediate">Intermedio</option>
+                    <option value="advanced">Avanzado</option>
+                  </select>
+                </label>
+                <label>
+                  Entorno
+                  <select name="location" defaultValue="gym">
+                    <option value="gym">Gimnasio</option>
+                    <option value="home">Casa</option>
+                    <option value="outdoor">Exterior</option>
+                  </select>
+                </label>
+                <label>
+                  Días/semana
+                  <input name="daysPerWeek" defaultValue="4" min="3" max="7" type="number" />
+                </label>
+                <label>
+                  Min/sesión
+                  <input name="sessionMinutes" defaultValue="60" min="35" max="120" type="number" />
+                </label>
+                <label className="spanFull">
+                  Lesiones / límites
+                  <input name="injuries" placeholder="hombro, lumbar, rodilla..." />
+                </label>
+                <button className="btn primary spanFull" type="submit">Generar 12 semanas + ejercicios</button>
+              </form>
+            </Dialog>
+            <Dialog
+              triggerClassName="btn"
+              trigger={<>Nuevo programa <Plus size={18} /></>}
+              title="Nuevo programa (vacío)"
+              description="Crea una rutina desde cero y añade días y ejercicios a mano."
+            >
+              <form action={createCoachWorkoutTemplateAction} className="editForm">
+                <input name="workspaceId" type="hidden" value={brand.id} />
+                <label>
+                  Nombre
+                  <input name="name" placeholder="Hipertrofia 12 semanas" required />
+                </label>
+                <label>
+                  Objetivo
+                  <input name="goal" placeholder="Volumen, definición, fuerza..." />
+                </label>
+                <label>
+                  Nivel
+                  <select name="level" defaultValue="intermediate">
+                    <option value="beginner">Principiante</option>
+                    <option value="intermediate">Intermedio</option>
+                    <option value="advanced">Avanzado</option>
+                  </select>
+                </label>
+                <label>
+                  Días/semana
+                  <input name="daysPerWeek" defaultValue="3" min="1" max="7" type="number" />
+                </label>
+                <button className="btn primary spanFull" type="submit">Crear programa</button>
+              </form>
+            </Dialog>
+            <a className="btn ghost" href="#editar-rutinas">Editar rutinas <Dumbbell size={18} /></a>
+          </>
+        }
       />
       <section className="grid">
-        <article className="card span12 coachProgramGuide">
-          <div>
-            <span className="eyebrow">Modo coach</span>
-            <h2>Trabaja como lo haría un entrenador.</h2>
-            <p>Primero creas la biblioteca base. Después eliges disponibilidad, mes y semana. Por último ajustas ejercicios y prescripción para que el cliente lo vea limpio en su app.</p>
-          </div>
-          <div className="coachProgramSteps">
-            <span><strong>1</strong> Crear base 3-7 días</span>
-            <span><strong>2</strong> Elegir días y mes</span>
-            <span><strong>3</strong> Editar ejercicios</span>
-            <span><strong>4</strong> Asignar al cliente</span>
-          </div>
-        </article>
-
-        <article className="card span12 trainingLabCard">
+        <article className="card span12 coachProgramGuide motionCard">
           <div className="sectionHeader">
             <div>
-              <Dumbbell color="var(--gold)" />
-              <h2>Crear rutinas base de 3 meses.</h2>
-              <p>Genera una estructura inicial para clientes que entrenan 3, 4, 5, 6 o 7 días por semana. Luego puedes editar cada día y cada ejercicio a mano.</p>
-            </div>
-            <span className="tag">12 semanas</span>
-          </div>
-          <div className="quarterlyModuleStrip">
-            {[3, 4, 5, 6, 7].map((days) => (
-              <span key={days}>
-                {days} dias/semana
-                <strong>{days * 12} sesiones</strong>
-              </span>
-            ))}
-          </div>
-          <div className="trainingBlueprintGrid">
-            <form action={createCoachWorkoutBlueprintAction} className="trainingBlueprintForm">
-              <input name="workspaceId" type="hidden" value={brand.id} />
-              <label>
-                Nombre
-                <input name="name" defaultValue="Hipertrofia elite 12 semanas" required />
-              </label>
-              <label>
-                Objetivo
-                <select name="goal" defaultValue="hypertrophy">
-                  <option value="hypertrophy">Hipertrofia</option>
-                  <option value="strength">Fuerza</option>
-                  <option value="fat_loss">Perdida de grasa</option>
-                  <option value="recomposition">Recomposicion</option>
-                  <option value="mobility">Movilidad</option>
-                </select>
-              </label>
-              <label>
-                Nivel
-                <select name="level" defaultValue="intermediate">
-                  <option value="beginner">Principiante</option>
-                  <option value="intermediate">Intermedio</option>
-                  <option value="advanced">Avanzado</option>
-                </select>
-              </label>
-              <label>
-                Entorno
-                <select name="location" defaultValue="gym">
-                  <option value="gym">Gimnasio</option>
-                  <option value="home">Casa</option>
-                  <option value="outdoor">Exterior</option>
-                </select>
-              </label>
-              <label>
-                Dias/semana
-                <input name="daysPerWeek" defaultValue="4" min="3" max="7" type="number" />
-              </label>
-              <label>
-                Min/sesion
-                <input name="sessionMinutes" defaultValue="60" min="35" max="120" type="number" />
-              </label>
-              <label className="spanFull">
-                Lesiones / limites
-                <input name="injuries" placeholder="hombro, lumbar, rodilla..." />
-              </label>
-              <button className="btn primary" type="submit">Generar 12 semanas + ejercicios</button>
-            </form>
-            <div className="trainingPhasePanel">
-              {previewPlan.phases.map((phase) => (
-                <article className="phaseTile" key={phase.month}>
-                  <span>Mes {phase.month} · Semanas {phase.weeks}</span>
-                  <h3>{phase.title}</h3>
-                  <p>{phase.focus}</p>
-                  <small>{phase.progression}</small>
-                </article>
-              ))}
-              <form action={createQuarterlyModuleLibraryAction} className="moduleLibraryForm">
-                <input name="workspaceId" type="hidden" value={brand.id} />
-                <input name="goal" type="hidden" value="hypertrophy" />
-                <input name="level" type="hidden" value="intermediate" />
-                <input name="location" type="hidden" value="gym" />
-                <input name="sessionMinutes" type="hidden" value="60" />
-                <button className="btn primary" type="submit">Crear biblioteca 3-7 dias</button>
-                <small>Crea cinco modulos trimestrales editables para asignar segun disponibilidad del usuario.</small>
-              </form>
+              <Dumbbell color="var(--accent)" />
+              <h2>Cómo crear una rutina.</h2>
+              <p>Usa “Generar 12 semanas” para una base con ejercicios, o “Nuevo programa” para empezar de cero.</p>
             </div>
           </div>
+          <ol className="stepper">
+            <li><span>1</span><div><strong>Crear</strong><p>Genera una base de 12 semanas o crea un programa vacío.</p></div></li>
+            <li><span>2</span><div><strong>Editar</strong><p>Abre semanas y días y ajusta ejercicios y prescripción.</p></div></li>
+            <li><span>3</span><div><strong>Publicar</strong><p>Pasa la rutina a “Activo” cuando esté lista.</p></div></li>
+            <li><span>4</span><div><strong>Asignar</strong><p>Asígnala a un miembro y la verá en su app.</p></div></li>
+          </ol>
         </article>
 
         <details className="card span12 trainingIntelligenceCard advancedProgramPanel">
@@ -255,40 +252,6 @@ export default async function CoachProgramsPage({ searchParams }: CoachProgramsP
             ))}
           </div>
         </details>
-
-        <article className="card span12 coachBuilderCard" id="nuevo-programa">
-          <div>
-            <span className="eyebrow">Crear plan manual</span>
-            <h2>Añade una rutina nueva desde cero.</h2>
-            <p>Útil si el coach quiere crear un plan propio sin partir de la biblioteca automática.</p>
-          </div>
-          <form action={createCoachWorkoutTemplateAction} className="coachQuickCreate">
-            <input name="workspaceId" type="hidden" value={brand.id} />
-            <label>
-              Nombre
-              <input name="name" placeholder="Hipertrofia 12 semanas" required />
-            </label>
-            <label>
-              Objetivo
-              <input name="goal" placeholder="Volumen, definicion, fuerza..." />
-            </label>
-            <label>
-              Nivel
-              <select name="level" defaultValue="intermediate">
-                <option value="beginner">Beginner</option>
-                <option value="intermediate">Intermediate</option>
-                <option value="advanced">Advanced</option>
-              </select>
-            </label>
-            <label>
-              Dias/semana
-              <input name="daysPerWeek" defaultValue="3" min="1" max="7" type="number" />
-            </label>
-            <button className="btn primary" type="submit">
-              Crear <Save size={18} />
-            </button>
-          </form>
-        </article>
 
         <article className="card span12 coachProgramCommand" id="editar-rutinas">
           <div>
