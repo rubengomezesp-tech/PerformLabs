@@ -28,7 +28,7 @@ export const tenant = {
   name: "Marca Blanca Fitness",
   slug: "marca-blanca",
   appName: "Coach App",
-  accent: "#d8bd6b",
+  accent: "#078df2",
   supportEmail: "soporte@tumarca.com",
 };
 

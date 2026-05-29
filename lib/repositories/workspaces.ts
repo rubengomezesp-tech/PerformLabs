@@ -88,7 +88,7 @@ function cleanOptional(value: string) {
 
 function normalizeHexColor(value: string) {
   const color = value.trim();
-  return /^#[0-9a-fA-F]{6}$/.test(color) ? color : "#d8bd6b";
+  return /^#[0-9a-fA-F]{6}$/.test(color) ? color : "#078df2";
 }
 
 function normalizeDomain(value?: string | null) {
@@ -123,7 +123,7 @@ function fallbackWorkspaces(): WorkspaceSummary[] {
     fallbackSubdomain: fallbackSubdomainFor(app.name),
     status: app.status,
     isActive: app.status === "Activa",
-    accentColor: "#d8bd6b",
+    accentColor: "#078df2",
     members: app.members,
     mrr: app.mrr,
     entitlement: {

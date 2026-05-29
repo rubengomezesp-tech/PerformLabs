@@ -251,7 +251,7 @@ export default async function ProjectDetailPage({ params }: ProjectDetailPagePro
                 </label>
                 <label>
                   Color acento
-                  <input name="accentColor" defaultValue={project.brief.accentColor} placeholder="#d8bd6b" />
+                  <input name="accentColor" defaultValue={project.brief.accentColor} placeholder="#078df2" />
                 </label>
                 <label className="spanFull">
                   Notas de marca

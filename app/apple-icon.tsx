@@ -7,7 +7,7 @@ export const dynamic = "force-dynamic";
 
 export default async function AppleIcon() {
   const brand = await getSelectedMemberAppBrand();
-  const accent = brand.accentColor || "#d8bd6b";
+  const accent = brand.accentColor || "#078df2";
   const label = (brand.appName || brand.name || "APP").slice(0, 3).toUpperCase();
 
   return new ImageResponse(

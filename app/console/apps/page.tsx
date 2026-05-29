@@ -80,7 +80,7 @@ export default async function ChildAppsPage() {
             </label>
             <label>
               Color principal
-              <input name="accentColor" type="color" defaultValue="#d8bd6b" />
+              <input name="accentColor" type="color" defaultValue="#078df2" />
             </label>
             <div className="formActions">
               <button className="btn primary" type="submit">

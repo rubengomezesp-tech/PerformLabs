@@ -12,7 +12,7 @@ export async function generateMetadata() {
 
 export default async function MemberLandingPage() {
   const brand = await getSelectedMemberAppBrand();
-  const accent = brand.accentColor || "#d8bd6b";
+  const accent = brand.accentColor || "#078df2";
   const background = brand.backgroundColor || "#0d0d10";
   const headline = brand.heroHeadline || `Entrena con ${brand.name}`;
   const subtext = brand.heroSubtext || "Tu plan de entrenamiento y nutrición, tu progreso y tu coach, en un solo sitio.";
