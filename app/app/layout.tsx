@@ -1,4 +1,4 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import { EntitlementGate } from "@/components/entitlement-gate";
 import { PageShell } from "@/components/page-shell";
 import { getSelectedMemberAppBrand, getSelectedMemberAppShell } from "@/lib/member-app";
@@ -13,6 +13,14 @@ export async function generateMetadata(): Promise<Metadata> {
   };
 }
 
+export async function generateViewport(): Promise<Viewport> {
+  const brand = await getSelectedMemberAppBrand();
+
+  return {
+    themeColor: brand.backgroundColor || "#0d0d10",
+  };
+}
+
 export default async function MemberAppLayout({
   children,
 }: {
@@ -22,7 +30,7 @@ export default async function MemberAppLayout({
   const entitlement = await getWorkspaceEntitlement(brand.id);
 
   return (
-    <PageShell brand={brand} nav={nav} active="/app" productLabel="App cliente">
+    <PageShell brand={brand} nav={nav} active="/app" productLabel="App cliente" variant="app">
       <EntitlementGate brand={brand} entitlement={entitlement} module="member_app">
         {children}
       </EntitlementGate>

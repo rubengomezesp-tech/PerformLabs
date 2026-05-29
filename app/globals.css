@@ -7322,3 +7322,43 @@ a.diaryEntryTitle:hover {
   color: #0c0c0c;
   font-weight: 700;
 }
+
+/* ---- Member bottom tab bar (PWA, mobile) ---- */
+.mobileTabBar {
+  display: none;
+}
+.mobileTab {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  padding: 6px 0;
+  color: var(--text-muted);
+  font-size: 11px;
+  font-weight: 600;
+  text-decoration: none;
+  border-radius: 12px;
+  transition: color 0.15s ease;
+}
+.mobileTab.active {
+  color: var(--accent);
+}
+@media (max-width: 980px) {
+  .mobileTabBar {
+    position: fixed;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    z-index: 20;
+    display: grid;
+    grid-template-columns: repeat(5, 1fr);
+    gap: 2px;
+    padding: 8px 6px calc(8px + env(safe-area-inset-bottom, 0px));
+    background: rgba(8, 9, 10, 0.92);
+    backdrop-filter: blur(12px);
+    border-top: 1px solid var(--line);
+  }
+  .shell--app .main {
+    padding-bottom: 96px;
+  }
+}
