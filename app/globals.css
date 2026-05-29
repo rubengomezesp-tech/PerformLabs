@@ -6974,3 +6974,152 @@ a.diaryEntryTitle:hover {
 .dietVisibilityForm .muted {
   margin: 0;
 }
+
+/* ---- Member habit tracker ---- */
+.habitStreakCard {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 18px;
+  flex-wrap: wrap;
+}
+.habitStreak {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+.habitStreak > div {
+  display: flex;
+  flex-direction: column;
+  line-height: 1;
+}
+.habitStreak strong {
+  font-size: 30px;
+  color: var(--text);
+}
+.habitStreak small {
+  color: var(--text-muted);
+  font-size: 13px;
+}
+.habitStreakMeta {
+  flex: 1 1 220px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  min-width: 200px;
+}
+.habitStreakMeta > span {
+  display: flex;
+  justify-content: space-between;
+  color: var(--text-muted);
+  font-size: 14px;
+}
+.habitStreakMeta strong {
+  color: var(--text);
+}
+.habitGrid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+}
+.habitCard {
+  position: relative;
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  background: var(--surface);
+  transition: border-color 0.15s ease, background 0.15s ease;
+}
+.habitCard.done {
+  border-color: color-mix(in srgb, var(--accent) 45%, var(--border));
+  background: color-mix(in srgb, var(--accent) 10%, var(--surface));
+}
+.habitToggleForm {
+  margin: 0;
+}
+.habitToggle {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+  padding: 14px 40px 14px 14px;
+  background: transparent;
+  border: 0;
+  color: var(--text);
+  cursor: pointer;
+  text-align: left;
+  font: inherit;
+}
+.habitToggleIcon {
+  display: grid;
+  place-items: center;
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  border: 1px solid var(--border-strong);
+  color: var(--text-muted);
+  flex-shrink: 0;
+}
+.habitCard.done .habitToggleIcon {
+  background: var(--accent);
+  border-color: var(--accent);
+  color: #fff;
+}
+.habitToggleName {
+  font-weight: 600;
+  font-size: 14.5px;
+}
+.habitArchiveForm {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  margin: 0;
+}
+.habitArchive {
+  display: grid;
+  place-items: center;
+  width: 24px;
+  height: 24px;
+  border-radius: 6px;
+  border: 0;
+  background: transparent;
+  color: var(--text-soft);
+  cursor: pointer;
+}
+.habitArchive:hover {
+  color: var(--danger);
+  background: var(--surface-2);
+}
+.habitAddForm {
+  display: flex;
+  gap: 10px;
+}
+.habitAddForm input {
+  flex: 1;
+}
+.habitEmptyCard {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 10px;
+}
+.habitSuggestList {
+  list-style: none;
+  margin: 4px 0 8px;
+  padding: 0;
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px;
+}
+.habitSuggestList li {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: var(--text-muted);
+  font-size: 14px;
+}
+@media (max-width: 560px) {
+  .habitGrid,
+  .habitSuggestList {
+    grid-template-columns: 1fr;
+  }
+}
