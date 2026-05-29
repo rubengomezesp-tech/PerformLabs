@@ -1,4 +1,5 @@
 import { Mail, Plus, UserPlus, UserRound, Users } from "lucide-react";
+import { Dialog } from "@/components/dialog";
 import { EmptyState } from "@/components/empty-state";
 import { Topbar } from "@/components/topbar";
 import { getSelectedMemberAppBrand } from "@/lib/member-app";
@@ -23,41 +24,41 @@ export default async function CoachMembersPage() {
         eyebrow="Miembros"
         title="Clientes, acceso y seguimiento."
         text="El entrenador ve quien esta activo, que plan tiene asignado y que necesita revision."
-        actions={<a className="btn primary" href="#nuevo-miembro">Invitar miembro <Plus size={18} /></a>}
+        actions={
+          <Dialog
+            triggerClassName="btn primary"
+            trigger={<>Invitar miembro <Plus size={18} /></>}
+            title={`Crear miembro en ${brand.name}`}
+            description="Después podrás asignarle entrenamiento, nutrición y check-ins."
+          >
+            <form action={createCoachMemberAction} className="editForm">
+              <input name="workspaceId" type="hidden" value={brand.id} />
+              <label>
+                Nombre
+                <input name="fullName" placeholder="Cliente demo" required />
+              </label>
+              <label>
+                Email
+                <input name="email" placeholder="cliente@email.com" required type="email" />
+              </label>
+              <label>
+                Objetivo
+                <input name="goal" placeholder="Definición, fuerza..." />
+              </label>
+              <label>
+                Peso inicial (kg)
+                <input name="startingWeightKg" placeholder="82" />
+              </label>
+              <input name="phone" type="hidden" value="" />
+              <input name="heightCm" type="hidden" value="" />
+              <input name="sex" type="hidden" value="" />
+              <input name="timezone" type="hidden" value="Europe/Madrid" />
+              <button className="btn primary spanFull" type="submit">Crear miembro <UserPlus size={18} /></button>
+            </form>
+          </Dialog>
+        }
       />
       <section className="grid">
-        <article className="card span12 coachBuilderCard" id="nuevo-miembro">
-          <div>
-            <span className="eyebrow">Alta rapida</span>
-            <h2>Crear miembro dentro de {brand.name}.</h2>
-            <p>Despues podras asignarle entrenamiento, comida y check-ins.</p>
-          </div>
-          <form action={createCoachMemberAction} className="coachMemberCreate">
-            <input name="workspaceId" type="hidden" value={brand.id} />
-            <label>
-              Nombre
-              <input name="fullName" placeholder="Cliente demo" required />
-            </label>
-            <label>
-              Email
-              <input name="email" placeholder="cliente@email.com" required type="email" />
-            </label>
-            <label>
-              Objetivo
-              <input name="goal" placeholder="Definicion, fuerza..." />
-            </label>
-            <label>
-              Peso inicial
-              <input name="startingWeightKg" placeholder="82" />
-            </label>
-            <input name="phone" type="hidden" value="" />
-            <input name="heightCm" type="hidden" value="" />
-            <input name="sex" type="hidden" value="" />
-            <input name="timezone" type="hidden" value="Europe/Madrid" />
-            <button className="btn primary" type="submit">Crear <UserPlus size={18} /></button>
-          </form>
-        </article>
-
         {members.length ? members.map((member) => (
           <article className="card span4 motionCard" key={member.id}>
             <UserRound color="var(--gold)" />
@@ -83,6 +84,12 @@ export default async function CoachMembersPage() {
                 <p>Sin entrenamiento asignado todavia.</p>
               )}
             </div>
+            <Dialog
+              triggerClassName="btn"
+              trigger={<>Asignar / editar planes <Plus size={16} /></>}
+              title={`Planes de ${member.fullName}`}
+              description="Entrenamiento, nutrición, fase del bloque y próxima revisión."
+            >
             <form action={assignCoachMemberPlansAction} className="coachAssignForm">
               <input name="workspaceId" type="hidden" value={brand.id} />
               <input name="memberProfileId" type="hidden" value={member.id} />
@@ -128,8 +135,9 @@ export default async function CoachMembersPage() {
                 Notas internas
                 <input name="assignmentNotes" placeholder="Contexto, molestias, preferencias, foco de la fase..." />
               </label>
-              <button className="btn" type="submit">Asignar planes</button>
+              <button className="btn primary spanFull" type="submit">Asignar planes</button>
             </form>
+            </Dialog>
           </article>
         )) : (
           <EmptyState

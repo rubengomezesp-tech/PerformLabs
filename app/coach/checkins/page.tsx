@@ -1,4 +1,5 @@
 import { Camera, CheckCircle2, ClipboardCheck, MessageSquareText, TrendingUp } from "lucide-react";
+import { Dialog } from "@/components/dialog";
 import { EmptyState } from "@/components/empty-state";
 import { Topbar } from "@/components/topbar";
 import { getSelectedMemberAppBrand } from "@/lib/member-app";
@@ -91,6 +92,12 @@ export default async function CoachCheckinsPage() {
               <li className="row">Resultado <span>{checkin.resultsStatus}</span></li>
             </ul>
             {checkin.values.notes ? <p className="sessionCoachNotes">{checkin.values.notes}</p> : null}
+            <Dialog
+              triggerClassName={checkin.status === "reviewed" ? "btn" : "btn primary"}
+              trigger={<>Revisar <CheckCircle2 size={16} /></>}
+              title={`Revisar · ${checkin.memberName}`}
+              description="Da feedback y, si toca, avanza el plan a la siguiente semana."
+            >
             <form action={reviewCoachCheckinAction} className="checkinReviewForm">
               <input name="workspaceId" type="hidden" value={brand.id} />
               <input name="checkinId" type="hidden" value={checkin.id} />
@@ -122,10 +129,11 @@ export default async function CoachCheckinsPage() {
                 Próxima revisión (días)
                 <input name="reviewInDays" type="number" min="1" max="60" defaultValue="7" />
               </label>
-              <button className="btn primary" type="submit">
+              <button className="btn primary spanFull" type="submit">
                 Guardar revisión <CheckCircle2 size={16} />
               </button>
             </form>
+            </Dialog>
           </article>
           );
         })}
