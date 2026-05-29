@@ -3,7 +3,14 @@
 import { revalidatePath } from "next/cache";
 import { requireWorkspaceMutationAccess } from "@/lib/auth/access-control";
 import { calculateNutritionTargets, type ActivityLevel, type Gender, type NutritionGoal } from "@/lib/domain/nutrition-engine";
-import { createManagedDietTemplate, createManagedIngredient, createManagedRecipe } from "@/lib/repositories/nutrition-management";
+import {
+  addIngredientToRecipe,
+  addMealToDietTemplate,
+  createManagedDietTemplate,
+  createManagedIngredient,
+  createManagedRecipe,
+  removeMealFromDietTemplate,
+} from "@/lib/repositories/nutrition-management";
 import { recordSecurityAuditEvent } from "@/lib/repositories/security-management";
 
 function readText(formData: FormData, key: string) {
@@ -137,6 +144,82 @@ export async function createCoachRecipeAction(formData: FormData) {
     action: "coach.recipe.created",
     entityType: "recipe",
     metadata: { name: readText(formData, "name") },
+  });
+
+  revalidatePath("/coach/nutrition");
+  revalidatePath("/app/meals");
+}
+
+export async function addCoachRecipeIngredientAction(formData: FormData) {
+  const workspaceId = readText(formData, "workspaceId");
+  const session = await requireWorkspaceMutationAccess(workspaceId);
+
+  await addIngredientToRecipe({
+    workspaceId,
+    recipeId: readText(formData, "recipeId"),
+    ingredientId: readText(formData, "ingredientId"),
+    grams: readText(formData, "grams"),
+  });
+
+  await recordSecurityAuditEvent({
+    workspaceId,
+    actorUserId: session.mode === "authenticated" ? session.user.id : null,
+    action: "coach.recipe_ingredient.added",
+    entityType: "recipe",
+    entityId: readText(formData, "recipeId") || null,
+    metadata: { ingredientId: readText(formData, "ingredientId"), grams: readText(formData, "grams") },
+  });
+
+  revalidatePath("/coach/nutrition");
+  revalidatePath("/app/meals");
+}
+
+export async function addCoachDietTemplateMealAction(formData: FormData) {
+  const workspaceId = readText(formData, "workspaceId");
+  const session = await requireWorkspaceMutationAccess(workspaceId);
+
+  await addMealToDietTemplate({
+    workspaceId,
+    dietTemplateId: readText(formData, "dietTemplateId"),
+    recipeId: readText(formData, "recipeId"),
+    dayNumber: readText(formData, "dayNumber"),
+    mealSlot: readText(formData, "mealSlot"),
+    servingMultiplier: readText(formData, "servingMultiplier"),
+  });
+
+  await recordSecurityAuditEvent({
+    workspaceId,
+    actorUserId: session.mode === "authenticated" ? session.user.id : null,
+    action: "coach.diet_template_meal.added",
+    entityType: "diet_template",
+    entityId: readText(formData, "dietTemplateId") || null,
+    metadata: {
+      recipeId: readText(formData, "recipeId"),
+      dayNumber: readText(formData, "dayNumber"),
+      mealSlot: readText(formData, "mealSlot"),
+    },
+  });
+
+  revalidatePath("/coach/nutrition");
+  revalidatePath("/app/meals");
+}
+
+export async function removeCoachDietTemplateMealAction(formData: FormData) {
+  const workspaceId = readText(formData, "workspaceId");
+  const session = await requireWorkspaceMutationAccess(workspaceId);
+
+  await removeMealFromDietTemplate({
+    workspaceId,
+    mealId: readText(formData, "mealId"),
+  });
+
+  await recordSecurityAuditEvent({
+    workspaceId,
+    actorUserId: session.mode === "authenticated" ? session.user.id : null,
+    action: "coach.diet_template_meal.removed",
+    entityType: "diet_template",
+    entityId: readText(formData, "dietTemplateId") || null,
+    metadata: { mealId: readText(formData, "mealId") },
   });
 
   revalidatePath("/coach/nutrition");

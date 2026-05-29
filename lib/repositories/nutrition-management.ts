@@ -11,6 +11,16 @@ export type ManagedDietCategory = {
   templates: number;
 };
 
+export type ManagedDietTemplateMeal = {
+  id: string;
+  dayNumber: number;
+  mealSlot: string;
+  recipeId: string;
+  recipeName: string;
+  servingMultiplier: number;
+  sortOrder: number;
+};
+
 export type ManagedDietTemplate = {
   id: string;
   name: string;
@@ -22,6 +32,7 @@ export type ManagedDietTemplate = {
   fatRatio: number | null;
   tags: string[];
   status: string;
+  meals: ManagedDietTemplateMeal[];
 };
 
 export type ManagedIngredient = {
@@ -96,6 +107,17 @@ export type RecipeIngredientInput = {
   recipeId: string;
   ingredientId: string;
   grams: string;
+  /** When provided, the recipe is verified to belong to this workspace before mutating. */
+  workspaceId?: string;
+};
+
+export type DietTemplateMealInput = {
+  workspaceId: string;
+  dietTemplateId: string;
+  recipeId: string;
+  dayNumber: string;
+  mealSlot: string;
+  servingMultiplier: string;
 };
 
 function slugify(value: string) {
@@ -157,6 +179,7 @@ function fallbackTemplates(): ManagedDietTemplate[] {
     fatRatio: null,
     tags: ["demo"],
     status: "draft",
+    meals: [],
   }));
 }
 
@@ -204,7 +227,10 @@ export async function listManagedDietCategories(workspaceId?: string): Promise<M
   }));
 }
 
-export async function listManagedDietTemplates(workspaceId?: string): Promise<ManagedDietTemplate[]> {
+export async function listManagedDietTemplates(
+  workspaceId?: string,
+  options: { withMeals?: boolean } = {},
+): Promise<ManagedDietTemplate[]> {
   const env = getSupabaseServiceEnv();
 
   if (!env.ok || !isUuid(workspaceId)) {
@@ -223,6 +249,10 @@ export async function listManagedDietTemplates(workspaceId?: string): Promise<Ma
     return fallbackTemplates();
   }
 
+  const mealsByTemplate = options.withMeals
+    ? await loadDietTemplateMeals(supabase, (data ?? []).map((template) => template.id))
+    : new Map<string, ManagedDietTemplateMeal[]>();
+
   return (data ?? []).map((template) => ({
     id: template.id,
     name: template.name,
@@ -234,7 +264,45 @@ export async function listManagedDietTemplates(workspaceId?: string): Promise<Ma
     fatRatio: template.fat_ratio,
     tags: template.tags,
     status: template.status,
+    meals: mealsByTemplate.get(template.id) ?? [],
   }));
+}
+
+async function loadDietTemplateMeals(
+  supabase: ReturnType<typeof createServiceSupabaseClient>,
+  templateIds: string[],
+): Promise<Map<string, ManagedDietTemplateMeal[]>> {
+  const byTemplate = new Map<string, ManagedDietTemplateMeal[]>();
+  if (!templateIds.length) return byTemplate;
+
+  const { data, error } = await supabase
+    .from("diet_template_meals")
+    .select("id,diet_template_id,day_number,meal_slot,recipe_id,serving_multiplier,sort_order,recipes(name)")
+    .in("diet_template_id", templateIds)
+    .order("day_number", { ascending: true })
+    .order("sort_order", { ascending: true });
+
+  if (error) {
+    console.error("Unable to load diet template meals", error.message);
+    return byTemplate;
+  }
+
+  for (const meal of data ?? []) {
+    const recipe = meal.recipes as { name?: string } | null;
+    const current = byTemplate.get(meal.diet_template_id) ?? [];
+    current.push({
+      id: meal.id,
+      dayNumber: meal.day_number,
+      mealSlot: meal.meal_slot,
+      recipeId: meal.recipe_id,
+      recipeName: recipe?.name ?? "Receta",
+      servingMultiplier: Number(meal.serving_multiplier ?? 1),
+      sortOrder: meal.sort_order,
+    });
+    byTemplate.set(meal.diet_template_id, current);
+  }
+
+  return byTemplate;
 }
 
 export async function createManagedDietCategory(input: DietCategoryInput) {
@@ -435,6 +503,17 @@ export async function createManagedRecipe(input: RecipeInput) {
 export async function addIngredientToRecipe(input: RecipeIngredientInput) {
   if (!input.recipeId || !input.ingredientId) throw new Error("Falta receta o ingrediente.");
   const supabase = createServiceSupabaseClient();
+
+  if (input.workspaceId) {
+    const { data: recipe } = await supabase
+      .from("recipes")
+      .select("id")
+      .eq("id", input.recipeId)
+      .eq("workspace_id", input.workspaceId)
+      .maybeSingle();
+    if (!recipe) throw new Error("La receta no pertenece a tu marca.");
+  }
+
   const existing = await supabase
     .from("recipe_ingredients")
     .select("id")
@@ -448,6 +527,73 @@ export async function addIngredientToRecipe(input: RecipeIngredientInput) {
   });
 
   if (error) throw new Error(`No se pudo añadir el ingrediente: ${error.message}`);
+}
+
+/** Attaches a recipe to a diet template as a scheduled meal (the template -> meals bridge). */
+export async function addMealToDietTemplate(input: DietTemplateMealInput) {
+  if (!isUuid(input.workspaceId)) throw new Error("Selecciona una marca antes de montar el plan.");
+  if (!isUuid(input.dietTemplateId)) throw new Error("Plantilla no válida.");
+  if (!isUuid(input.recipeId)) throw new Error("Selecciona una receta válida.");
+
+  const supabase = createServiceSupabaseClient();
+
+  const { data: template } = await supabase
+    .from("diet_templates")
+    .select("id")
+    .eq("id", input.dietTemplateId)
+    .eq("workspace_id", input.workspaceId)
+    .maybeSingle();
+  if (!template) throw new Error("La plantilla no pertenece a tu marca.");
+
+  const { data: recipe } = await supabase
+    .from("recipes")
+    .select("id,workspace_id,is_base_library")
+    .eq("id", input.recipeId)
+    .maybeSingle();
+  const recipeUsable = recipe && (recipe.workspace_id === input.workspaceId || recipe.workspace_id === null || recipe.is_base_library);
+  if (!recipeUsable) throw new Error("La receta no está disponible en tu marca.");
+
+  const dayNumber = Math.max(1, parseInteger(input.dayNumber) ?? 1);
+  const mealSlot = input.mealSlot.trim() || "comida";
+  const servingMultiplier = parseFloatValue(input.servingMultiplier, 1) || 1;
+
+  const existing = await supabase
+    .from("diet_template_meals")
+    .select("id")
+    .eq("diet_template_id", input.dietTemplateId)
+    .eq("day_number", dayNumber);
+
+  const { error } = await supabase.from("diet_template_meals").insert({
+    diet_template_id: input.dietTemplateId,
+    recipe_id: input.recipeId,
+    day_number: dayNumber,
+    meal_slot: mealSlot,
+    serving_multiplier: servingMultiplier,
+    sort_order: (existing.data?.length ?? 0) + 1,
+  });
+
+  if (error) throw new Error(`No se pudo añadir la comida a la plantilla: ${error.message}`);
+}
+
+/** Removes a scheduled meal from a diet template, verifying workspace ownership. */
+export async function removeMealFromDietTemplate(input: { workspaceId: string; mealId: string }) {
+  if (!isUuid(input.workspaceId)) throw new Error("Selecciona una marca.");
+  if (!isUuid(input.mealId)) throw new Error("Comida no válida.");
+
+  const supabase = createServiceSupabaseClient();
+  const { data: meal } = await supabase
+    .from("diet_template_meals")
+    .select("id,diet_templates(workspace_id)")
+    .eq("id", input.mealId)
+    .maybeSingle();
+
+  const template = meal?.diet_templates as { workspace_id?: string } | null;
+  if (!meal || template?.workspace_id !== input.workspaceId) {
+    throw new Error("La comida no pertenece a tu marca.");
+  }
+
+  const { error } = await supabase.from("diet_template_meals").delete().eq("id", input.mealId);
+  if (error) throw new Error(`No se pudo eliminar la comida: ${error.message}`);
 }
 
 /** Persists an AI-generated recipe (ingredients + recipe + links) as coach-custom content. */
