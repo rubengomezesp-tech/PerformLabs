@@ -24,6 +24,17 @@ const basePresets = [
   { name: "En casa sin material", label: "En casa", detail: "3 días · casa · principiante", goal: "recomposition", level: "beginner", location: "home", daysPerWeek: 3, sessionMinutes: 40 },
 ];
 
+const INJURY_AREAS = [
+  { value: "hombro", label: "Hombro" },
+  { value: "lumbar", label: "Lumbar" },
+  { value: "rodilla", label: "Rodilla" },
+  { value: "codo", label: "Codo" },
+  { value: "cadera", label: "Cadera" },
+  { value: "muneca", label: "Muñeca" },
+  { value: "tobillo", label: "Tobillo" },
+  { value: "cuello", label: "Cuello" },
+];
+
 type WorkoutTemplateDay = ManagedWorkoutTemplate["days"][number];
 
 type CoachProgramsPageProps = {
@@ -156,10 +167,15 @@ export default async function CoachProgramsPage({ searchParams }: CoachProgramsP
                   Min/sesión
                   <input name="sessionMinutes" defaultValue="60" min="35" max="120" type="number" />
                 </label>
-                <label className="spanFull">
-                  Lesiones / límites
-                  <input name="injuries" placeholder="hombro, lumbar, rodilla..." />
-                </label>
+                <fieldset className="injuryPicker spanFull">
+                  <legend>Lesiones / límites (opcional) — se evitarán esos músculos</legend>
+                  {INJURY_AREAS.map((area) => (
+                    <label className="injuryChip" key={area.value}>
+                      <input name="injuries" type="checkbox" value={area.value} />
+                      {area.label}
+                    </label>
+                  ))}
+                </fieldset>
                 <button className="btn primary spanFull" type="submit">Generar 12 semanas + ejercicios</button>
               </form>
             </Dialog>

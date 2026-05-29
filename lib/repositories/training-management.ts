@@ -209,6 +209,41 @@ function targetMusclesForFocus(focus: string) {
   return matched?.[1] ?? focusMuscleMap.full;
 }
 
+// Maps a reported injury/limitation to the muscle-group tokens that should be
+// avoided when auto-selecting exercises. Keys are normalized (no accents).
+const injuryMuscleMap: Record<string, string[]> = {
+  hombro: ["hombros", "pecho"],
+  hombros: ["hombros", "pecho"],
+  pecho: ["pecho"],
+  espalda: ["espalda"],
+  lumbar: ["espalda baja", "espalda"],
+  biceps: ["biceps"],
+  triceps: ["triceps"],
+  codo: ["biceps", "triceps", "antebrazo"],
+  muneca: ["antebrazo"],
+  cadera: ["gluteos", "isquios"],
+  gluteos: ["gluteos"],
+  rodilla: ["cuadriceps", "isquios"],
+  cuadriceps: ["cuadriceps"],
+  isquios: ["isquios"],
+  tobillo: ["gemelos"],
+  gemelos: ["gemelos"],
+  cuello: ["trapecio", "hombros"],
+  trapecio: ["trapecio"],
+};
+
+function musclesToAvoidForInjuries(injuries: string[]) {
+  const result = new Set<string>();
+  for (const injury of injuries) {
+    const token = normalizeToken(injury);
+    if (!token) continue;
+    const mapped = injuryMuscleMap[token];
+    if (mapped) mapped.forEach((muscle) => result.add(muscle));
+    else result.add(token);
+  }
+  return [...result];
+}
+
 function exerciseScore(exercise: ExerciseCandidate, input: {
   targetMuscles: string[];
   location: TrainingLocation;
@@ -297,9 +332,17 @@ function selectExercisesForDay(exercises: ExerciseCandidate[], input: {
   goal: WorkoutGoal;
   location: TrainingLocation;
   level: ExperienceLevel;
+  excludeMuscles?: string[];
 }) {
   const targetMuscles = targetMusclesForFocus(input.focus);
-  const picked = exercises
+  const exclude = (input.excludeMuscles ?? []).map(normalizeToken).filter(Boolean);
+  const safeExercises = exclude.length
+    ? exercises.filter((exercise) => {
+        const muscles = exercise.muscle_groups.map(normalizeToken);
+        return !muscles.some((muscle) => exclude.some((target) => muscle.includes(target) || target.includes(muscle)));
+      })
+    : exercises;
+  const picked = safeExercises
     .map((exercise) => ({
       exercise,
       score: exerciseScore(exercise, { targetMuscles, location: input.location, level: input.level }),
@@ -842,6 +885,8 @@ export async function createManagedWorkoutBlueprint(input: WorkoutBlueprintInput
 
   const daysPerWeek = Math.max(1, Math.min(7, parseInteger(input.daysPerWeek, 4)));
   const sessionMinutes = Math.max(35, Math.min(120, parseInteger(input.sessionMinutes, 60)));
+  const injuries = splitList(input.injuries);
+  const excludeMuscles = musclesToAvoidForInjuries(injuries);
   const plan = buildPeriodizedWorkoutPlan({
     goals: [input.goal],
     weeks: 12,
@@ -849,7 +894,7 @@ export async function createManagedWorkoutBlueprint(input: WorkoutBlueprintInput
     sessionMinutes,
     experience: input.level,
     location: input.location,
-    injuries: splitList(input.injuries),
+    injuries,
   });
 
   const supabase = createServiceSupabaseClient();
@@ -903,6 +948,7 @@ export async function createManagedWorkoutBlueprint(input: WorkoutBlueprintInput
         goal: input.goal,
         location: input.location,
         level: input.level,
+        excludeMuscles,
       }).map(({ exercise, prescription }, index) => ({
         day_id: day.id,
         exercise_id: exercise.id,

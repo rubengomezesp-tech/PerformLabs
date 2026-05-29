@@ -47,7 +47,7 @@ export async function createCoachWorkoutBlueprintAction(formData: FormData) {
     location: readText(formData, "location") as TrainingLocation,
     daysPerWeek: readText(formData, "daysPerWeek"),
     sessionMinutes: readText(formData, "sessionMinutes"),
-    injuries: readText(formData, "injuries"),
+    injuries: formData.getAll("injuries").filter((value): value is string => typeof value === "string" && value.trim().length > 0).join(","),
   });
 
   await recordSecurityAuditEvent({

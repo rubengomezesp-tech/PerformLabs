@@ -6323,3 +6323,36 @@ input[type="color"] {
     grid-template-columns: 1fr 1fr;
   }
 }
+
+/* ---- Injury picker (program generator) ---- */
+.injuryPicker {
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 12px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+.injuryPicker legend {
+  padding: 0 4px;
+  color: var(--text-soft);
+  font-size: 12px;
+}
+.injuryPicker .injuryChip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  margin: 0;
+  padding: 6px 10px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-pill);
+  background: var(--surface-2);
+  color: var(--text-muted);
+  font-size: 13px;
+  cursor: pointer;
+}
+.injuryPicker .injuryChip input {
+  width: auto;
+  min-height: 0;
+  accent-color: var(--accent);
+}
