@@ -16,6 +16,13 @@ export default async function ProgressPage() {
   const brand = await getSelectedMemberAppBrand();
   const summary = await getMemberCheckinSummary(brand.id);
   const latest = summary.latest;
+  const weightTrend = summary.weightTrend;
+  const totalWeightDelta = weightTrend.length > 1
+    ? weightTrend[weightTrend.length - 1].weightKg - weightTrend[0].weightKg
+    : null;
+  const weightDeltaLabel = totalWeightDelta !== null
+    ? `${totalWeightDelta > 0 ? "+" : ""}${totalWeightDelta.toFixed(1)} kg`
+    : "—";
 
   return (
     <>
@@ -50,6 +57,24 @@ export default async function ProgressPage() {
           <p>{latest?.photosAvailable ? "Fotos marcadas como subidas en el último check-in." : "Añade fotos frontal, lateral y espalda cuando toque revisión."}</p>
           <span className={latest?.photosAvailable ? "tag" : "tag danger"}>{latest?.photosAvailable ? "Incluidas" : "Pendientes"}</span>
         </article>
+
+        {weightTrend.length > 1 ? (
+          <article className="card span12 memberProgressCard">
+            <div className="sectionHeader">
+              <div>
+                <TrendingUp color="var(--gold)" />
+                <h2>Tendencia de peso.</h2>
+                <p>Tu evolución a lo largo de los check-ins enviados.</p>
+              </div>
+              <span className="tag">{weightDeltaLabel}</span>
+            </div>
+            <ul className="list">
+              {weightTrend.slice(-8).map((point) => (
+                <li className="row" key={point.date}>{point.date || "Sin fecha"}<strong>{point.weightKg} kg</strong></li>
+              ))}
+            </ul>
+          </article>
+        ) : null}
 
         <article className="card span12 checkinFormCard">
           <div className="sectionHeader">
