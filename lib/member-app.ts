@@ -9,6 +9,7 @@ import {
   Flame,
   LayoutDashboard,
   MessageSquare,
+  Users,
   UserRound,
 } from "lucide-react";
 import { listWorkspaceAppPages, type MemberAppPage } from "@/lib/repositories/member-experience";
@@ -31,6 +32,7 @@ const iconByPageType: Record<string, React.ComponentType<{ size?: number }>> = {
   habits: Flame,
   cardio: Activity,
   content: BookOpen,
+  community: Users,
   support: MessageSquare,
   profile: UserRound,
 };
