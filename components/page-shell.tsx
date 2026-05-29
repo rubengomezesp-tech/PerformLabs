@@ -1,3 +1,4 @@
+import { MemberMobileHeader } from "@/components/member-mobile-header";
 import { MobileBar } from "@/components/mobile-bar";
 import { MobileTabBar } from "@/components/mobile-tab-bar";
 import { Sidebar } from "@/components/sidebar";
@@ -42,7 +43,11 @@ export function PageShell({
       <a className="skip-link" href="#main">
         Saltar al contenido
       </a>
-      <MobileBar brand={brand} href={nav[0]?.href ?? "/"} productLabel={productLabel} session={session} />
+      {variant === "app" ? (
+        <MemberMobileHeader brand={brand} nav={nav} />
+      ) : (
+        <MobileBar brand={brand} href={nav[0]?.href ?? "/"} productLabel={productLabel} session={session} />
+      )}
       <Sidebar brand={brand} nav={nav} active={active} productLabel={productLabel} session={session} />
       <main className="main" id="main" tabIndex={-1}>
         {children}
