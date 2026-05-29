@@ -517,7 +517,9 @@ export async function saveMemberOnboarding(input: MemberOnboardingInput) {
       onboarding_payload: onboardingPayload,
       submitted_at: new Date().toISOString(),
       updated_at: new Date().toISOString(),
-    }, { onConflict: "member_profile_id" });
+    }, { onConflict: "member_profile_id" })
+    .select("id")
+    .maybeSingle();
 
   if (response.error) {
     throw new Error(`No se pudo guardar el briefing inicial: ${response.error.message}`);
@@ -540,6 +542,7 @@ export async function saveMemberOnboarding(input: MemberOnboardingInput) {
 
   return {
     memberProfileId: member.id,
+    responseId: (response.data?.id as string | undefined) ?? null,
     daysPerWeek,
     mealsPerDay,
     workoutTemplateId: recommendation.training.templateId,
