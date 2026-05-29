@@ -26,6 +26,8 @@ export function MobileBar({
       <Link className="brand" href={href} style={{ margin: 0 }}>
         {isPlatformShell ? (
           <img className="brandImageMark" src={platformBrand.markUrl} alt="" />
+        ) : brand?.logoUrl ? (
+          <img className="brandLogoMark" src={brand.logoUrl} alt="" />
         ) : (
           <span className="brandMark" style={{ borderColor: displayBrand.accentColor, color: displayBrand.accentColor }}>
             {displayBrand.appName.slice(0, 3).toUpperCase()}

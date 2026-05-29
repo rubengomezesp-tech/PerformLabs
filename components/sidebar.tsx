@@ -38,6 +38,8 @@ export function Sidebar({
       <Link className="brand" href={nav[0]?.href ?? "/"}>
         {isPlatformShell ? (
           <img className="brandImageMark" src={platformBrand.markUrl} alt="" />
+        ) : brand?.logoUrl ? (
+          <img className="brandLogoMark" src={brand.logoUrl} alt="" />
         ) : (
           <span className="brandMark" style={{ borderColor: displayBrand.accentColor, color: displayBrand.accentColor }}>
             {displayBrand.appName.slice(0, 3).toUpperCase()}

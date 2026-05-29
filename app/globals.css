@@ -7167,3 +7167,375 @@ a.diaryEntryTitle:hover {
 .mealSwapTrigger {
   margin-top: 8px;
 }
+
+/* ---- Member landing / login ---- */
+.memberLanding {
+  min-height: 100vh;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  color: var(--text);
+}
+.memberLandingPanel {
+  display: flex;
+  flex-direction: column;
+  gap: 22px;
+  justify-content: center;
+  padding: clamp(24px, 6vw, 72px);
+  max-width: 560px;
+  width: 100%;
+  margin: 0 auto;
+}
+.memberBrandLockup {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+.memberBrandLockup strong {
+  font-size: 18px;
+}
+.memberBrandMark,
+.brandPreviewMark {
+  display: grid;
+  place-items: center;
+  width: 46px;
+  height: 46px;
+  border-radius: 12px;
+  border: 1.5px solid;
+  font-weight: 700;
+  font-size: 14px;
+  overflow: hidden;
+  flex-shrink: 0;
+}
+.memberBrandMark img,
+.brandPreviewMark img,
+.brandLogoMark {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+}
+.brandLogoMark {
+  width: 38px;
+  height: 38px;
+  border-radius: 10px;
+}
+.memberLandingHero h1 {
+  font-size: clamp(28px, 5vw, 44px);
+  line-height: 1.05;
+  margin: 0 0 10px;
+}
+.memberLandingHero p {
+  color: var(--text-muted);
+  font-size: 16px;
+  margin: 0;
+}
+.memberAccessForm {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+.memberAccessForm label {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  font-size: 14px;
+  color: var(--text-muted);
+}
+.memberAccessForm input {
+  padding: 12px 14px;
+  border-radius: 12px;
+  border: 1px solid var(--border-strong);
+  background: var(--surface);
+  color: var(--text);
+  font: inherit;
+}
+.memberAccessForm .btn {
+  justify-content: center;
+  padding: 13px;
+  color: #0c0c0c;
+  font-weight: 700;
+}
+.memberLandingSupport {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+}
+.memberLandingAside {
+  display: grid;
+  align-items: end;
+  padding: clamp(24px, 5vw, 56px);
+}
+.memberLandingAsideInner {
+  max-width: 420px;
+}
+.memberLandingAsideInner h2 {
+  font-size: 26px;
+  margin: 8px 0;
+}
+.memberLandingAsideInner p {
+  color: rgba(255, 255, 255, 0.8);
+  margin: 0;
+}
+@media (max-width: 860px) {
+  .memberLanding {
+    grid-template-columns: 1fr;
+  }
+  .memberLandingAside {
+    display: none;
+  }
+}
+
+/* ---- Coach brand editor ---- */
+.brandFormRow {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+}
+.brandFormRow input[type="color"] {
+  width: 100%;
+  height: 42px;
+  padding: 4px;
+  border-radius: 10px;
+  border: 1px solid var(--border-strong);
+  background: var(--surface);
+}
+.brandPreviewHero {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 8px;
+  padding: 20px;
+  border-radius: var(--radius);
+  border: 1px solid var(--line);
+  margin-bottom: 14px;
+  color: #fff;
+}
+.brandPreviewHero strong {
+  font-size: 20px;
+}
+.brandPreviewHero p {
+  color: rgba(255, 255, 255, 0.82);
+  margin: 0;
+  font-size: 14px;
+}
+.brandPreviewHero .btn {
+  margin-top: 6px;
+  color: #0c0c0c;
+  font-weight: 700;
+}
+
+/* ---- Member bottom tab bar (PWA, mobile) ---- */
+.mobileTabBar {
+  display: none;
+}
+.mobileTab {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  padding: 6px 0;
+  color: var(--text-muted);
+  font-size: 11px;
+  font-weight: 600;
+  text-decoration: none;
+  border-radius: 12px;
+  transition: color 0.15s ease;
+}
+.mobileTab.active {
+  color: var(--accent);
+}
+@media (max-width: 980px) {
+  .mobileTabBar {
+    position: fixed;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    z-index: 20;
+    display: grid;
+    grid-template-columns: repeat(5, 1fr);
+    gap: 2px;
+    padding: 8px 6px calc(8px + env(safe-area-inset-bottom, 0px));
+    background: rgba(8, 9, 10, 0.92);
+    backdrop-filter: blur(12px);
+    border-top: 1px solid var(--line);
+  }
+  .shell--app .main {
+    padding-bottom: 96px;
+  }
+}
+
+/* ---- Panel (home) — mockup alignment ---- */
+.miRecorridoMeta {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  margin-top: 8px;
+  color: var(--text-muted);
+  font-size: 14px;
+}
+.miRecorridoMeta strong {
+  color: var(--text);
+  font-size: 18px;
+}
+.panelHabitList {
+  gap: 4px;
+}
+.panelHabitRow {
+  justify-content: space-between;
+}
+.panelHabitName {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+.panelHabitCheck {
+  display: grid;
+  place-items: center;
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  border: 1.5px solid var(--border-strong);
+  background: transparent;
+  color: transparent;
+  cursor: pointer;
+  transition: background 0.15s ease, border-color 0.15s ease, color 0.15s ease;
+}
+.panelHabitCheck.done {
+  background: var(--accent);
+  border-color: var(--accent);
+  color: #07121f;
+}
+.panelCheckinCard {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+  text-decoration: none;
+  color: inherit;
+}
+.panelCheckinCard p {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  color: var(--text-muted);
+  margin: 6px 0 0;
+}
+.panelCheckinCard:hover {
+  border-color: color-mix(in srgb, var(--accent) 45%, var(--border));
+}
+
+/* ---- Progreso — tabs + metric cards + sparkline ---- */
+.progressTabs {
+  display: flex;
+  gap: 8px;
+  overflow-x: auto;
+  margin-bottom: 16px;
+  -webkit-overflow-scrolling: touch;
+}
+.progressTab {
+  flex: 0 0 auto;
+  padding: 8px 16px;
+  border-radius: 999px;
+  border: 1px solid var(--line);
+  background: var(--surface);
+  color: var(--text-muted);
+  font-size: 14px;
+  font-weight: 600;
+  text-decoration: none;
+  white-space: nowrap;
+}
+.progressTab.active {
+  background: var(--accent);
+  border-color: var(--accent);
+  color: #07121f;
+}
+.progressMetricCard {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.progressMetricCard .eyebrow {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+.progressMetric {
+  font-size: 34px;
+  line-height: 1;
+  color: var(--text);
+}
+.progressDelta {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--text-muted);
+}
+.progressDelta.down {
+  color: var(--success, #22b07d);
+}
+.progressSpark {
+  width: 100%;
+  height: 96px;
+  display: block;
+}
+.progressSparkAxis {
+  display: flex;
+  justify-content: space-between;
+  color: var(--text-muted);
+  font-size: 12px;
+  margin-top: 4px;
+}
+
+/* ---- Entreno — weekly plan day cards ---- */
+.workoutDayCards {
+  display: grid;
+  gap: 10px;
+}
+.workoutDayCard {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 10px;
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  background: var(--surface);
+  text-decoration: none;
+  color: inherit;
+  transition: border-color 0.15s ease;
+}
+.workoutDayCard:hover {
+  border-color: color-mix(in srgb, var(--accent) 45%, var(--border));
+}
+.workoutDayCover {
+  display: grid;
+  place-items: center;
+  width: 84px;
+  height: 64px;
+  border-radius: 12px;
+  background-size: cover;
+  background-position: center;
+  color: #07121f;
+  flex-shrink: 0;
+}
+.workoutDayInfo {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  flex: 1;
+  min-width: 0;
+}
+.workoutDayInfo small {
+  color: var(--text-muted);
+  font-size: 12px;
+}
+.workoutDayInfo strong {
+  font-size: 15px;
+}
+.workoutDayMeta {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  color: var(--text-muted);
+  font-size: 13px;
+}

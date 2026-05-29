@@ -1,4 +1,5 @@
 import { MobileBar } from "@/components/mobile-bar";
+import { MobileTabBar } from "@/components/mobile-tab-bar";
 import { Sidebar } from "@/components/sidebar";
 import type { WorkspaceBrand } from "@/lib/repositories/workspaces";
 
@@ -46,6 +47,7 @@ export function PageShell({
       <main className="main" id="main" tabIndex={-1}>
         {children}
       </main>
+      {variant === "app" ? <MobileTabBar /> : null}
     </div>
   );
 }

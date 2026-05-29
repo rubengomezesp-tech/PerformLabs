@@ -1,6 +1,7 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import { Manrope, Space_Grotesk } from "next/font/google";
 import { AuthHashBridge } from "@/components/auth-hash-bridge";
+import { ServiceWorkerRegister } from "@/components/sw-register";
 import { ToastProvider } from "@/components/ui";
 import { platformBrand } from "@/lib/brand";
 import "./globals.css";
@@ -20,10 +21,19 @@ const spaceGrotesk = Space_Grotesk({
 export const metadata: Metadata = {
   title: platformBrand.name,
   description: "Premium coaching app implementation for performance brands",
-  icons: {
-    icon: platformBrand.markUrl,
-    apple: platformBrand.markUrl,
+  manifest: "/manifest.webmanifest",
+  appleWebApp: {
+    capable: true,
+    statusBarStyle: "black-translucent",
+    title: platformBrand.name,
   },
+};
+
+export const viewport: Viewport = {
+  themeColor: "#0d0d10",
+  width: "device-width",
+  initialScale: 1,
+  viewportFit: "cover",
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
@@ -31,6 +41,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
     <html className={`${manrope.variable} ${spaceGrotesk.variable}`} lang="es">
       <body>
         <AuthHashBridge />
+        <ServiceWorkerRegister />
         <ToastProvider>{children}</ToastProvider>
       </body>
     </html>

@@ -199,7 +199,7 @@ function slugify(value: string) {
 
 function normalizeHexColor(value?: string) {
   const color = value?.trim() ?? "";
-  return /^#[0-9a-fA-F]{6}$/.test(color) ? color : "#d8bd6b";
+  return /^#[0-9a-fA-F]{6}$/.test(color) ? color : "#078df2";
 }
 
 function normalizeDomain(value?: string) {
