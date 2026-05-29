@@ -1,4 +1,4 @@
-import { CalendarClock, CheckCircle2, Dumbbell, Play, Repeat2, Timer, Video } from "lucide-react";
+import { CalendarClock, CheckCircle2, ChevronRight, Dumbbell, Play, Repeat2, Timer, Video } from "lucide-react";
 import Link from "next/link";
 import { Dialog } from "@/components/dialog";
 import { Topbar } from "@/components/topbar";
@@ -77,6 +77,8 @@ export default async function WorkoutsPage() {
   const totalSessionVideos = activeDay?.exercises.filter((exercise) => exercise.videoUrl).length ?? 0;
   const sessionExercises = activeDay?.exercises.length ?? 0;
   const activeWeekNumber = activeDay?.weekNumber ?? 1;
+  const weekDays = calendarDays.filter((day) => day.weekNumber === activeWeekNumber);
+  const planDays = (weekDays.length ? weekDays : calendarDays).slice(0, 7);
   const weekProgressPercent = Math.min(100, Math.max(8, Math.round((activeWeekNumber / 12) * 100)));
   const weeklyGoal = hasApprovedTraining ? trainingContext.activeAssignment?.daysPerWeek ?? activeTemplate?.daysPerWeek ?? trainingContext.preferredDaysPerWeek ?? 4 : 0;
   const estimatedMinutes = estimatedMinutesFor(activeDay);
@@ -162,6 +164,38 @@ export default async function WorkoutsPage() {
             <p>{activeDay ? "Haz cada ejercicio con buena técnica. Si hay dolor, falta de material o una limitación real, avisa al coach." : "Tu plan no se publica hasta que el entrenador lo aprueba."}</p>
           </article>
         </div>
+
+        {activeDay && planDays.length ? (
+          <div className="span12 workoutWeekPlan">
+            <div className="sectionHeader">
+              <div>
+                <h2>Plan semanal</h2>
+              </div>
+              <span className="tag">{weeklyGoal} días por semana</span>
+            </div>
+            <div className="workoutDayCards">
+              {planDays.map((day, index) => {
+                const cover = day.exercises.find((exercise) => exercise.thumbnailUrl)?.thumbnailUrl;
+                return (
+                  <a className="workoutDayCard" href="#sesion-activa" key={`${day.title}-${index}`}>
+                    <span
+                      className="workoutDayCover"
+                      style={cover ? { backgroundImage: `url(${cover})` } : { background: `linear-gradient(135deg, ${brand.accentColor}, #11131a)` }}
+                    >
+                      {cover ? null : <Dumbbell size={22} />}
+                    </span>
+                    <span className="workoutDayInfo">
+                      <small>Día {index + 1}</small>
+                      <strong>{day.title}</strong>
+                      <span className="workoutDayMeta"><Timer size={14} /> {estimatedMinutesFor(day)} min · {day.exercises.length} ejercicios</span>
+                    </span>
+                    <ChevronRight size={18} />
+                  </a>
+                );
+              })}
+            </div>
+          </div>
+        ) : null}
 
         {activeDay ? (
           <article className="card span12 workoutSession" id="sesion-activa">

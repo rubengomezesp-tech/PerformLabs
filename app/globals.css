@@ -7486,3 +7486,56 @@ a.diaryEntryTitle:hover {
   font-size: 12px;
   margin-top: 4px;
 }
+
+/* ---- Entreno — weekly plan day cards ---- */
+.workoutDayCards {
+  display: grid;
+  gap: 10px;
+}
+.workoutDayCard {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 10px;
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  background: var(--surface);
+  text-decoration: none;
+  color: inherit;
+  transition: border-color 0.15s ease;
+}
+.workoutDayCard:hover {
+  border-color: color-mix(in srgb, var(--accent) 45%, var(--border));
+}
+.workoutDayCover {
+  display: grid;
+  place-items: center;
+  width: 84px;
+  height: 64px;
+  border-radius: 12px;
+  background-size: cover;
+  background-position: center;
+  color: #07121f;
+  flex-shrink: 0;
+}
+.workoutDayInfo {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  flex: 1;
+  min-width: 0;
+}
+.workoutDayInfo small {
+  color: var(--text-muted);
+  font-size: 12px;
+}
+.workoutDayInfo strong {
+  font-size: 15px;
+}
+.workoutDayMeta {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  color: var(--text-muted);
+  font-size: 13px;
+}
