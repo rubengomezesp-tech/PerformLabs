@@ -4,7 +4,7 @@ import { requestAccessAction } from "@/app/auth/actions";
 import { platformBrand } from "@/lib/brand";
 
 type RegisterPageProps = {
-  searchParams?: Promise<{ error?: string; success?: string }>;
+  searchParams?: Promise<{ error?: string; success?: string; ref?: string }>;
 };
 
 export default async function RegisterPage({ searchParams }: RegisterPageProps) {
@@ -28,6 +28,7 @@ export default async function RegisterPage({ searchParams }: RegisterPageProps) 
         {params?.error ? <p className="formMessage danger">{params.error}</p> : null}
         {params?.success ? <p className="formMessage success">{params.success}</p> : null}
         <form action={requestAccessAction} className="authForm">
+          <input name="ref" type="hidden" value={params?.ref ?? ""} />
           <label>
             Nombre
             <input name="fullName" placeholder="Tu nombre" required />

@@ -6290,3 +6290,81 @@ input[type="color"] {
     grid-template-columns: 1fr 1fr;
   }
 }
+
+/* ---- Base program quick-start presets ---- */
+.basePresetGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(190px, 1fr));
+  gap: 12px;
+}
+.basePresetCard {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  margin: 0;
+  padding: 14px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--surface-2);
+}
+.basePresetCard strong {
+  font-size: 14px;
+}
+.basePresetCard span {
+  color: var(--text-muted);
+  font-size: 12px;
+}
+.basePresetCard button {
+  margin-top: 8px;
+  align-self: flex-start;
+}
+@media (max-width: 980px) {
+  .basePresetGrid {
+    grid-template-columns: 1fr 1fr;
+  }
+}
+
+/* ---- Injury picker (program generator) ---- */
+.injuryPicker {
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 12px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+.injuryPicker legend {
+  padding: 0 4px;
+  color: var(--text-soft);
+  font-size: 12px;
+}
+.injuryPicker .injuryChip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  margin: 0;
+  padding: 6px 10px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-pill);
+  background: var(--surface-2);
+  color: var(--text-muted);
+  font-size: 13px;
+  cursor: pointer;
+}
+.injuryPicker .injuryChip input {
+  width: auto;
+  min-height: 0;
+  accent-color: var(--accent);
+}
+
+/* ---- Referral / invite card ---- */
+.referralBox {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  align-items: center;
+}
+.referralBox input {
+  flex: 1 1 260px;
+  min-width: 0;
+}

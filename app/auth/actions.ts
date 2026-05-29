@@ -146,6 +146,7 @@ export async function requestAccessAction(formData: FormData) {
   const fullName = readText(formData, "fullName");
   const brandName = readText(formData, "brandName");
   const notes = readText(formData, "notes");
+  const ref = readText(formData, "ref");
 
   await recordSecurityAuditEvent({
     action: "access.requested",
@@ -156,6 +157,7 @@ export async function requestAccessAction(formData: FormData) {
       full_name: fullName,
       brand_name: brandName,
       notes,
+      referred_by: ref || null,
       source: "registro",
     },
   });
