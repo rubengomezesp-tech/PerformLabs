@@ -7422,3 +7422,67 @@ a.diaryEntryTitle:hover {
 .panelCheckinCard:hover {
   border-color: color-mix(in srgb, var(--accent) 45%, var(--border));
 }
+
+/* ---- Progreso — tabs + metric cards + sparkline ---- */
+.progressTabs {
+  display: flex;
+  gap: 8px;
+  overflow-x: auto;
+  margin-bottom: 16px;
+  -webkit-overflow-scrolling: touch;
+}
+.progressTab {
+  flex: 0 0 auto;
+  padding: 8px 16px;
+  border-radius: 999px;
+  border: 1px solid var(--line);
+  background: var(--surface);
+  color: var(--text-muted);
+  font-size: 14px;
+  font-weight: 600;
+  text-decoration: none;
+  white-space: nowrap;
+}
+.progressTab.active {
+  background: var(--accent);
+  border-color: var(--accent);
+  color: #07121f;
+}
+.progressMetricCard {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.progressMetricCard .eyebrow {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+.progressMetric {
+  font-size: 34px;
+  line-height: 1;
+  color: var(--text);
+}
+.progressDelta {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--text-muted);
+}
+.progressDelta.down {
+  color: var(--success, #22b07d);
+}
+.progressSpark {
+  width: 100%;
+  height: 96px;
+  display: block;
+}
+.progressSparkAxis {
+  display: flex;
+  justify-content: space-between;
+  color: var(--text-muted);
+  font-size: 12px;
+  margin-top: 4px;
+}
