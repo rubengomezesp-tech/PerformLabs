@@ -209,11 +209,20 @@ export async function listManagedCheckins(workspaceId?: string): Promise<Managed
 export async function getMemberCheckinSummary(workspaceId?: string) {
   const checkins = await listManagedCheckins(workspaceId);
   const latest = checkins[0] ?? null;
+  // listManagedCheckins is newest-first; build the trend oldest-first.
+  const weightTrend = checkins
+    .filter((checkin) => typeof checkin.values.weightKg === "number")
+    .map((checkin) => ({
+      date: checkin.submittedAt ? checkin.submittedAt.slice(0, 10) : "",
+      weightKg: checkin.values.weightKg as number,
+    }))
+    .reverse();
   return {
     latest,
     total: checkins.length,
     pendingCoachReview: checkins.filter((checkin) => checkin.status !== "reviewed").length,
     reviewed: checkins.filter((checkin) => checkin.status === "reviewed").length,
+    weightTrend,
   };
 }
 

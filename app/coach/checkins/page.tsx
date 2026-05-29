@@ -65,7 +65,14 @@ export default async function CoachCheckinsPage() {
           </div>
         </article>
 
-        {checkins.map((checkin) => (
+        {checkins.map((checkin, index) => {
+          const previousWithWeight = checkins
+            .slice(index + 1)
+            .find((older) => older.memberProfileId === checkin.memberProfileId && typeof older.values.weightKg === "number");
+          const weightDelta = typeof checkin.values.weightKg === "number" && typeof previousWithWeight?.values.weightKg === "number"
+            ? checkin.values.weightKg - previousWithWeight.values.weightKg
+            : null;
+          return (
           <article className="card span6 motionCard" key={checkin.id}>
             <div className="sectionHeader">
               <div>
@@ -77,7 +84,7 @@ export default async function CoachCheckinsPage() {
             </div>
             <ul className="list">
               <li className="row"><Camera size={16} /> Fotos <span className="tag">{checkin.photosAvailable ? "Sí" : "No"}</span></li>
-              <li className="row">Peso <strong>{checkin.values.weightKg ? `${checkin.values.weightKg} kg` : "Sin dato"}</strong></li>
+              <li className="row">Peso <strong>{checkin.values.weightKg ? `${checkin.values.weightKg} kg` : "Sin dato"}{weightDelta !== null ? ` (${weightDelta > 0 ? "+" : ""}${weightDelta.toFixed(1)} kg)` : ""}</strong></li>
               <li className="row">Grasa <strong>{checkin.values.bodyFatPercent ? `${checkin.values.bodyFatPercent}%` : "Sin dato"}</strong></li>
               <li className="row">Adherencia entreno <strong>{checkin.values.trainingAdherence || "Pendiente"}</strong></li>
               <li className="row">Adherencia nutrición <strong>{checkin.values.nutritionAdherence || "Pendiente"}</strong></li>
@@ -87,6 +94,7 @@ export default async function CoachCheckinsPage() {
             <form action={reviewCoachCheckinAction} className="checkinReviewForm">
               <input name="workspaceId" type="hidden" value={brand.id} />
               <input name="checkinId" type="hidden" value={checkin.id} />
+              <input name="memberProfileId" type="hidden" value={checkin.memberProfileId} />
               <label>
                 Resultado
                 <select name="resultStatus" defaultValue={checkin.resultsStatus}>
@@ -103,12 +111,24 @@ export default async function CoachCheckinsPage() {
                 Siguiente acción
                 <input name="nextActions" defaultValue={checkin.values.nextActions} placeholder="Mantener calorías, subir pasos, cambiar volumen, revisar en 7 días..." />
               </label>
+              <label>
+                Ajuste de plan
+                <select name="planAction" defaultValue="none">
+                  <option value="none">Sin cambio</option>
+                  <option value="advance">Avanzar a la siguiente semana</option>
+                </select>
+              </label>
+              <label>
+                Próxima revisión (días)
+                <input name="reviewInDays" type="number" min="1" max="60" defaultValue="7" />
+              </label>
               <button className="btn primary" type="submit">
                 Guardar revisión <CheckCircle2 size={16} />
               </button>
             </form>
           </article>
-        ))}
+          );
+        })}
 
         {!checkins.length ? (
           <EmptyState

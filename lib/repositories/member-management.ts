@@ -774,3 +774,52 @@ export async function assignPlansToMember(input: MemberAssignmentInput) {
 
   return { workoutAssignment, mealAssignment };
 }
+
+/**
+ * Advances a member's active workout plan after a coach check-in review:
+ * moves the current week/month forward (capped at the 12-week block) and
+ * reschedules the next review. current_week drives what the member sees in
+ * /app/workouts, so this is a real change to their training, not a label.
+ */
+export async function advanceMemberWorkoutPlan(input: {
+  workspaceId: string;
+  memberProfileId: string;
+  advanceWeeks?: number;
+  nextReviewInDays?: number;
+}): Promise<{ updated: boolean; currentWeek: number; currentMonth: number }> {
+  if (!input.workspaceId || !input.memberProfileId) {
+    return { updated: false, currentWeek: 0, currentMonth: 0 };
+  }
+
+  const supabase = createServiceSupabaseClient();
+  const { data: plan } = await supabase
+    .from("assigned_workout_plans")
+    .select("id,current_week,current_month")
+    .eq("workspace_id", input.workspaceId)
+    .eq("member_profile_id", input.memberProfileId)
+    .eq("status", "active")
+    .order("created_at", { ascending: false })
+    .limit(1)
+    .maybeSingle();
+
+  if (!plan) return { updated: false, currentWeek: 0, currentMonth: 0 };
+
+  const step = Number.isFinite(input.advanceWeeks) ? Math.trunc(input.advanceWeeks as number) : 1;
+  const currentWeek = Math.min(12, Math.max(1, (plan.current_week ?? 1) + step));
+  const currentMonth = currentWeek <= 4 ? 1 : currentWeek <= 8 ? 2 : 3;
+  const reviewDays = Math.min(60, Math.max(1, input.nextReviewInDays ?? 7));
+
+  const { error } = await supabase
+    .from("assigned_workout_plans")
+    .update({
+      current_week: currentWeek,
+      current_month: currentMonth,
+      next_review_on: addDays(new Date(), reviewDays),
+      review_status: "active",
+      updated_at: new Date().toISOString(),
+    })
+    .eq("id", plan.id);
+
+  if (error) throw new Error(`No se pudo avanzar el plan: ${error.message}`);
+  return { updated: true, currentWeek, currentMonth };
+}
