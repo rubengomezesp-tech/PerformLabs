@@ -1,9 +1,20 @@
 import { Dumbbell, Plus, Save } from "lucide-react";
 import { EmptyState } from "@/components/empty-state";
 import { Topbar } from "@/components/topbar";
-import { listManagedExercises, listManagedWorkoutTemplates } from "@/lib/repositories/training-management";
+import { Badge, SubmitButton, Table, type BadgeTone } from "@/components/ui";
+import {
+  listManagedExercises,
+  listManagedWorkoutTemplates,
+  type ManagedWorkoutTemplate,
+} from "@/lib/repositories/training-management";
 import { listWorkspaceSummaries } from "@/lib/repositories/workspaces";
-import { createWorkoutDayAction, createWorkoutExerciseAction, createWorkoutTemplateAction } from "./actions";
+import {
+  cloneWorkoutTemplateAction,
+  createWorkoutDayAction,
+  createWorkoutExerciseAction,
+  createWorkoutTemplateAction,
+  setWorkoutTemplateStatusAction,
+} from "./actions";
 
 export const dynamic = "force-dynamic";
 
@@ -16,6 +27,16 @@ const statusLabels: Record<string, string> = {
   active: "Activo",
   archived: "Archivado",
 };
+
+const statusTones: Record<string, BadgeTone> = {
+  draft: "neutral",
+  active: "success",
+  archived: "warning",
+};
+
+function countExercises(template: ManagedWorkoutTemplate) {
+  return template.days.reduce((total, day) => total + day.exercises.length, 0);
+}
 
 export default async function ProgramsPage({ searchParams }: ProgramsPageProps) {
   const params = await searchParams;
@@ -52,6 +73,70 @@ export default async function ProgramsPage({ searchParams }: ProgramsPageProps) 
             </div>
           </form>
         </article>
+
+        {templates.length ? (
+          <article className="card span12">
+            <div className="sectionHeader">
+              <div>
+                <h2>
+                  Rutinas <span className="muted">[{templates.length}]</span>
+                </h2>
+                <p>Plantillas de entrenamiento de la marca. Edítalas abajo en el builder.</p>
+              </div>
+            </div>
+            <Table<ManagedWorkoutTemplate>
+              columns={[
+                { key: "name", header: "Nombre", cell: (template) => <strong>{template.name}</strong> },
+                { key: "goal", header: "Objetivo", cell: (template) => template.goal || "—" },
+                { key: "level", header: "Nivel", cell: (template) => template.level || "—" },
+                { key: "days", header: "Días/sem", cell: (template) => template.daysPerWeek },
+                {
+                  key: "structure",
+                  header: "Estructura",
+                  cell: (template) => `${template.days.length} días · ${countExercises(template)} ejercicios`,
+                },
+                {
+                  key: "status",
+                  header: "Estado",
+                  cell: (template) => (
+                    <Badge tone={statusTones[template.status] ?? "neutral"}>
+                      {statusLabels[template.status] ?? template.status}
+                    </Badge>
+                  ),
+                },
+                {
+                  key: "actions",
+                  header: "",
+                  cell: (template) =>
+                    selectedWorkspace ? (
+                      <div style={{ display: "flex", gap: 8 }}>
+                        <form action={cloneWorkoutTemplateAction}>
+                          <input type="hidden" name="workspaceId" value={selectedWorkspace.id} />
+                          <input type="hidden" name="templateId" value={template.id} />
+                          <SubmitButton size="sm" successToast="Rutina clonada">
+                            Clonar
+                          </SubmitButton>
+                        </form>
+                        <form action={setWorkoutTemplateStatusAction}>
+                          <input type="hidden" name="workspaceId" value={selectedWorkspace.id} />
+                          <input type="hidden" name="templateId" value={template.id} />
+                          <input type="hidden" name="status" value={template.status === "active" ? "draft" : "active"} />
+                          <SubmitButton
+                            size="sm"
+                            successToast={template.status === "active" ? "Despublicada" : "Publicada"}
+                          >
+                            {template.status === "active" ? "Despublicar" : "Publicar"}
+                          </SubmitButton>
+                        </form>
+                      </div>
+                    ) : null,
+                },
+              ]}
+              rows={templates}
+              rowKey={(template) => template.id}
+            />
+          </article>
+        ) : null}
 
         {selectedWorkspace ? (
           <article className="card span12" id="nueva-rutina">
@@ -91,11 +176,11 @@ export default async function ProgramsPage({ searchParams }: ProgramsPageProps) 
           <article className="card span6" key={template.id}>
             <div className="sectionHeader">
               <div>
-                <Dumbbell color="var(--gold)" />
+                <Dumbbell color="var(--accent)" />
                 <h2>{template.name}</h2>
                 <p>{template.goal || "Objetivo pendiente"} · {template.level || "Nivel pendiente"}</p>
               </div>
-              <span className="tag">{statusLabels[template.status] ?? template.status}</span>
+              <Badge tone={statusTones[template.status] ?? "neutral"}>{statusLabels[template.status] ?? template.status}</Badge>
             </div>
             <ul className="list">
               <li className="row">Días por semana <strong>{template.daysPerWeek}</strong></li>

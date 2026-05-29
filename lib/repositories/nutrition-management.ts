@@ -1,3 +1,4 @@
+import type { AiRecipeDraft } from "@/lib/ai/nutrition-agent";
 import { dietTemplateCategories, meals } from "@/lib/data";
 import { getSupabaseServiceEnv } from "@/lib/supabase/env";
 import { createServiceSupabaseClient } from "@/lib/supabase/server";
@@ -32,6 +33,7 @@ export type ManagedIngredient = {
   fatPer100g: number;
   allergens: string[];
   tags: string[];
+  isBase?: boolean;
 };
 
 export type ManagedRecipe = {
@@ -48,6 +50,7 @@ export type ManagedRecipe = {
     name: string;
     grams: number;
   }>;
+  isBase?: boolean;
 };
 
 export type DietCategoryInput = {
@@ -294,7 +297,7 @@ export async function listManagedIngredients(workspaceId?: string): Promise<Mana
   const supabase = createServiceSupabaseClient();
   const { data, error } = await supabase
     .from("ingredients")
-    .select("id,name,calories_per_100g,protein_per_100g,carbs_per_100g,fat_per_100g,allergens,tags,created_at")
+    .select("id,name,calories_per_100g,protein_per_100g,carbs_per_100g,fat_per_100g,allergens,tags,is_base_library,created_at")
     .or(`workspace_id.eq.${workspaceId},workspace_id.is.null`)
     .order("created_at", { ascending: false })
     .limit(120);
@@ -313,19 +316,25 @@ export async function listManagedIngredients(workspaceId?: string): Promise<Mana
     fatPer100g: ingredient.fat_per_100g,
     allergens: ingredient.allergens,
     tags: ingredient.tags,
+    isBase: ingredient.is_base_library ?? false,
   }));
 }
 
-export async function listManagedRecipes(workspaceId?: string): Promise<ManagedRecipe[]> {
+export async function listManagedRecipes(
+  workspaceId?: string,
+  options: { includeBase?: boolean } = {},
+): Promise<ManagedRecipe[]> {
   const env = getSupabaseServiceEnv();
   if (!env.ok || !isUuid(workspaceId)) return [];
 
   const supabase = createServiceSupabaseClient();
-  const { data, error } = await supabase
+  const baseQuery = supabase
     .from("recipes")
-    .select("id,name,meal_slot,instructions,tags,created_at")
-    .eq("workspace_id", workspaceId)
-    .order("created_at", { ascending: false });
+    .select("id,name,meal_slot,instructions,tags,is_base_library,created_at");
+  const { data, error } = await (options.includeBase
+    ? baseQuery.or(`workspace_id.eq.${workspaceId},workspace_id.is.null`)
+    : baseQuery.eq("workspace_id", workspaceId)
+  ).order("created_at", { ascending: false });
 
   if (error) {
     console.error("Unable to load recipes", error.message);
@@ -378,6 +387,7 @@ export async function listManagedRecipes(workspaceId?: string): Promise<ManagedR
       carbs: Math.round(macros.carbs),
       fat: Math.round(macros.fat),
       ingredients: ingredientsByRecipe.get(recipe.id) ?? [],
+      isBase: recipe.is_base_library ?? false,
     };
   });
 }
@@ -438,4 +448,107 @@ export async function addIngredientToRecipe(input: RecipeIngredientInput) {
   });
 
   if (error) throw new Error(`No se pudo añadir el ingrediente: ${error.message}`);
+}
+
+/** Persists an AI-generated recipe (ingredients + recipe + links) as coach-custom content. */
+export async function saveAiRecipe(workspaceId: string, recipe: AiRecipeDraft) {
+  if (!isUuid(workspaceId)) throw new Error("Selecciona una marca antes de guardar.");
+  if (!recipe.ingredients.length) throw new Error("La receta no tiene ingredientes.");
+
+  const supabase = createServiceSupabaseClient();
+  const stamp = Date.now().toString(36);
+  const ingredientIds: string[] = [];
+
+  for (const [index, ingredient] of recipe.ingredients.entries()) {
+    const { data, error } = await supabase
+      .from("ingredients")
+      .insert({
+        workspace_id: workspaceId,
+        name: ingredient.name,
+        slug: `${slugify(ingredient.name)}-${stamp}-${index}`,
+        calories_per_100g: ingredient.caloriesPer100g,
+        protein_per_100g: ingredient.proteinPer100g,
+        carbs_per_100g: ingredient.carbsPer100g,
+        fat_per_100g: ingredient.fatPer100g,
+        tags: ["ai"],
+        is_base_library: false,
+      })
+      .select("id")
+      .single();
+    if (error) throw new Error(`No se pudo guardar el ingrediente: ${error.message}`);
+    ingredientIds.push(data.id);
+  }
+
+  const { data: created, error: recipeError } = await supabase
+    .from("recipes")
+    .insert({
+      workspace_id: workspaceId,
+      name: recipe.name,
+      slug: `${slugify(recipe.name)}-${stamp}`,
+      meal_slot: recipe.mealSlot,
+      instructions: recipe.instructions,
+      tags: [...new Set([...recipe.tags, "ai"])],
+      is_base_library: false,
+    })
+    .select("id")
+    .single();
+  if (recipeError) throw new Error(`No se pudo guardar la receta: ${recipeError.message}`);
+
+  const links = recipe.ingredients.map((ingredient, index) => ({
+    recipe_id: created.id,
+    ingredient_id: ingredientIds[index],
+    grams: ingredient.grams,
+    sort_order: index,
+  }));
+  const { error: linkError } = await supabase.from("recipe_ingredients").insert(links);
+  if (linkError) throw new Error(`No se pudieron vincular los ingredientes: ${linkError.message}`);
+
+  return { id: created.id as string };
+}
+
+/** Clones a recipe (base or custom) into a workspace as editable coach-custom content. */
+export async function cloneRecipeToWorkspace(recipeId: string, workspaceId: string) {
+  if (!isUuid(workspaceId)) throw new Error("Selecciona una marca destino.");
+  if (!isUuid(recipeId)) throw new Error("Receta no válida.");
+
+  const supabase = createServiceSupabaseClient();
+  const { data: source, error } = await supabase
+    .from("recipes")
+    .select("name,meal_slot,instructions,tags")
+    .eq("id", recipeId)
+    .maybeSingle();
+  if (error || !source) throw new Error("No se encontró la receta de origen.");
+
+  const stamp = Date.now().toString(36);
+  const { data: created, error: createError } = await supabase
+    .from("recipes")
+    .insert({
+      workspace_id: workspaceId,
+      name: `${source.name} (copia)`,
+      slug: `${slugify(source.name)}-copia-${stamp}`,
+      meal_slot: source.meal_slot,
+      instructions: source.instructions,
+      tags: source.tags,
+      is_base_library: false,
+    })
+    .select("id")
+    .single();
+  if (createError) throw new Error(`No se pudo clonar la receta: ${createError.message}`);
+
+  const { data: links } = await supabase
+    .from("recipe_ingredients")
+    .select("ingredient_id,grams,sort_order")
+    .eq("recipe_id", recipeId);
+  if (links?.length) {
+    const rows = links.map((link) => ({
+      recipe_id: created.id,
+      ingredient_id: link.ingredient_id,
+      grams: link.grams,
+      sort_order: link.sort_order,
+    }));
+    const { error: linkError } = await supabase.from("recipe_ingredients").insert(rows);
+    if (linkError) throw new Error(`No se pudieron copiar los ingredientes: ${linkError.message}`);
+  }
+
+  return { id: created.id as string };
 }

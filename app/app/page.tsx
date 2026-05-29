@@ -1,6 +1,6 @@
 import { ArrowRight, Bell, Camera, Check, ChevronRight, Droplets, Dumbbell, Footprints, Moon, Play, Soup, TrendingUp } from "lucide-react";
 import Link from "next/link";
-import { AnimatedNumber, Badge, Button, Card } from "@/components/ui";
+import { AnimatedNumber, Badge, Button, Card, ProgressRing } from "@/components/ui";
 import { Topbar } from "@/components/topbar";
 import { getSelectedMemberAppBrand } from "@/lib/member-app";
 import { listWorkspaceProducts } from "@/lib/repositories/member-experience";
@@ -55,19 +55,26 @@ export default async function MemberDashboard() {
                 </Button>
               </div>
             </div>
-            <div className="memberHeroStats">
-              <span>
-                Adherencia
-                <strong>{activeDay || hasNutrition ? <AnimatedNumber value={86} suffix="%" /> : "Pendiente"}</strong>
-              </span>
-              <span>
-                Semana
-                <strong>{trainingContext.activeAssignment ? `${trainingContext.activeAssignment.currentWeek}/12` : "Revisión"}</strong>
-              </span>
-              <span>
-                Racha
-                <strong>{activeDay || hasNutrition ? "Activa" : "0 días"}</strong>
-              </span>
+            <div className="memberRings">
+              <ProgressRing
+                value={activeDay || hasNutrition ? 86 : 0}
+                label="Adherencia"
+                sublabel="esta semana"
+                tone="accent"
+              />
+              <ProgressRing
+                value={trainingContext.activeAssignment ? (trainingContext.activeAssignment.currentWeek / 12) * 100 : 0}
+                display={trainingContext.activeAssignment ? `S${trainingContext.activeAssignment.currentWeek}` : "—"}
+                label="Plan"
+                sublabel="de 12 semanas"
+                tone="success"
+              />
+              <ProgressRing
+                value={activeDay || hasNutrition ? 67 : 0}
+                label="Hábitos"
+                sublabel="hoy"
+                tone="warning"
+              />
             </div>
             <div className="memberHeroSignal">
               <Badge>{activeDay || hasNutrition ? "Plan activo" : "Revisión del coach"}</Badge>
