@@ -1,5 +1,7 @@
 import { Apple, Calculator, Flame, Plus, Soup, Trash2, TrendingUp, UtensilsCrossed } from "lucide-react";
+import { NutritionAgentClient } from "@/components/nutrition-agent";
 import { Topbar } from "@/components/topbar";
+import { isNutritionAgentConfigured } from "@/lib/ai/nutrition-agent";
 import { buildCarbCyclingTargets, calculateNutritionTargets, nutritionGoalLabels, recommendNutritionAdjustment } from "@/lib/domain/nutrition-engine";
 import { getSelectedMemberAppBrand } from "@/lib/member-app";
 import { listManagedDietCategories, listManagedDietTemplates, listManagedIngredients, listManagedRecipes } from "@/lib/repositories/nutrition-management";
@@ -57,6 +59,7 @@ export default async function CoachNutritionPage() {
         text="El coach prepara comidas reutilizables y las combina en planes adaptados a macros, restricciones y preferencias."
         actions={<a className="btn primary" href="#nueva-plantilla">Nueva plantilla <Plus size={18} /></a>}
       />
+      <NutritionAgentClient workspaceId={brand.id} configured={isNutritionAgentConfigured()} />
       <section className="grid">
         <article className="card span12 nutritionLabCard">
           <div className="sectionHeader">

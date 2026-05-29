@@ -1,7 +1,7 @@
 import { Topbar } from "@/components/topbar";
 import { isNutritionAgentConfigured } from "@/lib/ai/nutrition-agent";
 import { listWorkspaceSummaries } from "@/lib/repositories/workspaces";
-import { NutritionAgentClient } from "./agent-client";
+import { NutritionAgentClient } from "@/components/nutrition-agent";
 
 export const dynamic = "force-dynamic";
 
