@@ -23,7 +23,7 @@ export default async function MemberRecipeDetailPage({ params }: RecipeDetailPag
   const recipe = recipes.find((item) => item.id === id);
   if (!recipe) notFound();
 
-  const steps = recipe.instructions
+  const steps = (recipe.instructions ?? "")
     .split(/\n+/)
     .map((step) => step.trim())
     .filter(Boolean);

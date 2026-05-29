@@ -2,7 +2,7 @@
 
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
-import { saveMemberOnboarding } from "@/lib/repositories/member-onboarding";
+import { applyOnboardingPlanRecommendation, saveMemberOnboarding } from "@/lib/repositories/member-onboarding";
 
 function readText(formData: FormData, key: string) {
   const value = formData.get(key);
@@ -10,12 +10,12 @@ function readText(formData: FormData, key: string) {
 }
 
 export async function saveMemberOnboardingAction(formData: FormData) {
-  // Best-effort save: a member finishing the quiz must never hit a server-error
-  // dead-end. If a write fails (e.g. the prod DB is behind on migrations or has
-  // no member profile yet), we log it and still land them in the app.
+  const workspaceId = readText(formData, "workspaceId");
+  let errorMessage = "";
+
   try {
-    await saveMemberOnboarding({
-      workspaceId: readText(formData, "workspaceId"),
+    const result = await saveMemberOnboarding({
+      workspaceId,
       fullName: readText(formData, "fullName"),
       goal: readText(formData, "goal"),
       heightCm: readText(formData, "height"),
@@ -45,8 +45,21 @@ export async function saveMemberOnboardingAction(formData: FormData) {
       hideMacros: readText(formData, "hideMacros") === "on",
       notes: readText(formData, "notes"),
     });
+
+    // Connect the branches: once the brief is saved, generate and assign the
+    // workout + meal plan automatically. Best-effort — if the workspace has no
+    // matching templates yet, the member stays "pending" (coach will publish)
+    // instead of failing the whole submit.
+    if (result.responseId) {
+      try {
+        await applyOnboardingPlanRecommendation({ workspaceId, responseId: result.responseId });
+      } catch (applyError) {
+        console.error("No se pudo generar el plan automáticamente:", applyError);
+      }
+    }
   } catch (error) {
     console.error("No se pudo guardar el onboarding del miembro:", error);
+    errorMessage = error instanceof Error ? error.message : "No se pudo guardar tu cuestionario. Inténtalo de nuevo.";
   }
 
   revalidatePath("/app/onboarding");
@@ -55,5 +68,9 @@ export async function saveMemberOnboardingAction(formData: FormData) {
   revalidatePath("/app");
   revalidatePath("/coach/members");
   revalidatePath("/coach");
+
+  if (errorMessage) {
+    redirect(`/app/onboarding?error=${encodeURIComponent(errorMessage)}`);
+  }
   redirect("/app");
 }
