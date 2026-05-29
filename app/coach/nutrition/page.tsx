@@ -1,4 +1,5 @@
 import { Apple, Calculator, Flame, Plus, Soup, Trash2, TrendingUp, UtensilsCrossed } from "lucide-react";
+import { Dialog } from "@/components/dialog";
 import { NutritionAgentClient } from "@/components/nutrition-agent";
 import { Topbar } from "@/components/topbar";
 import { isNutritionAgentConfigured } from "@/lib/ai/nutrition-agent";
@@ -55,259 +56,125 @@ export default async function CoachNutritionPage() {
     <>
       <Topbar
         eyebrow="Nutricion"
-        title="Comidas, recetas y plantillas por objetivo."
-        text="El coach prepara comidas reutilizables y las combina en planes adaptados a macros, restricciones y preferencias."
-        actions={<a className="btn primary" href="#nueva-plantilla">Nueva plantilla <Plus size={18} /></a>}
+        title="Comidas, recetas y planes."
+        text="Crea recetas, móntalas en planes por día y asígnalas. La IA puede generarte recetas con macros."
+        actions={
+          <>
+            <Dialog
+              triggerClassName="btn primary"
+              trigger={<>Nueva plantilla <Plus size={18} /></>}
+              title="Nueva plantilla de comidas"
+              description="Crea el plan; luego le añades recetas por día y momento."
+            >
+              <form action={createCoachDietTemplateAction} className="editForm">
+                <input name="workspaceId" type="hidden" value={brand.id} />
+                <input name="categoryId" type="hidden" value={categories[0]?.id ?? ""} />
+                <label>
+                  Nombre
+                  <input name="name" placeholder="Definicion alta proteina" required />
+                </label>
+                <label>
+                  Objetivo
+                  <input name="goal" placeholder="Definición, volumen..." />
+                </label>
+                <label>
+                  Kcal min
+                  <input name="caloriesMin" placeholder="1800" type="number" />
+                </label>
+                <label>
+                  Kcal max
+                  <input name="caloriesMax" placeholder="2200" type="number" />
+                </label>
+                <label className="spanFull">
+                  Proteina %
+                  <input name="proteinRatio" placeholder="35" />
+                </label>
+                <input name="carbsRatio" type="hidden" value="" />
+                <input name="fatRatio" type="hidden" value="" />
+                <input name="tags" type="hidden" value="coach" />
+                <button className="btn primary spanFull" type="submit">Crear plantilla</button>
+              </form>
+            </Dialog>
+            <Dialog
+              triggerClassName="btn"
+              trigger={<>Nueva receta <Plus size={18} /></>}
+              title="Nueva receta"
+              description="Después le añades ingredientes y los macros se calculan solos."
+            >
+              <form action={createCoachRecipeAction} className="editForm">
+                <input name="workspaceId" type="hidden" value={brand.id} />
+                <input name="categoryId" type="hidden" value={categories[0]?.id ?? ""} />
+                <label>
+                  Nombre
+                  <input name="name" placeholder="Bowl de pollo y arroz" required />
+                </label>
+                <label>
+                  Momento
+                  <select name="mealSlot" defaultValue="comida">
+                    <option value="desayuno">Desayuno</option>
+                    <option value="comida">Comida</option>
+                    <option value="cena">Cena</option>
+                    <option value="snack">Snack</option>
+                  </select>
+                </label>
+                <label className="spanFull">
+                  Instrucciones
+                  <textarea name="instructions" rows={3} placeholder="Preparacion, swaps y notas del coach..." />
+                </label>
+                <label className="spanFull">
+                  Tags
+                  <input name="tags" placeholder="alta proteina, sin lactosa" />
+                </label>
+                <button className="btn primary spanFull" type="submit">Crear receta</button>
+              </form>
+            </Dialog>
+            <Dialog
+              triggerClassName="btn"
+              trigger={<>Nuevo ingrediente <Plus size={18} /></>}
+              title="Nuevo ingrediente"
+              description="Con sus valores por 100 g para calcular macros."
+            >
+              <form action={createCoachIngredientAction} className="editForm">
+                <input name="workspaceId" type="hidden" value={brand.id} />
+                <label>
+                  Nombre
+                  <input name="name" placeholder="Pechuga de pollo" required />
+                </label>
+                <label>
+                  Kcal/100g
+                  <input name="caloriesPer100g" placeholder="165" />
+                </label>
+                <label>
+                  Proteina/100g
+                  <input name="proteinPer100g" placeholder="31" />
+                </label>
+                <label>
+                  Carbs/100g
+                  <input name="carbsPer100g" placeholder="0" />
+                </label>
+                <label>
+                  Grasas/100g
+                  <input name="fatPer100g" placeholder="3.6" />
+                </label>
+                <label>
+                  Tags
+                  <input name="tags" placeholder="proteina, basico" />
+                </label>
+                <input name="allergens" type="hidden" value="" />
+                <button className="btn primary spanFull" type="submit">Crear ingrediente</button>
+              </form>
+            </Dialog>
+          </>
+        }
       />
       <NutritionAgentClient workspaceId={brand.id} configured={isNutritionAgentConfigured()} />
       <section className="grid">
-        <article className="card span12 nutritionLabCard">
-          <div className="sectionHeader">
-            <div>
-              <Calculator color="var(--gold)" />
-              <h2>MacroLab profesional.</h2>
-              <p>Calcula BMR, gasto diario, calorias objetivo, proteina, grasas, carbohidratos, fibra, agua y reparto por comidas.</p>
-            </div>
-            <span className="tag">{demoTargets.strategy.label}</span>
-          </div>
-          <div className="macroLabGrid">
-            <form action={createCoachMacroTemplateAction} className="macroLabForm">
-              <input name="workspaceId" type="hidden" value={brand.id} />
-              <input name="categoryId" type="hidden" value={categories[0]?.id ?? ""} />
-              <label>
-                Nombre plantilla
-                <input name="name" placeholder="Definicion elite 82kg" />
-              </label>
-              <label>
-                Sexo
-                <select name="gender" defaultValue="male">
-                  <option value="male">Hombre</option>
-                  <option value="female">Mujer</option>
-                </select>
-              </label>
-              <label>
-                Edad
-                <input name="age" defaultValue="32" min="12" type="number" />
-              </label>
-              <label>
-                Altura cm
-                <input name="heightCm" defaultValue="178" min="120" type="number" />
-              </label>
-              <label>
-                Peso kg
-                <input name="weightKg" defaultValue="82" min="35" step="0.1" type="number" />
-              </label>
-              <label>
-                Actividad
-                <select name="activityLevel" defaultValue="active">
-                  <option value="sedentary">Sedentario</option>
-                  <option value="light">Ligera</option>
-                  <option value="moderate">Moderada</option>
-                  <option value="active">Alta</option>
-                  <option value="athlete">Atleta</option>
-                </select>
-              </label>
-              <label>
-                Objetivo
-                <select name="goal" defaultValue="fat_loss">
-                  {Object.entries(nutritionGoalLabels).map(([value, label]) => (
-                    <option key={value} value={value}>{label}</option>
-                  ))}
-                </select>
-              </label>
-              <label>
-                Proteina g/kg
-                <input name="proteinPerKg" defaultValue="2.2" min="1.2" max="3" step="0.1" type="number" />
-              </label>
-              <label>
-                Grasas %
-                <input name="fatRatio" defaultValue="25" min="15" max="40" type="number" />
-              </label>
-              <label>
-                Comidas/dia
-                <input name="mealsPerDay" defaultValue="4" min="3" max="5" type="number" />
-              </label>
-              <label>
-                Entrenos/semana
-                <input name="trainingDaysPerWeek" defaultValue="5" min="0" max="7" type="number" />
-              </label>
-              <button className="btn primary" type="submit">Generar plantilla macro</button>
-            </form>
-            <div className="macroResultPanel">
-              <div className="metricGrid">
-                <span>BMR<strong>{demoTargets.bmr}</strong><small>kcal base</small></span>
-                <span>TDEE<strong>{demoTargets.tdee}</strong><small>kcal gasto</small></span>
-                <span>Objetivo<strong>{demoTargets.targetCalories}</strong><small>kcal/dia</small></span>
-                <span>Agua<strong>{demoTargets.waterMl}</strong><small>ml/dia</small></span>
-              </div>
-              <div className="macroSplit">
-                <span><strong>{demoTargets.proteinG}g</strong>Proteina</span>
-                <span><strong>{demoTargets.carbsG}g</strong>Carbs</span>
-                <span><strong>{demoTargets.fatG}g</strong>Grasas</span>
-                <span><strong>{demoTargets.fiberG}g</strong>Fibra</span>
-              </div>
-              <ul className="list">
-                {demoTargets.meals.map((meal) => (
-                  <li className="row" key={meal.name}>
-                    {meal.name}
-                    <span>{meal.calories} kcal · {meal.proteinG}P · {meal.carbsG}C · {meal.fatG}G</span>
-                  </li>
-                ))}
-              </ul>
-              <p className="muted">{demoTargets.strategy.adjustmentRule}</p>
-            </div>
-          </div>
-        </article>
-
-        <article className="card span12 nutritionStrategyCard">
-          <div className="sectionHeader">
-            <div>
-              <Flame color="var(--gold)" />
-              <h2>Motor de ajuste semanal.</h2>
-              <p>El coach no solo calcula macros: decide si mantener, recortar, subir calorías, hacer refeed o simplificar por adherencia.</p>
-            </div>
-            <span className="tag">{adjustment.decision}</span>
-          </div>
-          <div className="nutritionDecisionGrid">
-            <section className="moduleGroup">
-              <div className="appCardHeader">
-                <TrendingUp color="var(--gold)" />
-                <h3>Decisión recomendada</h3>
-              </div>
-              <p>{adjustment.reason}</p>
-              <p className="metric">
-                Próximas calorías
-                <strong>{adjustment.nextCalories}</strong>
-              </p>
-            </section>
-            <section className="moduleGroup">
-              <h3>Acciones del coach</h3>
-              <ul className="list compactList">
-                {adjustment.actions.map((action) => (
-                  <li className="row" key={action}>{action}<span className="tag">acción</span></li>
-                ))}
-              </ul>
-            </section>
-          </div>
-          <div className="carbCyclingGrid">
-            {carbCyclingDays.map((day) => (
-              <article className="carbDayCard" key={day.dayType}>
-                <span className="tag">{day.label}</span>
-                <h3>{day.calories} kcal</h3>
-                <p>{day.proteinG}P · {day.carbsG}C · {day.fatG}G</p>
-                <small>{day.notes}</small>
-              </article>
-            ))}
-          </div>
-        </article>
-
-        <article className="card span12 coachBuilderCard" id="nueva-plantilla">
-          <div>
-            <span className="eyebrow">Fase 2</span>
-            <h2>Plantilla nutricional → receta → ingredientes → app cliente.</h2>
-            <p>Este flujo ya usa el modelo real de nutricion del workspace {brand.name}.</p>
-          </div>
-          <form action={createCoachDietTemplateAction} className="coachNutritionCreate">
-            <input name="workspaceId" type="hidden" value={brand.id} />
-            <input name="categoryId" type="hidden" value={categories[0]?.id ?? ""} />
-            <label>
-              Nombre
-              <input name="name" placeholder="Definicion alta proteina" required />
-            </label>
-            <label>
-              Objetivo
-              <input name="goal" placeholder="fat_loss, muscle_gain..." />
-            </label>
-            <label>
-              Kcal min
-              <input name="caloriesMin" placeholder="1800" type="number" />
-            </label>
-            <label>
-              Kcal max
-              <input name="caloriesMax" placeholder="2200" type="number" />
-            </label>
-            <label>
-              Proteina %
-              <input name="proteinRatio" placeholder="35" />
-            </label>
-            <input name="carbsRatio" type="hidden" value="" />
-            <input name="fatRatio" type="hidden" value="" />
-            <input name="tags" type="hidden" value="coach" />
-            <button className="btn primary" type="submit">Crear</button>
-          </form>
-        </article>
-
-        <article className="card span6 motionCard">
-          <Soup color="var(--gold)" />
-          <h2>Nueva receta</h2>
-          <form action={createCoachRecipeAction} className="editForm">
-            <input name="workspaceId" type="hidden" value={brand.id} />
-            <input name="categoryId" type="hidden" value={categories[0]?.id ?? ""} />
-            <label>
-              Nombre
-              <input name="name" placeholder="Bowl de pollo y arroz" required />
-            </label>
-            <label>
-              Momento
-              <select name="mealSlot" defaultValue="comida">
-                <option value="desayuno">Desayuno</option>
-                <option value="comida">Comida</option>
-                <option value="cena">Cena</option>
-                <option value="snack">Snack</option>
-              </select>
-            </label>
-            <label className="spanFull">
-              Instrucciones
-              <textarea name="instructions" rows={3} placeholder="Preparacion, swaps y notas del coach..." />
-            </label>
-            <label>
-              Tags
-              <input name="tags" placeholder="alta proteina, sin lactosa" />
-            </label>
-            <button className="btn" type="submit">Crear receta</button>
-          </form>
-        </article>
-
-        <article className="card span6 motionCard">
-          <Apple color="var(--gold)" />
-          <h2>Nuevo ingrediente</h2>
-          <form action={createCoachIngredientAction} className="editForm">
-            <input name="workspaceId" type="hidden" value={brand.id} />
-            <label>
-              Nombre
-              <input name="name" placeholder="Pechuga de pollo" required />
-            </label>
-            <label>
-              Kcal/100g
-              <input name="caloriesPer100g" placeholder="165" />
-            </label>
-            <label>
-              Proteina/100g
-              <input name="proteinPer100g" placeholder="31" />
-            </label>
-            <label>
-              Carbs/100g
-              <input name="carbsPer100g" placeholder="0" />
-            </label>
-            <label>
-              Grasas/100g
-              <input name="fatPer100g" placeholder="3.6" />
-            </label>
-            <label>
-              Tags
-              <input name="tags" placeholder="proteina, basico" />
-            </label>
-            <input name="allergens" type="hidden" value="" />
-            <button className="btn" type="submit">Crear ingrediente</button>
-          </form>
-        </article>
-
         <article className="card span12 motionCard">
           <div className="sectionHeader">
             <div>
-              <UtensilsCrossed color="var(--gold)" />
-              <h2>Planes de comidas → app del cliente.</h2>
-              <p>Monta cada plantilla con recetas por día y momento. Al asignarla a un miembro, estas comidas se materializan en su app.</p>
+              <UtensilsCrossed color="var(--accent)" />
+              <h2>Planes de comidas.</h2>
+              <p>Monta cada plantilla con recetas por día y momento. Al asignarla a un miembro, estas comidas aparecen en su app.</p>
             </div>
             <span className="tag">{templates.length} plantillas</span>
           </div>
@@ -331,7 +198,7 @@ export default async function CoachNutritionPage() {
           return (
             <article className="card span6 motionCard" key={template.id}>
               <div className="appCardHeader">
-                <Apple color="var(--gold)" />
+                <Apple color="var(--accent)" />
                 <div>
                   <h3>{template.name}</h3>
                   <p>{template.goal || "Objetivo pendiente"}</p>
@@ -376,36 +243,43 @@ export default async function CoachNutritionPage() {
                 <p className="muted">Sin comidas todavía. Añade recetas para que el miembro vea su plan.</p>
               )}
               {recipes.length ? (
-                <form action={addCoachDietTemplateMealAction} className="editForm">
-                  <input name="workspaceId" type="hidden" value={brand.id} />
-                  <input name="dietTemplateId" type="hidden" value={template.id} />
-                  <label className="spanFull">
-                    Receta
-                    <select name="recipeId" defaultValue="" required>
-                      <option value="" disabled>Elegir receta...</option>
-                      {recipes.map((recipe) => (
-                        <option key={recipe.id} value={recipe.id}>{recipe.name} · {recipe.calories} kcal</option>
-                      ))}
-                    </select>
-                  </label>
-                  <label>
-                    Día
-                    <input name="dayNumber" type="number" min="1" step="1" defaultValue="1" />
-                  </label>
-                  <label>
-                    Momento
-                    <select name="mealSlot" defaultValue="comida">
-                      {MEAL_SLOTS.map((slot) => (
-                        <option key={slot} value={slot}>{slot}</option>
-                      ))}
-                    </select>
-                  </label>
-                  <label>
-                    Raciones
-                    <input name="servingMultiplier" type="number" min="0.25" step="0.25" defaultValue="1" />
-                  </label>
-                  <button className="btn" type="submit">Añadir comida</button>
-                </form>
+                <Dialog
+                  triggerClassName="btn"
+                  trigger={<>Añadir comida <Plus size={16} /></>}
+                  title={`Añadir comida · ${template.name}`}
+                  description="Elige una receta y dónde encaja en el plan."
+                >
+                  <form action={addCoachDietTemplateMealAction} className="editForm">
+                    <input name="workspaceId" type="hidden" value={brand.id} />
+                    <input name="dietTemplateId" type="hidden" value={template.id} />
+                    <label className="spanFull">
+                      Receta
+                      <select name="recipeId" defaultValue="" required>
+                        <option value="" disabled>Elegir receta...</option>
+                        {recipes.map((recipe) => (
+                          <option key={recipe.id} value={recipe.id}>{recipe.name} · {recipe.calories} kcal</option>
+                        ))}
+                      </select>
+                    </label>
+                    <label>
+                      Día
+                      <input name="dayNumber" type="number" min="1" step="1" defaultValue="1" />
+                    </label>
+                    <label>
+                      Momento
+                      <select name="mealSlot" defaultValue="comida">
+                        {MEAL_SLOTS.map((slot) => (
+                          <option key={slot} value={slot}>{slot}</option>
+                        ))}
+                      </select>
+                    </label>
+                    <label>
+                      Raciones
+                      <input name="servingMultiplier" type="number" min="0.25" step="0.25" defaultValue="1" />
+                    </label>
+                    <button className="btn primary spanFull" type="submit">Añadir comida</button>
+                  </form>
+                </Dialog>
               ) : (
                 <p className="muted">Crea una receta para montar el plan.</p>
               )}
@@ -416,9 +290,9 @@ export default async function CoachNutritionPage() {
         <article className="card span12 motionCard">
           <div className="sectionHeader">
             <div>
-              <Soup color="var(--gold)" />
-              <h2>Componer recetas → macros automáticos.</h2>
-              <p>Añade ingredientes con gramos y los macros se calculan solos. Esas recetas alimentan los planes de comidas.</p>
+              <Soup color="var(--accent)" />
+              <h2>Recetas.</h2>
+              <p>Añade ingredientes con gramos y los macros se calculan solos. Estas recetas alimentan los planes.</p>
             </div>
             <span className="tag">{recipes.length} recetas</span>
           </div>
@@ -427,7 +301,7 @@ export default async function CoachNutritionPage() {
         {recipes.length ? recipes.map((recipe) => (
           <article className="card span6 motionCard" key={recipe.id}>
             <div className="appCardHeader">
-              <Soup color="var(--gold)" />
+              <Soup color="var(--accent)" />
               <div>
                 <h3>{recipe.name}</h3>
                 <p>{recipe.mealSlot} · {recipe.calories} kcal · {recipe.protein}P · {recipe.carbs}C · {recipe.fat}G</p>
@@ -439,31 +313,38 @@ export default async function CoachNutritionPage() {
               )) : <li className="row">Sin ingredientes todavía <span className="tag">Añade abajo</span></li>}
             </ul>
             {ingredients.length ? (
-              <form action={addCoachRecipeIngredientAction} className="editForm">
-                <input name="workspaceId" type="hidden" value={brand.id} />
-                <input name="recipeId" type="hidden" value={recipe.id} />
-                <label className="spanFull">
-                  Ingrediente
-                  <select name="ingredientId" defaultValue="" required>
-                    <option value="" disabled>Elegir ingrediente...</option>
-                    {ingredients.map((ingredient) => (
-                      <option key={ingredient.id} value={ingredient.id}>{ingredient.name} · {ingredient.caloriesPer100g} kcal/100g</option>
-                    ))}
-                  </select>
-                </label>
-                <label>
-                  Gramos
-                  <input name="grams" type="number" min="1" step="1" defaultValue="100" />
-                </label>
-                <button className="btn" type="submit">Añadir ingrediente</button>
-              </form>
+              <Dialog
+                triggerClassName="btn"
+                trigger={<>Añadir ingrediente <Plus size={16} /></>}
+                title={`Añadir ingrediente · ${recipe.name}`}
+                description="Los macros de la receta se recalculan al guardar."
+              >
+                <form action={addCoachRecipeIngredientAction} className="editForm">
+                  <input name="workspaceId" type="hidden" value={brand.id} />
+                  <input name="recipeId" type="hidden" value={recipe.id} />
+                  <label className="spanFull">
+                    Ingrediente
+                    <select name="ingredientId" defaultValue="" required>
+                      <option value="" disabled>Elegir ingrediente...</option>
+                      {ingredients.map((ingredient) => (
+                        <option key={ingredient.id} value={ingredient.id}>{ingredient.name} · {ingredient.caloriesPer100g} kcal/100g</option>
+                      ))}
+                    </select>
+                  </label>
+                  <label>
+                    Gramos
+                    <input name="grams" type="number" min="1" step="1" defaultValue="100" />
+                  </label>
+                  <button className="btn primary spanFull" type="submit">Añadir ingrediente</button>
+                </form>
+              </Dialog>
             ) : (
-              <p className="muted">Crea ingredientes arriba para componer la receta.</p>
+              <p className="muted">Crea ingredientes (botón arriba) para componer la receta.</p>
             )}
           </article>
         )) : (
           <article className="card span12 motionCard">
-            <p className="muted">Sin recetas todavía. Crea una arriba para empezar a componer.</p>
+            <p className="muted">Sin recetas todavía. Usa “Nueva receta” arriba para empezar.</p>
           </article>
         )}
 
@@ -480,6 +361,155 @@ export default async function CoachNutritionPage() {
               </li>
             )) : <li className="row">Sin ingredientes todavia <span className="tag">Crear arriba</span></li>}
           </ul>
+        </article>
+
+        <article className="span12">
+          <details className="advancedPanel">
+            <summary>
+              <Calculator size={16} /> Herramientas avanzadas · MacroLab y motor de ajuste
+            </summary>
+            <div className="advancedPanelBody">
+              <article className="card nutritionLabCard">
+                <div className="sectionHeader">
+                  <div>
+                    <Calculator color="var(--accent)" />
+                    <h2>MacroLab profesional.</h2>
+                    <p>Calcula BMR, gasto diario, calorias objetivo, proteina, grasas, carbohidratos, fibra, agua y reparto por comidas.</p>
+                  </div>
+                  <span className="tag">{demoTargets.strategy.label}</span>
+                </div>
+                <div className="macroLabGrid">
+                  <form action={createCoachMacroTemplateAction} className="macroLabForm">
+                    <input name="workspaceId" type="hidden" value={brand.id} />
+                    <input name="categoryId" type="hidden" value={categories[0]?.id ?? ""} />
+                    <label>
+                      Nombre plantilla
+                      <input name="name" placeholder="Definicion elite 82kg" />
+                    </label>
+                    <label>
+                      Sexo
+                      <select name="gender" defaultValue="male">
+                        <option value="male">Hombre</option>
+                        <option value="female">Mujer</option>
+                      </select>
+                    </label>
+                    <label>
+                      Edad
+                      <input name="age" defaultValue="32" min="12" type="number" />
+                    </label>
+                    <label>
+                      Altura cm
+                      <input name="heightCm" defaultValue="178" min="120" type="number" />
+                    </label>
+                    <label>
+                      Peso kg
+                      <input name="weightKg" defaultValue="82" min="35" step="0.1" type="number" />
+                    </label>
+                    <label>
+                      Actividad
+                      <select name="activityLevel" defaultValue="active">
+                        <option value="sedentary">Sedentario</option>
+                        <option value="light">Ligera</option>
+                        <option value="moderate">Moderada</option>
+                        <option value="active">Alta</option>
+                        <option value="athlete">Atleta</option>
+                      </select>
+                    </label>
+                    <label>
+                      Objetivo
+                      <select name="goal" defaultValue="fat_loss">
+                        {Object.entries(nutritionGoalLabels).map(([value, label]) => (
+                          <option key={value} value={value}>{label}</option>
+                        ))}
+                      </select>
+                    </label>
+                    <label>
+                      Proteina g/kg
+                      <input name="proteinPerKg" defaultValue="2.2" min="1.2" max="3" step="0.1" type="number" />
+                    </label>
+                    <label>
+                      Grasas %
+                      <input name="fatRatio" defaultValue="25" min="15" max="40" type="number" />
+                    </label>
+                    <label>
+                      Comidas/dia
+                      <input name="mealsPerDay" defaultValue="4" min="3" max="5" type="number" />
+                    </label>
+                    <label>
+                      Entrenos/semana
+                      <input name="trainingDaysPerWeek" defaultValue="5" min="0" max="7" type="number" />
+                    </label>
+                    <button className="btn primary" type="submit">Generar plantilla macro</button>
+                  </form>
+                  <div className="macroResultPanel">
+                    <div className="metricGrid">
+                      <span>BMR<strong>{demoTargets.bmr}</strong><small>kcal base</small></span>
+                      <span>TDEE<strong>{demoTargets.tdee}</strong><small>kcal gasto</small></span>
+                      <span>Objetivo<strong>{demoTargets.targetCalories}</strong><small>kcal/dia</small></span>
+                      <span>Agua<strong>{demoTargets.waterMl}</strong><small>ml/dia</small></span>
+                    </div>
+                    <div className="macroSplit">
+                      <span><strong>{demoTargets.proteinG}g</strong>Proteina</span>
+                      <span><strong>{demoTargets.carbsG}g</strong>Carbs</span>
+                      <span><strong>{demoTargets.fatG}g</strong>Grasas</span>
+                      <span><strong>{demoTargets.fiberG}g</strong>Fibra</span>
+                    </div>
+                    <ul className="list">
+                      {demoTargets.meals.map((meal) => (
+                        <li className="row" key={meal.name}>
+                          {meal.name}
+                          <span>{meal.calories} kcal · {meal.proteinG}P · {meal.carbsG}C · {meal.fatG}G</span>
+                        </li>
+                      ))}
+                    </ul>
+                    <p className="muted">{demoTargets.strategy.adjustmentRule}</p>
+                  </div>
+                </div>
+              </article>
+
+              <article className="card nutritionStrategyCard">
+                <div className="sectionHeader">
+                  <div>
+                    <Flame color="var(--accent)" />
+                    <h2>Motor de ajuste semanal.</h2>
+                    <p>El coach no solo calcula macros: decide si mantener, recortar, subir calorías, hacer refeed o simplificar por adherencia.</p>
+                  </div>
+                  <span className="tag">{adjustment.decision}</span>
+                </div>
+                <div className="nutritionDecisionGrid">
+                  <section className="moduleGroup">
+                    <div className="appCardHeader">
+                      <TrendingUp color="var(--accent)" />
+                      <h3>Decisión recomendada</h3>
+                    </div>
+                    <p>{adjustment.reason}</p>
+                    <p className="metric">
+                      Próximas calorías
+                      <strong>{adjustment.nextCalories}</strong>
+                    </p>
+                  </section>
+                  <section className="moduleGroup">
+                    <h3>Acciones del coach</h3>
+                    <ul className="list compactList">
+                      {adjustment.actions.map((action) => (
+                        <li className="row" key={action}>{action}<span className="tag">acción</span></li>
+                      ))}
+                    </ul>
+                  </section>
+                </div>
+                <div className="carbCyclingGrid">
+                  {carbCyclingDays.map((day) => (
+                    <article className="carbDayCard" key={day.dayType}>
+                      <span className="tag">{day.label}</span>
+                      <h3>{day.calories} kcal</h3>
+                      <p>{day.proteinG}P · {day.carbsG}C · {day.fatG}G</p>
+                      <small>{day.notes}</small>
+                    </article>
+                  ))}
+                </div>
+              </article>
+            </div>
+          </details>
         </article>
       </section>
     </>

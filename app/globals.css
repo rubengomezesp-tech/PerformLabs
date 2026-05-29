@@ -6151,3 +6151,98 @@ input[type="color"] {
     padding: 18px;
   }
 }
+
+/* ---- Dialog / modal (coach quick-create) ---- */
+.dialogOverlay {
+  position: fixed;
+  inset: 0;
+  z-index: 110;
+  display: flex;
+  align-items: flex-start;
+  justify-content: center;
+  padding: 10vh 16px 16px;
+  background: rgba(4, 5, 7, 0.62);
+  backdrop-filter: blur(6px);
+  overflow: auto;
+}
+.dialogPanel {
+  width: min(560px, 100%);
+  background: var(--surface);
+  border: 1px solid var(--border-strong);
+  border-radius: 16px;
+  box-shadow: 0 40px 80px -24px rgba(0, 0, 0, 0.72);
+  overflow: hidden;
+}
+.dialogHeader {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 18px 20px;
+  border-bottom: 1px solid var(--border);
+}
+.dialogHeader h2 {
+  margin: 0;
+  font-size: 18px;
+}
+.dialogHeader p {
+  margin: 4px 0 0;
+  color: var(--text-muted);
+  font-size: 13px;
+}
+.dialogClose {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  flex: none;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: var(--surface-2);
+  color: var(--text-muted);
+  cursor: pointer;
+}
+.dialogClose:hover {
+  color: var(--text);
+  border-color: var(--border-strong);
+}
+.dialogBody {
+  padding: 18px 20px 20px;
+}
+.dialogBody .editForm {
+  margin-top: 0;
+}
+
+/* ---- Collapsible advanced tools ---- */
+.advancedPanel {
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  background: var(--surface);
+  overflow: hidden;
+}
+.advancedPanel > summary {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 16px 20px;
+  cursor: pointer;
+  list-style: none;
+  color: var(--text-muted);
+  font-weight: 600;
+  font-size: 14px;
+}
+.advancedPanel > summary::-webkit-details-marker {
+  display: none;
+}
+.advancedPanel > summary:hover {
+  color: var(--text);
+}
+.advancedPanel[open] > summary {
+  border-bottom: 1px solid var(--border);
+}
+.advancedPanelBody {
+  display: grid;
+  gap: 16px;
+  padding: 16px 20px 20px;
+}
