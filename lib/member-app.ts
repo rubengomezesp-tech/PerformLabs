@@ -9,6 +9,7 @@ import {
   Flame,
   LayoutDashboard,
   MessageSquare,
+  Sparkles,
   Users,
   UserRound,
 } from "lucide-react";
@@ -33,6 +34,7 @@ const iconByPageType: Record<string, React.ComponentType<{ size?: number }>> = {
   cardio: Activity,
   content: BookOpen,
   community: Users,
+  coach_ai: Sparkles,
   support: MessageSquare,
   profile: UserRound,
 };
