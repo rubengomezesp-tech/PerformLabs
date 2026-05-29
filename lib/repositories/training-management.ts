@@ -935,6 +935,86 @@ export async function updateManagedWorkoutExercise(input: WorkoutExerciseUpdateI
   }
 }
 
+/** Verifies a template day belongs to a template owned by the workspace. */
+async function assertTemplateDayInWorkspace(
+  supabase: ReturnType<typeof createServiceSupabaseClient>,
+  dayId: string,
+  workspaceId: string,
+) {
+  const day = await supabase
+    .from("workout_template_days")
+    .select("template_id")
+    .eq("id", dayId)
+    .maybeSingle();
+  if (day.error || !day.data) {
+    throw new Error("No se encontró el día de la rutina.");
+  }
+
+  const template = await supabase
+    .from("workout_templates")
+    .select("id")
+    .eq("id", day.data.template_id)
+    .eq("workspace_id", workspaceId)
+    .maybeSingle();
+  if (template.error || !template.data) {
+    throw new Error("Esa rutina no pertenece a tu marca.");
+  }
+}
+
+/** Removes a single exercise from a template day (guarded to the workspace). */
+export async function deleteWorkoutTemplateExercise(input: { templateExerciseId: string; workspaceId: string }) {
+  if (!isUuid(input.templateExerciseId)) {
+    throw new Error("Ejercicio de rutina no válido.");
+  }
+  if (!isUuid(input.workspaceId)) {
+    throw new Error("Selecciona una marca válida.");
+  }
+
+  const supabase = createServiceSupabaseClient();
+  const exercise = await supabase
+    .from("workout_template_exercises")
+    .select("id,day_id")
+    .eq("id", input.templateExerciseId)
+    .maybeSingle();
+  if (exercise.error || !exercise.data) {
+    throw new Error("No se encontró el ejercicio de la rutina.");
+  }
+
+  await assertTemplateDayInWorkspace(supabase, exercise.data.day_id, input.workspaceId);
+
+  const { error } = await supabase
+    .from("workout_template_exercises")
+    .delete()
+    .eq("id", input.templateExerciseId);
+  if (error) {
+    throw new Error(`No se pudo quitar el ejercicio: ${error.message}`);
+  }
+}
+
+/**
+ * Deletes a template day and (via FK cascade) its exercises. Guarded to the
+ * workspace so a coach can only edit their own programs.
+ */
+export async function deleteWorkoutTemplateDay(input: { dayId: string; workspaceId: string }) {
+  if (!isUuid(input.dayId)) {
+    throw new Error("Día no válido.");
+  }
+  if (!isUuid(input.workspaceId)) {
+    throw new Error("Selecciona una marca válida.");
+  }
+
+  const supabase = createServiceSupabaseClient();
+  await assertTemplateDayInWorkspace(supabase, input.dayId, input.workspaceId);
+
+  const { error } = await supabase
+    .from("workout_template_days")
+    .delete()
+    .eq("id", input.dayId);
+  if (error) {
+    throw new Error(`No se pudo eliminar el día: ${error.message}`);
+  }
+}
+
 export async function createManagedWorkoutTemplate(input: WorkoutTemplateInput) {
   if (!input.workspaceId) {
     throw new Error("Selecciona una marca antes de crear una rutina.");

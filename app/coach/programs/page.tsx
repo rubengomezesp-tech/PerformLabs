@@ -1,4 +1,4 @@
-import { Activity, Dumbbell, Gauge, Plus, Video } from "lucide-react";
+import { Activity, Dumbbell, Gauge, Plus, Trash2, Video } from "lucide-react";
 import Link from "next/link";
 import { Dialog } from "@/components/dialog";
 import { EmptyState } from "@/components/empty-state";
@@ -6,7 +6,7 @@ import { Topbar } from "@/components/topbar";
 import { buildWeeklyPeriodizationTargets, estimateTrainingStress, recommendWorkoutAdjustment } from "@/lib/domain/workout-engine";
 import { getSelectedMemberAppBrand } from "@/lib/member-app";
 import { listManagedExercises, listManagedWorkoutTemplates, listWorkoutTemplateGroupSummaries, type ManagedWorkoutTemplate } from "@/lib/repositories/training-management";
-import { createCoachWorkoutBlueprintAction, createCoachWorkoutDayAction, createCoachWorkoutExerciseAction, createCoachWorkoutTemplateAction, setCoachWorkoutTemplateStatusAction, updateCoachWorkoutExerciseAction } from "./actions";
+import { createCoachWorkoutBlueprintAction, createCoachWorkoutDayAction, createCoachWorkoutExerciseAction, createCoachWorkoutTemplateAction, deleteCoachWorkoutDayAction, deleteCoachWorkoutExerciseAction, setCoachWorkoutTemplateStatusAction, updateCoachWorkoutExerciseAction } from "./actions";
 
 export const dynamic = "force-dynamic";
 
@@ -401,6 +401,7 @@ export default async function CoachProgramsPage({ searchParams }: CoachProgramsP
                                       <strong>{exercise.exerciseName}</strong>
                                       <p>{exercise.sets ?? "-"}x{exercise.reps || "?"} · {exercise.restSeconds ?? "-"}s{exercise.tempo ? ` · tempo ${exercise.tempo}` : ""}{exercise.targetRir ? ` · RIR ${exercise.targetRir}` : ""}{exercise.intensityTechnique ? ` · ${exercise.intensityTechnique}` : ""}</p>
                                     </div>
+                                    <div className="statusControls">
                                     <Dialog
                                       triggerClassName="btn ghost sm"
                                       trigger={<>Editar</>}
@@ -432,6 +433,12 @@ export default async function CoachProgramsPage({ searchParams }: CoachProgramsP
                                         <button className="btn primary spanFull" type="submit">Guardar cambios</button>
                                       </form>
                                     </Dialog>
+                                    <form action={deleteCoachWorkoutExerciseAction}>
+                                      <input name="workspaceId" type="hidden" value={brand.id} />
+                                      <input name="templateExerciseId" type="hidden" value={exercise.id} />
+                                      <button className="btn ghost sm" type="submit" title="Quitar ejercicio" aria-label="Quitar ejercicio"><Trash2 size={15} /></button>
+                                    </form>
+                                    </div>
                                   </li>
                                 ))}
                               </ul>
@@ -439,6 +446,7 @@ export default async function CoachProgramsPage({ searchParams }: CoachProgramsP
                               <p className="muted">Todavia no hay ejercicios en este dia.</p>
                             )}
 
+                            <div className="statusControls" style={{ marginTop: 10 }}>
                             <Dialog
                               triggerClassName="btn sm"
                               trigger={<>Añadir ejercicio <Plus size={15} /></>}
@@ -476,6 +484,20 @@ export default async function CoachProgramsPage({ searchParams }: CoachProgramsP
                                 <button className="btn primary spanFull" type="submit">Añadir ejercicio</button>
                               </form>
                             </Dialog>
+                            <Dialog
+                              triggerClassName="btn ghost sm"
+                              trigger={<><Trash2 size={15} /> Eliminar día</>}
+                              title={`Eliminar Día ${day.dayNumber}`}
+                              description="Se elimina el día y todos sus ejercicios. No se puede deshacer."
+                            >
+                              <form action={deleteCoachWorkoutDayAction} className="editForm">
+                                <input name="workspaceId" type="hidden" value={brand.id} />
+                                <input name="dayId" type="hidden" value={day.id} />
+                                <p className="spanFull">Vas a eliminar <strong>Día {day.dayNumber} · {day.title}</strong> y sus {day.exercises.length} ejercicio(s).</p>
+                                <button className="btn danger spanFull" type="submit">Sí, eliminar día</button>
+                              </form>
+                            </Dialog>
+                            </div>
                           </div>
                         </article>
                       ))}

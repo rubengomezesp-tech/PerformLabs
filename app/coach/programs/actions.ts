@@ -4,7 +4,7 @@ import { revalidatePath } from "next/cache";
 import { requireWorkspaceMutationAccess } from "@/lib/auth/access-control";
 import type { ExperienceLevel, TrainingLocation, WorkoutGoal } from "@/lib/domain/workout-engine";
 import { recordSecurityAuditEvent } from "@/lib/repositories/security-management";
-import { createManagedWorkoutBlueprint, createManagedWorkoutDay, createManagedWorkoutExercise, createManagedWorkoutTemplate, createQuarterlyModuleLibrary, setWorkoutTemplateStatus, updateManagedWorkoutExercise } from "@/lib/repositories/training-management";
+import { createManagedWorkoutBlueprint, createManagedWorkoutDay, createManagedWorkoutExercise, createManagedWorkoutTemplate, createQuarterlyModuleLibrary, deleteWorkoutTemplateDay, deleteWorkoutTemplateExercise, setWorkoutTemplateStatus, updateManagedWorkoutExercise } from "@/lib/repositories/training-management";
 
 function readText(formData: FormData, key: string) {
   const value = formData.get(key);
@@ -166,6 +166,44 @@ export async function updateCoachWorkoutExerciseAction(formData: FormData) {
     entityType: "workout_template_exercise",
     entityId: readText(formData, "templateExerciseId") || null,
     metadata: { exerciseId: readText(formData, "exerciseId") },
+  });
+
+  revalidatePath("/coach/programs");
+  revalidatePath("/app/workouts");
+}
+
+export async function deleteCoachWorkoutExerciseAction(formData: FormData) {
+  const workspaceId = readText(formData, "workspaceId");
+  const session = await requireWorkspaceMutationAccess(workspaceId);
+  const templateExerciseId = readText(formData, "templateExerciseId");
+
+  await deleteWorkoutTemplateExercise({ templateExerciseId, workspaceId });
+
+  await recordSecurityAuditEvent({
+    workspaceId,
+    actorUserId: session.mode === "authenticated" ? session.user.id : null,
+    action: "coach.workout_exercise.removed",
+    entityType: "workout_template_exercise",
+    entityId: templateExerciseId || null,
+  });
+
+  revalidatePath("/coach/programs");
+  revalidatePath("/app/workouts");
+}
+
+export async function deleteCoachWorkoutDayAction(formData: FormData) {
+  const workspaceId = readText(formData, "workspaceId");
+  const session = await requireWorkspaceMutationAccess(workspaceId);
+  const dayId = readText(formData, "dayId");
+
+  await deleteWorkoutTemplateDay({ dayId, workspaceId });
+
+  await recordSecurityAuditEvent({
+    workspaceId,
+    actorUserId: session.mode === "authenticated" ? session.user.id : null,
+    action: "coach.workout_day.removed",
+    entityType: "workout_template_day",
+    entityId: dayId || null,
   });
 
   revalidatePath("/coach/programs");
