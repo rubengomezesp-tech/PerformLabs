@@ -1015,6 +1015,48 @@ export async function deleteWorkoutTemplateDay(input: { dayId: string; workspace
   }
 }
 
+/**
+ * Member self-service: swap an assigned exercise for another from the brand
+ * library. Updates the member's assigned_workout_exercises row in place.
+ */
+export async function swapAssignedWorkoutExercise(input: { workspaceId: string; assignedExerciseId: string; newExerciseId: string }) {
+  if (!isUuid(input.workspaceId) || !isUuid(input.assignedExerciseId) || !isUuid(input.newExerciseId)) {
+    throw new Error("Cambio de ejercicio no válido.");
+  }
+
+  const supabase = createServiceSupabaseClient();
+  const exercise = await supabase
+    .from("exercises")
+    .select("id,name,default_video_url,workspace_id")
+    .eq("id", input.newExerciseId)
+    .maybeSingle();
+  if (exercise.error || !exercise.data) {
+    throw new Error("Ese ejercicio no existe.");
+  }
+  if (exercise.data.workspace_id && exercise.data.workspace_id !== input.workspaceId) {
+    throw new Error("Ese ejercicio no es de tu marca.");
+  }
+
+  const { data, error } = await (supabase as any)
+    .from("assigned_workout_exercises")
+    .update({
+      exercise_id: exercise.data.id,
+      title: exercise.data.name,
+      video_url: exercise.data.default_video_url ?? null,
+      updated_at: new Date().toISOString(),
+    })
+    .eq("id", input.assignedExerciseId)
+    .eq("workspace_id", input.workspaceId)
+    .select("id");
+
+  if (error) {
+    throw new Error(`No se pudo cambiar el ejercicio: ${error.message}`);
+  }
+  if (!data?.length) {
+    throw new Error("No se encontró el ejercicio a cambiar.");
+  }
+}
+
 export async function createManagedWorkoutTemplate(input: WorkoutTemplateInput) {
   if (!input.workspaceId) {
     throw new Error("Selecciona una marca antes de crear una rutina.");

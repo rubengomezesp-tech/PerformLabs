@@ -462,6 +462,45 @@ export async function listManagedRecipes(
   });
 }
 
+/**
+ * Member self-service: swap an assigned meal for another brand recipe.
+ * Updates the member's assigned_meal_plan_items row (recipe + macros) in place.
+ */
+export async function swapAssignedMealItem(input: { workspaceId: string; itemId: string; recipeId: string }) {
+  if (!isUuid(input.workspaceId) || !isUuid(input.itemId) || !isUuid(input.recipeId)) {
+    throw new Error("Cambio de comida no válido.");
+  }
+
+  const recipes = await listManagedRecipes(input.workspaceId, { includeBase: true });
+  const recipe = recipes.find((item) => item.id === input.recipeId);
+  if (!recipe) {
+    throw new Error("Esa receta no existe.");
+  }
+
+  const supabase = createServiceSupabaseClient();
+  const { data, error } = await (supabase as any)
+    .from("assigned_meal_plan_items")
+    .update({
+      recipe_id: recipe.id,
+      title: recipe.name,
+      calories: recipe.calories,
+      protein_g: recipe.protein,
+      carbs_g: recipe.carbs,
+      fat_g: recipe.fat,
+      updated_at: new Date().toISOString(),
+    })
+    .eq("id", input.itemId)
+    .eq("workspace_id", input.workspaceId)
+    .select("id");
+
+  if (error) {
+    throw new Error(`No se pudo cambiar la comida: ${error.message}`);
+  }
+  if (!data?.length) {
+    throw new Error("No se encontró la comida a cambiar.");
+  }
+}
+
 export async function createManagedIngredient(input: IngredientInput) {
   if (!input.workspaceId) throw new Error("Selecciona una marca antes de crear ingredientes.");
   const name = input.name.trim();

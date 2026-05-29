@@ -7136,3 +7136,34 @@ a.diaryEntryTitle:hover {
 .smartAddForm .btn {
   align-self: flex-start;
 }
+
+/* ---- Self-service swaps (exercise / meal) ---- */
+.swapList {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+.swapRow {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 8px 10px;
+  align-items: center;
+  padding-bottom: 12px;
+  border-bottom: 1px solid var(--line);
+}
+.swapRow:last-child {
+  border-bottom: 0;
+  padding-bottom: 0;
+}
+.swapRowName {
+  grid-column: 1 / -1;
+  font-weight: 600;
+  font-size: 14px;
+  color: var(--text);
+}
+.swapRow select {
+  width: 100%;
+}
+.mealSwapTrigger {
+  margin-top: 8px;
+}

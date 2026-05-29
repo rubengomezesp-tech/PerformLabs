@@ -2,6 +2,7 @@
 
 import { revalidatePath } from "next/cache";
 import { upsertDailyNutritionLog, upsertMealLog, type MealLogStatus } from "@/lib/repositories/nutrition-tracking";
+import { swapAssignedMealItem } from "@/lib/repositories/nutrition-management";
 
 function readText(formData: FormData, key: string) {
   const value = formData.get(key);
@@ -35,6 +36,17 @@ export async function saveMealLogAction(formData: FormData) {
 
   revalidatePath("/app/meals");
   revalidatePath("/app/progress");
+}
+
+export async function swapMealAction(formData: FormData) {
+  await swapAssignedMealItem({
+    workspaceId: readText(formData, "workspaceId"),
+    itemId: readText(formData, "itemId"),
+    recipeId: readText(formData, "recipeId"),
+  });
+
+  revalidatePath("/app/meals");
+  revalidatePath("/app/diary");
 }
 
 export async function saveNutritionDayAction(formData: FormData) {

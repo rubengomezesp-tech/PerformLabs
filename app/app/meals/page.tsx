@@ -3,15 +3,18 @@ import Link from "next/link";
 import { MacroStrip } from "@/components/macro-strip";
 import { Topbar } from "@/components/topbar";
 import { getSelectedMemberAppBrand } from "@/lib/member-app";
+import { Dialog } from "@/components/dialog";
 import { getMemberMealPlanForToday, getMemberNutritionVisibility, getNutritionDailySummary } from "@/lib/repositories/nutrition-tracking";
-import { saveMealLogAction, saveNutritionDayAction } from "./actions";
+import { listManagedRecipes } from "@/lib/repositories/nutrition-management";
+import { saveMealLogAction, saveNutritionDayAction, swapMealAction } from "./actions";
 
 export default async function MealsPage() {
   const brand = await getSelectedMemberAppBrand();
-  const [dailySummary, assignedMealPlan, visibility] = await Promise.all([
+  const [dailySummary, assignedMealPlan, visibility, recipeOptions] = await Promise.all([
     getNutritionDailySummary(brand.id),
     getMemberMealPlanForToday(brand.id),
     getMemberNutritionVisibility(brand.id),
+    listManagedRecipes(brand.id, { includeBase: true }),
   ]);
   const mealCards = assignedMealPlan?.items.map((item) => ({
     id: item.id,
@@ -182,6 +185,31 @@ export default async function MealsPage() {
               <button className="btn primary" formNoValidate name="status" value="done" type="submit"><CheckCircle2 size={16} /> Hecho</button>
               <button className="btn" name="status" value="swap_requested" type="submit"><Repeat size={16} /> Avisar al coach</button>
             </form>
+            {recipeOptions.length ? (
+              <Dialog
+                triggerClassName="btn ghost sm mealSwapTrigger"
+                trigger={<><Repeat size={15} /> Cambiar comida</>}
+                title={`Cambiar ${meal.title}`}
+                description="Elige otra receta de tu marca para esta comida. Se actualiza en tu plan y tu diario."
+              >
+                <form action={swapMealAction} className="editForm">
+                  <input name="workspaceId" type="hidden" value={brand.id} />
+                  <input name="itemId" type="hidden" value={meal.id} />
+                  <label className="spanFull">
+                    Nueva receta
+                    <select name="recipeId" defaultValue="" required>
+                      <option value="" disabled>Elige una receta…</option>
+                      {recipeOptions.map((recipe) => (
+                        <option key={recipe.id} value={recipe.id}>
+                          {recipe.name}{!hideMacros && recipe.calories ? ` · ${recipe.calories} kcal` : ""}
+                        </option>
+                      ))}
+                    </select>
+                  </label>
+                  <button className="btn primary spanFull" type="submit">Cambiar comida</button>
+                </form>
+              </Dialog>
+            ) : null}
           </article>
         ))}
 
