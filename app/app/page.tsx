@@ -37,7 +37,7 @@ export default async function MemberDashboard() {
       <Topbar
         eyebrow="Panel de miembro"
         title={`Bienvenido a ${brand.appName}.`}
-        text={`Tu espacio de ${brand.name}: entrenamiento, nutrición, progreso y soporte en una sola experiencia.`}
+        text={brand.welcomeMessage || `Tu espacio de ${brand.name}: entrenamiento, nutrición, progreso y soporte en una sola experiencia.`}
       />
       <section className="grid">
         <article className="span8 memberHeroCard">

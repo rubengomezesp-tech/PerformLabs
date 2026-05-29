@@ -43,7 +43,34 @@ export type WorkspaceBrand = {
   fallbackSubdomain: string;
   accentColor: string;
   isActive: boolean;
+  logoUrl?: string | null;
+  backgroundColor?: string | null;
+  heroHeadline?: string | null;
+  heroSubtext?: string | null;
+  heroImageUrl?: string | null;
+  welcomeMessage?: string | null;
 };
+
+/** Editable brand fields persisted as per-workspace app_settings (brand.*). */
+export type WorkspaceBrandingInput = {
+  accentColor?: string;
+  backgroundColor?: string;
+  logoUrl?: string;
+  heroHeadline?: string;
+  heroSubtext?: string;
+  heroImageUrl?: string;
+  welcomeMessage?: string;
+};
+
+const BRAND_SETTING_KEYS = {
+  accentColor: "brand.accent_color",
+  backgroundColor: "brand.background_color",
+  logoUrl: "brand.logo_url",
+  heroHeadline: "brand.hero_headline",
+  heroSubtext: "brand.hero_subtext",
+  heroImageUrl: "brand.hero_image_url",
+  welcomeMessage: "brand.welcome_message",
+} as const;
 
 function slugify(value: string) {
   return value
@@ -430,6 +457,63 @@ export async function createWorkspace(input: WorkspaceInput) {
   return data.id as string;
 }
 
+async function applyBrandingSettings(supabase: any, brand: WorkspaceBrand): Promise<WorkspaceBrand> {
+  if (!isUuid(brand.id)) return brand;
+
+  const { data } = await supabase
+    .from("app_settings")
+    .select("key,value")
+    .eq("workspace_id", brand.id)
+    .in("key", Object.values(BRAND_SETTING_KEYS));
+
+  if (!data?.length) return brand;
+
+  const map = new Map<string, string>();
+  for (const row of data as Array<{ key: string; value: unknown }>) {
+    const value = typeof row.value === "string" ? row.value : row.value == null ? "" : String(row.value);
+    if (value.trim()) map.set(row.key, value.trim());
+  }
+
+  const accent = map.get(BRAND_SETTING_KEYS.accentColor);
+  const background = map.get(BRAND_SETTING_KEYS.backgroundColor);
+
+  return {
+    ...brand,
+    accentColor: accent ? normalizeHexColor(accent) : brand.accentColor,
+    backgroundColor: background && /^#[0-9a-fA-F]{6}$/.test(background) ? background : brand.backgroundColor ?? null,
+    logoUrl: map.get(BRAND_SETTING_KEYS.logoUrl) ?? brand.logoUrl ?? null,
+    heroHeadline: map.get(BRAND_SETTING_KEYS.heroHeadline) ?? brand.heroHeadline ?? null,
+    heroSubtext: map.get(BRAND_SETTING_KEYS.heroSubtext) ?? brand.heroSubtext ?? null,
+    heroImageUrl: map.get(BRAND_SETTING_KEYS.heroImageUrl) ?? brand.heroImageUrl ?? null,
+    welcomeMessage: map.get(BRAND_SETTING_KEYS.welcomeMessage) ?? brand.welcomeMessage ?? null,
+  };
+}
+
+/** Persists editable brand fields as per-workspace app_settings rows. */
+export async function updateWorkspaceBranding(workspaceId: string, fields: WorkspaceBrandingInput) {
+  if (!isUuid(workspaceId)) {
+    throw new Error("No se pudo identificar la marca.");
+  }
+
+  const now = new Date().toISOString();
+  const payload = (Object.entries(fields) as Array<[keyof WorkspaceBrandingInput, string | undefined]>)
+    .filter(([, value]) => typeof value === "string")
+    .map(([field, value]) => ({
+      workspace_id: workspaceId,
+      key: BRAND_SETTING_KEYS[field],
+      value: (value as string).trim(),
+      updated_at: now,
+    }));
+
+  if (!payload.length) return;
+
+  const supabase = createServiceSupabaseClient();
+  const { error } = await (supabase as any).from("app_settings").upsert(payload, { onConflict: "workspace_id,key" });
+  if (error) {
+    throw new Error(`No se pudo guardar la marca: ${error.message}`);
+  }
+}
+
 export async function getWorkspaceBrand(workspaceReference?: string): Promise<WorkspaceBrand> {
   const env = getSupabaseServiceEnv();
 
@@ -452,7 +536,7 @@ export async function getWorkspaceBrand(workspaceReference?: string): Promise<Wo
 
     const { publicDomain, memberDomain, fallbackSubdomain, primaryDomain } = domainsFor(workspace);
 
-    return {
+    return applyBrandingSettings(supabase, {
       id: workspace.id,
       name: workspace.name,
       appName: workspace.app_name,
@@ -463,7 +547,7 @@ export async function getWorkspaceBrand(workspaceReference?: string): Promise<Wo
       fallbackSubdomain,
       accentColor: workspace.accent_color,
       isActive: workspace.is_active,
-    };
+    });
   }
 
   const filters = [
