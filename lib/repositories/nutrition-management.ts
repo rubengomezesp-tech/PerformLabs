@@ -53,6 +53,7 @@ export type ManagedRecipe = {
   mealSlot: string;
   instructions: string;
   tags: string[];
+  imageUrl: string;
   calories: number;
   protein: number;
   carbs: number;
@@ -398,7 +399,7 @@ export async function listManagedRecipes(
   const supabase = createServiceSupabaseClient();
   const baseQuery = supabase
     .from("recipes")
-    .select("id,name,meal_slot,instructions,tags,is_base_library,created_at");
+    .select("id,name,meal_slot,instructions,tags,image_url,is_base_library,created_at");
   const { data, error } = await (options.includeBase
     ? baseQuery.or(`workspace_id.eq.${workspaceId},workspace_id.is.null`)
     : baseQuery.eq("workspace_id", workspaceId)
@@ -450,6 +451,7 @@ export async function listManagedRecipes(
       mealSlot: recipe.meal_slot,
       instructions: recipe.instructions ?? "",
       tags: recipe.tags,
+      imageUrl: recipe.image_url ?? "",
       calories: Math.round(macros.calories),
       protein: Math.round(macros.protein),
       carbs: Math.round(macros.carbs),

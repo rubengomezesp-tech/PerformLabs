@@ -1,4 +1,5 @@
-import { Apple, CheckCircle2, Droplets, MessageSquare, Plus, Repeat, ShoppingBasket, Sparkles, Utensils } from "lucide-react";
+import { Apple, CheckCircle2, ChefHat, Droplets, MessageSquare, Plus, Repeat, ShoppingBasket, Sparkles, Utensils } from "lucide-react";
+import Link from "next/link";
 import { MacroStrip } from "@/components/macro-strip";
 import { Topbar } from "@/components/topbar";
 import { getSelectedMemberAppBrand } from "@/lib/member-app";
@@ -46,6 +47,7 @@ export default async function MealsPage() {
         eyebrow="Comida"
         title="Tu plan de hoy."
         text="Sigue tu día sin complicarte: marca comidas, agua y sensaciones para que tu coach pueda ajustar mejor."
+        actions={<Link className="btn" href="/app/recipes"><ChefHat size={16} /> Recetas</Link>}
       />
       <section className="grid">
         <article className="span12 mealAppHero">

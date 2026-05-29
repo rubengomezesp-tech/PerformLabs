@@ -119,6 +119,28 @@ async function getActiveMealPlanId(
   return result.data?.id ?? null;
 }
 
+/**
+ * Effective "hide calories & macros" setting for the member's area. Reads the
+ * member's own dietary preference; used by recipe pages and any nutrition view
+ * that isn't tied to a specific assigned plan. Defaults to visible.
+ */
+export async function getMemberNutritionVisibility(workspaceId?: string): Promise<{ hideMacros: boolean }> {
+  const env = getSupabaseServiceEnv();
+  if (!env.ok || !isUuid(workspaceId)) return { hideMacros: false };
+
+  const supabase = createServiceSupabaseClient();
+  const memberProfileId = await getDefaultMemberProfileId(workspaceId);
+  if (!memberProfileId) return { hideMacros: false };
+
+  const { data } = await supabase
+    .from("member_diet_preferences")
+    .select("hide_macros")
+    .eq("member_profile_id", memberProfileId)
+    .maybeSingle();
+
+  return { hideMacros: Boolean(data?.hide_macros) };
+}
+
 export async function getMemberMealPlanForToday(workspaceId?: string): Promise<MemberMealPlanForToday | null> {
   const env = getSupabaseServiceEnv();
   if (!env.ok || !isUuid(workspaceId)) return null;
