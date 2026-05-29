@@ -1,5 +1,6 @@
 "use server";
 
+import { cookies } from "next/headers";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { applyOnboardingPlanRecommendation, saveMemberOnboarding } from "@/lib/repositories/member-onboarding";
@@ -11,11 +12,13 @@ function readText(formData: FormData, key: string) {
 
 export async function saveMemberOnboardingAction(formData: FormData) {
   const workspaceId = readText(formData, "workspaceId");
+  const email = (await cookies()).get("performlabs_member_email")?.value ?? "";
   let errorMessage = "";
 
   try {
     const result = await saveMemberOnboarding({
       workspaceId,
+      email,
       fullName: readText(formData, "fullName"),
       goal: readText(formData, "goal"),
       heightCm: readText(formData, "height"),

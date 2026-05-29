@@ -66,6 +66,7 @@ export type MemberOnboardingInput = {
   budgetLevel: string;
   hideMacros: boolean;
   notes: string;
+  email?: string;
 };
 
 export type MemberTrainingContext = {
@@ -305,6 +306,46 @@ async function getDefaultMemberProfile(workspaceId: string) {
   return data ?? null;
 }
 
+/**
+ * Bootstraps a default client profile (auth user + member_profiles row) when a
+ * workspace has none yet, so the admin/founder can complete onboarding without
+ * creating a member by hand. Only used as a fallback when no member exists.
+ */
+async function ensureDefaultMemberProfile(workspaceId: string, fullName: string, email?: string) {
+  const supabase = createServiceSupabaseClient();
+  const name = fullName.trim() || "Cliente";
+  const cleanEmail = email && email.includes("@")
+    ? email.trim().toLowerCase()
+    : `cliente+${workspaceId.slice(0, 8)}-${Date.now().toString(36)}@performlabs.app`;
+
+  const userResult = await supabase.auth.admin.createUser({
+    email: cleanEmail,
+    email_confirm: true,
+    user_metadata: { full_name: name },
+  });
+  if (userResult.error || !userResult.data.user) {
+    throw new Error(`No se pudo crear el cliente: ${userResult.error?.message ?? "sin usuario"}`);
+  }
+
+  const insert = await supabase
+    .from("member_profiles")
+    .insert({
+      workspace_id: workspaceId,
+      user_id: userResult.data.user.id,
+      full_name: name,
+      onboarding_status: "plan_brief_submitted",
+      timezone: "Europe/Madrid",
+    })
+    .select("id,full_name")
+    .maybeSingle();
+
+  if (insert.error || !insert.data) {
+    await supabase.auth.admin.deleteUser(userResult.data.user.id);
+    throw new Error(`No se pudo crear el perfil de cliente: ${insert.error?.message ?? "sin perfil"}`);
+  }
+  return insert.data;
+}
+
 function findQuarterlyTemplate(templates: ManagedWorkoutTemplate[], daysPerWeek: number) {
   const expectedName = `Modulo 3 meses · ${daysPerWeek} dias/semana`;
   return templates.find((template) => template.name === expectedName)
@@ -368,9 +409,9 @@ export async function saveMemberOnboarding(input: MemberOnboardingInput) {
     throw new Error("Falta la marca para guardar el onboarding.");
   }
 
-  const member = await getDefaultMemberProfile(input.workspaceId);
+  let member = await getDefaultMemberProfile(input.workspaceId);
   if (!member) {
-    throw new Error("Todavia no hay perfil de cliente en este workspace para asignar el modulo.");
+    member = await ensureDefaultMemberProfile(input.workspaceId, input.fullName, input.email);
   }
 
   const supabase = createServiceSupabaseClient();
