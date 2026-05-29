@@ -6404,3 +6404,198 @@ input[type="color"] {
   padding-left: 8px;
   border-left: 1px solid var(--border);
 }
+
+/* ---- Member onboarding quiz (test-style, centered) ---- */
+.onboardingQuiz {
+  max-width: 560px;
+  margin: 0 auto;
+  padding: 8px 0 40px;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+.quizProgress {
+  height: 6px;
+  border-radius: var(--radius-pill);
+  background: var(--surface-2);
+  overflow: hidden;
+}
+.quizProgress > span {
+  display: block;
+  height: 100%;
+  border-radius: inherit;
+  background: linear-gradient(90deg, var(--accent), var(--accent-strong));
+  transition: width 0.4s cubic-bezier(0.22, 1, 0.36, 1);
+}
+.quizStepCount {
+  margin: 0;
+  font-size: 13px;
+  color: var(--text-soft);
+  letter-spacing: 0.02em;
+}
+.quizCard {
+  border: 1px solid var(--line);
+  background: var(--surface);
+  border-radius: var(--radius-lg);
+  padding: 26px 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  animation: quizFade 0.32s cubic-bezier(0.22, 1, 0.36, 1);
+}
+@keyframes quizFade {
+  from { opacity: 0; transform: translateY(8px); }
+  to { opacity: 1; transform: none; }
+}
+.quizIcon {
+  display: inline-grid;
+  place-items: center;
+  width: 44px;
+  height: 44px;
+  border-radius: var(--radius);
+  background: color-mix(in srgb, var(--accent) 16%, transparent);
+  color: var(--accent);
+  margin-bottom: 4px;
+}
+.quizCard h1 {
+  margin: 0;
+  font-size: 23px;
+  line-height: 1.2;
+}
+.quizSubtitle {
+  margin: 0 0 8px;
+  color: var(--muted);
+  font-size: 14px;
+}
+.quizOptions {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+  margin-top: 6px;
+}
+.quizOption {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  align-items: flex-start;
+  text-align: left;
+  padding: 14px 15px;
+  border: 1px solid var(--border-strong);
+  border-radius: var(--radius);
+  background: var(--surface-2);
+  color: var(--text);
+  cursor: pointer;
+  transition: border-color 0.15s ease, background 0.15s ease, transform 0.1s ease;
+}
+.quizOption:hover {
+  border-color: var(--accent);
+  background: var(--surface-3);
+}
+.quizOption:active {
+  transform: scale(0.99);
+}
+.quizOption.selected {
+  border-color: var(--accent);
+  background: color-mix(in srgb, var(--accent) 14%, var(--surface-2));
+  box-shadow: inset 0 0 0 1px var(--accent);
+}
+.quizOptionLabel {
+  font-weight: 600;
+  font-size: 15px;
+}
+.quizOptionHint {
+  font-size: 12.5px;
+  color: var(--muted);
+}
+.quizInline,
+.quizFields label,
+.quizFinalForm > label {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  font-size: 13px;
+  color: var(--muted);
+  margin-top: 12px;
+}
+.quizFinalForm > label {
+  margin-top: 0;
+}
+.quizFields {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+}
+.quizInline input,
+.quizFields input,
+.quizFinalForm input,
+.quizFinalForm textarea {
+  width: 100%;
+}
+.quizCheck {
+  grid-column: 1 / -1;
+  flex-direction: row !important;
+  align-items: center;
+  gap: 9px !important;
+  color: var(--text) !important;
+  margin-top: 0;
+}
+.quizCheck input {
+  width: auto;
+}
+.quizFinalForm {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin-top: 6px;
+}
+.quizSummary {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px;
+  margin-top: 2px;
+}
+.quizSummary span {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: 10px 12px;
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  background: var(--surface-2);
+  font-size: 14px;
+  color: var(--text);
+}
+.quizSummary strong {
+  font-size: 11.5px;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--text-soft);
+  font-weight: 600;
+}
+.quizSubmit {
+  margin-top: 4px;
+}
+.quizNav {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+}
+.quizNav .btn {
+  min-width: 120px;
+  justify-content: center;
+}
+@media (prefers-reduced-motion: reduce) {
+  .quizCard {
+    animation: none;
+  }
+  .quizProgress > span {
+    transition: none;
+  }
+}
+@media (max-width: 520px) {
+  .quizOptions,
+  .quizFields,
+  .quizSummary {
+    grid-template-columns: 1fr;
+  }
+}
