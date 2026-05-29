@@ -44,7 +44,7 @@ export function PageShell({
         Saltar al contenido
       </a>
       {variant === "app" ? (
-        <MemberMobileHeader brand={brand} nav={nav} />
+        <MemberMobileHeader brand={brand} />
       ) : (
         <MobileBar brand={brand} href={nav[0]?.href ?? "/"} productLabel={productLabel} session={session} />
       )}
