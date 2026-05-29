@@ -1,9 +1,19 @@
-import { Apple, Calculator, Flame, Plus, Soup, TrendingUp } from "lucide-react";
+import { Apple, Calculator, Flame, Plus, Soup, Trash2, TrendingUp, UtensilsCrossed } from "lucide-react";
 import { Topbar } from "@/components/topbar";
 import { buildCarbCyclingTargets, calculateNutritionTargets, nutritionGoalLabels, recommendNutritionAdjustment } from "@/lib/domain/nutrition-engine";
 import { getSelectedMemberAppBrand } from "@/lib/member-app";
 import { listManagedDietCategories, listManagedDietTemplates, listManagedIngredients, listManagedRecipes } from "@/lib/repositories/nutrition-management";
-import { createCoachDietTemplateAction, createCoachIngredientAction, createCoachMacroTemplateAction, createCoachRecipeAction } from "./actions";
+import {
+  addCoachDietTemplateMealAction,
+  addCoachRecipeIngredientAction,
+  createCoachDietTemplateAction,
+  createCoachIngredientAction,
+  createCoachMacroTemplateAction,
+  createCoachRecipeAction,
+  removeCoachDietTemplateMealAction,
+} from "./actions";
+
+const MEAL_SLOTS = ["desayuno", "comida", "cena", "snack"];
 
 export const dynamic = "force-dynamic";
 
@@ -11,10 +21,11 @@ export default async function CoachNutritionPage() {
   const brand = await getSelectedMemberAppBrand();
   const [categories, templates, ingredients, recipes] = await Promise.all([
     listManagedDietCategories(brand.id),
-    listManagedDietTemplates(brand.id),
+    listManagedDietTemplates(brand.id, { withMeals: true }),
     listManagedIngredients(brand.id),
     listManagedRecipes(brand.id),
   ]);
+  const recipeById = new Map(recipes.map((recipe) => [recipe.id, recipe]));
   const demoTargets = calculateNutritionTargets({
     gender: "male",
     age: 32,
@@ -288,33 +299,170 @@ export default async function CoachNutritionPage() {
           </form>
         </article>
 
-        {templates.map((template) => (
-          <article className="card span4 motionCard" key={template.id}>
-            <Apple color="var(--gold)" />
-            <h2>{template.name}</h2>
-            <p>{template.goal || "Objetivo pendiente"}</p>
-            <ul className="list">
-              <li className="row">Kcal <span>{template.caloriesMin ?? "?"} - {template.caloriesMax ?? "?"}</span></li>
-              <li className="row">Proteina <span>{template.proteinRatio ? `${Math.round(template.proteinRatio * 100)}%` : "Pendiente"}</span></li>
-              <li className="row">Estado <span className="tag">{template.status}</span></li>
-            </ul>
-          </article>
-        ))}
-
-        <article className="card span6 motionCard">
-          <h2>Recetas</h2>
-          <ul className="list">
-            {recipes.length ? recipes.map((recipe) => (
-              <li className="row" key={recipe.id}>
-                <div>
-                  <strong>{recipe.name}</strong>
-                  <p>{recipe.mealSlot} · {recipe.calories} kcal · {recipe.protein}P</p>
-                </div>
-                <span className="tag">{recipe.ingredients.length} ingredientes</span>
-              </li>
-            )) : <li className="row">Sin recetas todavia <span className="tag">Crear arriba</span></li>}
-          </ul>
+        <article className="card span12 motionCard">
+          <div className="sectionHeader">
+            <div>
+              <UtensilsCrossed color="var(--gold)" />
+              <h2>Planes de comidas → app del cliente.</h2>
+              <p>Monta cada plantilla con recetas por día y momento. Al asignarla a un miembro, estas comidas se materializan en su app.</p>
+            </div>
+            <span className="tag">{templates.length} plantillas</span>
+          </div>
         </article>
+
+        {templates.map((template) => {
+          const mealTotals = template.meals.reduce(
+            (totals, meal) => {
+              const recipe = recipeById.get(meal.recipeId);
+              if (recipe) {
+                totals.calories += recipe.calories * meal.servingMultiplier;
+                totals.protein += recipe.protein * meal.servingMultiplier;
+                totals.carbs += recipe.carbs * meal.servingMultiplier;
+                totals.fat += recipe.fat * meal.servingMultiplier;
+              }
+              return totals;
+            },
+            { calories: 0, protein: 0, carbs: 0, fat: 0 },
+          );
+          const dayCount = new Set(template.meals.map((meal) => meal.dayNumber)).size;
+          return (
+            <article className="card span6 motionCard" key={template.id}>
+              <div className="appCardHeader">
+                <Apple color="var(--gold)" />
+                <div>
+                  <h3>{template.name}</h3>
+                  <p>{template.goal || "Objetivo pendiente"}</p>
+                </div>
+              </div>
+              <ul className="list">
+                <li className="row">Kcal objetivo <span>{template.caloriesMin ?? "?"} - {template.caloriesMax ?? "?"}</span></li>
+                <li className="row">Proteina <span>{template.proteinRatio ? `${Math.round(template.proteinRatio * 100)}%` : "Pendiente"}</span></li>
+                <li className="row">Estado <span className="tag">{template.status}</span></li>
+                <li className="row">Plan <span>{template.meals.length} comidas · {dayCount} día(s)</span></li>
+                {template.meals.length ? (
+                  <li className="row">Macros/plan <span>{Math.round(mealTotals.calories)} kcal · {Math.round(mealTotals.protein)}P · {Math.round(mealTotals.carbs)}C · {Math.round(mealTotals.fat)}G</span></li>
+                ) : null}
+              </ul>
+              {template.meals.length ? (
+                <ul className="list compactList">
+                  {template.meals.map((meal) => {
+                    const recipe = recipeById.get(meal.recipeId);
+                    return (
+                      <li className="row" key={meal.id}>
+                        <div>
+                          <strong>Día {meal.dayNumber} · {meal.mealSlot}</strong>
+                          <p>
+                            {meal.recipeName}
+                            {meal.servingMultiplier !== 1 ? ` ×${meal.servingMultiplier}` : ""}
+                            {recipe ? ` · ${Math.round(recipe.calories * meal.servingMultiplier)} kcal` : ""}
+                          </p>
+                        </div>
+                        <form action={removeCoachDietTemplateMealAction}>
+                          <input name="workspaceId" type="hidden" value={brand.id} />
+                          <input name="dietTemplateId" type="hidden" value={template.id} />
+                          <input name="mealId" type="hidden" value={meal.id} />
+                          <button className="btn ghost sm" type="submit" aria-label="Quitar comida">
+                            <Trash2 size={14} />
+                          </button>
+                        </form>
+                      </li>
+                    );
+                  })}
+                </ul>
+              ) : (
+                <p className="muted">Sin comidas todavía. Añade recetas para que el miembro vea su plan.</p>
+              )}
+              {recipes.length ? (
+                <form action={addCoachDietTemplateMealAction} className="editForm">
+                  <input name="workspaceId" type="hidden" value={brand.id} />
+                  <input name="dietTemplateId" type="hidden" value={template.id} />
+                  <label className="spanFull">
+                    Receta
+                    <select name="recipeId" defaultValue="" required>
+                      <option value="" disabled>Elegir receta...</option>
+                      {recipes.map((recipe) => (
+                        <option key={recipe.id} value={recipe.id}>{recipe.name} · {recipe.calories} kcal</option>
+                      ))}
+                    </select>
+                  </label>
+                  <label>
+                    Día
+                    <input name="dayNumber" type="number" min="1" step="1" defaultValue="1" />
+                  </label>
+                  <label>
+                    Momento
+                    <select name="mealSlot" defaultValue="comida">
+                      {MEAL_SLOTS.map((slot) => (
+                        <option key={slot} value={slot}>{slot}</option>
+                      ))}
+                    </select>
+                  </label>
+                  <label>
+                    Raciones
+                    <input name="servingMultiplier" type="number" min="0.25" step="0.25" defaultValue="1" />
+                  </label>
+                  <button className="btn" type="submit">Añadir comida</button>
+                </form>
+              ) : (
+                <p className="muted">Crea una receta para montar el plan.</p>
+              )}
+            </article>
+          );
+        })}
+
+        <article className="card span12 motionCard">
+          <div className="sectionHeader">
+            <div>
+              <Soup color="var(--gold)" />
+              <h2>Componer recetas → macros automáticos.</h2>
+              <p>Añade ingredientes con gramos y los macros se calculan solos. Esas recetas alimentan los planes de comidas.</p>
+            </div>
+            <span className="tag">{recipes.length} recetas</span>
+          </div>
+        </article>
+
+        {recipes.length ? recipes.map((recipe) => (
+          <article className="card span6 motionCard" key={recipe.id}>
+            <div className="appCardHeader">
+              <Soup color="var(--gold)" />
+              <div>
+                <h3>{recipe.name}</h3>
+                <p>{recipe.mealSlot} · {recipe.calories} kcal · {recipe.protein}P · {recipe.carbs}C · {recipe.fat}G</p>
+              </div>
+            </div>
+            <ul className="list compactList">
+              {recipe.ingredients.length ? recipe.ingredients.map((ingredient, index) => (
+                <li className="row" key={`${recipe.id}-ing-${index}`}>{ingredient.name}<span>{ingredient.grams} g</span></li>
+              )) : <li className="row">Sin ingredientes todavía <span className="tag">Añade abajo</span></li>}
+            </ul>
+            {ingredients.length ? (
+              <form action={addCoachRecipeIngredientAction} className="editForm">
+                <input name="workspaceId" type="hidden" value={brand.id} />
+                <input name="recipeId" type="hidden" value={recipe.id} />
+                <label className="spanFull">
+                  Ingrediente
+                  <select name="ingredientId" defaultValue="" required>
+                    <option value="" disabled>Elegir ingrediente...</option>
+                    {ingredients.map((ingredient) => (
+                      <option key={ingredient.id} value={ingredient.id}>{ingredient.name} · {ingredient.caloriesPer100g} kcal/100g</option>
+                    ))}
+                  </select>
+                </label>
+                <label>
+                  Gramos
+                  <input name="grams" type="number" min="1" step="1" defaultValue="100" />
+                </label>
+                <button className="btn" type="submit">Añadir ingrediente</button>
+              </form>
+            ) : (
+              <p className="muted">Crea ingredientes arriba para componer la receta.</p>
+            )}
+          </article>
+        )) : (
+          <article className="card span12 motionCard">
+            <p className="muted">Sin recetas todavía. Crea una arriba para empezar a componer.</p>
+          </article>
+        )}
 
         <article className="card span6 motionCard">
           <h2>Ingredientes</h2>
