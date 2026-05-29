@@ -20,6 +20,26 @@
 - Esto sustituye por completo a "entrar como admin": es seguro, no depende de
   credenciales del entrenador y deja registro contable.
 
+### "Team members" (lo de Macroactive) ≠ llevarse un %
+Cuando Macroactive montó la app del fundador, le pidieron meter **sus correos como
+"team members"** en el Stripe del fundador. Eso es **acceso para OPERAR/dar
+soporte** (gestionar suscripciones, reembolsos) — **NO** descuenta ningún
+porcentaje automáticamente, y por eso a Macroactive le bastaba (ellos no cobran
+revenue-share). Llevarse el 25% por esa vía obligaría a **sacar el dinero a mano**
+= frágil y error-prone. **No es la vía.**
+
+Con **Connect _Standard_** el entrenador **mantiene su Stripe personal** (su
+dashboard, su dinero) — igual que la experiencia del fundador — pero conectado a
+la plataforma, y el 25% sale como **application fee automática**. (Opcional:
+añadirse como team member para soporte, como hizo Macroactive — pero el 25% va por
+Connect, no por ahí.)
+
+### Los dos flujos de dinero (no confundir)
+1. **Setup 5.000 $ + 100 $/año** → el entrenador paga **a PerformLabs** (vuestro
+   Stripe normal). Ingreso directo vuestro.
+2. **25% de lo que la app factura a sus clientes** → vía **Connect application fee**
+   sobre el Stripe del entrenador. Automático.
+
 ### Decisiones que hay que estudiar (impactan mucho)
 1. **Tipo de cuenta Connect**:
    - **Standard**: el entrenador tiene su dashboard Stripe completo; PerformLabs
