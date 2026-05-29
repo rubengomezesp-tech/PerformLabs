@@ -27,9 +27,9 @@ const navItems = [
 ];
 
 const trustSignals = [
-  "App con tu marca",
-  "Implantación guiada",
-  "Consola para operar",
+  "App 100% con tu marca",
+  "Sin mensualidad · a éxito",
+  "Acompañamiento de marketing",
 ];
 
 const purchaseSteps = [
