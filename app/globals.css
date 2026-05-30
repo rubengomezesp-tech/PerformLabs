@@ -9280,10 +9280,155 @@ button[aria-busy="true"] {
 
 /* 2026 tech detail: tabular monospaced figures on dashboard metrics + data */
 .metric strong,
-.v2Stat strong,
 .appMacros span b,
-.appRing span {
+.appRing span,
+.appSet b,
+.appProgStat strong,
+.appProgRow b,
+.bentoShotMacros span b {
   font-family: var(--font-mono, ui-monospace, "SFMono-Regular", monospace);
   font-feature-settings: "tnum" 1, "cv01" 1;
   letter-spacing: -0.02em;
 }
+
+/* Featured bento cell: photo -> calories visual */
+.bentoShot {
+  margin-top: auto;
+  display: flex;
+  gap: 12px;
+  align-items: center;
+  padding-top: 10px;
+}
+.bentoShotPhoto {
+  display: grid;
+  place-items: center;
+  width: 54px;
+  height: 54px;
+  flex-shrink: 0;
+  border-radius: 12px;
+  color: #fff;
+  background: linear-gradient(135deg, color-mix(in srgb, var(--accent) 55%, #11131a), #11131a);
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.08);
+}
+.bentoShotResult { flex: 1; min-width: 0; }
+.bentoShotResult strong { display: block; font-size: 13px; }
+.bentoShotMacros { display: flex; gap: 6px; margin-top: 7px; }
+.bentoShotMacros span {
+  flex: 1;
+  text-align: center;
+  padding: 6px 0;
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.05);
+  font-size: 10px;
+  color: var(--text-muted);
+}
+.bentoShotMacros span b { display: block; font-size: 13px; color: var(--text); }
+.bentoShotMacros .kcal { background: color-mix(in srgb, var(--accent) 16%, transparent); }
+.bentoShotMacros .kcal b { color: var(--accent); }
+
+/* ---- Phone real screens: Entreno (video + sets) & Progreso (chart) ---- */
+.appPhoto {
+  height: 84px;
+  flex-direction: column;
+  gap: 6px;
+}
+.appPhoto span { font-size: 10px; color: rgba(255, 255, 255, 0.5); }
+
+/* Entreno */
+.appExCard {
+  display: flex;
+  gap: 11px;
+  align-items: center;
+  border-radius: 14px;
+  padding: 10px;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.07);
+}
+.appVideoThumb {
+  position: relative;
+  display: grid;
+  place-items: center;
+  width: 58px;
+  height: 50px;
+  flex-shrink: 0;
+  border-radius: 10px;
+  color: #fff;
+  background: linear-gradient(135deg, color-mix(in srgb, var(--accent) 60%, #11131a), #11131a);
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.08);
+}
+.appVideoTag {
+  position: absolute;
+  bottom: 4px;
+  right: 4px;
+  font-size: 8px;
+  font-weight: 700;
+  padding: 1px 5px;
+  border-radius: 999px;
+  background: rgba(0, 0, 0, 0.55);
+  color: #fff;
+}
+.appExMeta { display: flex; flex-wrap: wrap; gap: 5px; }
+.appExMeta span {
+  font-size: 9.5px;
+  font-weight: 600;
+  padding: 4px 7px;
+  border-radius: 7px;
+  background: rgba(255, 255, 255, 0.05);
+  color: rgba(255, 255, 255, 0.65);
+}
+.appSets { display: flex; flex-direction: column; gap: 6px; margin-top: 2px; }
+.appSet {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 9px 11px;
+  border-radius: 11px;
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+}
+.appSet span { font-size: 11px; color: rgba(255, 255, 255, 0.55); width: 44px; }
+.appSet b { flex: 1; font-size: 12.5px; color: #fff; }
+.appSet b.ph { color: rgba(255, 255, 255, 0.35); }
+.appSet i {
+  display: grid;
+  place-items: center;
+  width: 20px;
+  height: 20px;
+  border-radius: 6px;
+  color: #fff;
+  background: #30a46c;
+}
+.appSet i.empty { background: rgba(255, 255, 255, 0.08); }
+.appSet.active { border-color: color-mix(in srgb, var(--accent) 45%, transparent); }
+
+/* Progreso */
+.appProgCard {
+  border-radius: 14px;
+  padding: 13px;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.07);
+}
+.appProgStat { display: flex; align-items: baseline; justify-content: space-between; }
+.appProgStat strong { font-size: 22px; color: #fff; }
+.appProgStat span { display: inline-flex; align-items: center; gap: 4px; font-size: 10px; color: #30a46c; }
+.appBars { display: flex; align-items: flex-end; gap: 5px; height: 52px; margin-top: 12px; }
+.appBars span {
+  flex: 1;
+  border-radius: 4px 4px 2px 2px;
+  background: rgba(255, 255, 255, 0.12);
+  min-height: 6px;
+}
+.appBars span.on { background: var(--accent); }
+.appProgRows { display: flex; flex-direction: column; gap: 6px; margin-top: 2px; }
+.appProgRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 9px 11px;
+  border-radius: 11px;
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  font-size: 12px;
+}
+.appProgRow span { color: rgba(255, 255, 255, 0.7); }
+.appProgRow b { color: var(--accent); }

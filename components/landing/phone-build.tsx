@@ -9,7 +9,7 @@ import {
   useTransform,
   type Variants,
 } from "framer-motion";
-import { Bell, Camera, Check, Dumbbell, Flame, Home, LineChart, MessageSquare, Play, Send, Sparkles, Utensils } from "lucide-react";
+import { Bell, Camera, Check, Dumbbell, Home, LineChart, Play, TrendingUp, Utensils } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 
 const frame: Variants = {
@@ -22,67 +22,47 @@ const chip: Variants = {
   show: (i: number) => ({ opacity: 1, scale: 1, y: 0, transition: { delay: 1.1 + i * 0.2, duration: 0.5, ease: [0.22, 1, 0.36, 1] } }),
 };
 
-const screenVariants: Variants = {
+const slide: Variants = {
   enter: { opacity: 0, x: 26, filter: "blur(6px)" },
   center: { opacity: 1, x: 0, filter: "blur(0px)", transition: { duration: 0.55, ease: [0.22, 1, 0.36, 1] } },
   exit: { opacity: 0, x: -26, filter: "blur(6px)", transition: { duration: 0.4, ease: [0.22, 1, 0.36, 1] } },
 };
 
-function PanelScreen() {
+function Header({ icon, title, sub }: { icon: React.ReactNode; title: string; sub: string }) {
+  return (
+    <div className="appHeader">
+      <span className="appLogo accent">{icon}</span>
+      <div><strong>{title}</strong><small>{sub}</small></div>
+    </div>
+  );
+}
+
+function EntrenoScreen() {
   return (
     <div className="appUI">
       <div className="appStatus"><span>9:41</span><span className="appStatusDots"><i /><i /><i /></span></div>
-      <div className="appHeader">
-        <span className="appLogo">PL</span>
-        <div><strong>Tu marca</strong><small>Panel</small></div>
-        <span className="appBell"><Bell size={14} /></span>
+      <Header icon={<Dumbbell size={15} />} title="Press banca" sub="Día 12 · Empuje" />
+      <div className="appExCard">
+        <div className="appVideoThumb"><Play size={18} /><span className="appVideoTag">Vídeo</span></div>
+        <div className="appExMeta">
+          <span>4 series</span><span>8-10 reps</span><span>90s desc</span>
+        </div>
       </div>
-      <div className="appHeroCard">
-        <div className="appRing"><span>72%</span></div>
-        <div><strong>Mi Recorrido</strong><small>Semana 6 · vas en racha</small></div>
-      </div>
-      <div className="appHabits">
-        <span className="appHabit done"><Flame size={13} /></span>
-        <span className="appHabit done"><Dumbbell size={13} /></span>
-        <span className="appHabit"><Utensils size={13} /></span>
-        <span className="appHabit"><LineChart size={13} /></span>
-      </div>
-      <div className="appWorkoutCard">
-        <span className="appPlay"><Play size={14} /></span>
-        <div><strong>Entreno de hoy</strong><small>Empuje · 6 ejercicios</small></div>
+      <div className="appSets">
+        <div className="appSet done"><span>Serie 1</span><b>10 × 80 kg</b><i><Check size={11} /></i></div>
+        <div className="appSet done"><span>Serie 2</span><b>8 × 82 kg</b><i><Check size={11} /></i></div>
+        <div className="appSet active"><span>Serie 3</span><b className="ph">— × — kg</b><i className="empty" /></div>
       </div>
     </div>
   );
 }
 
-function ChatScreen() {
+function ComidaScreen() {
   return (
     <div className="appUI">
       <div className="appStatus"><span>9:41</span><span className="appStatusDots"><i /><i /><i /></span></div>
-      <div className="appHeader">
-        <span className="appLogo accent"><Sparkles size={15} /></span>
-        <div><strong>Coach IA</strong><small>en la voz de tu coach</small></div>
-      </div>
-      <div className="appChat">
-        <div className="appBubble in">¿Puedo cambiar el arroz por patata?</div>
-        <div className="appBubble out">Claro 👍 Mismo gramaje de carbohidratos y lo dejas igual de bien.</div>
-        <div className="appBubble in">¿Y si entreno por la noche?</div>
-        <div className="appBubble out">Perfecto. Cena 1–2 h después y prioriza proteína.</div>
-      </div>
-      <div className="appComposer"><span>Pregunta lo que necesites…</span><i><Send size={13} /></i></div>
-    </div>
-  );
-}
-
-function NutriScreen() {
-  return (
-    <div className="appUI">
-      <div className="appStatus"><span>9:41</span><span className="appStatusDots"><i /><i /><i /></span></div>
-      <div className="appHeader">
-        <span className="appLogo accent"><Camera size={15} /></span>
-        <div><strong>Comida</strong><small>foto → macros</small></div>
-      </div>
-      <div className="appPhoto"><Camera size={26} /></div>
+      <Header icon={<Camera size={15} />} title="Comida" sub="Calorías por foto" />
+      <div className="appPhoto"><Camera size={24} /><span>Foto al plato</span></div>
       <div className="appNutriCard">
         <div className="appNutriHead"><strong>Bowl de pollo y arroz</strong><span className="appDone"><Check size={12} /> Añadido</span></div>
         <div className="appMacros">
@@ -93,7 +73,25 @@ function NutriScreen() {
   );
 }
 
-const SCREENS = [<PanelScreen key="p" />, <ChatScreen key="c" />, <NutriScreen key="n" />];
+function ProgresoScreen() {
+  const bars = [38, 52, 46, 64, 58, 72, 80];
+  return (
+    <div className="appUI">
+      <div className="appStatus"><span>9:41</span><span className="appStatusDots"><i /><i /><i /></span></div>
+      <Header icon={<LineChart size={15} />} title="Progreso" sub="Últimas semanas" />
+      <div className="appProgCard">
+        <div className="appProgStat"><strong>−4,2 kg</strong><span><TrendingUp size={12} /> este mes</span></div>
+        <div className="appBars">{bars.map((h, i) => <span key={i} style={{ height: `${h}%` }} className={i === bars.length - 1 ? "on" : ""} />)}</div>
+      </div>
+      <div className="appProgRows">
+        <div className="appProgRow"><span>Press banca</span><b>+12 kg</b></div>
+        <div className="appProgRow"><span>Sentadilla</span><b>+18 kg</b></div>
+      </div>
+    </div>
+  );
+}
+
+const SCREENS = [<EntrenoScreen key="e" />, <ComidaScreen key="c" />, <ProgresoScreen key="p" />];
 
 export function PhoneBuild() {
   const reduce = useReducedMotion();
@@ -113,7 +111,7 @@ export function PhoneBuild() {
     return () => clearInterval(id);
   }, [reduce]);
 
-  function move(event: React.MouseEvent<HTMLDivElement>) {
+  function onMove(event: React.MouseEvent<HTMLDivElement>) {
     const el = ref.current;
     if (!el) return;
     const rect = el.getBoundingClientRect();
@@ -125,7 +123,7 @@ export function PhoneBuild() {
   const tiltStyle = reduce ? undefined : { rotateX, rotateY, transformPerspective: 1100 };
 
   return (
-    <div className="phoneStage" ref={ref} onMouseMove={reduce ? undefined : move} onMouseLeave={reduce ? undefined : reset}>
+    <div className="phoneStage" ref={ref} onMouseMove={reduce ? undefined : onMove} onMouseLeave={reduce ? undefined : reset}>
       <motion.div className="phoneTiltWrap" style={tiltStyle}>
         <div className="phoneFloat">
           <motion.div className="phone3d" variants={frame} initial={reduce ? "show" : "hidden"} animate="show">
@@ -133,33 +131,31 @@ export function PhoneBuild() {
             <div className="phoneScreen">
               <div className="phoneScreens">
                 <AnimatePresence mode="wait">
-                  <motion.div key={index} className="phoneScreenSlide" variants={screenVariants} initial="enter" animate="center" exit="exit">
+                  <motion.div key={index} className="phoneScreenSlide" variants={slide} initial="enter" animate="center" exit="exit">
                     {SCREENS[index]}
                   </motion.div>
                 </AnimatePresence>
               </div>
               <div className="appNav">
-                <span className={index === 0 ? "active" : ""}><Home size={16} /></span>
-                <span><Dumbbell size={16} /></span>
-                <span className={index === 2 ? "active" : ""}><Utensils size={16} /></span>
-                <span><LineChart size={16} /></span>
-                <span className={index === 1 ? "active" : ""}><MessageSquare size={16} /></span>
+                <span><Home size={16} /></span>
+                <span className={index === 0 ? "active" : ""}><Dumbbell size={16} /></span>
+                <span className={index === 1 ? "active" : ""}><Utensils size={16} /></span>
+                <span className={index === 2 ? "active" : ""}><LineChart size={16} /></span>
+                <span><Bell size={16} /></span>
               </div>
-              <div className="phoneDots">
-                {SCREENS.map((_, i) => <span key={i} className={i === index ? "on" : ""} />)}
-              </div>
+              <div className="phoneDots">{SCREENS.map((_, i) => <span key={i} className={i === index ? "on" : ""} />)}</div>
             </div>
           </motion.div>
         </div>
 
         <motion.div className="floatChip chipBrain" variants={chip} custom={0} initial={reduce ? "show" : "hidden"} animate="show">
-          <Sparkles size={13} /> Coach IA respondiendo
+          <Camera size={13} /> Calorías por foto
         </motion.div>
         <motion.div className="floatChip chipPlan" variants={chip} custom={1} initial={reduce ? "show" : "hidden"} animate="show">
-          <Dumbbell size={13} /> Plan generado con IA
+          <Play size={13} /> Entreno en vídeo
         </motion.div>
         <motion.div className="floatChip chipBell" variants={chip} custom={2} initial={reduce ? "show" : "hidden"} animate="show">
-          <Bell size={13} /> Recordatorio enviado
+          <TrendingUp size={13} /> Progreso guardado
         </motion.div>
       </motion.div>
     </div>

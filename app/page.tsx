@@ -2,16 +2,16 @@ import Link from "next/link";
 import {
   ArrowRight,
   ArrowUpRight,
-  BellRing,
-  Brain,
   Camera,
   CheckCircle2,
+  Dumbbell,
   HeartPulse,
+  LineChart,
   Mail,
   MessageSquare,
   Palette,
   Sparkles,
-  Wand2,
+  Utensils,
 } from "lucide-react";
 import { submitLeadAction } from "@/app/lead-actions";
 import { LandingNav } from "@/components/landing/landing-nav";
@@ -20,40 +20,40 @@ import { MotionReveal, SmoothScroll } from "@/components/motion-reveal";
 import { platformBrand } from "@/lib/brand";
 
 const navItems = [
-  { label: "Plataforma", href: "#plataforma" },
+  { label: "La app", href: "#plataforma" },
   { label: "Proceso", href: "#proceso" },
   { label: "Demo", href: "#demo" },
   { label: "Solicitar propuesta", href: "#consulta" },
 ];
 
-const trustSignals = ["IA con tu voz", "100% tu marca", "Retención automática", "App + consola"];
+const trustSignals = ["Entrenos en vídeo", "Calorías por foto", "Nutrición a tu método", "100% tu marca"];
 
 const stats = [
-  { value: "11", label: "módulos con IA, listos para tu marca" },
-  { value: "24/7", label: "tu asistente respondiendo por ti" },
-  { value: "−churn", label: "reenganche antes del abandono" },
-  { value: "0", label: "líneas de “powered by”" },
+  { value: "Por foto", label: "calorías y macros, sin escribir" },
+  { value: "En vídeo", label: "cada ejercicio, con su técnica" },
+  { value: "100%", label: "tu marca, tu nombre, tu dominio" },
+  { value: "App + consola", label: "para tu cliente y para ti" },
 ];
 
 const capabilities = [
-  { icon: Brain, tag: "Coach Brain", title: "IA con la voz del coach", text: "Responde a tus clientes como lo harías tú: tus reglas, tus protocolos, tus sustituciones." },
-  { icon: Wand2, tag: "Coach-in-the-loop", title: "Planes generados con IA", text: "Describe el caso, la IA redacta el programa en tu método y tú apruebas en un clic." },
-  { icon: HeartPulse, tag: "Anti-abandono", title: "Radar de retención", text: "Sabe quién va a dejarlo antes de que pase y te redacta el mensaje para reengancharlo." },
-  { icon: BellRing, tag: "Push proactivo", title: "Avisos que motivan", text: "Recordatorios que llegan con la app cerrada, justo cuando deja de entrenar." },
-  { icon: Camera, tag: "IA de visión", title: "Nutrición sin fricción", text: "Foto al plato, macros estimados y registrados. Menos esfuerzo, más adherencia." },
-  { icon: Palette, tag: "White-label", title: "100% tu marca", text: "Logo, color, nombre y dominio. Tus clientes ven tu marca, nunca la nuestra." },
+  { icon: Camera, tag: "Sin escribir", title: "Calorías por foto", text: "El cliente hace una foto al plato y la app estima calorías y macros al instante. Cero fricción, más adherencia." },
+  { icon: Dumbbell, tag: "Vídeo + técnica", title: "Entrenos en vídeo", text: "Cada ejercicio con su vídeo, series, reps y descanso. El cliente sabe exactamente qué hacer en cada sesión." },
+  { icon: LineChart, tag: "Serie a serie", title: "Progreso real", text: "Apunta reps y kilos en cada serie y ve la evolución de cada ejercicio y de tu peso." },
+  { icon: Utensils, tag: "Tu método", title: "Nutrición a medida", text: "Plan de comidas, macros y recetas con tus reglas, no una dieta genérica de plantilla." },
+  { icon: HeartPulse, tag: "Tú al frente", title: "Acompañas sin perseguir", text: "Ves quién flojea y actúas a tiempo. Tú eres quien acompaña; las herramientas te quitan el trabajo repetitivo." },
+  { icon: Palette, tag: "White-label", title: "100% tu marca", text: "Logo, color, nombre y dominio. Tus clientes ven tu marca de principio a fin, nunca la nuestra." },
 ];
 
 const purchaseSteps = [
   { n: "01", title: "Cuéntanos tu proyecto", text: "Revisamos tu marca, tu método, tu oferta y la experiencia que quieres entregar." },
-  { n: "02", title: "Definimos la propuesta", text: "Aterrizamos alcance, branding, módulos, contenidos iniciales y calendario." },
-  { n: "03", title: "Implantamos y lanzamos", text: "Dejamos la app y la consola listas para operar con clientes reales." },
+  { n: "02", title: "Definimos la propuesta", text: "Aterrizamos alcance, branding, contenidos iniciales y calendario de implantación." },
+  { n: "03", title: "Implantamos y lanzamos", text: "Dejamos la app y la consola listas para operar con tus clientes reales." },
 ];
 
 const faqs = [
   { question: "¿Cómo empezamos?", answer: "Rellenas la solicitud, revisamos el encaje y te enviamos una propuesta con alcance, fases y próximos pasos." },
   { question: "¿Puedo usar mi propio branding?", answer: "Sí. Cada app tiene nombre, logo, color, dominio, soporte y configuración propios." },
-  { question: "¿Es una plantilla genérica?", answer: "No. Partimos de una base sólida con IA y la adaptamos a tu marca, oferta, contenido y operación." },
+  { question: "¿Es una plantilla genérica?", answer: "No. Partimos de una base sólida y la adaptamos a tu marca, tu método, tu contenido y tu operación." },
 ];
 
 export default function Home() {
@@ -65,18 +65,18 @@ export default function Home() {
       </a>
       <LandingNav brandName={platformBrand.name} markUrl={platformBrand.markUrl} items={navItems.slice(0, 3)} />
 
-      {/* ---- Hero: centered editorial + device reveal ---- */}
+      {/* ---- Hero ---- */}
       <section className="v2Hero">
         <div className="auroraField" aria-hidden="true" />
         <div className="grain" aria-hidden="true" />
         <MotionReveal className="v2HeroInner">
-          <span className="v2Eyebrow"><Sparkles size={13} /> Plataforma de coaching nativa de IA</span>
+          <span className="v2Eyebrow"><Sparkles size={13} /> La app de coaching con tu marca</span>
           <h1 className="v2Headline">
-            La plataforma de coaching<br />con <span className="accentText">IA</span> y <span className="accentText">tu marca</span>.
+            La app de tu marca para <span className="accentText">entrenar</span>, <span className="accentText">comer</span> y <span className="accentText">progresar</span>.
           </h1>
           <p className="v2Sub">
-            Una app con tu marca donde la IA habla con tu voz, redacta los planes con tu método
-            y retiene a tus clientes por ti. Tú apruebas; la tecnología hace el resto.
+            Entrenos en vídeo con el progreso por serie, contador de calorías por foto y nutrición
+            a tu método. Con tu marca, y contigo al frente de tus clientes.
           </p>
           <div className="v2Cta">
             <a className="btn primary lg" href="#consulta">
@@ -98,7 +98,7 @@ export default function Home() {
         </MotionReveal>
       </section>
 
-      {/* ---- Stats band ---- */}
+      {/* ---- Stats ---- */}
       <section className="v2Section v2StatsSection">
         <MotionReveal className="v2Stats">
           {stats.map((s) => (
@@ -110,13 +110,13 @@ export default function Home() {
         </MotionReveal>
       </section>
 
-      {/* ---- Bento: platform capabilities ---- */}
+      {/* ---- Bento: what the app does ---- */}
       <section className="v2Section" id="plataforma">
         <div className="platformGlow" aria-hidden="true" />
         <MotionReveal className="v2SectionHead">
-          <span className="v2Tag"><Sparkles size={12} /> Plataforma IA</span>
-          <h2>Un sistema operativo de coaching, no una plantilla.</h2>
-          <p>Tu voz, tu método y tu marca — con la tecnología trabajando por ti las 24 horas.</p>
+          <span className="v2Tag">La app</span>
+          <h2>La app que tus clientes usan cada día.</h2>
+          <p>Entreno, comida y progreso en un solo sitio, con tu marca. Tú acompañas; la tecnología hace el trabajo repetitivo.</p>
         </MotionReveal>
 
         <div className="bentoGrid">
@@ -124,11 +124,7 @@ export default function Home() {
             const Icon = cap.icon;
             const featured = index === 0;
             return (
-              <MotionReveal
-                key={cap.title}
-                className={featured ? "bentoCell bentoFeature" : "bentoCell"}
-                delay={index * 0.04}
-              >
+              <MotionReveal key={cap.title} className={featured ? "bentoCell bentoFeature" : "bentoCell"} delay={index * 0.04}>
                 <span className="bentoIcon"><Icon size={featured ? 24 : 20} /></span>
                 <div className="bentoBody">
                   <span className="bentoTag">{cap.tag}</span>
@@ -136,9 +132,14 @@ export default function Home() {
                   <p>{cap.text}</p>
                 </div>
                 {featured ? (
-                  <div className="bentoChat" aria-hidden="true">
-                    <div className="bentoBubble in">¿Puedo cambiar el arroz por patata?</div>
-                    <div className="bentoBubble out"><Sparkles size={12} /> Sí — mismo gramaje de carbohidratos. Lo dejas igual de bien.</div>
+                  <div className="bentoShot" aria-hidden="true">
+                    <div className="bentoShotPhoto"><Camera size={20} /></div>
+                    <div className="bentoShotResult">
+                      <strong>Bowl de pollo y arroz</strong>
+                      <div className="bentoShotMacros">
+                        <span><b>48</b>P</span><span><b>62</b>C</span><span><b>14</b>G</span><span className="kcal"><b>560</b>kcal</span>
+                      </div>
+                    </div>
                   </div>
                 ) : null}
               </MotionReveal>
@@ -171,12 +172,12 @@ export default function Home() {
           <div>
             <span className="v2Tag">Vista cliente</span>
             <h2>Se siente como producto propio desde el primer día.</h2>
-            <p>El usuario final ve su entrenador, su plan, sus comidas, sus métricas y una ruta clara para avanzar.</p>
+            <p>El usuario final ve tu marca, su plan, sus comidas, sus métricas y una ruta clara para avanzar.</p>
             <ul className="featureList">
-              <li><CheckCircle2 size={18} /> Entrenamientos con vídeo y progreso</li>
-              <li><CheckCircle2 size={18} /> Nutrición con macros y foto</li>
+              <li><CheckCircle2 size={18} /> Entrenos en vídeo con progreso por serie</li>
+              <li><CheckCircle2 size={18} /> Nutrición con macros y calorías por foto</li>
               <li><CheckCircle2 size={18} /> Check-ins, hábitos y comunidad</li>
-              <li><CheckCircle2 size={18} /> Coach IA, soporte y perfil</li>
+              <li><CheckCircle2 size={18} /> Soporte y perfil del cliente</li>
             </ul>
           </div>
           <img src="/brand/performlabs-app-screens.png" alt="Pantallas de ejemplo de la app PerformLabs" />
@@ -189,7 +190,7 @@ export default function Home() {
           <MotionReveal className="v2FormIntro">
             <span className="v2Tag"><Mail size={12} /> Solicitar propuesta</span>
             <h2>Cuéntanos qué quieres construir.</h2>
-            <p>Revisamos el encaje, el alcance y la mejor forma de lanzar tu app de marca con IA.</p>
+            <p>Revisamos el encaje, el alcance y la mejor forma de lanzar tu app de marca.</p>
             <div className="v2Trust v2TrustStack">
               {trustSignals.map((s) => (
                 <span key={s}><CheckCircle2 size={15} /> {s}</span>
@@ -261,14 +262,14 @@ export default function Home() {
             <span>{platformBrand.name}</span>
           </div>
           <nav className="v2FooterNav" aria-label="Pie">
-            <a href="#plataforma">Plataforma</a>
+            <a href="#plataforma">La app</a>
             <a href="#proceso">Proceso</a>
             <a href="#demo">Demo</a>
             <a href="#consulta">Solicitar propuesta</a>
           </nav>
         </div>
         <div className="v2FooterBottom">
-          <span>© {new Date().getFullYear()} {platformBrand.name}. Plataforma de coaching nativa de IA.</span>
+          <span>© {new Date().getFullYear()} {platformBrand.name}. La app de coaching con tu marca.</span>
           <a className="btn primary" href="#consulta">Empezar <span className="btnArrow"><ArrowRight size={15} /></span></a>
         </div>
       </footer>
