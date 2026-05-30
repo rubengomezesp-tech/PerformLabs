@@ -19,77 +19,59 @@ import { PhoneBuild } from "@/components/landing/phone-build";
 import { ScreensGallery } from "@/components/landing/screens-gallery";
 import { MotionReveal, SmoothScroll } from "@/components/motion-reveal";
 import { platformBrand } from "@/lib/brand";
+import { getI18n } from "@/lib/i18n/server";
 
-const navItems = [
-  { label: "La app", href: "#plataforma" },
-  { label: "Proceso", href: "#proceso" },
-  { label: "Demo", href: "#demo" },
-  { label: "Solicitar propuesta", href: "#consulta" },
-];
+const capabilityIcons = [Camera, Dumbbell, LineChart, Utensils, HeartPulse, Palette];
 
-const trustSignals = ["Entrenos en vídeo", "Calorías por foto", "Nutrición a tu método", "100% tu marca"];
+export default async function Home() {
+  const { locale, dict } = await getI18n();
 
-const stats = [
-  { value: "Por foto", label: "calorías y macros, sin escribir" },
-  { value: "En vídeo", label: "cada ejercicio, con su técnica" },
-  { value: "100%", label: "tu marca, tu nombre, tu dominio" },
-  { value: "App + consola", label: "para tu cliente y para ti" },
-];
+  const navItems = [
+    { label: dict.nav.app, href: "#plataforma" },
+    { label: dict.nav.process, href: "#proceso" },
+    { label: dict.nav.demo, href: "#demo" },
+  ];
 
-const capabilities = [
-  { icon: Camera, tag: "Sin escribir", title: "Calorías por foto", text: "El cliente hace una foto al plato y la app estima calorías y macros al instante. Cero fricción, más adherencia." },
-  { icon: Dumbbell, tag: "Vídeo + técnica", title: "Entrenos en vídeo", text: "Cada ejercicio con su vídeo, series, reps y descanso. El cliente sabe exactamente qué hacer en cada sesión." },
-  { icon: LineChart, tag: "Serie a serie", title: "Progreso real", text: "Apunta reps y kilos en cada serie y ve la evolución de cada ejercicio y de tu peso." },
-  { icon: Utensils, tag: "Tu método", title: "Nutrición a medida", text: "Plan de comidas, macros y recetas con tus reglas, no una dieta genérica de plantilla." },
-  { icon: HeartPulse, tag: "Tú al frente", title: "Acompañas sin perseguir", text: "Ves quién flojea y actúas a tiempo. Tú eres quien acompaña; las herramientas te quitan el trabajo repetitivo." },
-  { icon: Palette, tag: "White-label", title: "100% tu marca", text: "Logo, color, nombre y dominio. Tus clientes ven tu marca de principio a fin, nunca la nuestra." },
-];
-
-const purchaseSteps = [
-  { n: "01", title: "Cuéntanos tu proyecto", text: "Revisamos tu marca, tu método, tu oferta y la experiencia que quieres entregar." },
-  { n: "02", title: "Definimos la propuesta", text: "Aterrizamos alcance, branding, contenidos iniciales y calendario de implantación." },
-  { n: "03", title: "Implantamos y lanzamos", text: "Dejamos la app y la consola listas para operar con tus clientes reales." },
-];
-
-const faqs = [
-  { question: "¿Cómo empezamos?", answer: "Rellenas la solicitud, revisamos el encaje y te enviamos una propuesta con alcance, fases y próximos pasos." },
-  { question: "¿Puedo usar mi propio branding?", answer: "Sí. Cada app tiene nombre, logo, color, dominio, soporte y configuración propios." },
-  { question: "¿Es una plantilla genérica?", answer: "No. Partimos de una base sólida y la adaptamos a tu marca, tu método, tu contenido y tu operación." },
-];
-
-export default function Home() {
   return (
     <main className="landing landingV2">
       <SmoothScroll />
       <a className="stickyLeadCta" href="#consulta">
-        Solicitar propuesta <ArrowRight size={16} />
+        {dict.hero.ctaPrimary} <ArrowRight size={16} />
       </a>
-      <LandingNav brandName={platformBrand.name} markUrl={platformBrand.markUrl} items={navItems.slice(0, 3)} />
+      <LandingNav
+        brandName={platformBrand.name}
+        markUrl={platformBrand.markUrl}
+        items={navItems}
+        locale={locale}
+        ctaLabel={dict.nav.requestProposal}
+        switcherLabel={dict.switcher.label}
+        switcherChange={dict.switcher.change}
+      />
 
       {/* ---- Hero ---- */}
       <section className="v2Hero">
         <div className="auroraField" aria-hidden="true" />
         <div className="grain" aria-hidden="true" />
         <MotionReveal className="v2HeroInner">
-          <span className="v2Eyebrow"><Sparkles size={13} /> La app de coaching con tu marca</span>
+          <span className="v2Eyebrow"><Sparkles size={13} /> {dict.hero.eyebrow}</span>
           <h1 className="v2Headline">
-            La app de tu marca para <span className="accentText">entrenar</span>, <span className="accentText">comer</span> y <span className="accentText">progresar</span>.
+            {dict.hero.headlineLead}{" "}
+            <span className="accentText">{dict.hero.accents[0]}</span>,{" "}
+            <span className="accentText">{dict.hero.accents[1]}</span> {dict.hero.conjunction}{" "}
+            <span className="accentText">{dict.hero.accents[2]}</span>{dict.hero.headlineTail}
           </h1>
-          <p className="v2Sub">
-            Entrenos en vídeo con el progreso por serie, contador de calorías por foto y nutrición
-            a tu método. Con tu marca, y contigo al frente de tus clientes.
-          </p>
+          <p className="v2Sub">{dict.hero.sub}</p>
           <div className="v2Cta">
             <a className="btn primary lg" href="#consulta">
-              Solicitar propuesta <span className="btnArrow"><ArrowRight size={18} /></span>
+              {dict.hero.ctaPrimary} <span className="btnArrow"><ArrowRight size={18} /></span>
             </a>
             <Link className="btn lg ghost" href="/app">
-              Ver experiencia demo <ArrowUpRight size={18} />
+              {dict.hero.ctaDemo} <ArrowUpRight size={18} />
             </Link>
           </div>
           <div className="v2Trust">
-            {trustSignals.map((s) => (
-              <span key={s}><CheckCircle2 size={15} /> {s}</span>
+            {dict.trust.map((signal) => (
+              <span key={signal}><CheckCircle2 size={15} /> {signal}</span>
             ))}
           </div>
         </MotionReveal>
@@ -102,10 +84,10 @@ export default function Home() {
       {/* ---- Stats ---- */}
       <section className="v2Section v2StatsSection">
         <MotionReveal className="v2Stats">
-          {stats.map((s) => (
-            <div className="v2Stat" key={s.label}>
-              <strong>{s.value}</strong>
-              <span>{s.label}</span>
+          {dict.stats.map((stat) => (
+            <div className="v2Stat" key={stat.label}>
+              <strong>{stat.value}</strong>
+              <span>{stat.label}</span>
             </div>
           ))}
         </MotionReveal>
@@ -115,14 +97,14 @@ export default function Home() {
       <section className="v2Section" id="plataforma">
         <div className="platformGlow" aria-hidden="true" />
         <MotionReveal className="v2SectionHead">
-          <span className="v2Tag">La app</span>
-          <h2>La app que tus clientes usan cada día.</h2>
-          <p>Entreno, comida y progreso en un solo sitio, con tu marca. Tú acompañas; la tecnología hace el trabajo repetitivo.</p>
+          <span className="v2Tag">{dict.platform.tag}</span>
+          <h2>{dict.platform.title}</h2>
+          <p>{dict.platform.text}</p>
         </MotionReveal>
 
         <div className="bentoGrid">
-          {capabilities.map((cap, index) => {
-            const Icon = cap.icon;
+          {dict.capabilities.map((cap, index) => {
+            const Icon = capabilityIcons[index] ?? Camera;
             const featured = index === 0;
             return (
               <MotionReveal key={cap.title} className={featured ? "bentoCell bentoFeature" : "bentoCell"} delay={index * 0.04}>
@@ -136,7 +118,7 @@ export default function Home() {
                   <div className="bentoShot" aria-hidden="true">
                     <div className="bentoShotPhoto"><Camera size={20} /></div>
                     <div className="bentoShotResult">
-                      <strong>Bowl de pollo y arroz</strong>
+                      <strong>{dict.bentoShot.dish}</strong>
                       <div className="bentoShotMacros">
                         <span><b>48</b>P</span><span><b>62</b>C</span><span><b>14</b>G</span><span className="kcal"><b>560</b>kcal</span>
                       </div>
@@ -152,14 +134,14 @@ export default function Home() {
       {/* ---- Proceso ---- */}
       <section className="v2Section" id="proceso">
         <MotionReveal className="v2SectionHead">
-          <span className="v2Tag">Proceso</span>
-          <h2>De idea a app operativa, con implantación guiada.</h2>
-          <p>Trabajamos contigo el encaje, la marca y la experiencia antes de lanzar a clientes reales.</p>
+          <span className="v2Tag">{dict.process.tag}</span>
+          <h2>{dict.process.title}</h2>
+          <p>{dict.process.text}</p>
         </MotionReveal>
         <div className="v2Steps">
-          {purchaseSteps.map((step, index) => (
-            <MotionReveal className="v2Step" key={step.n} delay={index * 0.06}>
-              <span className="v2StepNum">{step.n}</span>
+          {dict.process.steps.map((step, index) => (
+            <MotionReveal className="v2Step" key={step.title} delay={index * 0.06}>
+              <span className="v2StepNum">{String(index + 1).padStart(2, "0")}</span>
               <h3>{step.title}</h3>
               <p>{step.text}</p>
             </MotionReveal>
@@ -170,9 +152,9 @@ export default function Home() {
       {/* ---- Demo: swipeable screens ---- */}
       <section className="v2Section" id="demo">
         <MotionReveal className="v2SectionHead">
-          <span className="v2Tag">Vista cliente</span>
-          <h2>Mira la app por dentro.</h2>
-          <p>Entreno, comida, progreso, mensajes con tu coach y comunidad. Arrastra para recorrerla, con tu marca de principio a fin.</p>
+          <span className="v2Tag">{dict.demo.tag}</span>
+          <h2>{dict.demo.title}</h2>
+          <p>{dict.demo.text}</p>
         </MotionReveal>
         <ScreensGallery />
       </section>
@@ -181,26 +163,26 @@ export default function Home() {
       <section className="v2Section" id="consulta">
         <div className="v2FormGrid">
           <MotionReveal className="v2FormIntro">
-            <span className="v2Tag"><Mail size={12} /> Solicitar propuesta</span>
-            <h2>Cuéntanos qué quieres construir.</h2>
-            <p>Revisamos el encaje, el alcance y la mejor forma de lanzar tu app de marca.</p>
+            <span className="v2Tag"><Mail size={12} /> {dict.lead.tag}</span>
+            <h2>{dict.lead.title}</h2>
+            <p>{dict.lead.text}</p>
             <div className="v2Trust v2TrustStack">
-              {trustSignals.map((s) => (
-                <span key={s}><CheckCircle2 size={15} /> {s}</span>
+              {dict.trust.map((signal) => (
+                <span key={signal}><CheckCircle2 size={15} /> {signal}</span>
               ))}
             </div>
           </MotionReveal>
           <MotionReveal className="v2FormCard" delay={0.1}>
             <form action={submitLeadAction} className="leadForm">
-              <label>Nombre<input name="fullName" placeholder="Tu nombre" required /></label>
-              <label>Email<input name="email" placeholder="tu@email.com" required type="email" /></label>
-              <label>Teléfono<input name="phone" placeholder="+34..." /></label>
-              <label>Marca o nombre del proyecto<input name="brandName" placeholder="Ej. Elite Coach Academy" /></label>
-              <label>Web o Instagram<input name="websiteUrl" placeholder="https://..." /></label>
+              <label>{dict.lead.fields.name}<input name="fullName" placeholder={dict.lead.fields.namePlaceholder} required /></label>
+              <label>{dict.lead.fields.email}<input name="email" placeholder="tu@email.com" required type="email" /></label>
+              <label>{dict.lead.fields.phone}<input name="phone" placeholder="+34..." /></label>
+              <label>{dict.lead.fields.brand}<input name="brandName" placeholder={dict.lead.fields.brandPlaceholder} /></label>
+              <label>{dict.lead.fields.site}<input name="websiteUrl" placeholder="https://..." /></label>
               <label>
-                Clientes actuales aproximados
+                {dict.lead.fields.clients}
                 <select name="monthlyClients" defaultValue="">
-                  <option value="" disabled>Selecciona una opción</option>
+                  <option value="" disabled>{dict.lead.fields.clientsPlaceholder}</option>
                   <option value="0-20">0-20</option>
                   <option value="21-100">21-100</option>
                   <option value="101-500">101-500</option>
@@ -208,22 +190,22 @@ export default function Home() {
                 </select>
               </label>
               <label className="spanFull">
-                Objetivo principal
+                {dict.lead.fields.goal}
                 <select name="mainGoal" defaultValue="">
-                  <option value="" disabled>Qué necesitas conseguir</option>
-                  <option value="launch">Lanzar mi primera app</option>
-                  <option value="upgrade">Mejorar mi sistema actual</option>
-                  <option value="scale">Escalar clientes y equipo</option>
-                  <option value="brand">Elevar percepción de marca</option>
+                  <option value="" disabled>{dict.lead.fields.goalPlaceholder}</option>
+                  <option value="launch">{dict.lead.fields.goalLaunch}</option>
+                  <option value="upgrade">{dict.lead.fields.goalUpgrade}</option>
+                  <option value="scale">{dict.lead.fields.goalScale}</option>
+                  <option value="brand">{dict.lead.fields.goalBrand}</option>
                 </select>
               </label>
               <label className="spanFull">
-                Notas
-                <textarea name="notes" placeholder="Cuéntanos tu oferta, el contenido disponible y qué experiencia quieres entregar." rows={4} />
+                {dict.lead.fields.notes}
+                <textarea name="notes" placeholder={dict.lead.fields.notesPlaceholder} rows={4} />
               </label>
               <div className="spanFull formActions">
                 <button className="btn primary lg" type="submit">
-                  Enviar solicitud <span className="btnArrow"><ArrowRight size={18} /></span>
+                  {dict.lead.fields.submit} <span className="btnArrow"><ArrowRight size={18} /></span>
                 </button>
               </div>
             </form>
@@ -234,11 +216,11 @@ export default function Home() {
       {/* ---- FAQ ---- */}
       <section className="v2Section" id="faqs">
         <MotionReveal className="v2SectionHead">
-          <span className="v2Tag"><MessageSquare size={12} /> Preguntas</span>
-          <h2>Lo que sueles querer saber antes de hablar.</h2>
+          <span className="v2Tag"><MessageSquare size={12} /> {dict.faq.tag}</span>
+          <h2>{dict.faq.title}</h2>
         </MotionReveal>
         <div className="v2Faq">
-          {faqs.map((faq, index) => (
+          {dict.faq.items.map((faq, index) => (
             <MotionReveal className="v2FaqItem" key={faq.question} delay={index * 0.05}>
               <strong>{faq.question}</strong>
               <p>{faq.answer}</p>
@@ -254,16 +236,16 @@ export default function Home() {
             <img src={platformBrand.markUrl} alt={platformBrand.name} />
             <span>{platformBrand.name}</span>
           </div>
-          <nav className="v2FooterNav" aria-label="Pie">
-            <a href="#plataforma">La app</a>
-            <a href="#proceso">Proceso</a>
-            <a href="#demo">Demo</a>
-            <a href="#consulta">Solicitar propuesta</a>
+          <nav className="v2FooterNav" aria-label={platformBrand.name}>
+            <a href="#plataforma">{dict.nav.app}</a>
+            <a href="#proceso">{dict.nav.process}</a>
+            <a href="#demo">{dict.nav.demo}</a>
+            <a href="#consulta">{dict.nav.requestProposal}</a>
           </nav>
         </div>
         <div className="v2FooterBottom">
-          <span>© {new Date().getFullYear()} {platformBrand.name}. La app de coaching con tu marca.</span>
-          <a className="btn primary" href="#consulta">Empezar <span className="btnArrow"><ArrowRight size={15} /></span></a>
+          <span>© {new Date().getFullYear()} {platformBrand.name}. {dict.footer.tagline}</span>
+          <a className="btn primary" href="#consulta">{dict.footer.start} <span className="btnArrow"><ArrowRight size={15} /></span></a>
         </div>
       </footer>
     </main>
