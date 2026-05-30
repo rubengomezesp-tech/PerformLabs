@@ -10108,3 +10108,34 @@ button[aria-busy="true"] {
   border-color: color-mix(in srgb, var(--danger) 40%, var(--line));
   background: color-mix(in srgb, var(--danger) 12%, transparent);
 }
+
+/* ---- Collapsible secondary form inside console cards ---- */
+.editDetails {
+  margin-top: 4px;
+  border-top: 1px solid var(--line);
+  padding-top: 10px;
+}
+.editDetails > summary {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  cursor: pointer;
+  list-style: none;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--muted);
+  transition: color var(--dur-fast) var(--ease);
+}
+.editDetails > summary::-webkit-details-marker {
+  display: none;
+}
+.editDetails > summary:hover {
+  color: var(--text);
+}
+.editDetails[open] > summary {
+  margin-bottom: 12px;
+}
+.appCardHeader > .tag {
+  margin-left: auto;
+  align-self: flex-start;
+}
