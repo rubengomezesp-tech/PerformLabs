@@ -3,13 +3,14 @@
 import { useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Activity, Bell, BookOpen, ChefHat, ClipboardList, Dumbbell, Flame, Home, LineChart, Menu, MessageSquare, NotebookPen, Sparkles, Trophy, UserRound, Users, Utensils, X } from "lucide-react";
+import { Activity, Bell, BookOpen, ChefHat, ClipboardList, Dumbbell, Flame, Home, LineChart, Menu, MessageSquare, NotebookPen, Pill, Sparkles, Trophy, UserRound, Users, Utensils, X } from "lucide-react";
 import type { WorkspaceBrand } from "@/lib/repositories/workspaces";
 
 const MENU = [
   { label: "Panel", href: "/app", icon: Home },
   { label: "Entreno", href: "/app/workouts", icon: Dumbbell },
   { label: "Comida", href: "/app/meals", icon: Utensils },
+  { label: "Suplementos", href: "/app/supplements", icon: Pill },
   { label: "Recetas", href: "/app/recipes", icon: ChefHat },
   { label: "Diario", href: "/app/diary", icon: NotebookPen },
   { label: "Progreso", href: "/app/progress", icon: LineChart },
