@@ -49,7 +49,7 @@ function localOpenSession(): ConsoleSession {
   };
 }
 
-async function getVerifiedUser() {
+export async function getVerifiedUser() {
   const cookieStore = await cookies();
   const accessToken = cookieStore.get(authAccessCookie)?.value;
 

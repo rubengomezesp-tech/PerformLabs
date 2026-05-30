@@ -1,6 +1,7 @@
 import type { Metadata, Viewport } from "next";
 import { EntitlementGate } from "@/components/entitlement-gate";
 import { PageShell } from "@/components/page-shell";
+import { requireMemberContext } from "@/lib/auth/member-access";
 import { getSelectedMemberAppBrand, getSelectedMemberAppShell } from "@/lib/member-app";
 import { getWorkspaceEntitlement } from "@/lib/repositories/entitlements";
 
@@ -27,6 +28,9 @@ export default async function MemberAppLayout({
   children: React.ReactNode;
 }) {
   const { brand, nav } = await getSelectedMemberAppShell();
+  // In production this requires a verified member session (redirects to login
+  // otherwise); in open/demo mode it is a no-op so the fallback still renders.
+  await requireMemberContext(brand.id);
   const entitlement = await getWorkspaceEntitlement(brand.id);
 
   return (

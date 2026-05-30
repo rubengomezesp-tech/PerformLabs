@@ -1,3 +1,4 @@
+import { getMemberContext } from "@/lib/auth/member-access";
 import { getSupabaseServiceEnv } from "@/lib/supabase/env";
 import { createServiceSupabaseClient } from "@/lib/supabase/server";
 
@@ -47,15 +48,9 @@ function isUuid(value?: string | null): value is string {
 }
 
 async function getDefaultMember(workspaceId: string) {
-  const supabase = createServiceSupabaseClient();
-  const { data } = await supabase
-    .from("member_profiles")
-    .select("id,full_name")
-    .eq("workspace_id", workspaceId)
-    .order("created_at", { ascending: true })
-    .limit(1)
-    .maybeSingle();
-  return data ?? null;
+  const context = await getMemberContext(workspaceId);
+  if (!context || context.workspaceId !== workspaceId) return null;
+  return { id: context.memberProfileId, full_name: context.fullName };
 }
 
 function mapRow(row: any): Challenge {

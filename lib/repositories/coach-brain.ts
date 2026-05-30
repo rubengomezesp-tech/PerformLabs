@@ -1,3 +1,4 @@
+import { getMemberContext } from "@/lib/auth/member-access";
 import { getSupabaseServiceEnv } from "@/lib/supabase/env";
 import { createServiceSupabaseClient } from "@/lib/supabase/server";
 
@@ -52,13 +53,13 @@ function defaultBrain(workspaceId: string, configured: boolean): CoachBrain {
 }
 
 export async function getDefaultMember(workspaceId: string) {
+  const context = await getMemberContext(workspaceId);
+  if (!context || context.workspaceId !== workspaceId) return null;
   const supabase = createServiceSupabaseClient();
   const { data } = await supabase
     .from("member_profiles")
     .select("id,full_name,goal")
-    .eq("workspace_id", workspaceId)
-    .order("created_at", { ascending: true })
-    .limit(1)
+    .eq("id", context.memberProfileId)
     .maybeSingle();
   return data ?? null;
 }
