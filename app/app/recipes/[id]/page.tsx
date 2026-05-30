@@ -1,7 +1,8 @@
-import { ChefHat, ChevronLeft, Utensils } from "lucide-react";
+import { ChevronLeft, Utensils } from "lucide-react";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { MacroStrip } from "@/components/macro-strip";
+import { RecipeImage } from "@/components/recipe-image";
 import { getSelectedMemberAppBrand } from "@/lib/member-app";
 import { listManagedRecipes } from "@/lib/repositories/nutrition-management";
 import { getMemberNutritionVisibility } from "@/lib/repositories/nutrition-tracking";
@@ -35,9 +36,14 @@ export default async function MemberRecipeDetailPage({ params }: RecipeDetailPag
       </div>
 
       <article className="card span12 recipeDetailHero">
-        <div className="recipeDetailMedia">
-          {recipe.imageUrl ? <img alt="" src={recipe.imageUrl} /> : <ChefHat size={44} />}
-        </div>
+        <RecipeImage
+          variant="detail"
+          className="recipeDetailMedia"
+          id={recipe.id}
+          name={recipe.name}
+          mealSlot={recipe.mealSlot}
+          imageUrl={recipe.imageUrl}
+        />
         <div className="recipeDetailHeading">
           {recipe.mealSlot ? <span className="eyebrow">{recipe.mealSlot}</span> : null}
           <h1>{recipe.name}</h1>

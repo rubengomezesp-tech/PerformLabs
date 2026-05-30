@@ -10351,3 +10351,106 @@ button[aria-busy="true"] {
 .settingsGroup[open] > summary.settingsGroupSummary::after {
   transform: rotate(225deg);
 }
+
+/* ---- Recipe / meal imagery (centralized RecipeImage component) ---- */
+/* Frame holds the photo on top of a tasteful accent-tinted fallback. If the
+   photo fails to load it hides itself and the fallback shows through, so a card
+   is never empty. Aspect ratio is set per variant. */
+.recipeImageFrame {
+  position: relative;
+  display: grid;
+  place-items: center;
+  overflow: hidden;
+  background: var(--surface-3);
+}
+/* Card media sits flush at the top of a clipping card, so no radius here.
+   The detail variant rounds itself; thumbs round all corners. */
+.recipeImageFrame--card {
+  aspect-ratio: 16 / 10;
+}
+.recipeImageFrame--detail {
+  aspect-ratio: 16 / 11;
+  border-radius: var(--radius);
+}
+.recipeImageFrame--thumb {
+  aspect-ratio: 1 / 1;
+  border-radius: var(--radius);
+}
+/* Fallback layer (underneath): accent-tinted gradient + utensil glyph. */
+.recipeImageFallback {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  color: color-mix(in srgb, var(--accent) 70%, var(--text-soft));
+  background:
+    radial-gradient(120% 120% at 18% 12%, color-mix(in srgb, var(--accent) 26%, transparent), transparent 60%),
+    linear-gradient(150deg, color-mix(in srgb, var(--accent) 16%, var(--surface-3)), var(--surface-2));
+}
+/* Photo (on top): covers the frame; reveals the fallback when hidden on error. */
+.recipeImagePhoto {
+  position: relative;
+  z-index: 1;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+/* Client meals list: photo header inset within the padded meal card, so it
+   rounds its own corners. */
+.mealAppCardMedia {
+  width: 100%;
+  border-radius: var(--radius);
+}
+
+/* Member food library: small square thumbnail per row. */
+.foodThumb {
+  width: 46px;
+  height: 46px;
+  flex-shrink: 0;
+}
+
+/* Console diet-templates: recipe card with a thumb beside the heading. */
+.recipeConsoleCard {
+  display: grid;
+  grid-template-columns: 64px minmax(0, 1fr);
+  grid-template-rows: auto auto;
+  column-gap: 14px;
+  align-items: center;
+}
+.recipeConsoleThumb {
+  grid-row: 1 / 3;
+  width: 64px;
+  height: 64px;
+}
+.recipeConsoleCard > h3 {
+  margin: 0;
+  align-self: end;
+}
+.recipeConsoleCard > p {
+  align-self: start;
+}
+.recipeConsoleCard > .list,
+.recipeConsoleCard > .recipeIngredientForm {
+  grid-column: 1 / -1;
+}
+
+/* Console nutrition table: inline thumb next to the recipe name. */
+.recipeTableName {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+}
+.recipeTableThumb {
+  width: 38px;
+  height: 38px;
+  flex-shrink: 0;
+}
+
+/* Coach nutrition: recipe card thumb in the card header row. */
+.recipeCardThumb {
+  width: 48px;
+  height: 48px;
+  flex-shrink: 0;
+}

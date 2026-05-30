@@ -1,5 +1,6 @@
 import { Apple, Calculator, Soup } from "lucide-react";
 import { EmptyState } from "@/components/empty-state";
+import { RecipeImage } from "@/components/recipe-image";
 import { Topbar } from "@/components/topbar";
 import {
   listManagedDietCategories,
@@ -248,8 +249,15 @@ export default async function DietTemplatesPage({ searchParams }: DietTemplatesP
         </article>
 
         {recipes.map((recipe) => (
-          <article className="card span6" key={recipe.id}>
-            <Apple color="var(--gold)" />
+          <article className="card span6 recipeConsoleCard" key={recipe.id}>
+            <RecipeImage
+              variant="thumb"
+              className="recipeConsoleThumb"
+              id={recipe.id}
+              name={recipe.name}
+              mealSlot={recipe.mealSlot}
+              imageUrl={recipe.imageUrl}
+            />
             <h3>{recipe.name}</h3>
             <p>{recipe.mealSlot} · {recipe.instructions || "Sin instrucciones"}</p>
             <ul className="list">
