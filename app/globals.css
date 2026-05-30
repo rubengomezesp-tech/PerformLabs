@@ -8046,6 +8046,41 @@ button[aria-busy="true"] {
   font-size: 13px;
   margin: 0 0 12px;
 }
+.aiUsageCard h3 {
+  margin: 8px 0 12px;
+}
+.aiUsageCard > p {
+  color: var(--text-muted);
+  font-size: 12px;
+  margin: 12px 0 0;
+}
+.aiUsageRow {
+  margin-bottom: 12px;
+}
+.aiUsageRowHead {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  font-size: 13px;
+  margin-bottom: 5px;
+}
+.aiUsageRowHead small {
+  color: var(--text-muted);
+  font-variant-numeric: tabular-nums;
+}
+.aiUsageBar {
+  height: 7px;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--accent) 14%, var(--surface));
+  overflow: hidden;
+}
+.aiUsageBar span {
+  display: block;
+  height: 100%;
+  border-radius: 999px;
+  background: var(--accent);
+  transition: width 0.3s ease;
+}
 .planDraftList {
   display: flex;
   flex-direction: column;

@@ -1,8 +1,9 @@
-import { Brain, MessageCircleQuestion, ShieldCheck, Sparkles, Wand2 } from "lucide-react";
+import { Brain, Gauge, MessageCircleQuestion, ShieldCheck, Sparkles, Wand2 } from "lucide-react";
 import Link from "next/link";
 import { SubmitButton } from "@/components/submit-button";
 import { Topbar } from "@/components/topbar";
 import { isCoachBrainAiConfigured } from "@/lib/ai/coach-brain";
+import { AI_MONTHLY_LIMITS, getMonthlyAiUsage } from "@/lib/ai/usage";
 import { getSelectedMemberAppBrand } from "@/lib/member-app";
 import { getCoachBrain, listRecentClientQuestions } from "@/lib/repositories/coach-brain";
 import { saveCoachBrainAction } from "./actions";
@@ -22,11 +23,14 @@ function timeAgo(iso: string) {
 
 export default async function CoachAiPage() {
   const brand = await getSelectedMemberAppBrand();
-  const [brain, questions] = await Promise.all([
+  const [brain, questions, usage] = await Promise.all([
     getCoachBrain(brand.id),
     listRecentClientQuestions(brand.id),
+    getMonthlyAiUsage(brand.id),
   ]);
   const aiReady = isCoachBrainAiConfigured();
+  const chatPct = Math.min(100, Math.round((usage.coachBrain / AI_MONTHLY_LIMITS.coach_brain) * 100));
+  const planPct = Math.min(100, Math.round((usage.planGen / AI_MONTHLY_LIMITS.plan_gen) * 100));
 
   return (
     <>
@@ -123,6 +127,19 @@ export default async function CoachAiPage() {
             <h3>Generador de planes IA</h3>
             <p>Convierte tu metodología en programas: la IA redacta el borrador con tus reglas y tú lo apruebas en un clic.</p>
             <Link className="btn primary" href="/coach/ai/plans"><Wand2 size={16} /> Abrir generador</Link>
+          </article>
+          <article className="card aiUsageCard">
+            <Gauge color="var(--accent)" />
+            <h3>Consumo de IA este mes</h3>
+            <div className="aiUsageRow">
+              <div className="aiUsageRowHead"><span>Consultas del cliente</span><small>{usage.coachBrain.toLocaleString("es-ES")} / {AI_MONTHLY_LIMITS.coach_brain.toLocaleString("es-ES")}</small></div>
+              <div className="aiUsageBar"><span style={{ width: `${chatPct}%` }} /></div>
+            </div>
+            <div className="aiUsageRow">
+              <div className="aiUsageRowHead"><span>Planes generados</span><small>{usage.planGen} / {AI_MONTHLY_LIMITS.plan_gen}</small></div>
+              <div className="aiUsageBar"><span style={{ width: `${planPct}%` }} /></div>
+            </div>
+            <p>Tu plan incluye este volumen mensual. Tus clientes nunca se quedan sin atención: al alcanzar el límite, sus mensajes te llegan a ti.</p>
           </article>
           <article className="card">
             <ShieldCheck color="var(--accent)" />

@@ -1,8 +1,13 @@
 import Anthropic from "@anthropic-ai/sdk";
+import type { AiTokenUsage } from "@/lib/ai/usage";
 import type { CoachBrain } from "@/lib/repositories/coach-brain";
 
-/** Persona fidelity is the moat — use the strongest model. Override via env. */
-const MODEL = process.env.COACH_BRAIN_MODEL ?? "claude-opus-4-8";
+/**
+ * Plan generation is low-frequency and coach-gated, so we keep the strongest
+ * model — quality matters here and the volume is small. Separate env from the
+ * chat so the two can be tuned independently.
+ */
+const MODEL = process.env.PLAN_GENERATOR_MODEL ?? "claude-opus-4-8";
 
 export type PlanBrief = {
   goal: string;
@@ -37,7 +42,7 @@ export type GeneratedWorkoutPlan = {
 };
 
 export type PlanResult =
-  | { ok: true; plan: GeneratedWorkoutPlan }
+  | { ok: true; plan: GeneratedWorkoutPlan; usage: AiTokenUsage; model: string }
   | { ok: false; error: string; notConfigured?: boolean };
 
 export function isPlanGeneratorConfigured(): boolean {
@@ -192,7 +197,7 @@ Reglas de salida:
     if (!toolUse || toolUse.type !== "tool_use") {
       return { ok: false, error: "No se pudo generar el plan. Inténtalo de nuevo." };
     }
-    return { ok: true, plan: normalizePlan(toolUse.input, brief) };
+    return { ok: true, plan: normalizePlan(toolUse.input, brief), usage: (message.usage ?? {}) as AiTokenUsage, model: MODEL };
   } catch {
     return { ok: false, error: "El generador de IA no está disponible ahora mismo." };
   }
