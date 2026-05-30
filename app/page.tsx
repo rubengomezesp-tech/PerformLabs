@@ -159,7 +159,7 @@ export default function Home() {
             </div>
             <div className="actions">
               <a className="btn primary" href="#consulta">
-                Solicitar propuesta <ArrowRight size={18} />
+                Solicitar propuesta <span className="btnArrow"><ArrowRight size={16} /></span>
               </a>
               <Link className="btn" href="/app">
                 Ver experiencia demo <Smartphone size={18} />
@@ -231,7 +231,7 @@ export default function Home() {
             de la que eres dueño de principio a fin.
           </p>
           <a className="btn primary lg" href="#consulta">
-            Solicitar propuesta <ArrowRight size={18} />
+            Solicitar propuesta <span className="btnArrow"><ArrowRight size={18} /></span>
           </a>
         </MotionReveal>
       </section>
