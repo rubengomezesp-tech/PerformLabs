@@ -1,4 +1,5 @@
 import { AppWindow, ArrowRight, Eye, Globe, KeyRound, Layers, Pause, Pencil, Play, Plus, Save } from "lucide-react";
+import { EmptyState } from "@/components/empty-state";
 import { Topbar } from "@/components/topbar";
 import { baseAppBlueprint, baseAppMetrics } from "@/lib/domain/app-blueprint";
 import { entitlementModuleDescriptions, entitlementModuleLabels, entitlementModules, entitlementStatusLabels } from "@/lib/repositories/entitlements";
@@ -222,6 +223,14 @@ export default async function ChildAppsPage() {
             </article>
           );
         })}
+
+        {workspaces.length === 0 ? (
+          <EmptyState
+            icon={AppWindow}
+            title="Todavía no hay marcas creadas."
+            text="Crea la primera implantación desde el formulario de arriba para empezar a configurar dominio, licencia y módulos de la app del entrenador."
+          />
+        ) : null}
       </section>
     </>
   );

@@ -10247,6 +10247,10 @@ button[aria-busy="true"] {
 .leadCard .convertForm {
   margin-top: 2px;
 }
+.leadCard .leadContact a {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
 
 /* Project brief: theme sections collapse into .editDetails. The section
    title becomes the summary; reset the old briefSection bottom divider so
