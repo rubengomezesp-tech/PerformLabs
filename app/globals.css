@@ -7496,9 +7496,13 @@ a.diaryEntryTitle:hover {
   font-size: 14px;
   font-weight: 600;
   color: var(--text-muted);
+  font-variant-numeric: tabular-nums;
 }
 .progressDelta.down {
   color: var(--success, #22b07d);
+}
+.progressDelta.up {
+  color: var(--danger, #ff667c);
 }
 .progressSpark {
   width: 100%;
@@ -7512,6 +7516,36 @@ a.diaryEntryTitle:hover {
   font-size: 12px;
   margin-top: 4px;
 }
+.progressSparkGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 14px;
+  margin-top: 6px;
+}
+.progressSparkItem {
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+  padding: 13px;
+  border-radius: 13px;
+  background: color-mix(in srgb, var(--bg) 55%, #0b0e14);
+  border: 1px solid var(--line);
+}
+.progressSparkHead {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+}
+.progressSparkLabel { font-weight: 600; font-size: 14px; color: var(--text); }
+.progressSparkHead .progressDelta { font-size: 12.5px; }
+.progressPerimValue {
+  display: inline-flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 2px;
+}
+.progressPerimValue .progressDelta { font-size: 12.5px; }
 
 /* ---- Entreno — weekly plan day cards ---- */
 .workoutDayCards {
