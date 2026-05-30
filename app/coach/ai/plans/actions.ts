@@ -4,6 +4,7 @@ import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { requireWorkspaceMutationAccess } from "@/lib/auth/access-control";
 import { generateWorkoutPlanDraft, type PlanBrief } from "@/lib/ai/plan-generator";
+import { checkAiQuota, recordAiUsage } from "@/lib/ai/usage";
 import { getCoachBrain } from "@/lib/repositories/coach-brain";
 import { approvePlanDraft, createWorkoutPlanDraft, discardPlanDraft } from "@/lib/repositories/coach-plan-drafts";
 import { getWorkspaceBrand } from "@/lib/repositories/workspaces";
@@ -33,6 +34,11 @@ export async function generatePlanDraftAction(formData: FormData) {
     focusNotes: readText(formData, "focusNotes"),
   };
 
+  const quota = await checkAiQuota(workspaceId, "plan_gen");
+  if (!quota.allowed) {
+    redirect(`/coach/ai/plans?error=${encodeURIComponent(`Has alcanzado el límite de ${quota.limit} generaciones de plan este mes.`)}`);
+  }
+
   const brand = await getWorkspaceBrand(workspaceId);
   const brain = await getCoachBrain(workspaceId);
   const result = await generateWorkoutPlanDraft({ brain, brandName: brand?.name ?? "tu marca", brief });
@@ -41,6 +47,7 @@ export async function generatePlanDraftAction(formData: FormData) {
     redirect(`/coach/ai/plans?error=${encodeURIComponent(result.error)}`);
   }
 
+  await recordAiUsage({ workspaceId, feature: "plan_gen", model: result.model, usage: result.usage });
   await createWorkoutPlanDraft({ workspaceId, brief, plan: result.plan });
 
   await recordSecurityAuditEvent({

@@ -1,13 +1,18 @@
 import Anthropic from "@anthropic-ai/sdk";
+import type { AiTokenUsage } from "@/lib/ai/usage";
 import type { CoachBrain } from "@/lib/repositories/coach-brain";
 
-/** Strongest model on purpose: persona fidelity IS the moat. Override via env if needed. */
-const MODEL = process.env.COACH_BRAIN_MODEL ?? "claude-opus-4-8";
+/**
+ * High-volume member chat: balance persona fidelity against cost. Sonnet 4.6 is
+ * the default sweet spot (~3× cheaper than Opus, still strong on voice). Bump to
+ * claude-opus-4-8 via env for premium tiers, or claude-haiku-4-5 to minimise cost.
+ */
+const MODEL = process.env.COACH_BRAIN_MODEL ?? "claude-sonnet-4-6";
 
 export type CoachChatTurn = { role: "user" | "assistant"; content: string };
 
 export type CoachAnswer =
-  | { ok: true; answer: string }
+  | { ok: true; answer: string; usage: AiTokenUsage; model: string }
   | { ok: false; error: string; notConfigured?: boolean };
 
 export function isCoachBrainAiConfigured(): boolean {
@@ -100,7 +105,7 @@ export async function answerAsCoach(params: {
       .trim();
 
     if (!answer) return { ok: false, error: "No se pudo generar una respuesta. Inténtalo de nuevo." };
-    return { ok: true, answer };
+    return { ok: true, answer, usage: (message.usage ?? {}) as AiTokenUsage, model: MODEL };
   } catch {
     return { ok: false, error: "El asistente no está disponible ahora mismo. Inténtalo en un momento." };
   }
