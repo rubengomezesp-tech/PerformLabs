@@ -12,7 +12,10 @@ import { createServiceSupabaseClient } from "@/lib/supabase/server";
  *   profile of the hinted workspace, preserving the zero-auth demo experience.
  * - **authenticated** (production): resolves the member from the verified auth
  *   user (`member_profiles.user_id`), NOT "the first profile in the workspace".
- *   This is the identity the member app must use for every read and write.
+ *
+ * `membershipActive` gates the app: only `active`/`trialing` members get in.
+ * The platform owner (COACHOS_OWNER_EMAIL) is comped — full access without a
+ * subscription, and can preview any brand's app.
  */
 export type MemberContext = {
   mode: "open" | "authenticated";
@@ -20,40 +23,58 @@ export type MemberContext = {
   workspaceId: string;
   memberProfileId: string;
   fullName: string;
+  membershipActive: boolean;
+  isAdmin: boolean;
 };
+
+const ACTIVE_STATUSES = new Set(["active", "trialing"]);
+
+function isOwnerEmail(email: string | null | undefined): boolean {
+  const ownerEmail = process.env.COACHOS_OWNER_EMAIL?.trim().toLowerCase();
+  return !!ownerEmail && (email ?? "").toLowerCase() === ownerEmail;
+}
+
+async function firstProfileOfWorkspace(workspaceId: string) {
+  const supabase = createServiceSupabaseClient();
+  const { data } = await supabase
+    .from("member_profiles")
+    .select("id,workspace_id,full_name,subscription_status")
+    .eq("workspace_id", workspaceId)
+    .order("created_at", { ascending: true })
+    .limit(1)
+    .maybeSingle();
+  return data ?? null;
+}
 
 export async function getMemberContext(workspaceIdHint?: string): Promise<MemberContext | null> {
   const env = getSupabaseServiceEnv();
   if (!env.ok) return null;
   const supabase = createServiceSupabaseClient();
 
-  // Open/demo mode: keep the existing "first profile of this workspace" behaviour.
+  // Open/demo mode: first profile of this workspace, always treated as active.
   if (!isConsoleAuthRequired()) {
     if (!workspaceIdHint) return null;
-    const { data } = await supabase
-      .from("member_profiles")
-      .select("id,workspace_id,full_name,user_id")
-      .eq("workspace_id", workspaceIdHint)
-      .order("created_at", { ascending: true })
-      .limit(1)
-      .maybeSingle();
+    const data = await firstProfileOfWorkspace(workspaceIdHint);
     if (!data) return null;
     return {
       mode: "open",
-      userId: data.user_id,
+      userId: null,
       workspaceId: data.workspace_id,
       memberProfileId: data.id,
       fullName: data.full_name ?? "",
+      membershipActive: true,
+      isAdmin: true,
     };
   }
 
   // Production: the member is whoever holds the verified session token.
   const user = await getVerifiedUser();
   if (!user) return null;
+  const isAdmin = isOwnerEmail(user.email);
 
   const { data, error } = await supabase
     .from("member_profiles")
-    .select("id,workspace_id,full_name")
+    .select("id,workspace_id,full_name,subscription_status")
     .eq("user_id", user.id)
     .order("created_at", { ascending: true });
 
@@ -61,29 +82,60 @@ export async function getMemberContext(workspaceIdHint?: string): Promise<Member
     console.error("Unable to resolve member profile", error.message);
     return null;
   }
-  if (!data?.length) return null;
+
+  // Admin (owner) with no member profile: comp preview of the hinted brand.
+  if (!data?.length) {
+    if (isAdmin && workspaceIdHint) {
+      const preview = await firstProfileOfWorkspace(workspaceIdHint);
+      if (preview) {
+        return {
+          mode: "authenticated",
+          userId: user.id,
+          workspaceId: preview.workspace_id,
+          memberProfileId: preview.id,
+          fullName: preview.full_name ?? "",
+          membershipActive: true,
+          isAdmin: true,
+        };
+      }
+    }
+    return null;
+  }
 
   // Prefer the hinted workspace when the member actually belongs to it.
   const chosen = (workspaceIdHint && data.find((profile) => profile.workspace_id === workspaceIdHint)) || data[0];
+  const status = (chosen as { subscription_status?: string | null }).subscription_status ?? "";
   return {
     mode: "authenticated",
     userId: user.id,
     workspaceId: chosen.workspace_id,
     memberProfileId: chosen.id,
     fullName: chosen.full_name ?? "",
+    membershipActive: isAdmin || ACTIVE_STATUSES.has(status),
+    isAdmin,
   };
 }
 
 /**
- * Gate for `/app`: in production require an authenticated member (else redirect
- * to login). In open/demo mode it never redirects, so the local fallback
- * experience keeps working without auth.
+ * Gate for `/app`: in production require an authenticated member with an active
+ * membership (owner is comped). Inactive members are sent to a clear message;
+ * unauthenticated visitors to the passwordless entry. Open/demo mode never
+ * redirects so the local fallback keeps working.
  */
 export async function requireMemberContext(workspaceIdHint?: string): Promise<MemberContext | null> {
   const context = await getMemberContext(workspaceIdHint);
-  if (context) return context;
-  if (isConsoleAuthRequired()) {
-    redirect("/acceso?error=" + encodeURIComponent("Inicia sesión para acceder a tu app."));
+
+  if (context && (context.membershipActive || context.isAdmin)) {
+    return context;
   }
-  return null;
+
+  if (!isConsoleAuthRequired()) {
+    return context;
+  }
+
+  if (context && !context.membershipActive) {
+    redirect("/acceso?error=" + encodeURIComponent("Tu membresía no está activa. Habla con tu entrenador para reactivarla."));
+  }
+
+  redirect("/acceso?error=" + encodeURIComponent("Inicia sesión para acceder a tu app."));
 }

@@ -7,6 +7,18 @@ updated: 2026-05-30
 
 Las decisiones clave y su _por qué_. La más reciente arriba.
 
+- **2026-05-30 · Multi-tenant por host + acceso por membresía** — cada entrenador
+  tiene su **subdominio** `marca.performlabs.app` (provisional) y, después, un
+  **dominio propio que PerformLabs compra y conecta** (el coach no toca infra;
+  solo mete contenido y promociona). La app resuelve la marca **por host**
+  (`getSelectedMemberAppBrand`: el host gana sobre la cookie en dominios de
+  inquilino). Acceso del cliente **solo con membresía activa** (`active`/
+  `trialing`); el **owner (admin) entra gratis** y puede previsualizar cualquier
+  marca (`COACHOS_OWNER_EMAIL`). El magic-link aterriza por rol (miembro → `/app`,
+  staff → `/console`) en `/auth/session`, sin depender del `next`. Pendiente
+  (infra del fundador): wildcard `*.performlabs.app` + dominios propios en Vercel
+  y allowlist de redirect en Supabase Auth. Ver [[Arquitectura]] e [[Infraestructura]].
+
 - **2026-05-30 · Auth de miembro en `/app` (cierra P0 de auditoría) + login passwordless** —
   una auditoría (seguridad/arquitectura/UX) destapó que `/app` no tenía identidad
   de miembro: el "miembro actual" era el primer perfil del workspace, `/app`
