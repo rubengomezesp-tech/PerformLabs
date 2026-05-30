@@ -10513,3 +10513,12 @@ button[aria-busy="true"] {
   height: 48px;
   flex-shrink: 0;
 }
+
+/* Audit P1-4: on tablet keep 2-up density instead of collapsing straight to one
+   column at 980px. Overrides the 980px span->12 rule for the 641-980px range. */
+@media (min-width: 641px) and (max-width: 980px) {
+  .span3,
+  .span4 {
+    grid-column: span 6;
+  }
+}
