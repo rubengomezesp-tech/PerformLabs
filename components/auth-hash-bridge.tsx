@@ -2,9 +2,11 @@
 
 import { useEffect, useState } from "react";
 
-function safeNextPath(value: string | null) {
+function validNextPath(value: string | null) {
+  // Only a real same-origin path counts. Otherwise return null so the server
+  // decides the destination by role (member → /app, staff → /console).
   if (!value || !value.startsWith("/") || value.startsWith("//") || value.includes("://")) {
-    return "/console/security";
+    return null;
   }
 
   return value;
@@ -24,7 +26,7 @@ export function AuthHashBridge() {
     }
 
     const queryParams = new URLSearchParams(window.location.search);
-    const nextPath = safeNextPath(queryParams.get("next"));
+    const nextPath = validNextPath(queryParams.get("next"));
     const expiresIn = Number.parseInt(hashParams.get("expires_in") || "", 10);
 
     setMessage("Activando tu sesión segura...");
@@ -39,7 +41,7 @@ export function AuthHashBridge() {
         accessToken,
         refreshToken,
         expiresIn: Number.isFinite(expiresIn) ? expiresIn : undefined,
-        next: nextPath,
+        next: nextPath ?? undefined,
       }),
     })
       .then(async (response) => {
@@ -49,7 +51,7 @@ export function AuthHashBridge() {
           throw new Error(typeof payload.error === "string" ? payload.error : "No se pudo activar la sesión.");
         }
 
-        window.location.assign(typeof payload.nextPath === "string" ? payload.nextPath : nextPath);
+        window.location.assign(typeof payload.nextPath === "string" ? payload.nextPath : nextPath ?? "/app");
       })
       .catch((error: Error) => {
         setMessage(error.message || "No se pudo activar la sesión.");

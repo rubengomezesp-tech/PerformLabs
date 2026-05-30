@@ -1,17 +1,36 @@
 import { createHash } from "node:crypto";
 import { NextResponse } from "next/server";
 import { createClient } from "@supabase/supabase-js";
+import { consoleRoles } from "@/lib/auth/role-access";
 import { authAccessCookie, authRefreshCookie } from "@/lib/auth/session";
 import { acceptPendingTeamInvitationsForUser, recordSecurityAuditEvent } from "@/lib/repositories/security-management";
 import type { Database } from "@/lib/supabase/database.types";
-import { getSupabasePublicEnv } from "@/lib/supabase/env";
+import { getSupabasePublicEnv, getSupabaseServiceEnv } from "@/lib/supabase/env";
+import { createServiceSupabaseClient } from "@/lib/supabase/server";
 
-function safeNextPath(value: unknown) {
+function explicitNextPath(value: unknown) {
   if (typeof value !== "string" || !value.startsWith("/") || value.startsWith("//") || value.includes("://")) {
-    return "/console/security";
+    return null;
   }
-
   return value;
+}
+
+/**
+ * When the magic link carries no explicit destination (common — the redirect
+ * query can be dropped), pick where to land by role: a member-only user goes to
+ * their app, everyone else to the console. Avoids members landing in /console.
+ */
+async function destinationForUser(userId: string, explicit: string | null) {
+  if (explicit) return explicit;
+  if (!getSupabaseServiceEnv().ok) return "/console/security";
+  const supabase = createServiceSupabaseClient();
+  const [memberships, profile] = await Promise.all([
+    supabase.from("workspace_memberships").select("id").eq("user_id", userId).in("role", consoleRoles).limit(1),
+    supabase.from("member_profiles").select("id").eq("user_id", userId).limit(1),
+  ]);
+  const hasConsole = (memberships.data?.length ?? 0) > 0;
+  const isMember = (profile.data?.length ?? 0) > 0;
+  return !hasConsole && isMember ? "/app" : "/console/security";
 }
 
 function hashSensitiveValue(value: string) {
@@ -27,7 +46,7 @@ export async function POST(request: Request) {
   const accessToken = typeof body.accessToken === "string" ? body.accessToken : "";
   const refreshToken = typeof body.refreshToken === "string" ? body.refreshToken : "";
   const expiresIn = typeof body.expiresIn === "number" && Number.isFinite(body.expiresIn) ? body.expiresIn : 60 * 60;
-  const nextPath = safeNextPath(body.next);
+  const explicitNext = explicitNextPath(body.next);
 
   if (!accessToken || !refreshToken) {
     return NextResponse.json({ error: "Falta token de invitación." }, { status: 400 });
@@ -65,6 +84,7 @@ export async function POST(request: Request) {
     },
   });
 
+  const nextPath = await destinationForUser(data.user.id, explicitNext);
   const response = NextResponse.json({ ok: true, nextPath });
   const secure = process.env.NODE_ENV === "production";
 
