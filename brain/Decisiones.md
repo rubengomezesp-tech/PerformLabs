@@ -7,8 +7,10 @@ updated: 2026-05-30
 
 Las decisiones clave y su _por qué_. La más reciente arriba.
 
-- **2026-05-30 · i18n propio, sin librería (ES/EN/PT/FR/DE)** — sistema de
-  diccionarios tipados (`lib/i18n/`) en vez de next-intl: cero peso extra y
+- **2026-05-30 · i18n propio, sin librería (7 idiomas)** — ES base +
+  EN/PT/FR/DE/IT/ZH (chino). Sistema de diccionarios tipados (`lib/i18n/`) en vez
+  de next-intl: añadir idioma = 1 diccionario (el tipo obliga a cubrir todas las
+  claves). Cero peso extra y
   control total. El idioma se resuelve por cookie (botón visible) → `Accept-Language`
   del navegador ("según zona") → español. Sin rutas `/[locale]` (no reescribimos
   45 rutas). Fase 1 = landing completa + selector; siguientes = login/registro,

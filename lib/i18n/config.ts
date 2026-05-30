@@ -2,7 +2,7 @@
 // (set by the visible switcher) and falls back to the browser's Accept-Language,
 // then to Spanish. See lib/i18n/server.ts for the request-side resolver.
 
-export const locales = ["es", "en", "pt", "fr", "de"] as const;
+export const locales = ["es", "en", "pt", "fr", "de", "it", "zh"] as const;
 export type Locale = (typeof locales)[number];
 
 export const defaultLocale: Locale = "es";
@@ -18,6 +18,8 @@ export const localeNames: Record<Locale, string> = {
   pt: "Português",
   fr: "Français",
   de: "Deutsch",
+  it: "Italiano",
+  zh: "中文",
 };
 
 /** Short codes, for the compact switcher trigger. */
@@ -27,6 +29,8 @@ export const localeShort: Record<Locale, string> = {
   pt: "PT",
   fr: "FR",
   de: "DE",
+  it: "IT",
+  zh: "中文",
 };
 
 export function isLocale(value: unknown): value is Locale {
