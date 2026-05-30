@@ -1,6 +1,7 @@
 import { Activity, ArrowRight, CalendarClock, Camera, Check, ChevronRight, Droplets, Drumstick, Dumbbell, Flame, Footprints, Moon, Soup } from "lucide-react";
 import Link from "next/link";
 import { Badge, Button, Card } from "@/components/ui";
+import { PushOptIn } from "@/components/push-optin";
 import { Topbar } from "@/components/topbar";
 import { getSelectedMemberAppBrand } from "@/lib/member-app";
 import { listWorkspaceProducts } from "@/lib/repositories/member-experience";
@@ -69,6 +70,7 @@ export default async function MemberDashboard() {
         text={brand.welcomeMessage || `Tu espacio de ${brand.name}: entrenamiento, nutrición, progreso y soporte en una sola experiencia.`}
       />
       <section className="grid">
+        <PushOptIn />
         <Card span={12} className="motionCard miRecorridoCard">
           <div className="sectionHeader">
             <div>
