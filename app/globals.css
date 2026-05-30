@@ -9187,3 +9187,103 @@ button[aria-busy="true"] {
   .bentoGrid { grid-template-columns: 1fr; }
   .bentoFeature { grid-column: span 1; }
 }
+
+/* ---- Phone v2: multi-screen carousel (Panel / Coach IA / Nutrición) ---- */
+.phoneScreen { display: flex; flex-direction: column; }
+.phoneScreens { position: relative; flex: 1; overflow: hidden; }
+.phoneScreenSlide { position: absolute; inset: 0; }
+.appUI { padding: 42px 13px 8px; }
+.phoneScreen .appNav { margin: 0 12px; }
+.phoneDots {
+  display: flex;
+  justify-content: center;
+  gap: 5px;
+  padding: 10px 0 12px;
+}
+.phoneDots span {
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.22);
+  transition: width 0.4s ease, background 0.4s ease, border-radius 0.4s ease;
+}
+.phoneDots span.on { width: 16px; border-radius: 3px; background: var(--accent); }
+.appLogo.accent { background: color-mix(in srgb, var(--accent) 18%, transparent); color: var(--accent); }
+
+/* Chat screen */
+.appChat { display: flex; flex-direction: column; gap: 7px; margin-top: 4px; }
+.appBubble {
+  max-width: 84%;
+  padding: 8px 11px;
+  border-radius: 13px;
+  font-size: 11.5px;
+  line-height: 1.36;
+}
+.appBubble.in {
+  align-self: flex-start;
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  border-bottom-left-radius: 4px;
+}
+.appBubble.out {
+  align-self: flex-end;
+  background: color-mix(in srgb, var(--accent) 24%, transparent);
+  border: 1px solid color-mix(in srgb, var(--accent) 36%, transparent);
+  border-bottom-right-radius: 4px;
+}
+.appComposer {
+  margin-top: auto;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 8px 8px 8px 12px;
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.07);
+  font-size: 11px;
+  color: rgba(255, 255, 255, 0.5);
+}
+.appComposer i { display: grid; place-items: center; width: 24px; height: 24px; border-radius: 7px; background: var(--accent); color: #fff; }
+
+/* Nutrition screen */
+.appPhoto {
+  height: 92px;
+  border-radius: 14px;
+  display: grid;
+  place-items: center;
+  color: rgba(255, 255, 255, 0.4);
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.07), rgba(255, 255, 255, 0.02));
+  border: 1px solid rgba(255, 255, 255, 0.07);
+}
+.appNutriCard {
+  border-radius: 14px;
+  padding: 12px;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.07);
+}
+.appNutriHead { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+.appNutriHead strong { font-size: 12.5px; }
+.appDone { display: inline-flex; align-items: center; gap: 3px; font-size: 10px; color: #30a46c; }
+.appMacros { display: flex; gap: 6px; margin-top: 10px; }
+.appMacros span {
+  flex: 1;
+  text-align: center;
+  padding: 7px 0;
+  border-radius: 9px;
+  background: rgba(255, 255, 255, 0.04);
+  font-size: 10px;
+  color: rgba(255, 255, 255, 0.6);
+}
+.appMacros span b { display: block; font-size: 14px; color: #fff; }
+.appMacros .kcal { background: color-mix(in srgb, var(--accent) 18%, transparent); }
+.appMacros .kcal b { color: var(--accent); }
+
+/* 2026 tech detail: tabular monospaced figures on dashboard metrics + data */
+.metric strong,
+.v2Stat strong,
+.appMacros span b,
+.appRing span {
+  font-family: var(--font-mono, ui-monospace, "SFMono-Regular", monospace);
+  font-feature-settings: "tnum" 1, "cv01" 1;
+  letter-spacing: -0.02em;
+}
