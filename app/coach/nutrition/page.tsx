@@ -320,7 +320,13 @@ export default async function CoachNutritionPage() {
               <Soup color="var(--accent)" />
               <div>
                 <h3>{recipe.name}</h3>
-                <p>{recipe.mealSlot} · {recipe.calories} kcal · {recipe.protein}P · {recipe.carbs}C · {recipe.fat}G</p>
+                <div className="catalogChips">
+                  <span className="catalogChip">{recipe.mealSlot}</span>
+                  <span className="catalogChip accent">{recipe.calories} kcal</span>
+                  <span className="catalogChip">{recipe.protein}P</span>
+                  <span className="catalogChip">{recipe.carbs}C</span>
+                  <span className="catalogChip">{recipe.fat}G</span>
+                </div>
               </div>
             </div>
             <ul className="list compactList">
@@ -375,17 +381,23 @@ export default async function CoachNutritionPage() {
             </div>
             <span className="tag">{ingredients.length} alimentos</span>
           </div>
-          <ul className="list compactList">
+          <div className="catalogGrid">
             {ingredients.length ? ingredients.map((ingredient) => (
-              <li className="row" key={ingredient.id}>
-                <div>
+              <article className="catalogCard" key={ingredient.id}>
+                <div className="catalogCardHead">
                   <strong>{ingredient.name}</strong>
-                  <p>{ingredient.caloriesPer100g} kcal · {ingredient.proteinPer100g}P · {ingredient.carbsPer100g}C · {ingredient.fatPer100g}G / 100g</p>
+                  <span className={ingredient.isBase ? "exerciseOrigin base" : "exerciseOrigin brand"}>{ingredient.isBase ? "base" : "propio"}</span>
                 </div>
-                <span className="tag">{ingredient.isBase ? "base" : (ingredient.tags[0] ?? "propio")}</span>
-              </li>
-            )) : <li className="row">Sin alimentos todavía <span className="tag">Carga la librería base</span></li>}
-          </ul>
+                <div className="catalogChips">
+                  <span className="catalogChip accent">{ingredient.caloriesPer100g} kcal</span>
+                  <span className="catalogChip">{ingredient.proteinPer100g}P</span>
+                  <span className="catalogChip">{ingredient.carbsPer100g}C</span>
+                  <span className="catalogChip">{ingredient.fatPer100g}G</span>
+                  <span className="catalogChip muted">/ 100 g</span>
+                </div>
+              </article>
+            )) : <p className="muted">Sin alimentos todavía. Carga la librería base con “Nuevo ingrediente”.</p>}
+          </div>
         </article>
 
         <article className="span12">
