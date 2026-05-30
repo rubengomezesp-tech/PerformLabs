@@ -39,6 +39,7 @@ const defaultAppPages: MemberAppPage[] = [
   { title: "Cardio", route: "/app/cardio", pageType: "cardio", menuArea: "main", sortOrder: 45, status: "active", isSystem: true },
   { title: "Guías", route: "/app/guides", pageType: "content", menuArea: "main", sortOrder: 50, status: "active", isSystem: true },
   { title: "Comunidad", route: "/app/community", pageType: "community", menuArea: "main", sortOrder: 55, status: "active", isSystem: true },
+  { title: "Retos", route: "/app/challenges", pageType: "challenges", menuArea: "main", sortOrder: 56, status: "active", isSystem: true },
   { title: "Coach IA", route: "/app/coach-ai", pageType: "coach_ai", menuArea: "main", sortOrder: 58, status: "active", isSystem: true },
   { title: "Soporte", route: "/app/support", pageType: "support", menuArea: "main", sortOrder: 60, status: "active", isSystem: true },
   { title: "Perfil", route: "/app/profile", pageType: "profile", menuArea: "main", sortOrder: 70, status: "active", isSystem: true },
