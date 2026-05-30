@@ -4,6 +4,7 @@ import { AuthHashBridge } from "@/components/auth-hash-bridge";
 import { ServiceWorkerRegister } from "@/components/sw-register";
 import { ToastProvider } from "@/components/ui";
 import { platformBrand } from "@/lib/brand";
+import { getLocale } from "@/lib/i18n/server";
 import "./globals.css";
 
 // 2026 type system: Geist (UI/body, Vercel-tier) + Bricolage Grotesque (display
@@ -45,9 +46,10 @@ export const viewport: Viewport = {
   viewportFit: "cover",
 };
 
-export default function RootLayout({ children }: { children: React.ReactNode }) {
+export default async function RootLayout({ children }: { children: React.ReactNode }) {
+  const locale = await getLocale();
   return (
-    <html className={`${geist.variable} ${bricolage.variable} ${geistMono.variable}`} lang="es">
+    <html className={`${geist.variable} ${bricolage.variable} ${geistMono.variable}`} lang={locale}>
       <body>
         <AuthHashBridge />
         <ServiceWorkerRegister />

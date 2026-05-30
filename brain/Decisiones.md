@@ -7,6 +7,16 @@ updated: 2026-05-30
 
 Las decisiones clave y su _por qué_. La más reciente arriba.
 
+- **2026-05-30 · i18n propio, sin librería (7 idiomas)** — ES base +
+  EN/PT/FR/DE/IT/ZH (chino). Sistema de diccionarios tipados (`lib/i18n/`) en vez
+  de next-intl: añadir idioma = 1 diccionario (el tipo obliga a cubrir todas las
+  claves). Cero peso extra y
+  control total. El idioma se resuelve por cookie (botón visible) → `Accept-Language`
+  del navegador ("según zona") → español. Sin rutas `/[locale]` (no reescribimos
+  45 rutas). Fase 1 = landing completa + selector; siguientes = login/registro,
+  consola y app. Geo-IP descartado (necesita servicio externo que la red bloquea;
+  el navegador ya refleja la zona). Ver [[Arquitectura]].
+
 - **2026-05-30 · Librería base de ejercicios como migración (auto-instala)** — 134
   ejercicios profesionales en español (grupo, equipo, ubicación, nivel y cue de
   técnica) como `is_base_library` compartida. Antes vivían en un script SQL manual
