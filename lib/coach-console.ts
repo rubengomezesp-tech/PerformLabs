@@ -5,6 +5,7 @@ import {
   BookOpen,
   Brain,
   ClipboardCheck,
+  CreditCard,
   Dumbbell,
   HeartPulse,
   LayoutDashboard,
@@ -55,4 +56,5 @@ export const coachNav = [
   { label: "Marca", href: "/coach/brand", icon: Palette, group: "Marca y contenido" },
   { label: "Avisos", href: "/coach/notifications", icon: Bell, group: "Marca y contenido" },
   { label: "Analítica", href: "/coach/analytics", icon: BarChart3, group: "Rendimiento" },
+  { label: "Facturación", href: "/coach/billing", icon: CreditCard, group: "Negocio" },
 ];
