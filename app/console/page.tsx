@@ -64,29 +64,25 @@ export default async function ConsoleHome() {
             <p>
               La consola organiza ventas, requisitos, producción, contenido y lanzamiento en un flujo que el equipo puede ejecutar sin perder contexto.
             </p>
-            <div className="actions">
-              <a className="btn primary" href="/console/leads">
-                Crear intake <ArrowRight size={18} />
-              </a>
-              <a className="btn" href="/console/templates">
-                Ajustar plantillas
-              </a>
-            </div>
           </div>
-          <div className="commandMetrics">
-            <span>
-              Progreso medio
-              <strong>{averageProgress}%</strong>
-            </span>
-            <span>
-              Tareas abiertas
-              <strong>{pendingTasks}</strong>
-            </span>
-            <span>
-              En revisión
-              <strong>{launchReadyProjects}</strong>
-            </span>
+          <div className="actions">
+            <a className="btn primary" href="/console/leads">
+              Crear intake <ArrowRight size={18} />
+            </a>
+            <a className="btn" href="/console/templates">
+              Ajustar plantillas
+            </a>
           </div>
+        </article>
+
+        <article className="card span4">
+          <p className="metric">Progreso medio<strong>{averageProgress}%</strong></p>
+        </article>
+        <article className="card span4">
+          <p className="metric">Tareas abiertas<strong>{pendingTasks}</strong></p>
+        </article>
+        <article className="card span4">
+          <p className="metric">En revisión<strong>{launchReadyProjects}</strong></p>
         </article>
 
         <article className="card span12 deliveryStageCard">

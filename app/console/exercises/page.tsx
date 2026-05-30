@@ -1,4 +1,4 @@
-import { Camera, Dumbbell, Filter, PlayCircle, Search, Upload, Video } from "lucide-react";
+import { Camera, Dumbbell, ExternalLink, Filter, PlayCircle, Search, Upload, Video } from "lucide-react";
 import { Topbar } from "@/components/topbar";
 import { getExerciseLibraryFacets, listManagedExercises } from "@/lib/repositories/training-management";
 import { listWorkspaceSummaries } from "@/lib/repositories/workspaces";
@@ -45,11 +45,12 @@ export default async function ExercisesPage({ searchParams }: ExercisesPageProps
         <article className="card span12 exerciseImportBanner">
           <div>
             <span className="eyebrow">Biblioteca base</span>
-            <h2>873 ejercicios importados desde Free Exercise DB.</h2>
-            <p>Fuente Unlicense/public domain con instrucciones, músculos, equipo e imágenes. Los entrenadores pueden crear variantes propias encima sin tocar la base global.</p>
+            <p>
+              <strong>{facets.total} ejercicios</strong> importados desde Free Exercise DB (Unlicense / dominio público), con instrucciones, músculos, equipo e imágenes. Los entrenadores crean variantes propias encima sin tocar la base global.
+            </p>
           </div>
           <a className="btn" href="https://github.com/yuhonas/free-exercise-db" target="_blank" rel="noreferrer">
-            Ver fuente
+            Ver fuente <ExternalLink size={16} />
           </a>
         </article>
 
@@ -111,11 +112,17 @@ export default async function ExercisesPage({ searchParams }: ExercisesPageProps
           </form>
         </article>
 
-        <article className="card span12 exerciseStats">
-          <span><Dumbbell size={18} /> <strong>{facets.total}</strong> base disponible</span>
-          <span><Camera size={18} /> <strong>{facets.withImages}</strong> con imágenes</span>
-          <span><PlayCircle size={18} /> <strong>{facets.withVideo}</strong> con vídeo propio</span>
-          <span><Video size={18} /> <strong>{facets.brandOnly}</strong> variantes de marca</span>
+        <article className="card span3 statCard">
+          <p className="metric"><Dumbbell size={15} /> Base disponible<strong>{facets.total}</strong></p>
+        </article>
+        <article className="card span3 statCard">
+          <p className="metric"><Camera size={15} /> Con imágenes<strong>{facets.withImages}</strong></p>
+        </article>
+        <article className="card span3 statCard">
+          <p className="metric"><PlayCircle size={15} /> Con vídeo propio<strong>{facets.withVideo}</strong></p>
+        </article>
+        <article className="card span3 statCard">
+          <p className="metric"><Video size={15} /> Variantes de marca<strong>{facets.brandOnly}</strong></p>
         </article>
 
         <article className="card span12">

@@ -10144,3 +10144,60 @@ button[aria-busy="true"] {
   margin-left: auto;
   align-self: flex-start;
 }
+
+/* ---- Console redesign (phase 3): dense dashboard + exercises ---- */
+
+/* Dashboard: tighter hero band (metrics moved out into the card grid). */
+.commandHero {
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 20px;
+}
+.commandHero h2 {
+  font-size: clamp(24px, 3vw, 34px);
+  line-height: 1.08;
+  letter-spacing: -0.01em;
+}
+.commandHero p {
+  margin-bottom: 0;
+  font-size: 15px;
+}
+.commandHero > .actions {
+  flex-shrink: 0;
+}
+@media (max-width: 720px) {
+  .commandHero {
+    grid-template-columns: 1fr;
+    align-items: start;
+  }
+}
+
+/* Exercises: compact source band (was an oversized hero card). */
+.exerciseImportBanner {
+  align-items: center;
+  padding: 12px 15px;
+}
+.exerciseImportBanner p {
+  margin: 2px 0 0;
+  max-width: 80ch;
+  font-size: 14px;
+}
+.exerciseImportBanner strong {
+  color: var(--text);
+}
+
+/* Icon-led stat cards: a small leading glyph sits inline with the label. */
+.statCard .metric {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 7px;
+}
+.statCard .metric svg {
+  color: var(--accent);
+}
+.statCard .metric strong {
+  flex-basis: 100%;
+  margin-top: 6px;
+  font-size: 26px;
+}
