@@ -7,6 +7,12 @@ updated: 2026-05-30
 
 Las decisiones clave y su _por qué_. La más reciente arriba.
 
+- **2026-05-30 · Librería base de ejercicios como migración (auto-instala)** — 134
+  ejercicios profesionales en español (grupo, equipo, ubicación, nivel y cue de
+  técnica) como `is_base_library` compartida. Antes vivían en un script SQL manual
+  que nadie ejecutaba (prod tenía 4). Ahora es una migración idempotente que se
+  aplica sola al desplegar; alimenta la consola del coach y el generador 1-clic.
+  Tokens de músculo alineados con el generador (hamstrings = "Femoral"). Ver [[Features]].
 - **2026-05-30 · Biblioteca de alimentos propia (no API externa)** — OpenFoodFacts
   está bloqueado por la política de red, así que la base de alimentos es propia
   del workspace + una semilla de ~36 alimentos comunes. El añadido rápido copia
