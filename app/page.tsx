@@ -1,31 +1,23 @@
 import Link from "next/link";
 import {
   ArrowRight,
-  BadgeCheck,
+  ArrowUpRight,
   BellRing,
   Brain,
   Camera,
   CheckCircle2,
-  Globe,
   HeartPulse,
-  HelpCircle,
   Mail,
+  MessageSquare,
   Palette,
-  Play,
-  Send,
-  ShieldCheck,
-  Smartphone,
   Sparkles,
   Wand2,
 } from "lucide-react";
 import { submitLeadAction } from "@/app/lead-actions";
 import { LandingNav } from "@/components/landing/landing-nav";
-import { LazyOrbit } from "@/components/landing/lazy-orbit";
 import { PhoneBuild } from "@/components/landing/phone-build";
-import { TiltCard } from "@/components/landing/tilt-card";
 import { MotionReveal, SmoothScroll } from "@/components/motion-reveal";
 import { platformBrand } from "@/lib/brand";
-import { baseAppMetrics } from "@/lib/domain/app-blueprint";
 
 const navItems = [
   { label: "Plataforma", href: "#plataforma" },
@@ -34,349 +26,183 @@ const navItems = [
   { label: "Solicitar propuesta", href: "#consulta" },
 ];
 
-const platformCapabilities = [
-  {
-    icon: Brain,
-    tag: "Coach Brain",
-    title: "IA con la voz del coach",
-    text: "Un asistente que responde a tus clientes como lo harías tú: con tus reglas, tus protocolos y tus sustituciones.",
-  },
-  {
-    icon: Wand2,
-    tag: "Coach-in-the-loop",
-    title: "Planes generados con IA",
-    text: "Describe el caso y la IA redacta el programa en tu metodología. Tú lo revisas y lo apruebas en un clic.",
-  },
-  {
-    icon: HeartPulse,
-    tag: "Anti-abandono",
-    title: "Radar de retención",
-    text: "Detecta quién va a dejarlo antes de que pase y te redacta el mensaje, en tu voz, para reengancharlo.",
-  },
-  {
-    icon: BellRing,
-    tag: "Push proactivo",
-    title: "Avisos que motivan",
-    text: "Recordatorios que llegan aunque la app esté cerrada, justo cuando el cliente deja de entrenar.",
-  },
-  {
-    icon: Palette,
-    tag: "White-label",
-    title: "100% tu marca",
-    text: "Logo, color, nombre y dominio. Tus clientes ven tu marca de principio a fin — nunca la nuestra.",
-  },
-  {
-    icon: Camera,
-    tag: "IA de visión",
-    title: "Nutrición sin fricción",
-    text: "Registro de comidas y objetivos que se adaptan. Menos esfuerzo para el cliente, más adherencia para ti.",
-  },
+const trustSignals = ["IA con tu voz", "100% tu marca", "Retención automática", "App + consola"];
+
+const stats = [
+  { value: "11", label: "módulos con IA, listos para tu marca" },
+  { value: "24/7", label: "tu asistente respondiendo por ti" },
+  { value: "−churn", label: "reenganche antes del abandono" },
+  { value: "0", label: "líneas de “powered by”" },
 ];
 
-const trustSignals = [
-  "App 100% con tu marca",
-  "Sin mensualidad · a éxito",
-  "Acompañamiento de marketing",
+const capabilities = [
+  { icon: Brain, tag: "Coach Brain", title: "IA con la voz del coach", text: "Responde a tus clientes como lo harías tú: tus reglas, tus protocolos, tus sustituciones." },
+  { icon: Wand2, tag: "Coach-in-the-loop", title: "Planes generados con IA", text: "Describe el caso, la IA redacta el programa en tu método y tú apruebas en un clic." },
+  { icon: HeartPulse, tag: "Anti-abandono", title: "Radar de retención", text: "Sabe quién va a dejarlo antes de que pase y te redacta el mensaje para reengancharlo." },
+  { icon: BellRing, tag: "Push proactivo", title: "Avisos que motivan", text: "Recordatorios que llegan con la app cerrada, justo cuando deja de entrenar." },
+  { icon: Camera, tag: "IA de visión", title: "Nutrición sin fricción", text: "Foto al plato, macros estimados y registrados. Menos esfuerzo, más adherencia." },
+  { icon: Palette, tag: "White-label", title: "100% tu marca", text: "Logo, color, nombre y dominio. Tus clientes ven tu marca, nunca la nuestra." },
 ];
 
 const purchaseSteps = [
-  {
-    title: "1. Cuéntanos tu proyecto",
-    text: "Revisamos tu marca, tu método, tu oferta y el tipo de experiencia que quieres entregar.",
-    icon: Send,
-  },
-  {
-    title: "2. Definimos la propuesta",
-    text: "Aterrizamos alcance, branding, módulos, contenidos iniciales y calendario de implantación.",
-    icon: BadgeCheck,
-  },
-  {
-    title: "3. Implantamos la experiencia",
-    text: "Preparamos la app, la consola y el lanzamiento para que tu equipo pueda operar con clientes reales.",
-    icon: Play,
-  },
-];
-
-const launchChannels = [
-  {
-    title: "Web app instalable",
-    text: "La vía rápida para empezar: dominio propio y experiencia instalable en móvil.",
-    icon: Globe,
-  },
-  {
-    title: "Branding propio",
-    text: "Logo, color, nombre, dominio, soporte y apariencia ajustados a cada entrenador.",
-    icon: Palette,
-  },
-  {
-    title: "App + consola",
-    text: "El cliente final ve la app. El entrenador opera programas, nutrición, contenido y miembros.",
-    icon: Smartphone,
-  },
+  { n: "01", title: "Cuéntanos tu proyecto", text: "Revisamos tu marca, tu método, tu oferta y la experiencia que quieres entregar." },
+  { n: "02", title: "Definimos la propuesta", text: "Aterrizamos alcance, branding, módulos, contenidos iniciales y calendario." },
+  { n: "03", title: "Implantamos y lanzamos", text: "Dejamos la app y la consola listas para operar con clientes reales." },
 ];
 
 const faqs = [
-  {
-    question: "¿Cómo empezamos?",
-    answer: "Rellenas la solicitud, revisamos el encaje del proyecto y te enviamos una propuesta con alcance, fases y próximos pasos.",
-  },
-  {
-    question: "¿Puedo usar mi propio branding?",
-    answer: "Sí. Cada app puede tener nombre, logo, color, dominio, soporte y configuración propios.",
-  },
-  {
-    question: "¿Es una plantilla genérica?",
-    answer: "No. Partimos de una base sólida y la adaptamos a la marca, oferta, contenido y operación de cada entrenador.",
-  },
+  { question: "¿Cómo empezamos?", answer: "Rellenas la solicitud, revisamos el encaje y te enviamos una propuesta con alcance, fases y próximos pasos." },
+  { question: "¿Puedo usar mi propio branding?", answer: "Sí. Cada app tiene nombre, logo, color, dominio, soporte y configuración propios." },
+  { question: "¿Es una plantilla genérica?", answer: "No. Partimos de una base sólida con IA y la adaptamos a tu marca, oferta, contenido y operación." },
 ];
 
 export default function Home() {
   return (
-    <main className="landing">
+    <main className="landing landingV2">
       <SmoothScroll />
       <a className="stickyLeadCta" href="#consulta">
         Solicitar propuesta <ArrowRight size={16} />
       </a>
       <LandingNav brandName={platformBrand.name} markUrl={platformBrand.markUrl} items={navItems.slice(0, 3)} />
-      <section className="landingHero">
+
+      {/* ---- Hero: centered editorial + device reveal ---- */}
+      <section className="v2Hero">
         <div className="auroraField" aria-hidden="true" />
         <div className="grain" aria-hidden="true" />
+        <MotionReveal className="v2HeroInner">
+          <span className="v2Eyebrow"><Sparkles size={13} /> Plataforma de coaching nativa de IA</span>
+          <h1 className="v2Headline">
+            La plataforma de coaching<br />con <span className="accentText">IA</span> y <span className="accentText">tu marca</span>.
+          </h1>
+          <p className="v2Sub">
+            Una app con tu marca donde la IA habla con tu voz, redacta los planes con tu método
+            y retiene a tus clientes por ti. Tú apruebas; la tecnología hace el resto.
+          </p>
+          <div className="v2Cta">
+            <a className="btn primary lg" href="#consulta">
+              Solicitar propuesta <span className="btnArrow"><ArrowRight size={18} /></span>
+            </a>
+            <Link className="btn lg ghost" href="/app">
+              Ver experiencia demo <ArrowUpRight size={18} />
+            </Link>
+          </div>
+          <div className="v2Trust">
+            {trustSignals.map((s) => (
+              <span key={s}><CheckCircle2 size={15} /> {s}</span>
+            ))}
+          </div>
+        </MotionReveal>
 
-        <div className="landingHeroContent premiumHeroContent">
-          <MotionReveal>
-            <img className="heroBrandLogo" src={platformBrand.logoUrl} alt={platformBrand.name} />
-            <span className="heroBadge"><Sparkles size={13} /> Plataforma de coaching nativa de IA</span>
-            <h1>Tu plataforma de coaching con <span className="accentText">IA y tu marca</span>.</h1>
-            <p>
-              Una app con tu marca donde la IA habla con tu voz, redacta los planes con tu
-              método y retiene a tus clientes por ti. Tú apruebas; la tecnología hace el resto.
-            </p>
-            <div className="heroProof">
-              <span><CheckCircle2 size={16} /> IA con tu voz</span>
-              <span><CheckCircle2 size={16} /> 100% tu marca</span>
-              <span><CheckCircle2 size={16} /> Retención automática</span>
-              <span><CheckCircle2 size={16} /> App + consola</span>
-            </div>
-            <div className="actions">
-              <a className="btn primary" href="#consulta">
-                Solicitar propuesta <span className="btnArrow"><ArrowRight size={16} /></span>
-              </a>
-              <Link className="btn" href="/app">
-                Ver experiencia demo <Smartphone size={18} />
-              </Link>
-            </div>
-            <div className="heroDecisionPanel">
-              <strong>¿Qué hago ahora?</strong>
-              <span>Cuéntanos tu caso y prepararemos una propuesta con alcance y próximos pasos.</span>
-              <a href="#consulta">Solicitar propuesta <ArrowRight size={16} /></a>
-            </div>
-          </MotionReveal>
-
-          <MotionReveal className="heroProductVisual" delay={0.14}>
-            <LazyOrbit />
-            <PhoneBuild />
-          </MotionReveal>
-        </div>
+        <MotionReveal className="v2Device" delay={0.12}>
+          <PhoneBuild />
+        </MotionReveal>
       </section>
 
-      <section className="landingSection">
-        <MotionReveal className="trustBar" aria-label="Garantías del proceso">
-          {trustSignals.map((signal) => (
-            <span key={signal}>
-              <ShieldCheck size={16} />
-              {signal}
-            </span>
+      {/* ---- Stats band ---- */}
+      <section className="v2Section v2StatsSection">
+        <MotionReveal className="v2Stats">
+          {stats.map((s) => (
+            <div className="v2Stat" key={s.label}>
+              <strong>{s.value}</strong>
+              <span>{s.label}</span>
+            </div>
           ))}
         </MotionReveal>
       </section>
 
-      <section className="landingSection" id="plataforma">
+      {/* ---- Bento: platform capabilities ---- */}
+      <section className="v2Section" id="plataforma">
         <div className="platformGlow" aria-hidden="true" />
-        <MotionReveal>
-          <div className="sectionHeader centered">
-            <div>
-              <span className="eyebrow"><Sparkles size={13} /> Plataforma IA</span>
-              <h2>Todo lo que tu marca necesita, <span className="accentText">potenciado por IA</span>.</h2>
-              <p>
-                No es una plantilla: es un sistema operativo de coaching nativo de IA.
-                Tu voz, tu método y tu marca — la tecnología trabajando por ti 24/7.
-              </p>
-            </div>
-          </div>
+        <MotionReveal className="v2SectionHead">
+          <span className="v2Tag"><Sparkles size={12} /> Plataforma IA</span>
+          <h2>Un sistema operativo de coaching, no una plantilla.</h2>
+          <p>Tu voz, tu método y tu marca — con la tecnología trabajando por ti las 24 horas.</p>
         </MotionReveal>
-        <div className="platformGrid">
-          {platformCapabilities.map((cap, index) => {
+
+        <div className="bentoGrid">
+          {capabilities.map((cap, index) => {
             const Icon = cap.icon;
+            const featured = index === 0;
             return (
-              <MotionReveal key={cap.title} delay={index * 0.05}>
-                <TiltCard className="platformCard">
-                  <span className="platformIcon"><Icon size={22} /></span>
-                  <span className="platformTag">{cap.tag}</span>
+              <MotionReveal
+                key={cap.title}
+                className={featured ? "bentoCell bentoFeature" : "bentoCell"}
+                delay={index * 0.04}
+              >
+                <span className="bentoIcon"><Icon size={featured ? 24 : 20} /></span>
+                <div className="bentoBody">
+                  <span className="bentoTag">{cap.tag}</span>
                   <h3>{cap.title}</h3>
                   <p>{cap.text}</p>
-                </TiltCard>
+                </div>
+                {featured ? (
+                  <div className="bentoChat" aria-hidden="true">
+                    <div className="bentoBubble in">¿Puedo cambiar el arroz por patata?</div>
+                    <div className="bentoBubble out"><Sparkles size={12} /> Sí — mismo gramaje de carbohidratos. Lo dejas igual de bien.</div>
+                  </div>
+                ) : null}
               </MotionReveal>
             );
           })}
         </div>
       </section>
 
-      <section className="landingSection">
-        <MotionReveal className="statementBand">
-          <span className="heroBadge">Tu plataforma, no terreno alquilado</span>
-          <h2>Deja de construir tu negocio en <span className="accentText">terreno alquilado</span>.</h2>
-          <p>
-            Tus clientes, tu contenido y tus datos no deberían vivir en una red social ni en una app
-            con el logo de otro. Con {platformBrand.name} operas sobre una plataforma con tu marca,
-            de la que eres dueño de principio a fin.
-          </p>
-          <a className="btn primary lg" href="#consulta">
-            Solicitar propuesta <span className="btnArrow"><ArrowRight size={18} /></span>
-          </a>
+      {/* ---- Proceso ---- */}
+      <section className="v2Section" id="proceso">
+        <MotionReveal className="v2SectionHead">
+          <span className="v2Tag">Proceso</span>
+          <h2>De idea a app operativa, con implantación guiada.</h2>
+          <p>Trabajamos contigo el encaje, la marca y la experiencia antes de lanzar a clientes reales.</p>
         </MotionReveal>
-      </section>
-
-      <section className="landingSection" id="proceso">
-        <MotionReveal>
-          <div className="sectionHeader">
-            <div>
-              <span className="eyebrow">Proceso</span>
-              <h2>De idea a app operativa, con implantación guiada.</h2>
-              <p>
-                Trabajamos contigo el encaje, la marca, el contenido y la experiencia
-                antes de preparar el lanzamiento para clientes reales.
-              </p>
-            </div>
-          </div>
-          <div className="grid">
-            {purchaseSteps.map((step) => {
-              const Icon = step.icon;
-              return (
-                <article className="card span4 motionCard" key={step.title}>
-                  <Icon color="var(--gold)" />
-                  <h3>{step.title}</h3>
-                  <p>{step.text}</p>
-                </article>
-              );
-            })}
-          </div>
-        </MotionReveal>
-      </section>
-
-      <section className="landingSection" id="producto">
-        <MotionReveal>
-          <div className="sectionHeader">
-            <div>
-              <span className="eyebrow">Producto</span>
-              <h2>Una app de marca, no una plantilla vacía.</h2>
-              <p>
-                El entrenador vende mejor cuando su método vive dentro de una
-                experiencia propia, ordenada y preparada para operar con clientes reales.
-              </p>
-            </div>
-          </div>
-          <div className="productShowcase">
-            <div className="productCopy">
-              <span className="eyebrow">Base app conectable</span>
-              <h3>La consola prepara la marca. La app entrega la experiencia.</h3>
-              <p>
-                Cada proyecto se convierte en una app operativa con identidad,
-                navegación, contenido inicial y módulos esenciales conectados a su marca.
-              </p>
-              <div className="metricGrid">
-                {baseAppMetrics.map((metric) => (
-                  <span key={metric.label}>
-                    {metric.label}
-                    <strong>{metric.value}</strong>
-                    <small>{metric.text}</small>
-                  </span>
-                ))}
-              </div>
-            </div>
-            <div className="mockupFrame">
-              <img src="/brand/performlabs-console-sync.png" alt="Consola conectada con apps de cliente" />
-            </div>
-          </div>
-        </MotionReveal>
-      </section>
-
-      <section className="landingSection">
-        <MotionReveal>
-          <div className="sectionHeader">
-            <div>
-              <span className="eyebrow">Qué incluye</span>
-              <h2>Lo esencial para vender una app propia sin empezar desde cero.</h2>
-            </div>
-          </div>
-        </MotionReveal>
-        <div className="grid">
-          {launchChannels.map((item, index) => {
-            const Icon = item.icon;
-            return (
-              <MotionReveal className="card span4 motionCard" delay={index * 0.05} key={item.title}>
-                <Icon color="var(--gold)" />
-                <h3>{item.title}</h3>
-                <p>{item.text}</p>
-              </MotionReveal>
-            );
-          })}
+        <div className="v2Steps">
+          {purchaseSteps.map((step, index) => (
+            <MotionReveal className="v2Step" key={step.n} delay={index * 0.06}>
+              <span className="v2StepNum">{step.n}</span>
+              <h3>{step.title}</h3>
+              <p>{step.text}</p>
+            </MotionReveal>
+          ))}
         </div>
       </section>
 
-      <section className="landingSection" id="demo">
-        <MotionReveal>
-          <div className="appScreensBand">
-            <div>
-              <span className="eyebrow">Vista cliente</span>
-              <h2>La app se siente como producto propio desde el primer día.</h2>
-              <p>
-                El usuario final no ve nuestro proceso interno. Ve su entrenador,
-                su plan, sus comidas, sus métricas y una ruta clara para avanzar.
-              </p>
-              <ul className="featureList">
-                <li><CheckCircle2 size={18} /> Entrenamientos con vídeo y progreso</li>
-                <li><CheckCircle2 size={18} /> Nutrición con macros y restricciones</li>
-                <li><CheckCircle2 size={18} /> Check-ins, hábitos y mensajes</li>
-                <li><CheckCircle2 size={18} /> Guías, soporte y perfil del cliente</li>
-              </ul>
-            </div>
-            <img src="/brand/performlabs-app-screens.png" alt="Pantallas de ejemplo de la app PerformLabs" />
+      {/* ---- Demo ---- */}
+      <section className="v2Section" id="demo">
+        <MotionReveal className="appScreensBand v2DemoBand">
+          <div>
+            <span className="v2Tag">Vista cliente</span>
+            <h2>Se siente como producto propio desde el primer día.</h2>
+            <p>El usuario final ve su entrenador, su plan, sus comidas, sus métricas y una ruta clara para avanzar.</p>
+            <ul className="featureList">
+              <li><CheckCircle2 size={18} /> Entrenamientos con vídeo y progreso</li>
+              <li><CheckCircle2 size={18} /> Nutrición con macros y foto</li>
+              <li><CheckCircle2 size={18} /> Check-ins, hábitos y comunidad</li>
+              <li><CheckCircle2 size={18} /> Coach IA, soporte y perfil</li>
+            </ul>
           </div>
+          <img src="/brand/performlabs-app-screens.png" alt="Pantallas de ejemplo de la app PerformLabs" />
         </MotionReveal>
       </section>
 
-      <section className="landingSection" id="consulta">
-        <div className="grid">
-          <MotionReveal className="card span5">
-            <Mail color="var(--gold)" />
-            <h2>Solicita una propuesta.</h2>
-            <p>
-              Cuéntanos qué quieres construir y revisaremos el encaje, el alcance
-              y la mejor forma de lanzar tu app de marca.
-            </p>
+      {/* ---- Lead form ---- */}
+      <section className="v2Section" id="consulta">
+        <div className="v2FormGrid">
+          <MotionReveal className="v2FormIntro">
+            <span className="v2Tag"><Mail size={12} /> Solicitar propuesta</span>
+            <h2>Cuéntanos qué quieres construir.</h2>
+            <p>Revisamos el encaje, el alcance y la mejor forma de lanzar tu app de marca con IA.</p>
+            <div className="v2Trust v2TrustStack">
+              {trustSignals.map((s) => (
+                <span key={s}><CheckCircle2 size={15} /> {s}</span>
+              ))}
+            </div>
           </MotionReveal>
-          <MotionReveal className="card span7" delay={0.1}>
+          <MotionReveal className="v2FormCard" delay={0.1}>
             <form action={submitLeadAction} className="leadForm">
-              <label>
-                Nombre
-                <input name="fullName" placeholder="Tu nombre" required />
-              </label>
-              <label>
-                Email
-                <input name="email" placeholder="tu@email.com" required type="email" />
-              </label>
-              <label>
-                Teléfono
-                <input name="phone" placeholder="+34..." />
-              </label>
-              <label>
-                Marca o nombre del proyecto
-                <input name="brandName" placeholder="Ej. Elite Coach Academy" />
-              </label>
-              <label>
-                Web o Instagram
-                <input name="websiteUrl" placeholder="https://..." />
-              </label>
+              <label>Nombre<input name="fullName" placeholder="Tu nombre" required /></label>
+              <label>Email<input name="email" placeholder="tu@email.com" required type="email" /></label>
+              <label>Teléfono<input name="phone" placeholder="+34..." /></label>
+              <label>Marca o nombre del proyecto<input name="brandName" placeholder="Ej. Elite Coach Academy" /></label>
+              <label>Web o Instagram<input name="websiteUrl" placeholder="https://..." /></label>
               <label>
                 Clientes actuales aproximados
                 <select name="monthlyClients" defaultValue="">
@@ -399,11 +225,11 @@ export default function Home() {
               </label>
               <label className="spanFull">
                 Notas
-                <textarea name="notes" placeholder="Cuéntanos tu oferta, el contenido disponible y qué experiencia quieres entregar." rows={5} />
+                <textarea name="notes" placeholder="Cuéntanos tu oferta, el contenido disponible y qué experiencia quieres entregar." rows={4} />
               </label>
               <div className="spanFull formActions">
-                <button className="btn primary" type="submit">
-                  Enviar solicitud <ArrowRight size={18} />
+                <button className="btn primary lg" type="submit">
+                  Enviar solicitud <span className="btnArrow"><ArrowRight size={18} /></span>
                 </button>
               </div>
             </form>
@@ -411,25 +237,41 @@ export default function Home() {
         </div>
       </section>
 
-      <section className="landingSection" id="faqs">
-        <div className="grid">
-          <MotionReveal className="card span5">
-            <HelpCircle color="var(--gold)" />
-            <h2>Preguntas rápidas</h2>
-            <p>Resolvemos los puntos clave antes de hablar con el agente.</p>
-          </MotionReveal>
-          <MotionReveal className="card span7" delay={0.1}>
-            <div className="faqList">
-              {faqs.map((faq) => (
-                <div className="faqItem" key={faq.question}>
-                  <strong>{faq.question}</strong>
-                  <p>{faq.answer}</p>
-                </div>
-              ))}
-            </div>
-          </MotionReveal>
+      {/* ---- FAQ ---- */}
+      <section className="v2Section" id="faqs">
+        <MotionReveal className="v2SectionHead">
+          <span className="v2Tag"><MessageSquare size={12} /> Preguntas</span>
+          <h2>Lo que sueles querer saber antes de hablar.</h2>
+        </MotionReveal>
+        <div className="v2Faq">
+          {faqs.map((faq, index) => (
+            <MotionReveal className="v2FaqItem" key={faq.question} delay={index * 0.05}>
+              <strong>{faq.question}</strong>
+              <p>{faq.answer}</p>
+            </MotionReveal>
+          ))}
         </div>
       </section>
+
+      {/* ---- Footer ---- */}
+      <footer className="v2Footer">
+        <div className="v2FooterTop">
+          <div className="v2FooterBrand">
+            <img src={platformBrand.markUrl} alt={platformBrand.name} />
+            <span>{platformBrand.name}</span>
+          </div>
+          <nav className="v2FooterNav" aria-label="Pie">
+            <a href="#plataforma">Plataforma</a>
+            <a href="#proceso">Proceso</a>
+            <a href="#demo">Demo</a>
+            <a href="#consulta">Solicitar propuesta</a>
+          </nav>
+        </div>
+        <div className="v2FooterBottom">
+          <span>© {new Date().getFullYear()} {platformBrand.name}. Plataforma de coaching nativa de IA.</span>
+          <a className="btn primary" href="#consulta">Empezar <span className="btnArrow"><ArrowRight size={15} /></span></a>
+        </div>
+      </footer>
     </main>
   );
 }
