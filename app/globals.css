@@ -10201,3 +10201,94 @@ button[aria-busy="true"] {
   margin-top: 6px;
   font-size: 26px;
 }
+
+/* ---- Console redesign (phase 4): dense leads + collapsible brief ---- */
+
+/* Leads: denser span4 cards. Score ring leads a compact card header; the
+   three editing forms collapse into .editDetails so the cards stay short. */
+.leadCardHead {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+.leadCardHead .scoreRing {
+  width: 54px;
+  height: 54px;
+  flex: 0 0 54px;
+}
+.leadCardHead .scoreRing::before {
+  inset: 7px;
+}
+.leadCardHead .scoreRing strong {
+  font-size: 17px;
+}
+.leadCardTitle {
+  min-width: 0;
+  flex: 1;
+}
+.leadCardTitle h2 {
+  margin: 0;
+  font-size: 17px;
+  line-height: 1.2;
+}
+.leadCardTitle p {
+  margin: 2px 0 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.leadFacts .row {
+  padding: 7px 10px;
+  font-size: 13px;
+}
+.leadCard .leadControlGrid {
+  grid-template-columns: 1fr;
+}
+.leadCard .convertForm {
+  margin-top: 2px;
+}
+
+/* Project brief: theme sections collapse into .editDetails. The section
+   title becomes the summary; reset the old briefSection bottom divider so
+   the editDetails top divider is the only separator. */
+.briefSection.editDetails {
+  display: block;
+  border-bottom: 0;
+  padding-bottom: 0;
+}
+.editDetails > summary.briefTitle {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  width: 100%;
+}
+.editDetails > summary.briefTitle > svg {
+  flex: 0 0 auto;
+  margin-top: 1px;
+}
+.editDetails > summary.briefTitle strong {
+  display: block;
+  color: var(--text);
+  font-size: 16px;
+  line-height: 1.25;
+}
+.editDetails > summary.briefTitle p {
+  margin: 3px 0 0;
+  font-weight: 400;
+  color: var(--muted);
+}
+.editDetails > summary.briefTitle::after {
+  content: "";
+  width: 8px;
+  height: 8px;
+  margin-left: auto;
+  margin-top: 5px;
+  flex: 0 0 auto;
+  border-right: 1.5px solid currentColor;
+  border-bottom: 1.5px solid currentColor;
+  transform: rotate(45deg);
+  transition: transform var(--dur-fast) var(--ease);
+}
+.briefSection.editDetails[open] > summary.briefTitle::after {
+  transform: rotate(225deg);
+}

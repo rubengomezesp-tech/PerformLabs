@@ -224,14 +224,14 @@ export default async function ProjectDetailPage({ params }: ProjectDetailPagePro
         <article className="card span12">
           <form action={updateProjectBriefAction} className="briefForm">
             <input name="projectId" type="hidden" value={project.id} />
-            <section className="briefSection">
-              <div className="briefTitle">
-                <Palette color="var(--gold)" />
+            <details className="editDetails briefSection" open>
+              <summary className="briefTitle">
+                <Palette color="var(--gold)" size={18} />
                 <div>
-                  <h2>Marca y experiencia</h2>
+                  <strong>Marca y experiencia</strong>
                   <p>Nombre de app, identidad visual y tono que verá el cliente final.</p>
                 </div>
-              </div>
+              </summary>
               <div className="briefGrid">
                 <label>
                   Nombre de la app
@@ -258,16 +258,16 @@ export default async function ProjectDetailPage({ params }: ProjectDetailPagePro
                   <textarea name="brandNotes" defaultValue={project.brief.brandNotes} rows={4} placeholder="Referencias, estilo, tono, cosas que evitar..." />
                 </label>
               </div>
-            </section>
+            </details>
 
-            <section className="briefSection">
-              <div className="briefTitle">
-                <Globe2 color="var(--gold)" />
+            <details className="editDetails briefSection">
+              <summary className="briefTitle">
+                <Globe2 color="var(--gold)" size={18} />
                 <div>
-                  <h2>Dominio y acceso</h2>
+                  <strong>Dominio y acceso</strong>
                   <p>Decisión de URL, preparación de acceso y coordinación técnica interna.</p>
                 </div>
-              </div>
+              </summary>
               <div className="briefGrid">
                 <label>
                   Estrategia de dominio
@@ -286,16 +286,16 @@ export default async function ProjectDetailPage({ params }: ProjectDetailPagePro
                   <input name="kickoffCallAt" type="datetime-local" defaultValue={toDateTimeLocal(project.brief.kickoffCallAt)} />
                 </label>
               </div>
-            </section>
+            </details>
 
-            <section className="briefSection">
-              <div className="briefTitle">
-                <CreditCard color="var(--gold)" />
+            <details className="editDetails briefSection">
+              <summary className="briefTitle">
+                <CreditCard color="var(--gold)" size={18} />
                 <div>
-                  <h2>Oferta y venta</h2>
+                  <strong>Oferta y venta</strong>
                   <p>Qué va a vender el entrenador, a quién, y cómo debe quedar preparado el cobro.</p>
                 </div>
-              </div>
+              </summary>
               <div className="briefGrid">
                 <label className="spanFull">
                   Público objetivo
@@ -314,16 +314,16 @@ export default async function ProjectDetailPage({ params }: ProjectDetailPagePro
                   <textarea name="pricingNotes" defaultValue={project.brief.pricingNotes} rows={3} placeholder="Planes, trials, cupones, acceso inicial..." />
                 </label>
               </div>
-            </section>
+            </details>
 
-            <section className="briefSection">
-              <div className="briefTitle">
-                <Video color="var(--gold)" />
+            <details className="editDetails briefSection">
+              <summary className="briefTitle">
+                <Video color="var(--gold)" size={18} />
                 <div>
-                  <h2>Contenido base</h2>
+                  <strong>Contenido base</strong>
                   <p>Material necesario para que la app no nazca vacía.</p>
                 </div>
-              </div>
+              </summary>
               <div className="briefGrid">
                 <label className="spanFull">
                   Estructura de contenido
@@ -338,16 +338,16 @@ export default async function ProjectDetailPage({ params }: ProjectDetailPagePro
                   <textarea name="nutritionNotes" defaultValue={project.brief.nutritionNotes} rows={3} placeholder="Plantillas, categorías, restricciones, estilo de dietas..." />
                 </label>
               </div>
-            </section>
+            </details>
 
-            <section className="briefSection">
-              <div className="briefTitle">
-                <CalendarDays color="var(--gold)" />
+            <details className="editDetails briefSection">
+              <summary className="briefTitle">
+                <CalendarDays color="var(--gold)" size={18} />
                 <div>
-                  <h2>Lanzamiento</h2>
+                  <strong>Lanzamiento</strong>
                   <p>Riesgos, puntos legales y preparación final antes de entregar.</p>
                 </div>
-              </div>
+              </summary>
               <div className="briefGrid">
                 <label className="spanFull">
                   Legal y permisos
@@ -362,7 +362,7 @@ export default async function ProjectDetailPage({ params }: ProjectDetailPagePro
                   <textarea name="internalRisks" defaultValue={project.brief.internalRisks} rows={3} placeholder="Bloqueos, decisiones pendientes, dependencias..." />
                 </label>
               </div>
-            </section>
+            </details>
 
             <div className="saveBar">
               <button className="btn primary" type="submit">
@@ -383,6 +383,14 @@ export default async function ProjectDetailPage({ params }: ProjectDetailPagePro
                 </div>
               </div>
             </div>
+
+            {project.tasks.length === 0 ? (
+              <div className="inlineEmpty">
+                <ClipboardCheck color="var(--gold)" />
+                <h3>Todavía no hay tareas en el checklist.</h3>
+                <p>Añade la primera tarea con su fase y fecha para empezar a seguir la implantación, o conviértelo desde una plantilla con checklist incluido.</p>
+              </div>
+            ) : null}
 
             {Object.entries(tasksByPhase).map(([phase, tasks]) => (
               <section className="phaseBlock" key={phase}>
