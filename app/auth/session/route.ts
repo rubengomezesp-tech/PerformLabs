@@ -15,13 +15,23 @@ function explicitNextPath(value: unknown) {
   return value;
 }
 
+/** A trainer's own subdomain/custom domain — i.e. a member-facing host. */
+function isTenantHost(host: string): boolean {
+  const value = host.split(":")[0].toLowerCase().replace(/^www\./, "");
+  if (!value || value === "performlabs.app" || value === "localhost" || value === "127.0.0.1") return false;
+  return !value.endsWith(".vercel.app");
+}
+
 /**
- * When the magic link carries no explicit destination (common — the redirect
- * query can be dropped), pick where to land by role: a member-only user goes to
- * their app, everyone else to the console. Avoids members landing in /console.
+ * Where to land after a magic link. Priority:
+ * 1. An explicit, valid `next` (e.g. ?next=/app).
+ * 2. On a trainer's domain (member host) → always the member app, even for the
+ *    owner testing it (a tenant domain is for members, never the console).
+ * 3. On the platform apex → by role: member-only → app, staff → console.
  */
-async function destinationForUser(userId: string, explicit: string | null) {
+async function destinationForUser(userId: string, explicit: string | null, host: string) {
   if (explicit) return explicit;
+  if (isTenantHost(host)) return "/app";
   if (!getSupabaseServiceEnv().ok) return "/console/security";
   const supabase = createServiceSupabaseClient();
   const [memberships, profile] = await Promise.all([
@@ -84,7 +94,8 @@ export async function POST(request: Request) {
     },
   });
 
-  const nextPath = await destinationForUser(data.user.id, explicitNext);
+  const host = request.headers.get("x-forwarded-host") || request.headers.get("host") || "";
+  const nextPath = await destinationForUser(data.user.id, explicitNext, host);
   const response = NextResponse.json({ ok: true, nextPath });
   const secure = process.env.NODE_ENV === "production";
 
