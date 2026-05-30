@@ -11,6 +11,7 @@ dist
 *.pem
 *.key
 supabase/.temp
+.vercel
 .agents
 .claude/skills
 skills-lock.json
