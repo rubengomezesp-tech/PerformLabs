@@ -13,7 +13,8 @@ app/consola. Stack en [[Arquitectura]].
 - **Entreno** — plan, ejercicios con **vídeo**, series con reps/kg, registro y
   mejores marcas (`workout-performance`).
 - **Comida** — plan de comidas, macros, **Smart Add** (texto) y **calorías por
-  foto** (visión). Diario de comida. Ver [[IA y coste]].
+  foto** (visión). Diario de comida. **Imagen en toda receta/comida** (key-less con
+  fallback, ver [[Decisiones]]). Ver [[IA y coste]].
 - **Alimentos** — biblioteca propia de la marca + **favoritos**; añadido rápido
   al diario por raciones, sin escribir macros (camino manual, no IA). Trae una
   base de ~36 alimentos comunes que el coach puede cargar y editar.
@@ -36,11 +37,16 @@ app/consola. Stack en [[Arquitectura]].
 - **Programas**, **Ejercicios**, **Nutrición**, **Alimentos** (biblioteca),
   **Suplementos**, **Miembros**, **Check-ins** (con medidas: cintura/pecho/cadera),
   **Comunidad**, **Retos**, **Contenido**, **Marca**, **Avisos**, **Analítica**.
+- **Facturación** (`/coach/billing`) — conecta su Stripe, gestiona su plan de
+  plataforma y define los planes que cobra a sus clientes. Ver [[Pagos]].
 
 ## Plataforma (consola `/console/*`)
 
 CRM de leads, marcas, entitlements, seguridad/auditoría, proyectos, plantillas.
+Rediseñada hacia **densidad legible** (control de licencia al frente, formularios
+colapsables, empty states). Ver [[Sistema de diseño]] y [[Decisiones]].
 
 ## Falta (ver [[Mercado y competencia]] y [[Roadmap]])
 
-Fotos de progreso (necesita Storage) · track nativo · Stripe.
+Fotos de progreso (necesita Storage) · track nativo · checkout del cliente (que
+aplica la comisión, ver [[Pagos]]).

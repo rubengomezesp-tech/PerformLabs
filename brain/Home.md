@@ -14,6 +14,7 @@ Claude Code mantiene este cerebro al día en cada cambio importante.
 - [[Vision]] — qué somos y por qué ganamos en 2026.
 - [[Posicionamiento]] — producto primero, la IA como herramienta, el coach al frente.
 - [[Modelo de negocio]] — 25% vitalicio, setup variable, 100 $/año, contrato.
+- [[Pagos]] — Stripe Connect: cómo cobra el coach y cómo tomamos el 25%.
 - [[Mercado y competencia]] — vs MacroActive y el estudio 2026.
 - [[Features]] — todo lo construido (y lo que falta).
 - [[IA y coste]] — Coach Brain, generación de planes, copiloto, tiering y cuotas.

@@ -7,6 +7,35 @@ updated: 2026-05-30
 
 Las decisiones clave y su _por qué_. La más reciente arriba.
 
+- **2026-05-30 · Stripe Connect Standard + 25% application fee** — construido el
+  cobro real. Connect **Standard** (no admin del Stripe del coach): los cobros van
+  directos a su cuenta y él mantiene el control; el 25% se toma como `application_fee`
+  sobre **Direct charges**. Cliente REST propio **sin SDK** (cero dependencias),
+  webhooks con firma HMAC e idempotentes, todo **ships dark** sin claves. El coach
+  paga su plan de plataforma por Checkout; define los planes que cobra a sus clientes
+  como Product+Price en su cuenta conectada. Ver [[Pagos]] y [[Modelo de negocio]].
+- **2026-05-30 · Rediseño de consola hacia densidad legible** — pase sistémico
+  (fases 1-5) sobre el shell y el sistema de formularios: más información útil por
+  pantalla, cards planas, formularios responsive (`auto-fit`), formularios largos
+  colapsables (`<details>`), empty states. Se rechazan los patrones glossy
+  (gradiente+glow+stripe lateral) y las cards anidadas. Anclado en un `PRODUCT.md`
+  raíz (register + principios + objetivo **WCAG AA**). El control de licencia se
+  sube al frente en `/console/apps`. Solo presentación: no se tocan server actions
+  ni endpoints. Ver [[Sistema de diseño]].
+- **2026-05-30 · Imagen en toda receta/comida, key-less con fallback** — cada
+  superficie de nutrición muestra foto sin configurar nada: `imageUrl` curada gana;
+  si no, foto real sin API key (Loremflickr) por tipo de comida con _lock_ estable
+  (djb2) para que no baile entre renders. Fuente **aislada** en un resolver para
+  cambiar a Cloudinary tocando un solo punto. Ver [[Features]].
+- **2026-05-30 · Service worker solo cachea estáticos (cache v2)** — el SW devolvía
+  `undefined` en cache miss (rompía `respondWith`) y cacheaba navegaciones dinámicas,
+  rompiendo en silencio el completar de `/app/onboarding`. Ahora intercepta **solo
+  assets estáticos** (`/_next/static` + extensiones); navegaciones, RSC, Server
+  Actions y `/api` van siempre a red. Cache `v1→v2` para purgar la rota. Ver
+  [[Arquitectura]].
+- **2026-05-30 · Un solo proyecto Vercel** — un proyecto duplicado doblaba la cuota
+  de despliegues del plan Hobby (100/día); se eliminó. Producción única en
+  `perform-labs-pcgg` → `www.performlabs.app`. Ver [[Infraestructura]].
 - **2026-05-30 · i18n propio, sin librería (7 idiomas)** — ES base +
   EN/PT/FR/DE/IT/ZH (chino). Sistema de diccionarios tipados (`lib/i18n/`) en vez
   de next-intl: añadir idioma = 1 diccionario (el tipo obliga a cubrir todas las
@@ -41,9 +70,9 @@ Las decisiones clave y su _por qué_. La más reciente arriba.
 - **2026-05 · Control de coste de IA** — tiering + medición + cuotas con hard cap.
   Ver [[IA y coste]].
 - **2026-05 · Stripe Connect (no admin del Stripe del coach)** — la forma correcta
-  de tomar el 25%. Ver [[Modelo de negocio]].
+  de tomar el 25%. _Ahora construido_ → ver [[Pagos]] y la entrada de 2026-05-30.
 - **2026-05 · Azul `#078df2` como acento base** (no dorado); cada marca lo
   sobreescribe (white-label).
 - **2026-05 · Auto-provisión de cliente solo para admins** del workspace (seguridad:
   el público no puede auto-inscribirse sin pagar).
-- **Acordado · Stripe y nativo, lo último.** Ver [[Roadmap]].
+- **Acordado · Nativo, lo último** (Stripe ya construido). Ver [[Roadmap]].

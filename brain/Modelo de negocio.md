@@ -11,8 +11,9 @@ updated: 2026-05-30
 
 - **25% vitalicio** de los beneficios que el entrenador genera **a través de la
   app** — como acompañamiento, no como herramienta puntual. La forma correcta de
-  cobrar ese % es **Stripe Connect** (application fee), **no** acceso admin al
-  Stripe del entrenador (eso es acceso operativo de equipo y no toma %).
+  cobrar ese % es **[[Pagos|Stripe Connect]]** (application fee sobre Direct charges),
+  **no** acceso admin al Stripe del entrenador (eso es acceso operativo de equipo y
+  no toma %). Ya construido como Connect **Standard**.
 - **Setup ~5.000 $** (variable; de cara afuera: "consultar precios con el equipo";
   internamente este es el modelo).
 - **~100 $/año** de mantenimiento (sin mensualidad alta).
@@ -30,8 +31,11 @@ por creador mejoran el negocio del coach de forma continua. Ver [[Vision]].
 
 ## Estado
 
-Stripe es **lo último** (crear la cuenta es trabajo del fundador). El motor de
-cuotas ya protege el margen aunque el cobro no esté conectado. Ver [[Roadmap]].
+El **motor de cobro ya está construido** ([[Pagos]]): onboarding del coach,
+suscripción de plataforma y planes del coach, con la comisión del 25% configurada.
+Queda conectar las claves Stripe en producción (trabajo del fundador) y el checkout
+del cliente que aplica el fee. El motor de cuotas ya protege el margen de la IA en
+paralelo. Ver [[Roadmap]].
 
 Docs: `docs/strategy/performlabs-business-model.md`,
 `docs/strategy/monetization-and-contract.md`, `docs/strategy/financial-model.md`,

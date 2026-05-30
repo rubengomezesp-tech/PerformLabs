@@ -7,7 +7,10 @@ updated: 2026-05-30
 
 ## Hosting y dominio
 
-- **Vercel** (plan Hobby). Producción = rama `main`; ramas = Preview.
+- **Vercel**, proyecto **`perform-labs-pcgg`** (plan **Hobby**). Producción = rama
+  `main` en **`www.performlabs.app`**; ramas = Preview. **Un solo proyecto**: había
+  un duplicado que doblaba la cuota de despliegues (límite Hobby **100/día**) y se
+  eliminó. Ver [[Decisiones]].
 - Dominio `performlabs.app` en **Cloudflare** (DNS only para los registros que
   apuntan a Vercel). El **wildcard `*.performlabs.app` está aparcado**: Vercel
   exige sus nameservers para el cert comodín y eso choca con Cloudflare; se hará
@@ -23,8 +26,15 @@ updated: 2026-05-30
 | `NEXT_PUBLIC_VAPID_PUBLIC_KEY` / `VAPID_PRIVATE_KEY` / `VAPID_CONTACT` | Web Push |
 | `CRON_SECRET` | Protege `/api/cron/nudges` (Vercel Cron lo manda como Bearer) |
 | `COACHOS_OWNER_EMAIL` | Otorga platform_owner |
+| `STRIPE_*` (×6) | [[Pagos|Stripe Connect]]: `SECRET_KEY`, `NEXT_PUBLIC_…PUBLISHABLE_KEY`, `CONNECT_CLIENT_ID`, `WEBHOOK_SECRET`, `PLATFORM_PRICE_ID`, `APPLICATION_FEE_PERCENT` (degrada en oscuro sin ellas) |
 
 > Tras añadir env vars: **Redeploy** (los `NEXT_PUBLIC_*` se incrustan en build).
+
+## Integraciones (MCP)
+
+Varias integraciones MCP conectadas para operar desde el agente: Stripe, Supabase,
+Cloudinary, Vercel, Airtable, Figma, entre otras. Cloudinary es el destino futuro de
+las [[Features|imágenes de receta]] (hoy key-less, ver [[Decisiones]]).
 
 ## Migraciones (CI)
 
