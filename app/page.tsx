@@ -2,8 +2,12 @@ import Link from "next/link";
 import {
   ArrowRight,
   BadgeCheck,
+  BellRing,
+  Brain,
+  Camera,
   CheckCircle2,
   Globe,
+  HeartPulse,
   HelpCircle,
   Mail,
   Palette,
@@ -11,19 +15,62 @@ import {
   Send,
   ShieldCheck,
   Smartphone,
+  Sparkles,
+  Wand2,
 } from "lucide-react";
 import { submitLeadAction } from "@/app/lead-actions";
 import { LandingNav } from "@/components/landing/landing-nav";
 import { LazyOrbit } from "@/components/landing/lazy-orbit";
+import { PhoneBuild } from "@/components/landing/phone-build";
+import { TiltCard } from "@/components/landing/tilt-card";
 import { MotionReveal, SmoothScroll } from "@/components/motion-reveal";
 import { platformBrand } from "@/lib/brand";
 import { baseAppMetrics } from "@/lib/domain/app-blueprint";
 
 const navItems = [
-  { label: "Qué incluye", href: "#producto" },
+  { label: "Plataforma", href: "#plataforma" },
   { label: "Proceso", href: "#proceso" },
   { label: "Demo", href: "#demo" },
   { label: "Solicitar propuesta", href: "#consulta" },
+];
+
+const platformCapabilities = [
+  {
+    icon: Brain,
+    tag: "Coach Brain",
+    title: "IA con la voz del coach",
+    text: "Un asistente que responde a tus clientes como lo harías tú: con tus reglas, tus protocolos y tus sustituciones.",
+  },
+  {
+    icon: Wand2,
+    tag: "Coach-in-the-loop",
+    title: "Planes generados con IA",
+    text: "Describe el caso y la IA redacta el programa en tu metodología. Tú lo revisas y lo apruebas en un clic.",
+  },
+  {
+    icon: HeartPulse,
+    tag: "Anti-abandono",
+    title: "Radar de retención",
+    text: "Detecta quién va a dejarlo antes de que pase y te redacta el mensaje, en tu voz, para reengancharlo.",
+  },
+  {
+    icon: BellRing,
+    tag: "Push proactivo",
+    title: "Avisos que motivan",
+    text: "Recordatorios que llegan aunque la app esté cerrada, justo cuando el cliente deja de entrenar.",
+  },
+  {
+    icon: Palette,
+    tag: "White-label",
+    title: "100% tu marca",
+    text: "Logo, color, nombre y dominio. Tus clientes ven tu marca de principio a fin — nunca la nuestra.",
+  },
+  {
+    icon: Camera,
+    tag: "IA de visión",
+    title: "Nutrición sin fricción",
+    text: "Registro de comidas y objetivos que se adaptan. Menos esfuerzo para el cliente, más adherencia para ti.",
+  },
 ];
 
 const trustSignals = [
@@ -98,16 +145,16 @@ export default function Home() {
         <div className="landingHeroContent premiumHeroContent">
           <MotionReveal>
             <img className="heroBrandLogo" src={platformBrand.logoUrl} alt={platformBrand.name} />
-            <span className="heroBadge">Apps de marca para entrenadores</span>
-            <h1>Lanza una app de coaching con <span className="accentText">tu marca y tu método</span>.</h1>
+            <span className="heroBadge"><Sparkles size={13} /> Plataforma de coaching nativa de IA</span>
+            <h1>Tu plataforma de coaching con <span className="accentText">IA y tu marca</span>.</h1>
             <p>
-              Diseñamos e implantamos una experiencia digital de marca con branding, consola,
-              dominio y módulos conectados a tu forma de entrenar, nutrir y acompañar clientes.
+              Una app con tu marca donde la IA habla con tu voz, redacta los planes con tu
+              método y retiene a tus clientes por ti. Tú apruebas; la tecnología hace el resto.
             </p>
             <div className="heroProof">
+              <span><CheckCircle2 size={16} /> IA con tu voz</span>
               <span><CheckCircle2 size={16} /> 100% tu marca</span>
-              <span><CheckCircle2 size={16} /> Sin &ldquo;powered by&rdquo;</span>
-              <span><CheckCircle2 size={16} /> Tus datos son tuyos</span>
+              <span><CheckCircle2 size={16} /> Retención automática</span>
               <span><CheckCircle2 size={16} /> App + consola</span>
             </div>
             <div className="actions">
@@ -127,16 +174,7 @@ export default function Home() {
 
           <MotionReveal className="heroProductVisual" delay={0.14}>
             <LazyOrbit />
-            <img
-              className="heroMockupImage"
-              src="/brand/performlabs-app-hero.png"
-              alt="Mockups de app de entrenamiento, nutrición, progreso y soporte"
-            />
-            <div className="heroSignalPanel">
-              <span className="tag">Sistema conectado</span>
-              <strong>Consola + app cliente</strong>
-              <p>Una base lista para adaptarse a cada marca sin empezar desde cero.</p>
-            </div>
+            <PhoneBuild />
           </MotionReveal>
         </div>
       </section>
@@ -150,6 +188,37 @@ export default function Home() {
             </span>
           ))}
         </MotionReveal>
+      </section>
+
+      <section className="landingSection" id="plataforma">
+        <div className="platformGlow" aria-hidden="true" />
+        <MotionReveal>
+          <div className="sectionHeader centered">
+            <div>
+              <span className="eyebrow"><Sparkles size={13} /> Plataforma IA</span>
+              <h2>Todo lo que tu marca necesita, <span className="accentText">potenciado por IA</span>.</h2>
+              <p>
+                No es una plantilla: es un sistema operativo de coaching nativo de IA.
+                Tu voz, tu método y tu marca — la tecnología trabajando por ti 24/7.
+              </p>
+            </div>
+          </div>
+        </MotionReveal>
+        <div className="platformGrid">
+          {platformCapabilities.map((cap, index) => {
+            const Icon = cap.icon;
+            return (
+              <MotionReveal key={cap.title} delay={index * 0.05}>
+                <TiltCard className="platformCard">
+                  <span className="platformIcon"><Icon size={22} /></span>
+                  <span className="platformTag">{cap.tag}</span>
+                  <h3>{cap.title}</h3>
+                  <p>{cap.text}</p>
+                </TiltCard>
+              </MotionReveal>
+            );
+          })}
+        </div>
       </section>
 
       <section className="landingSection">
