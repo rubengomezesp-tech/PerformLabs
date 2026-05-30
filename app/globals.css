@@ -10131,6 +10131,38 @@ button[aria-busy="true"] {
 }
 
 /* ---- Collapsible secondary form inside console cards ---- */
+.domainPanel {
+  margin-top: 10px;
+  padding: 12px 14px;
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  background: var(--surface-2);
+  display: grid;
+  gap: 8px;
+}
+.domainRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  font-size: 13px;
+}
+.domainRow a {
+  color: var(--accent);
+  font-family: var(--font-mono);
+  word-break: break-all;
+}
+.domainHint {
+  margin: 0;
+  font-size: 12px;
+  line-height: 1.5;
+}
+.domainHint code {
+  font-family: var(--font-mono);
+  background: var(--surface-3);
+  padding: 1px 5px;
+  border-radius: 5px;
+}
 .editDetails {
   margin-top: 4px;
   border-top: 1px solid var(--line);

@@ -30,7 +30,18 @@ export type WorkspaceInput = {
   customDomain: string;
   supportEmail: string;
   accentColor: string;
+  /** Provisional subdomain label or full host; stored as fallback_subdomain. */
+  subdomain?: string;
 };
+
+/** Turn an operator-typed value into a full `<sub>.performlabs.app` host. */
+function toSubdomainHost(value?: string): string | null {
+  const raw = (value ?? "").trim();
+  if (!raw) return null;
+  if (raw.includes(".")) return normalizeDomain(raw) || null;
+  const label = slugify(raw);
+  return label ? `${label}.performlabs.app` : null;
+}
 
 export type WorkspaceBrand = {
   id: string;
@@ -598,18 +609,22 @@ export async function updateWorkspace(input: WorkspaceInput) {
   const supabase = createServiceSupabaseClient();
   const publicDomain = normalizeDomain(input.customDomain);
   const memberDomain = memberDomainFor(publicDomain);
+  const subdomainHost = toSubdomainHost(input.subdomain);
+  const base = {
+    name,
+    app_name: input.appName.trim() || name,
+    custom_domain: cleanOptional(input.customDomain),
+    public_domain: publicDomain || null,
+    member_domain: memberDomain || null,
+    support_email: cleanOptional(input.supportEmail),
+    accent_color: normalizeHexColor(input.accentColor),
+    updated_at: new Date().toISOString(),
+  };
+  // Only touch the provisional subdomain when the operator typed one.
+  const patch = subdomainHost ? { ...base, fallback_subdomain: subdomainHost } : base;
   const { error } = await supabase
     .from("workspaces")
-    .update({
-      name,
-      app_name: input.appName.trim() || name,
-      custom_domain: cleanOptional(input.customDomain),
-      public_domain: publicDomain || null,
-      member_domain: memberDomain || null,
-      support_email: cleanOptional(input.supportEmail),
-      accent_color: normalizeHexColor(input.accentColor),
-      updated_at: new Date().toISOString(),
-    })
+    .update(patch)
     .eq("id", input.id);
 
   if (error) {

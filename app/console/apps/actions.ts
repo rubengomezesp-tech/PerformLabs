@@ -42,6 +42,7 @@ export async function updateWorkspaceAction(formData: FormData) {
     customDomain: readText(formData, "customDomain"),
     supportEmail: readText(formData, "supportEmail"),
     accentColor: readText(formData, "accentColor"),
+    subdomain: readText(formData, "subdomain"),
   });
   await recordSecurityAuditEvent({
     workspaceId: id,

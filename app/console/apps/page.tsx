@@ -165,9 +165,24 @@ export default async function ChildAppsPage() {
                 </div>
               </form>
 
+              {/* Domain & access: the URL the trainer's clients use, plus how to connect it. */}
+              <div className="domainPanel">
+                <div className="domainRow">
+                  <span className="muted">App del cliente</span>
+                  <a href={`https://${app.fallbackSubdomain}`} target="_blank" rel="noreferrer">{app.fallbackSubdomain}</a>
+                </div>
+                <div className="domainRow">
+                  <span className="muted">Dominio propio</span>
+                  <span>{app.domain ? app.domain : <span className="tag">Sin conectar</span>}</span>
+                </div>
+                <p className="muted domainHint">
+                  Para conectar: añade el host en Vercel (proyecto perform-labs-pcgg) y deja <code>*.performlabs.app</code> en DNS-only en Cloudflare. El dominio propio lo compra y enlaza PerformLabs.
+                </p>
+              </div>
+
               {/* Brand metadata: secondary, collapsed so it doesn't bury the license control. */}
               <details className="editDetails">
-                <summary><Pencil size={15} /> Editar datos de marca</summary>
+                <summary><Pencil size={15} /> Editar marca, subdominio y dominio</summary>
                 <form action={updateWorkspaceAction} className="editForm">
                   <input name="id" type="hidden" value={app.id} />
                   <label>
@@ -179,8 +194,12 @@ export default async function ChildAppsPage() {
                     <input name="appName" defaultValue={app.appName} />
                   </label>
                   <label>
-                    Dominio
-                    <input name="customDomain" defaultValue={app.domain} />
+                    Subdominio provisional
+                    <input name="subdomain" defaultValue={app.fallbackSubdomain.replace(/\.performlabs\.app$/, "")} placeholder="marca" />
+                  </label>
+                  <label>
+                    Dominio propio
+                    <input name="customDomain" defaultValue={app.domain} placeholder="app.sumarca.com" />
                   </label>
                   <label>
                     Soporte
