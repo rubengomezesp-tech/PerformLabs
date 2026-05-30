@@ -168,13 +168,18 @@ export default async function BrandPage({ searchParams }: BrandPageProps) {
 
             <form action={saveBrandSettingsAction} className="span12 settingsForm" id="guardar-configuracion">
               <input name="workspaceId" type="hidden" value={selectedWorkspace.id} />
-              {groupedSettings.map(([group, definitions]) => {
+              {groupedSettings.map(([group, definitions], index) => {
                 const copy = groupLabels[group] ?? { title: group, text: "Configuración avanzada de marca." };
 
                 return (
-                  <article className="card" key={group}>
-                    <h2>{copy.title}</h2>
-                    <p>{copy.text}</p>
+                  <details className="editDetails settingsGroup noTopRule" key={group} open={index === 0}>
+                    <summary className="settingsGroupSummary">
+                      <span>
+                        <strong>{copy.title}</strong>
+                        <small>{copy.text}</small>
+                      </span>
+                      <span className="tag neutral">{(definitions ?? []).length}</span>
+                    </summary>
                     <div className="settingsGrid">
                       {(definitions ?? []).map((setting) => (
                         <div key={setting.key}>
@@ -182,7 +187,7 @@ export default async function BrandPage({ searchParams }: BrandPageProps) {
                         </div>
                       ))}
                     </div>
-                  </article>
+                  </details>
                 );
               })}
               <div className="saveBar">

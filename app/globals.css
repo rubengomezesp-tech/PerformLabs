@@ -10292,3 +10292,58 @@ button[aria-busy="true"] {
 .briefSection.editDetails[open] > summary.briefTitle::after {
   transform: rotate(225deg);
 }
+
+/* ---- Console redesign (phase 5): collapsible templates / nutrition / brand ---- */
+
+/* When a collapsible is the first thing in a card, it doesn't need the top
+   divider that separates it from preceding content. */
+.editDetails.noTopRule {
+  margin-top: 0;
+  border-top: 0;
+  padding-top: 0;
+}
+
+/* Brand settings: each group is a distinct collapsible panel inside the
+   settings form (not a nested card). */
+.settingsGroup {
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  background: var(--panel-2);
+  padding: 14px 15px;
+}
+.settingsGroup > summary.settingsGroupSummary {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+  font-weight: 600;
+}
+.settingsGroup > summary.settingsGroupSummary > span:first-child {
+  flex: 1;
+  min-width: 0;
+}
+.settingsGroup > summary.settingsGroupSummary strong {
+  display: block;
+  color: var(--text);
+  font-size: 15px;
+}
+.settingsGroup > summary.settingsGroupSummary small {
+  display: block;
+  margin-top: 3px;
+  color: var(--muted);
+  font-size: 12.5px;
+  font-weight: 400;
+}
+.settingsGroup > summary.settingsGroupSummary::after {
+  content: "";
+  width: 8px;
+  height: 8px;
+  flex: 0 0 auto;
+  border-right: 1.5px solid var(--muted);
+  border-bottom: 1.5px solid var(--muted);
+  transform: rotate(45deg);
+  transition: transform var(--dur-fast) var(--ease);
+}
+.settingsGroup[open] > summary.settingsGroupSummary::after {
+  transform: rotate(225deg);
+}

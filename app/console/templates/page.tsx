@@ -1,4 +1,5 @@
 import { ClipboardList, Clock, FileText, Plus, Save, Settings2 } from "lucide-react";
+import { EmptyState } from "@/components/empty-state";
 import { Topbar } from "@/components/topbar";
 import { listImplementationTemplates } from "@/lib/repositories/implementation-projects";
 import {
@@ -79,35 +80,38 @@ export default async function TemplatesPage() {
                 <span><FileText size={15} /> {template.tasks.length} tareas base</span>
               </div>
 
-              <form action={updateImplementationTemplateAction} className="templateEditForm">
-                <input name="id" type="hidden" value={template.id} />
-                <label>
-                  Nombre
-                  <input name="name" defaultValue={template.name} />
-                </label>
-                <label>
-                  Días estimados
-                  <input name="estimatedDays" defaultValue={template.estimatedDays} inputMode="numeric" />
-                </label>
-                <label>
-                  Estado
-                  <select name="isActive" defaultValue={String(template.isActive)}>
-                    <option value="true">Activa</option>
-                    <option value="false">Pausada</option>
-                  </select>
-                </label>
-                <label className="spanFull">
-                  Tipo de cliente
-                  <input name="buyerType" defaultValue={template.buyerType} />
-                </label>
-                <label className="spanFull">
-                  Descripción interna
-                  <textarea name="description" defaultValue={template.description} rows={3} />
-                </label>
-                <button className="btn" type="submit">
-                  Guardar plantilla <Save size={16} />
-                </button>
-              </form>
+              <details className="editDetails">
+                <summary><Settings2 size={14} /> Ajustes de plantilla</summary>
+                <form action={updateImplementationTemplateAction} className="templateEditForm">
+                  <input name="id" type="hidden" value={template.id} />
+                  <label>
+                    Nombre
+                    <input name="name" defaultValue={template.name} />
+                  </label>
+                  <label>
+                    Días estimados
+                    <input name="estimatedDays" defaultValue={template.estimatedDays} inputMode="numeric" />
+                  </label>
+                  <label>
+                    Estado
+                    <select name="isActive" defaultValue={String(template.isActive)}>
+                      <option value="true">Activa</option>
+                      <option value="false">Pausada</option>
+                    </select>
+                  </label>
+                  <label className="spanFull">
+                    Tipo de cliente
+                    <input name="buyerType" defaultValue={template.buyerType} />
+                  </label>
+                  <label className="spanFull">
+                    Descripción interna
+                    <textarea name="description" defaultValue={template.description} rows={3} />
+                  </label>
+                  <button className="btn" type="submit">
+                    Guardar plantilla <Save size={16} />
+                  </button>
+                </form>
+              </details>
 
               <div className="templateColumns">
                 <section className="templatePanel">
@@ -120,6 +124,14 @@ export default async function TemplatesPage() {
                       </div>
                     </div>
                   </div>
+
+                  {template.tasks.length === 0 ? (
+                    <div className="inlineEmpty">
+                      <ClipboardList color="var(--gold)" />
+                      <h3>Sin tareas en esta plantilla.</h3>
+                      <p>Añade tareas con su fase y día de offset; se copiarán al proyecto cada vez que conviertas un lead con esta plantilla.</p>
+                    </div>
+                  ) : null}
 
                   {Object.entries(tasksByPhase).map(([phase, tasks]) => (
                     <section className="phaseBlock" key={phase}>
@@ -173,6 +185,8 @@ export default async function TemplatesPage() {
                     </div>
                   </div>
 
+                  <details className="editDetails" open>
+                  <summary><FileText size={14} /> Editar campos prellenados</summary>
                   <form action={updateTemplateBriefDefaultsAction} className="briefGrid">
                     <input name="templateId" type="hidden" value={template.id} />
                     <label>
@@ -239,11 +253,20 @@ export default async function TemplatesPage() {
                       Guardar defaults <Save size={16} />
                     </button>
                   </form>
+                  </details>
                 </section>
               </div>
             </article>
           );
         })}
+
+        {templates.length === 0 ? (
+          <EmptyState
+            icon={ClipboardList}
+            title="Todavía no hay playbooks de entrega."
+            text="Una plantilla define el checklist, los tiempos y el briefing inicial que se copian al proyecto al convertir un lead. Crea la primera para estandarizar cómo nace cada implantación."
+          />
+        ) : null}
       </section>
     </>
   );
