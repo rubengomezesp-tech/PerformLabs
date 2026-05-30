@@ -2,7 +2,7 @@ import { Camera, Dumbbell, Filter, ListChecks, Pencil, PlayCircle, Plus, Trash2,
 import { Dialog } from "@/components/dialog";
 import { Topbar } from "@/components/topbar";
 import { getSelectedMemberAppBrand } from "@/lib/member-app";
-import { getExerciseLibraryFacets, listManagedExercises } from "@/lib/repositories/training-management";
+import { getExerciseLibraryFacets, listManagedExercises, type ManagedExercise } from "@/lib/repositories/training-management";
 import {
   addCoachExerciseVideoAction,
   createCoachExerciseAction,
@@ -20,6 +20,30 @@ const DIFFICULTY_LABEL: Record<string, string> = {
   advanced: "Avanzado",
 };
 
+// Canonical order for grouping the library by muscle (head-to-toe, push/pull/legs
+// first, then conditioning). Unknown tokens sort to the end alphabetically.
+const MUSCLE_ORDER = [
+  "Pecho", "Espalda", "Hombros", "Bíceps", "Tríceps", "Trapecio", "Antebrazo",
+  "Cuádriceps", "Femoral", "Glúteos", "Gemelos", "Lumbar", "Core", "Cardio", "Movilidad",
+];
+
+function groupByMuscle(items: ManagedExercise[]) {
+  const groups = new Map<string, ManagedExercise[]>();
+  for (const exercise of items) {
+    const primary = exercise.muscleGroups.find((muscle) => MUSCLE_ORDER.includes(muscle)) ?? exercise.muscleGroups[0] ?? "Otros";
+    const bucket = groups.get(primary);
+    if (bucket) bucket.push(exercise);
+    else groups.set(primary, [exercise]);
+  }
+  return [...groups.entries()]
+    .map(([muscle, groupItems]) => ({ muscle, items: groupItems }))
+    .sort((left, right) => {
+      const li = MUSCLE_ORDER.indexOf(left.muscle);
+      const ri = MUSCLE_ORDER.indexOf(right.muscle);
+      return (li === -1 ? 999 : li) - (ri === -1 ? 999 : ri) || left.muscle.localeCompare(right.muscle);
+    });
+}
+
 type CoachExercisesPageProps = {
   searchParams?: Promise<{
     q?: string;
@@ -29,6 +53,140 @@ type CoachExercisesPageProps = {
     source?: "all" | "base" | "brand" | "video";
   }>;
 };
+
+function ExerciseCard({ exercise, workspaceId }: { exercise: ManagedExercise; workspaceId: string }) {
+  const videoUrl = exercise.workspaceVideo?.videoUrl || exercise.defaultVideoUrl;
+  const levelLabel = DIFFICULTY_LABEL[exercise.difficulty] ?? exercise.difficulty;
+
+  return (
+    <article className="exerciseCard">
+      <div className="exerciseCardHead">
+        <strong>{exercise.name}</strong>
+        <span className={exercise.isBaseLibrary ? "exerciseOrigin base" : "exerciseOrigin brand"}>
+          {exercise.isBaseLibrary ? "base" : "propio"}
+        </span>
+      </div>
+      <div className="exerciseChips">
+        {exercise.muscleGroups.map((muscle) => (
+          <span className="exerciseChip muscle" key={muscle}>{muscle}</span>
+        ))}
+        {exercise.equipment.map((item) => (
+          <span className="exerciseChip" key={item}>{item}</span>
+        ))}
+        {levelLabel ? <span className="exerciseChip level">{levelLabel}</span> : null}
+      </div>
+      {exercise.instructions ? <p className="exerciseCue">{exercise.instructions}</p> : null}
+      <div className="exerciseCardFoot">
+        <span className={videoUrl ? "videoBadge ready" : "videoBadge"}>
+          {videoUrl ? <><PlayCircle size={13} /> con vídeo</> : <><Video size={13} /> sin vídeo</>}
+        </span>
+        <div className="exerciseActions">
+          {videoUrl ? (
+            <a className="btn ghost sm" href={videoUrl} target="_blank" rel="noreferrer">
+              <PlayCircle size={15} /> Ver
+            </a>
+          ) : null}
+
+          <Dialog
+            triggerClassName="btn ghost sm"
+            trigger={<><Video size={15} /> Vídeo</>}
+            title={`Vídeo de ${exercise.name}`}
+            description="Tu demo de técnica para tu marca. Sustituye al vídeo base en la app del cliente."
+          >
+            <form action={addCoachExerciseVideoAction} className="editForm">
+              <input name="workspaceId" type="hidden" value={workspaceId} />
+              <input name="exerciseId" type="hidden" value={exercise.id} />
+              <label className="spanFull">
+                Título
+                <input name="title" defaultValue={exercise.workspaceVideo?.title ?? `${exercise.name} · demo`} placeholder="Demo técnica" required />
+              </label>
+              <label className="spanFull">
+                URL del vídeo
+                <input name="videoUrl" defaultValue={exercise.workspaceVideo?.videoUrl ?? ""} placeholder="https://..." required />
+              </label>
+              <label className="spanFull">
+                Miniatura (opcional)
+                <input name="thumbnailUrl" defaultValue={exercise.workspaceVideo?.thumbnailUrl ?? ""} placeholder="https://..." />
+              </label>
+              <label className="toggleRow spanFull">
+                Usar como vídeo por defecto
+                <input name="isDefault" type="checkbox" value="true" defaultChecked={!exercise.workspaceVideo || exercise.workspaceVideo.isDefault} />
+              </label>
+              <button className="btn primary spanFull" type="submit">
+                {exercise.workspaceVideo ? "Guardar vídeo" : "Añadir vídeo"}
+              </button>
+            </form>
+          </Dialog>
+
+          {exercise.isBaseLibrary ? null : (
+            <>
+              <Dialog
+                triggerClassName="btn ghost sm"
+                trigger={<><Pencil size={15} /> Editar</>}
+                title={`Editar ${exercise.name}`}
+                description="Cambia los datos de este ejercicio propio. Se actualiza en tus programas."
+              >
+                <form action={updateCoachExerciseAction} className="editForm">
+                  <input name="workspaceId" type="hidden" value={workspaceId} />
+                  <input name="exerciseId" type="hidden" value={exercise.id} />
+                  <label className="spanFull">
+                    Nombre
+                    <input name="name" defaultValue={exercise.name} required />
+                  </label>
+                  <label className="spanFull">
+                    Grupos musculares
+                    <input name="muscleGroups" defaultValue={exercise.muscleGroups.join(", ")} placeholder="Pecho, hombro, tríceps" />
+                  </label>
+                  <label>
+                    Equipo
+                    <input name="equipment" defaultValue={exercise.equipment.join(", ")} placeholder="Mancuernas, banco" />
+                  </label>
+                  <label>
+                    Ubicación
+                    <input name="locations" defaultValue={exercise.locations.join(", ")} placeholder="Gimnasio, casa" />
+                  </label>
+                  <label className="spanFull">
+                    Nivel
+                    <select name="difficulty" defaultValue={exercise.difficulty || "intermediate"}>
+                      <option value="beginner">Principiante</option>
+                      <option value="intermediate">Intermedio</option>
+                      <option value="advanced">Avanzado</option>
+                    </select>
+                  </label>
+                  <label className="spanFull">
+                    Vídeo base (URL, opcional)
+                    <input name="defaultVideoUrl" defaultValue={exercise.defaultVideoUrl} placeholder="https://..." />
+                  </label>
+                  <label className="spanFull">
+                    Instrucciones
+                    <textarea name="instructions" rows={2} defaultValue={exercise.instructions} placeholder="Ejecución, tempo, cues..." />
+                  </label>
+                  <button className="btn primary spanFull" type="submit">Guardar cambios</button>
+                </form>
+              </Dialog>
+
+              <Dialog
+                triggerClassName="btn danger sm"
+                trigger={<><Trash2 size={15} /> Eliminar</>}
+                title={`Eliminar ${exercise.name}`}
+                description="Esta acción no se puede deshacer."
+              >
+                <form action={deleteCoachExerciseAction} className="editForm">
+                  <input name="workspaceId" type="hidden" value={workspaceId} />
+                  <input name="exerciseId" type="hidden" value={exercise.id} />
+                  <p className="spanFull">
+                    Se eliminará <strong>{exercise.name}</strong> de tu marca. Si está usado en una rutina, primero quítalo de los programas.
+                  </p>
+                  <button className="btn danger spanFull" type="submit">Sí, eliminar</button>
+                </form>
+              </Dialog>
+            </>
+          )}
+        </div>
+      </div>
+    </article>
+  );
+}
 
 export default async function CoachExercisesPage({ searchParams }: CoachExercisesPageProps) {
   const params = await searchParams;
@@ -42,12 +200,13 @@ export default async function CoachExercisesPage({ searchParams }: CoachExercise
       equipment: params?.equipment,
       level: params?.level,
       source,
-      limit: 120,
+      limit: 200,
     }),
     getExerciseLibraryFacets(brand.id),
   ]);
 
   const hasFilters = Boolean(params?.q || params?.muscle || params?.equipment || params?.level || (source && source !== "all"));
+  const groups = groupByMuscle(exercises);
 
   return (
     <>
@@ -138,7 +297,7 @@ export default async function CoachExercisesPage({ searchParams }: CoachExercise
               <select name="level" defaultValue={params?.level ?? ""}>
                 <option value="">Todos</option>
                 {facets.levels.map((level) => (
-                  <option key={level} value={level}>{level}</option>
+                  <option key={level} value={level}>{DIFFICULTY_LABEL[level] ?? level}</option>
                 ))}
               </select>
             </label>
@@ -175,139 +334,20 @@ export default async function CoachExercisesPage({ searchParams }: CoachExercise
             <span className="tag">{exercises.length}</span>
           </div>
           {exercises.length ? (
-            <div className="exerciseGrid">
-              {exercises.map((exercise) => {
-                const videoUrl = exercise.workspaceVideo?.videoUrl || exercise.defaultVideoUrl;
-                const levelLabel = DIFFICULTY_LABEL[exercise.difficulty] ?? exercise.difficulty;
-                return (
-                  <article className="exerciseCard" key={exercise.id}>
-                    <div className="exerciseCardHead">
-                      <strong>{exercise.name}</strong>
-                      <span className={exercise.isBaseLibrary ? "exerciseOrigin base" : "exerciseOrigin brand"}>
-                        {exercise.isBaseLibrary ? "base" : "propio"}
-                      </span>
-                    </div>
-                    <div className="exerciseChips">
-                      {exercise.muscleGroups.map((muscle) => (
-                        <span className="exerciseChip muscle" key={muscle}>{muscle}</span>
-                      ))}
-                      {exercise.equipment.map((item) => (
-                        <span className="exerciseChip" key={item}>{item}</span>
-                      ))}
-                      {levelLabel ? <span className="exerciseChip level">{levelLabel}</span> : null}
-                    </div>
-                    {exercise.instructions ? <p className="exerciseCue">{exercise.instructions}</p> : null}
-                    <div className="exerciseCardFoot">
-                      <span className={videoUrl ? "videoBadge ready" : "videoBadge"}>
-                        {videoUrl ? <><PlayCircle size={13} /> con vídeo</> : <><Video size={13} /> sin vídeo</>}
-                      </span>
-                      <div className="exerciseActions">
-                      {videoUrl ? (
-                        <a className="btn ghost sm" href={videoUrl} target="_blank" rel="noreferrer">
-                          <PlayCircle size={15} /> Ver
-                        </a>
-                      ) : null}
-
-                      <Dialog
-                        triggerClassName="btn ghost sm"
-                        trigger={<><Video size={15} /> Vídeo</>}
-                        title={`Vídeo de ${exercise.name}`}
-                        description="Tu demo de técnica para tu marca. Sustituye al vídeo base en la app del cliente."
-                      >
-                        <form action={addCoachExerciseVideoAction} className="editForm">
-                          <input name="workspaceId" type="hidden" value={brand.id} />
-                          <input name="exerciseId" type="hidden" value={exercise.id} />
-                          <label className="spanFull">
-                            Título
-                            <input name="title" defaultValue={exercise.workspaceVideo?.title ?? `${exercise.name} · demo`} placeholder="Demo técnica" required />
-                          </label>
-                          <label className="spanFull">
-                            URL del vídeo
-                            <input name="videoUrl" defaultValue={exercise.workspaceVideo?.videoUrl ?? ""} placeholder="https://..." required />
-                          </label>
-                          <label className="spanFull">
-                            Miniatura (opcional)
-                            <input name="thumbnailUrl" defaultValue={exercise.workspaceVideo?.thumbnailUrl ?? ""} placeholder="https://..." />
-                          </label>
-                          <label className="toggleRow spanFull">
-                            Usar como vídeo por defecto
-                            <input name="isDefault" type="checkbox" value="true" defaultChecked={!exercise.workspaceVideo || exercise.workspaceVideo.isDefault} />
-                          </label>
-                          <button className="btn primary spanFull" type="submit">
-                            {exercise.workspaceVideo ? "Guardar vídeo" : "Añadir vídeo"}
-                          </button>
-                        </form>
-                      </Dialog>
-
-                      {exercise.isBaseLibrary ? null : (
-                        <>
-                          <Dialog
-                            triggerClassName="btn ghost sm"
-                            trigger={<><Pencil size={15} /> Editar</>}
-                            title={`Editar ${exercise.name}`}
-                            description="Cambia los datos de este ejercicio propio. Se actualiza en tus programas."
-                          >
-                            <form action={updateCoachExerciseAction} className="editForm">
-                              <input name="workspaceId" type="hidden" value={brand.id} />
-                              <input name="exerciseId" type="hidden" value={exercise.id} />
-                              <label className="spanFull">
-                                Nombre
-                                <input name="name" defaultValue={exercise.name} required />
-                              </label>
-                              <label className="spanFull">
-                                Grupos musculares
-                                <input name="muscleGroups" defaultValue={exercise.muscleGroups.join(", ")} placeholder="Pecho, hombro, tríceps" />
-                              </label>
-                              <label>
-                                Equipo
-                                <input name="equipment" defaultValue={exercise.equipment.join(", ")} placeholder="Mancuernas, banco" />
-                              </label>
-                              <label>
-                                Ubicación
-                                <input name="locations" defaultValue={exercise.locations.join(", ")} placeholder="Gimnasio, casa" />
-                              </label>
-                              <label className="spanFull">
-                                Nivel
-                                <select name="difficulty" defaultValue={exercise.difficulty || "intermediate"}>
-                                  <option value="beginner">Principiante</option>
-                                  <option value="intermediate">Intermedio</option>
-                                  <option value="advanced">Avanzado</option>
-                                </select>
-                              </label>
-                              <label className="spanFull">
-                                Vídeo base (URL, opcional)
-                                <input name="defaultVideoUrl" defaultValue={exercise.defaultVideoUrl} placeholder="https://..." />
-                              </label>
-                              <label className="spanFull">
-                                Instrucciones
-                                <textarea name="instructions" rows={2} defaultValue={exercise.instructions} placeholder="Ejecución, tempo, cues..." />
-                              </label>
-                              <button className="btn primary spanFull" type="submit">Guardar cambios</button>
-                            </form>
-                          </Dialog>
-
-                          <Dialog
-                            triggerClassName="btn danger sm"
-                            trigger={<><Trash2 size={15} /> Eliminar</>}
-                            title={`Eliminar ${exercise.name}`}
-                            description="Esta acción no se puede deshacer."
-                          >
-                            <form action={deleteCoachExerciseAction} className="editForm">
-                              <input name="workspaceId" type="hidden" value={brand.id} />
-                              <input name="exerciseId" type="hidden" value={exercise.id} />
-                              <p className="spanFull">
-                                Se eliminará <strong>{exercise.name}</strong> de tu marca. Si está usado en una rutina, primero quítalo de los programas.
-                              </p>
-                              <button className="btn danger spanFull" type="submit">Sí, eliminar</button>
-                            </form>
-                          </Dialog>
-                        </>
-                      )}
-                      </div>
-                    </div>
-                  </article>
-                );
-              })}
+            <div className="exerciseGroups">
+              {groups.map((group) => (
+                <section className="exGroup" key={group.muscle} aria-label={group.muscle}>
+                  <header className="exGroupHead">
+                    <h3>{group.muscle}</h3>
+                    <span className="exGroupCount">{group.items.length}</span>
+                  </header>
+                  <div className="exerciseGrid">
+                    {group.items.map((exercise) => (
+                      <ExerciseCard key={exercise.id} exercise={exercise} workspaceId={brand.id} />
+                    ))}
+                  </div>
+                </section>
+              ))}
             </div>
           ) : hasFilters ? (
             <div className="inlineEmpty">

@@ -9838,3 +9838,44 @@ button[aria-busy="true"] {
   border-top: 1px solid var(--line);
 }
 .exerciseActions { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; }
+
+/* Library grouped by muscle: scannable sections with a sticky header + count */
+.exerciseGroups { display: flex; flex-direction: column; gap: 22px; }
+.exGroup { display: flex; flex-direction: column; gap: 12px; }
+.exGroupHead {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  position: sticky;
+  top: 0;
+  z-index: 1;
+  padding: 6px 0;
+  background: linear-gradient(to bottom, var(--surface, #0b0e14) 70%, transparent);
+}
+.exGroupHead h3 {
+  margin: 0;
+  font-family: var(--font-display, inherit);
+  font-size: 15px;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+}
+.exGroupHead::after {
+  content: "";
+  flex: 1;
+  height: 1px;
+  background: var(--line);
+}
+.exGroupCount {
+  flex-shrink: 0;
+  order: 1;
+  min-width: 24px;
+  text-align: center;
+  font-family: var(--font-mono, ui-monospace, monospace);
+  font-size: 11px;
+  font-variant-numeric: tabular-nums;
+  color: var(--accent);
+  background: color-mix(in srgb, var(--accent) 12%, transparent);
+  border: 1px solid color-mix(in srgb, var(--accent) 24%, transparent);
+  border-radius: 999px;
+  padding: 2px 8px;
+}
