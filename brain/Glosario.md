@@ -17,7 +17,12 @@ updated: 2026-05-30
   de recaída. Frontera de retención.
 - **Workspace** — una marca/entrenador = un workspace (multi-tenant). Ver [[Arquitectura]].
 - **Tiering de modelos** — usar Sonnet (barato, volumen) vs Opus (calidad). Ver [[IA y coste]].
-- **Application fee** — el % que tomamos vía Stripe Connect. Ver [[Modelo de negocio]].
+- **Application fee** — el 25% que tomamos vía Stripe Connect sobre cada cobro a
+  cliente (Direct charges). Ver [[Pagos]] y [[Modelo de negocio]].
+- **Connect Standard** — el modo de Stripe Connect que usamos: la cuenta es del
+  coach, los cobros van directos a él y nosotros tomamos el fee. Ver [[Pagos]].
+- **Ships dark** — funcionalidad que se despliega completa pero inactiva sin claves,
+  degradando con elegancia (Stripe, [[IA y coste|IA]]). Ver [[Pagos]].
 - **Ethereal Glass** — el lenguaje visual 2026. Ver [[Sistema de diseño]].
 - **PWA vs nativo** — la frontera de capacidades; nativo = conversión de pago.
   Ver [[Arquitectura]].

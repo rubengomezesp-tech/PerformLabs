@@ -11,9 +11,13 @@ updated: 2026-05-30
 - **Coach Brain** · **Generador de planes** (coach-in-the-loop) · **Radar de
   retención** · **Coach Copilot** · **Control de coste de IA** (ver [[IA y coste]]).
 - **Push proactivo** (Web Push + cron de inactividad).
-- **Calorías por foto**.
+- **Calorías por foto** + **imagen en toda receta/comida** (key-less, ver [[Features]]).
 - **Landing v2 producto-primero** + galería deslizable + **[[Sistema de diseño]]
   2026 en toda la plataforma**.
+- **[[Pagos|Stripe Connect (Standard)]]** — onboarding OAuth del coach, suscripción
+  de plataforma, planes del coach (Product+Price en su cuenta) y webhooks firmados.
+  Ships dark sin claves.
+- **Rediseño de consola** hacia densidad legible (fases 1-5 + control de licencia).
 
 ## En curso / siguiente (sin keys, autocontenido)
 
@@ -36,6 +40,8 @@ i18n por fases hacia login/registro y consola.
 - **Track nativo** (Capacitor) → push fiable iOS + **Apple Watch** + HealthKit. Es
   la conversión de pago. Ver [[Arquitectura]].
 
-## Lo último (acordado)
+## Pagos: lo que queda
 
-- **Stripe Connect** → setup + mensualidad + el 25%. Ver [[Modelo de negocio]].
+El cobro ya está construido ([[Pagos]]). Falta el **checkout del cliente** que aplica
+la `application_fee` del 25% sobre los planes del coach, y conectar las claves
+Stripe en producción (trabajo del fundador). Ver [[Modelo de negocio]].

@@ -11,7 +11,10 @@ updated: 2026-05-30
 - **Supabase** (Postgres + RLS). Lectura/escritura vía **service client**
   (`createServiceSupabaseClient`) con `getSupabaseServiceEnv()`; degradación
   elegante cuando falta env o tabla.
-- **PWA** (manifest, service worker, push). `@anthropic-ai/sdk` para [[IA y coste]].
+- **PWA** (manifest, service worker, push). El **SW** (`public/sw.js`, cache v2)
+  cachea **solo assets estáticos**; navegaciones, RSC, Server Actions y `/api` van
+  siempre a red (ver [[Decisiones]]). `@anthropic-ai/sdk` para [[IA y coste]].
+- **[[Pagos|Stripe]]** vía cliente REST propio (sin SDK), `lib/stripe/`.
 - **framer-motion** + **lenis** para motion. Ver [[Sistema de diseño]].
 
 ## Modelo de datos (multi-tenant)
@@ -19,8 +22,10 @@ updated: 2026-05-30
 Todo cuelga de `workspaces` (cada marca = un workspace). Tablas clave: member_profiles,
 workout/diet templates + assignments, food_diary_entries, customer_checkins,
 community_posts, coach_ai_brains, ai_usage_events, push_subscriptions,
-retention_outreach, support_conversations… Migraciones en `supabase/migrations`
-(auto-aplican en merge a main, ver [[Infraestructura]]).
+retention_outreach, support_conversations, stripe_accounts / platform_subscriptions /
+stripe_webhook_events / coach_client_plans ([[Pagos]], solo service-role)…
+Migraciones en `supabase/migrations` (auto-aplican en merge a main, ver
+[[Infraestructura]]).
 
 ## Auth y roles
 

@@ -17,7 +17,7 @@ lo mantenga al día.
 ## Qué hay dentro
 
 - [[Home]] — el mapa de todo.
-- [[Vision]], [[Posicionamiento]], [[Modelo de negocio]], [[Mercado y competencia]].
+- [[Vision]], [[Posicionamiento]], [[Modelo de negocio]], [[Pagos]], [[Mercado y competencia]].
 - [[Features]], [[IA y coste]], [[Sistema de diseño]], [[Arquitectura]],
   [[Infraestructura]], [[Roadmap]], [[Decisiones]], [[Glosario]].
 
