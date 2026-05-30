@@ -8190,16 +8190,56 @@ button[aria-busy="true"] {
   display: flex;
   flex-direction: column;
 }
+.retentionItem {
+  border-top: 1px solid var(--line);
+}
+.retentionItem:first-child {
+  border-top: 0;
+}
 .retentionRow {
   display: grid;
   grid-template-columns: 56px 1fr auto auto;
   gap: 14px;
   align-items: center;
   padding: 14px 0;
-  border-top: 1px solid var(--line);
 }
-.retentionRow:first-child {
-  border-top: 0;
+.retentionDraft {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 0 0 16px 70px;
+}
+.retentionDraftBubble {
+  background: color-mix(in srgb, var(--accent) 7%, var(--surface));
+  border: 1px solid color-mix(in srgb, var(--accent) 30%, var(--border));
+  border-radius: 14px;
+  border-top-left-radius: 5px;
+  padding: 12px 14px;
+}
+.retentionDraftBubble p {
+  margin: 6px 0 0;
+  white-space: pre-wrap;
+  line-height: 1.5;
+}
+.retentionDraftTag {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--accent);
+}
+.retentionDraftActions {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+@media (max-width: 720px) {
+  .retentionDraft {
+    padding-left: 0;
+  }
 }
 .riskPill {
   display: flex;
