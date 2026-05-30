@@ -1,7 +1,8 @@
 "use client";
 
 import { X } from "lucide-react";
-import { useEffect, useState } from "react";
+import { useRef, useState } from "react";
+import { useModalA11y } from "@/components/use-modal-a11y";
 
 /**
  * Simple, accessible modal. Renders its own trigger button and an overlay.
@@ -23,24 +24,19 @@ export function Dialog({
   children: React.ReactNode;
 }) {
   const [open, setOpen] = useState(false);
+  const triggerRef = useRef<HTMLButtonElement>(null);
+  const panelRef = useRef<HTMLDivElement>(null);
 
-  useEffect(() => {
-    if (!open) return;
-    function onKey(event: KeyboardEvent) {
-      if (event.key === "Escape") setOpen(false);
-    }
-    window.addEventListener("keydown", onKey);
-    return () => window.removeEventListener("keydown", onKey);
-  }, [open]);
+  useModalA11y({ open, onClose: () => setOpen(false), panelRef, triggerRef });
 
   return (
     <>
-      <button type="button" className={triggerClassName} onClick={() => setOpen(true)}>
+      <button ref={triggerRef} type="button" className={triggerClassName} onClick={() => setOpen(true)}>
         {trigger}
       </button>
       {open ? (
         <div className="dialogOverlay" role="dialog" aria-modal="true" aria-label={title} onMouseDown={() => setOpen(false)}>
-          <div className="dialogPanel" onMouseDown={(event) => event.stopPropagation()}>
+          <div className="dialogPanel" ref={panelRef} tabIndex={-1} onMouseDown={(event) => event.stopPropagation()}>
             <header className="dialogHeader">
               <div>
                 <h2>{title}</h2>

@@ -14,7 +14,7 @@ type WorkoutDayView = WorkoutTemplateDay | MemberAssignedWorkoutDay;
 type WorkoutExerciseView = WorkoutTemplateExercise | MemberAssignedWorkoutExercise;
 
 const monthLabels: Record<number, { title: string; weeks: string; focus: string }> = {
-  1: { title: "Mes 1 · Base técnica", weeks: "Semanas 1-4", focus: "Aprender patrón, tempo y volumen sostenible." },
+  1: { title: "Mes 1 · Base técnica", weeks: "Semanas 1-4", focus: "Aprende la técnica y coge soltura con cargas que puedas sostener." },
   2: { title: "Mes 2 · Progresión", weeks: "Semanas 5-8", focus: "Subir cargas, reps o densidad con técnica limpia." },
   3: { title: "Mes 3 · Especialización", weeks: "Semanas 9-12", focus: "Cerrar fuerte, medir avances y preparar rotación." },
 };

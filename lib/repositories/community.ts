@@ -104,7 +104,7 @@ export async function toggleCommunityLike(workspaceId: string, postId: string) {
     .maybeSingle();
 
   if (existing.data?.id) {
-    const { error } = await (supabase as any).from("community_post_likes").delete().eq("id", existing.data.id);
+    const { error } = await (supabase as any).from("community_post_likes").delete().eq("id", existing.data.id).eq("workspace_id", workspaceId);
     if (error) throw new Error(`No se pudo actualizar el like: ${error.message}`);
     return { liked: false };
   }
@@ -128,6 +128,7 @@ export async function deleteCommunityPost(workspaceId: string, postId: string) {
     .from("community_posts")
     .delete()
     .eq("id", postId)
+    .eq("workspace_id", workspaceId)
     .eq("member_profile_id", member.id);
   if (error) throw new Error(`No se pudo eliminar: ${error.message}`);
 }

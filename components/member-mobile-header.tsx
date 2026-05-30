@@ -1,9 +1,10 @@
 "use client";
 
-import { useState } from "react";
+import { useRef, useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { Activity, Bell, BookOpen, ChefHat, ClipboardList, Dumbbell, Flame, Home, LineChart, Menu, MessageSquare, NotebookPen, Pill, Salad, Sparkles, Trophy, UserRound, Users, Utensils, X } from "lucide-react";
+import { useModalA11y } from "@/components/use-modal-a11y";
 import type { WorkspaceBrand } from "@/lib/repositories/workspaces";
 
 const MENU = [
@@ -40,10 +41,14 @@ export function MemberMobileHeader({ brand }: { brand?: WorkspaceBrand }) {
   const pathname = usePathname() || "/app";
   const [open, setOpen] = useState(false);
   const title = titleFor(pathname, brand?.name ?? "App");
+  const triggerRef = useRef<HTMLButtonElement>(null);
+  const panelRef = useRef<HTMLElement>(null);
+
+  useModalA11y({ open, onClose: () => setOpen(false), panelRef, triggerRef });
 
   return (
     <header className="memberMobileHeader">
-      <button className="memberHeaderBtn" type="button" aria-label="Abrir menú" onClick={() => setOpen(true)}>
+      <button ref={triggerRef} className="memberHeaderBtn" type="button" aria-label="Abrir menú" onClick={() => setOpen(true)}>
         <Menu size={22} />
       </button>
       <strong className="memberHeaderTitle">{title}</strong>
@@ -52,9 +57,9 @@ export function MemberMobileHeader({ brand }: { brand?: WorkspaceBrand }) {
       </Link>
 
       {open ? (
-        <div className="memberDrawer" role="dialog" aria-modal="true">
+        <div className="memberDrawer" role="dialog" aria-modal="true" aria-label={brand?.name ?? "Menú"}>
           <button className="memberDrawerBackdrop" type="button" aria-label="Cerrar menú" onClick={() => setOpen(false)} />
-          <nav className="memberDrawerPanel">
+          <nav className="memberDrawerPanel" ref={panelRef} tabIndex={-1}>
             <div className="memberDrawerHead">
               <span className="memberHeaderTitle">{brand?.name ?? "App"}</span>
               <button className="memberHeaderBtn" type="button" aria-label="Cerrar" onClick={() => setOpen(false)}>

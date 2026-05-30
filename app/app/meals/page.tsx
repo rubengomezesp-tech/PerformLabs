@@ -63,7 +63,7 @@ export default async function MealsPage() {
         <article className="span12 mealAppHero">
           <div>
             <span className="eyebrow">Siguiente comida</span>
-            <h1>{nextMeal?.title || "Plan en revisión"}</h1>
+            <h2>{nextMeal?.title || "Plan en revisión"}</h2>
             <p>{nextMeal ? "Cuando termines, márcala como hecha. Si hay una causa real que te lo impide, avisa al coach desde esa comida." : "Tu coach está preparando tu plan de comidas."}</p>
             <div className="mealHeroMeta">
               <span><Utensils size={16} /> {completedMealLabel}</span>
