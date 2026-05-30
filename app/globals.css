@@ -9764,3 +9764,77 @@ button[aria-busy="true"] {
   .foodMacroGrid { grid-template-columns: repeat(2, 1fr); }
   .foodActions { width: 100%; justify-content: space-between; }
 }
+
+/* ---- Exercise library (coach) ---- */
+.exerciseGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 12px;
+}
+.exerciseCard {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 14px;
+  border-radius: 14px;
+  background: color-mix(in srgb, var(--bg) 62%, #0b0e14);
+  border: 1px solid var(--line);
+  box-shadow: inset 0 1px 0 color-mix(in srgb, #fff 5%, transparent);
+  transition: border-color 160ms ease, transform 160ms ease, box-shadow 160ms ease;
+}
+.exerciseCard:hover {
+  border-color: color-mix(in srgb, var(--accent) 32%, var(--line));
+  transform: translateY(-2px);
+  box-shadow: 0 10px 28px -18px color-mix(in srgb, var(--accent) 60%, transparent), inset 0 1px 0 color-mix(in srgb, #fff 6%, transparent);
+}
+.exerciseCardHead { display: flex; align-items: flex-start; justify-content: space-between; gap: 10px; }
+.exerciseCardHead strong { font-size: 14.5px; line-height: 1.25; }
+.exerciseOrigin {
+  flex-shrink: 0;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  padding: 3px 8px;
+  border-radius: 999px;
+  border: 1px solid var(--line);
+  color: var(--text-muted);
+}
+.exerciseOrigin.brand {
+  color: var(--accent);
+  background: color-mix(in srgb, var(--accent) 12%, transparent);
+  border-color: color-mix(in srgb, var(--accent) 26%, transparent);
+}
+.exerciseChips { display: flex; flex-wrap: wrap; gap: 6px; }
+.exerciseChip {
+  font-size: 11px;
+  font-weight: 600;
+  padding: 3px 8px;
+  border-radius: 7px;
+  background: color-mix(in srgb, var(--bg) 40%, #11151d);
+  border: 1px solid var(--line);
+  color: var(--text-muted);
+}
+.exerciseChip.muscle {
+  color: color-mix(in srgb, var(--accent) 88%, #fff);
+  border-color: color-mix(in srgb, var(--accent) 28%, transparent);
+  background: color-mix(in srgb, var(--accent) 10%, transparent);
+}
+.exerciseChip.level { text-transform: capitalize; }
+.exerciseCue {
+  margin: 0;
+  font-size: 12.5px;
+  line-height: 1.45;
+  color: var(--text-muted);
+}
+.exerciseCardFoot {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin-top: auto;
+  padding-top: 10px;
+  border-top: 1px solid var(--line);
+}
+.exerciseActions { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; }

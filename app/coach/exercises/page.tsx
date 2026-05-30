@@ -12,7 +12,13 @@ import {
 
 export const dynamic = "force-dynamic";
 
-const MUSCLE_OPTIONS = ["Pecho", "Espalda", "Hombros", "Bíceps", "Tríceps", "Cuádriceps", "Isquios", "Glúteos", "Gemelos", "Core", "Cardio", "Movilidad"];
+const MUSCLE_OPTIONS = ["Pecho", "Espalda", "Hombros", "Bíceps", "Tríceps", "Cuádriceps", "Femoral", "Glúteos", "Gemelos", "Trapecio", "Antebrazo", "Core", "Cardio", "Movilidad"];
+
+const DIFFICULTY_LABEL: Record<string, string> = {
+  beginner: "Principiante",
+  intermediate: "Intermedio",
+  advanced: "Avanzado",
+};
 
 type CoachExercisesPageProps = {
   searchParams?: Promise<{
@@ -169,24 +175,33 @@ export default async function CoachExercisesPage({ searchParams }: CoachExercise
             <span className="tag">{exercises.length}</span>
           </div>
           {exercises.length ? (
-            <ul className="list compactList">
+            <div className="exerciseGrid">
               {exercises.map((exercise) => {
                 const videoUrl = exercise.workspaceVideo?.videoUrl || exercise.defaultVideoUrl;
+                const levelLabel = DIFFICULTY_LABEL[exercise.difficulty] ?? exercise.difficulty;
                 return (
-                  <li className="row" key={exercise.id}>
-                    <div>
+                  <article className="exerciseCard" key={exercise.id}>
+                    <div className="exerciseCardHead">
                       <strong>{exercise.name}</strong>
-                      <p>
-                        {exercise.muscleGroups.length ? exercise.muscleGroups.join(", ") : "Sin grupo"}
-                        {exercise.equipment.length ? ` · ${exercise.equipment.join(", ")}` : ""}
-                        {exercise.difficulty ? ` · ${exercise.difficulty}` : ""}
-                      </p>
-                    </div>
-                    <div className="statusControls">
-                      <span className="tag">{exercise.isBaseLibrary ? "base" : "propio"}</span>
-                      <span className={videoUrl ? "videoBadge ready" : "videoBadge"}>
-                        {videoUrl ? "con vídeo" : "sin vídeo"}
+                      <span className={exercise.isBaseLibrary ? "exerciseOrigin base" : "exerciseOrigin brand"}>
+                        {exercise.isBaseLibrary ? "base" : "propio"}
                       </span>
+                    </div>
+                    <div className="exerciseChips">
+                      {exercise.muscleGroups.map((muscle) => (
+                        <span className="exerciseChip muscle" key={muscle}>{muscle}</span>
+                      ))}
+                      {exercise.equipment.map((item) => (
+                        <span className="exerciseChip" key={item}>{item}</span>
+                      ))}
+                      {levelLabel ? <span className="exerciseChip level">{levelLabel}</span> : null}
+                    </div>
+                    {exercise.instructions ? <p className="exerciseCue">{exercise.instructions}</p> : null}
+                    <div className="exerciseCardFoot">
+                      <span className={videoUrl ? "videoBadge ready" : "videoBadge"}>
+                        {videoUrl ? <><PlayCircle size={13} /> con vídeo</> : <><Video size={13} /> sin vídeo</>}
+                      </span>
+                      <div className="exerciseActions">
                       {videoUrl ? (
                         <a className="btn ghost sm" href={videoUrl} target="_blank" rel="noreferrer">
                           <PlayCircle size={15} /> Ver
@@ -288,11 +303,12 @@ export default async function CoachExercisesPage({ searchParams }: CoachExercise
                           </Dialog>
                         </>
                       )}
+                      </div>
                     </div>
-                  </li>
+                  </article>
                 );
               })}
-            </ul>
+            </div>
           ) : hasFilters ? (
             <div className="inlineEmpty">
               <Filter color="var(--accent)" />
@@ -303,8 +319,8 @@ export default async function CoachExercisesPage({ searchParams }: CoachExercise
           ) : (
             <div className="inlineEmpty">
               <Dumbbell color="var(--accent)" />
-              <strong>Tu librería está vacía.</strong>
-              <p>Carga la librería base (scripts/sql/base-exercise-library.sql) o crea ejercicios con “Nuevo ejercicio”. Sin ejercicios, los programas se generan sin movimientos.</p>
+              <strong>Cargando la librería base…</strong>
+              <p>La biblioteca profesional (130+ ejercicios) se instala automáticamente al desplegar. Si no aparece, crea los tuyos con “Nuevo ejercicio”.</p>
             </div>
           )}
         </article>
