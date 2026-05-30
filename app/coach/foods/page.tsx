@@ -90,7 +90,13 @@ export default async function CoachFoodsPage() {
                   <li className="foodRow" key={food.id}>
                     <div className="foodInfo">
                       <strong>{food.name}{food.brand ? <span className="foodBrand"> · {food.brand}</span> : null}</strong>
-                      <small>{food.servingLabel} · {Math.round(food.calories)} kcal · {food.protein} P / {food.carbs} C / {food.fat} G</small>
+                      <div className="catalogChips">
+                        <span className="catalogChip">{food.servingLabel}</span>
+                        <span className="catalogChip accent">{Math.round(food.calories)} kcal</span>
+                        <span className="catalogChip">{food.protein} P</span>
+                        <span className="catalogChip">{food.carbs} C</span>
+                        <span className="catalogChip">{food.fat} G</span>
+                      </div>
                     </div>
                     {food.isStarter ? null : (
                       <form action={deleteFoodItemAction}>
