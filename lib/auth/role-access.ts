@@ -38,6 +38,29 @@ export function formatRole(role: WorkspaceRole) {
   return labels[role];
 }
 
+/**
+ * Pure authorization decision: can this session manage the given workspace?
+ * Platform/agency roles manage any workspace; otherwise the session must have a
+ * manager-level membership in that specific workspace. Kept here (no server
+ * imports) so it is unit-testable. Re-exported from access-control.
+ */
+export type ManageableSession = {
+  topRole: WorkspaceRole;
+  memberships: Array<{ workspaceId: string; role: WorkspaceRole }>;
+};
+
+export function canManageWorkspace(session: ManageableSession, workspaceId?: string) {
+  if (roleAllowed(session.topRole, platformRoles)) {
+    return true;
+  }
+  if (!workspaceId) {
+    return false;
+  }
+  return session.memberships.some((membership) => (
+    membership.workspaceId === workspaceId && workspaceManagerRoles.includes(membership.role)
+  ));
+}
+
 export function canInviteWorkspaceRole(actorRole: WorkspaceRole, invitedRole: WorkspaceRole) {
   if (actorRole === "platform_owner") {
     return ["platform_owner", "agency_admin", "coach_admin", "coach_staff"].includes(invitedRole);

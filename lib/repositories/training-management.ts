@@ -544,6 +544,34 @@ function applyFallbackExerciseFilters(exercises: ManagedExercise[], filters: Exe
 }
 
 export async function getExerciseLibraryFacets(workspaceId?: string) {
+  // Fast path: aggregate facets in Postgres (one small round-trip) instead of
+  // re-reading the whole library + its videos on every request.
+  const env = getSupabaseServiceEnv();
+  if (env.ok && isUuid(workspaceId)) {
+    const supabase = createServiceSupabaseClient();
+    const { data, error } = await (supabase as unknown as {
+      rpc: (fn: string, args: Record<string, unknown>) => Promise<{ data: Record<string, unknown> | null; error: { message: string } | null }>;
+    }).rpc("exercise_library_facets", { p_workspace_id: workspaceId });
+    if (error) {
+      console.error("Unable to load exercise facets", error.message);
+    } else if (data) {
+      const facets = data as {
+        muscles?: string[]; equipment?: string[]; levels?: string[];
+        total?: number; with_images?: number; with_video?: number; brand_only?: number;
+      };
+      return {
+        muscles: facets.muscles ?? [],
+        equipment: facets.equipment ?? [],
+        levels: facets.levels ?? [],
+        total: facets.total ?? 0,
+        withImages: facets.with_images ?? 0,
+        withVideo: facets.with_video ?? 0,
+        brandOnly: facets.brand_only ?? 0,
+      };
+    }
+  }
+
+  // Fallback (no env / non-uuid workspace): compute from the small fallback list.
   const exercises = await listManagedExercises(workspaceId, { limit: 1000 });
   const muscles = [...new Set(exercises.flatMap((exercise) => exercise.muscleGroups))].filter(Boolean).sort((a, b) => a.localeCompare(b));
   const equipment = [...new Set(exercises.flatMap((exercise) => exercise.equipment))].filter(Boolean).sort((a, b) => a.localeCompare(b));

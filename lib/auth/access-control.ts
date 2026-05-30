@@ -4,6 +4,7 @@ import { createClient } from "@supabase/supabase-js";
 import { isConsoleAuthRequired } from "@/lib/auth/auth-mode";
 import { authAccessCookie } from "@/lib/auth/session";
 import {
+  canManageWorkspace,
   consoleRoles,
   formatRole,
   highestRole,
@@ -173,20 +174,6 @@ export async function requirePlatformAccess() {
   return requireConsoleAccess(platformRoles);
 }
 
-export function canManageWorkspace(session: ConsoleSession, workspaceId?: string) {
-  if (roleAllowed(session.topRole, platformRoles)) {
-    return true;
-  }
-
-  if (!workspaceId) {
-    return false;
-  }
-
-  return session.memberships.some((membership) => (
-    membership.workspaceId === workspaceId && workspaceManagerRoles.includes(membership.role)
-  ));
-}
-
 export async function requireWorkspaceMutationAccess(workspaceId?: string) {
   const session = await requireConsoleAccess(workspaceManagerRoles);
 
@@ -197,4 +184,4 @@ export async function requireWorkspaceMutationAccess(workspaceId?: string) {
   return session;
 }
 
-export { formatRole };
+export { formatRole, canManageWorkspace };
