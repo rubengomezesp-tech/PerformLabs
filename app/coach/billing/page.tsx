@@ -1,0 +1,123 @@
+import { CheckCircle2, CreditCard, Link2, ShieldCheck, Unplug } from "lucide-react";
+import Link from "next/link";
+import { Topbar } from "@/components/topbar";
+import { getSelectedMemberAppBrand } from "@/lib/member-app";
+import { getPlatformSubscription, getStripeAccount } from "@/lib/repositories/stripe-billing";
+import { getStripeEnv, isPlatformBillingConfigured, isStripeConnectConfigured } from "@/lib/stripe/env";
+import { disconnectStripeAction, subscribePlatformAction } from "./actions";
+
+export const dynamic = "force-dynamic";
+
+const STATUS_MESSAGES: Record<string, { tone: "ok" | "err"; text: string }> = {
+  connected: { tone: "ok", text: "Cuenta de Stripe conectada correctamente." },
+  subscribed: { tone: "ok", text: "Suscripción de plataforma activada." },
+  denied: { tone: "err", text: "Cancelaste la conexión con Stripe." },
+  invalid_state: { tone: "err", text: "La sesión de conexión caducó. Inténtalo de nuevo." },
+  error: { tone: "err", text: "No se pudo completar la conexión. Inténtalo de nuevo." },
+  cancelled: { tone: "err", text: "Pago cancelado." },
+  not_configured: { tone: "err", text: "Stripe aún no está configurado en la plataforma." },
+};
+
+type BillingPageProps = { searchParams?: Promise<{ status?: string }> };
+
+export default async function CoachBillingPage({ searchParams }: BillingPageProps) {
+  const params = await searchParams;
+  const banner = params?.status ? STATUS_MESSAGES[params.status] : null;
+
+  const brand = await getSelectedMemberAppBrand();
+  const connectReady = isStripeConnectConfigured();
+  const billingReady = isPlatformBillingConfigured();
+  const [account, subscription] = await Promise.all([
+    getStripeAccount(brand.id),
+    getPlatformSubscription(brand.id),
+  ]);
+  const { applicationFeePercent } = getStripeEnv();
+  const subscriptionActive = subscription?.status === "active" || subscription?.status === "trialing";
+
+  return (
+    <>
+      <Topbar
+        eyebrow="Facturación"
+        title="Cobra a tus clientes y gestiona tu plan."
+        text={`Conecta tu Stripe para cobrar desde tu marca. PerformLabs aplica una comisión del ${applicationFeePercent}% sobre cada cobro a tus clientes.`}
+      />
+      <section className="grid">
+        {banner ? (
+          <article className={`card span12 billingBanner ${banner.tone}`}>
+            <CheckCircle2 size={16} /> {banner.text}
+          </article>
+        ) : null}
+
+        {!connectReady ? (
+          <article className="card span12">
+            <div className="sectionHeader">
+              <div>
+                <CreditCard color="var(--accent)" />
+                <h2>Pagos en preparación.</h2>
+                <p>La conexión con Stripe se activará en cuanto la plataforma termine de configurar las claves. No necesitas hacer nada todavía.</p>
+              </div>
+              <span className="tag">Próximamente</span>
+            </div>
+          </article>
+        ) : (
+          <>
+            <article className="card span6">
+              <div className="sectionHeader">
+                <div>
+                  <Link2 color="var(--accent)" />
+                  <h2>Tu cuenta de Stripe.</h2>
+                  <p>Con Connect (Standard) los cobros van directos a tu cuenta y tú mantienes el control.</p>
+                </div>
+                <span className={account ? "tag" : "tag danger"}>{account ? "Conectada" : "Sin conectar"}</span>
+              </div>
+              {account ? (
+                <>
+                  <div className="catalogChips">
+                    <span className={`catalogChip ${account.chargesEnabled ? "accent" : ""}`}>{account.chargesEnabled ? "Cobros activos" : "Cobros pendientes"}</span>
+                    <span className={`catalogChip ${account.payoutsEnabled ? "accent" : ""}`}>{account.payoutsEnabled ? "Pagos activos" : "Pagos pendientes"}</span>
+                    {account.country ? <span className="catalogChip">{account.country}</span> : null}
+                    <span className="catalogChip muted">{account.livemode ? "live" : "test"}</span>
+                  </div>
+                  {!account.detailsSubmitted ? (
+                    <p className="muted">Completa el alta en Stripe para activar los cobros.</p>
+                  ) : null}
+                  <form action={disconnectStripeAction}>
+                    <button className="btn ghost sm" type="submit"><Unplug size={14} /> Desconectar</button>
+                  </form>
+                </>
+              ) : (
+                <Link className="btn primary" href="/api/stripe/connect"><Link2 size={16} /> Conectar con Stripe</Link>
+              )}
+            </article>
+
+            <article className="card span6">
+              <div className="sectionHeader">
+                <div>
+                  <ShieldCheck color="var(--accent)" />
+                  <h2>Tu plan en PerformLabs.</h2>
+                  <p>La suscripción que mantiene tu app de marca operativa.</p>
+                </div>
+                <span className={subscriptionActive ? "tag" : "tag danger"}>{subscriptionActive ? "Activa" : "Inactiva"}</span>
+              </div>
+              <ul className="list">
+                <li className="row">Estado <span className="tag">{subscription?.status ?? "inactive"}</span></li>
+                {subscription?.currentPeriodEnd ? (
+                  <li className="row">Renueva <strong>{subscription.currentPeriodEnd.slice(0, 10)}</strong></li>
+                ) : null}
+              </ul>
+              {!subscriptionActive ? (
+                billingReady ? (
+                  <form action={subscribePlatformAction}>
+                    <button className="btn primary" type="submit"><CreditCard size={16} /> Activar suscripción</button>
+                  </form>
+                ) : (
+                  <p className="muted">El plan de plataforma estará disponible en breve.</p>
+                )
+              ) : null}
+            </article>
+          </>
+        )}
+      </section>
+    </>
+  );
+}

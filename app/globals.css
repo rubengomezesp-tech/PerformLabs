@@ -10105,3 +10105,22 @@ button[aria-busy="true"] {
   font-weight: 500;
 }
 .notFoundBrand img { border-radius: 5px; opacity: 0.9; }
+
+/* ---- Billing status banner ---- */
+.billingBanner {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  font-size: 14px;
+  font-weight: 500;
+}
+.billingBanner.ok {
+  color: var(--success);
+  border-color: color-mix(in srgb, var(--success) 40%, var(--line));
+  background: color-mix(in srgb, var(--success) 12%, transparent);
+}
+.billingBanner.err {
+  color: var(--danger);
+  border-color: color-mix(in srgb, var(--danger) 40%, var(--line));
+  background: color-mix(in srgb, var(--danger) 12%, transparent);
+}
