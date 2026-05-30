@@ -1,3 +1,4 @@
+import { cloudinaryFetch, exerciseCardImage } from "@/lib/cloudinary";
 import { exerciseLibrary, workouts } from "@/lib/data";
 import { buildPeriodizedWorkoutPlan, type ExperienceLevel, type TrainingLocation, type WorkoutGoal } from "@/lib/domain/workout-engine";
 import { getSupabaseServiceEnv } from "@/lib/supabase/env";
@@ -523,7 +524,7 @@ export async function listManagedExercises(workspaceId?: string, filters: Exerci
     source: exercise.source_dataset === "free-exercise-db" ? "Free Exercise DB" : exercise.workspace_id ? "Marca" : "Biblioteca global",
     sourceDataset: exercise.source_dataset ?? "",
     sourceLicense: exercise.source_license ?? "",
-    imageUrls: Array.isArray(exercise.image_urls) ? exercise.image_urls.filter((url): url is string => typeof url === "string") : [],
+    imageUrls: normalizeImageUrls(exercise.image_urls),
     workspaceVideo: videoByExercise.get(exercise.id) ?? null,
   })).filter((exercise) => source !== "video" || exercise.workspaceVideo);
 }
@@ -557,6 +558,11 @@ export async function getExerciseLibraryFacets(workspaceId?: string) {
     withVideo: exercises.filter((exercise) => exercise.workspaceVideo || exercise.defaultVideoUrl).length,
     brandOnly: exercises.filter((exercise) => !exercise.isBaseLibrary).length,
   };
+}
+
+function normalizeImageUrls(value: unknown): string[] {
+  if (!Array.isArray(value)) return [];
+  return value.filter((item): item is string => typeof item === "string" && item.trim().length > 0);
 }
 
 function normalizeUrl(value: string) {
@@ -797,7 +803,7 @@ export async function listManagedWorkoutTemplates(
   const exerciseResult = dayIds.length
     ? await supabase
         .from("workout_template_exercises")
-        .select("id,day_id,exercise_id,sets,reps,tempo,rest_seconds,notes,swap_rules,sort_order,exercises(name,default_video_url)")
+        .select("id,day_id,exercise_id,sets,reps,tempo,rest_seconds,notes,swap_rules,sort_order,exercises(name,default_video_url,image_urls)")
         .in("day_id", dayIds)
         .order("sort_order", { ascending: true })
     : { data: [], error: null };
@@ -833,16 +839,23 @@ export async function listManagedWorkoutTemplates(
   const exercisesByDay = new Map<string, ManagedWorkoutTemplate["days"][number]["exercises"]>();
   for (const item of exerciseResult.data ?? []) {
     const current = exercisesByDay.get(item.day_id) ?? [];
-    const exerciseRelation = item.exercises as { name?: string; default_video_url?: string | null } | null;
+    const exerciseRelation = item.exercises as { name?: string; default_video_url?: string | null; image_urls?: unknown } | null;
     const workspaceVideo = videoByExercise.get(item.exercise_id);
     const swapRules = item.swap_rules && typeof item.swap_rules === "object" ? item.swap_rules as Record<string, unknown> : {};
+    // Prefer the coach's own video thumbnail; otherwise fall back to the base
+    // library photo (e.g. Free Exercise DB). Either way it's served optimized
+    // through Cloudinary so base exercises always show a real image in /app.
+    const baseImageUrls = normalizeImageUrls(exerciseRelation?.image_urls);
+    const thumbnailUrl = workspaceVideo?.thumbnailUrl
+      ? cloudinaryFetch(workspaceVideo.thumbnailUrl, { width: 640, height: 480 })
+      : exerciseCardImage(baseImageUrls);
     current.push({
       id: item.id,
       exerciseId: item.exercise_id,
       exerciseName: exerciseRelation?.name ?? "Ejercicio",
       videoUrl: workspaceVideo?.videoUrl ?? exerciseRelation?.default_video_url ?? "",
       videoTitle: workspaceVideo?.title ?? "",
-      thumbnailUrl: workspaceVideo?.thumbnailUrl ?? "",
+      thumbnailUrl,
       sets: item.sets,
       reps: item.reps ?? "",
       tempo: item.tempo ?? "",

@@ -27,14 +27,18 @@ updated: 2026-05-30
 | `CRON_SECRET` | Protege `/api/cron/nudges` (Vercel Cron lo manda como Bearer) |
 | `COACHOS_OWNER_EMAIL` | Otorga platform_owner |
 | `STRIPE_*` (×6) | [[Pagos|Stripe Connect]]: `SECRET_KEY`, `NEXT_PUBLIC_…PUBLISHABLE_KEY`, `CONNECT_CLIENT_ID`, `WEBHOOK_SECRET`, `PLATFORM_PRICE_ID`, `APPLICATION_FEE_PERCENT` (degrada en oscuro sin ellas) |
+| `NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME` | Cloud name para optimizar imágenes vía Cloudinary fetch (opcional: hay default; las fetch URLs no llevan secreto) |
 
 > Tras añadir env vars: **Redeploy** (los `NEXT_PUBLIC_*` se incrustan en build).
 
 ## Integraciones (MCP)
 
 Varias integraciones MCP conectadas para operar desde el agente: Stripe, Supabase,
-Cloudinary, Vercel, Airtable, Figma, entre otras. Cloudinary es el destino futuro de
-las [[Features|imágenes de receta]] (hoy key-less, ver [[Decisiones]]).
+Cloudinary, Vercel, Airtable, Figma, entre otras. **Cloudinary ya sirve las
+[[Features|imágenes de ejercicio]]** (Free Exercise DB) por *fetch* optimizado
+(`f_auto,q_auto`) sin subir nada al media library; resolver aislado en
+`lib/cloudinary.ts`. Las imágenes de receta siguen key-less por ahora y migrarán al
+mismo helper (ver [[Decisiones]]).
 
 ## Migraciones (CI)
 

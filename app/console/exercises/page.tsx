@@ -1,5 +1,6 @@
 import { Camera, Dumbbell, ExternalLink, Filter, PlayCircle, Search, Upload, Video } from "lucide-react";
 import { Topbar } from "@/components/topbar";
+import { exerciseCardImage } from "@/lib/cloudinary";
 import { getExerciseLibraryFacets, listManagedExercises } from "@/lib/repositories/training-management";
 import { listWorkspaceSummaries } from "@/lib/repositories/workspaces";
 import { addExerciseVideoAction, createExerciseAction } from "./actions";
@@ -189,7 +190,7 @@ export default async function ExercisesPage({ searchParams }: ExercisesPageProps
                 <article className="exerciseCard" key={exercise.id}>
                   <div className="exerciseMedia">
                     {exercise.imageUrls[0] ? (
-                      <img alt="" src={exercise.imageUrls[0]} />
+                      <img alt="" loading="lazy" src={exerciseCardImage(exercise.imageUrls)} />
                     ) : (
                       <Dumbbell size={28} />
                     )}

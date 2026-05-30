@@ -271,7 +271,7 @@ export default async function WorkoutsPage() {
                       <div className="sessionExercise">
                         <div className="sessionExerciseMedia">
                           {exercise.thumbnailUrl ? (
-                            <img alt="" src={exercise.thumbnailUrl} />
+                            <img alt="" loading="lazy" src={exercise.thumbnailUrl} />
                           ) : (
                             <Video size={30} />
                           )}
