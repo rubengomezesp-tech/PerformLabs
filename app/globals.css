@@ -9619,3 +9619,57 @@ button[aria-busy="true"] {
   font-family: var(--font-mono, ui-monospace, monospace);
   color: var(--accent);
 }
+
+/* ---- Supplements ---- */
+.suppSummary { display: flex; align-items: center; gap: 14px; }
+.suppSummary > div p { margin: 2px 0 0; color: var(--text-muted); font-size: 13px; }
+.suppGroup { display: flex; flex-direction: column; gap: 10px; }
+.suppGroupTitle {
+  margin: 0;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--accent);
+}
+.suppList { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 8px; }
+.suppRow {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 11px 12px;
+  border-radius: 12px;
+  background: color-mix(in srgb, var(--bg) 64%, #0b0e14);
+  border: 1px solid var(--line);
+}
+.suppRow.done { border-color: color-mix(in srgb, #30a46c 40%, var(--border)); }
+.suppTick {
+  display: grid;
+  place-items: center;
+  width: 26px;
+  height: 26px;
+  flex-shrink: 0;
+  border-radius: 8px;
+  border: 1px solid var(--border-strong, var(--line));
+  background: transparent;
+  color: #fff;
+  cursor: pointer;
+  transition: background 160ms ease, border-color 160ms ease;
+}
+.suppRow.done .suppTick { background: #30a46c; border-color: #30a46c; }
+.suppInfo { flex: 1; min-width: 0; display: flex; flex-direction: column; line-height: 1.3; }
+.suppInfo strong { font-size: 14px; }
+.suppDose { color: var(--accent); font-weight: 600; }
+.suppInfo small { color: var(--text-muted); font-size: 12px; }
+.suppTimingTag {
+  flex-shrink: 0;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  padding: 3px 8px;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--accent) 12%, transparent);
+  color: var(--accent);
+  border: 1px solid color-mix(in srgb, var(--accent) 24%, transparent);
+}
