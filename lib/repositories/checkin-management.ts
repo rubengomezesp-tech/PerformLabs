@@ -39,6 +39,8 @@ export type ManagedCheckin = {
     weightKg?: number | null;
     bodyFatPercent?: number | null;
     waistCm?: number | null;
+    chestCm?: number | null;
+    hipCm?: number | null;
     energy?: string;
     trainingAdherence?: string;
     nutritionAdherence?: string;
@@ -47,6 +49,29 @@ export type ManagedCheckin = {
     nextActions?: string;
   };
 };
+
+export type MeasurementKey = "weightKg" | "bodyFatPercent" | "waistCm" | "chestCm" | "hipCm";
+
+export type MeasurementSummary = {
+  key: MeasurementKey;
+  label: string;
+  unit: string;
+  /** null when this measurement has a lower-is-better reading (fat, waist); used to colour the delta. */
+  goodWhenDown: boolean | null;
+  current: number | null;
+  /** current minus the previous check-in that carried this measurement. */
+  delta: number | null;
+  /** oldest-first series for sparklines. */
+  trend: Array<{ date: string; value: number }>;
+};
+
+const MEASUREMENT_META: Array<Pick<MeasurementSummary, "key" | "label" | "unit" | "goodWhenDown">> = [
+  { key: "weightKg", label: "Peso", unit: "kg", goodWhenDown: true },
+  { key: "bodyFatPercent", label: "Grasa", unit: "%", goodWhenDown: true },
+  { key: "waistCm", label: "Cintura", unit: "cm", goodWhenDown: true },
+  { key: "chestCm", label: "Pecho", unit: "cm", goodWhenDown: null },
+  { key: "hipCm", label: "Cadera", unit: "cm", goodWhenDown: null },
+];
 
 export type CoachAlert = {
   id: string;
@@ -196,6 +221,8 @@ export async function listManagedCheckins(workspaceId?: string): Promise<Managed
       weightKg: jsonNumber(checkin.key_values, "weightKg"),
       bodyFatPercent: jsonNumber(checkin.key_values, "bodyFatPercent"),
       waistCm: jsonNumber(checkin.key_values, "waistCm"),
+      chestCm: jsonNumber(checkin.key_values, "chestCm"),
+      hipCm: jsonNumber(checkin.key_values, "hipCm"),
       energy: jsonText(checkin.key_values, "energy"),
       trainingAdherence: jsonText(checkin.key_values, "trainingAdherence"),
       nutritionAdherence: jsonText(checkin.key_values, "nutritionAdherence"),
@@ -209,20 +236,40 @@ export async function listManagedCheckins(workspaceId?: string): Promise<Managed
 export async function getMemberCheckinSummary(workspaceId?: string) {
   const checkins = await listManagedCheckins(workspaceId);
   const latest = checkins[0] ?? null;
-  // listManagedCheckins is newest-first; build the trend oldest-first.
-  const weightTrend = checkins
-    .filter((checkin) => typeof checkin.values.weightKg === "number")
-    .map((checkin) => ({
-      date: checkin.submittedAt ? checkin.submittedAt.slice(0, 10) : "",
-      weightKg: checkin.values.weightKg as number,
-    }))
-    .reverse();
+
+  // listManagedCheckins is newest-first. For each tracked measurement build an
+  // oldest-first series plus the delta against the previous check-in that
+  // carried it, so the client can surface real composition progress, not weight
+  // alone.
+  const measurements: MeasurementSummary[] = MEASUREMENT_META.map((meta) => {
+    const series = checkins
+      .filter((checkin) => typeof checkin.values[meta.key] === "number")
+      .map((checkin) => ({
+        date: checkin.submittedAt ? checkin.submittedAt.slice(0, 10) : "",
+        value: checkin.values[meta.key] as number,
+      }));
+    const current = series[0]?.value ?? null;
+    const previous = series[1]?.value ?? null;
+    return {
+      ...meta,
+      current,
+      delta: current !== null && previous !== null ? Number((current - previous).toFixed(2)) : null,
+      trend: series.slice().reverse(),
+    };
+  });
+
+  const weightTrend = (measurements.find((measurement) => measurement.key === "weightKg")?.trend ?? []).map((point) => ({
+    date: point.date,
+    weightKg: point.value,
+  }));
+
   return {
     latest,
     total: checkins.length,
     pendingCoachReview: checkins.filter((checkin) => checkin.status !== "reviewed").length,
     reviewed: checkins.filter((checkin) => checkin.status === "reviewed").length,
     weightTrend,
+    measurements,
   };
 }
 

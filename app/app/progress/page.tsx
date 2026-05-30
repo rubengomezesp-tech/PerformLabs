@@ -2,7 +2,8 @@ import { Camera, CheckCircle2, ClipboardCheck, LineChart, Ruler, Scale, Trending
 import Link from "next/link";
 import { Topbar } from "@/components/topbar";
 import { getSelectedMemberAppBrand } from "@/lib/member-app";
-import { getMemberCheckinSummary } from "@/lib/repositories/checkin-management";
+import { type ReactNode } from "react";
+import { getMemberCheckinSummary, type MeasurementSummary } from "@/lib/repositories/checkin-management";
 import { createMemberCheckinAction } from "./actions";
 
 export const dynamic = "force-dynamic";
@@ -20,29 +21,58 @@ const measureFields = [
   ["Cadera", "hipCm", "cm"],
 ];
 
-function Sparkline({ points }: { points: Array<{ date: string; weightKg: number }> }) {
+function Sparkline({ points, label }: { points: Array<{ date: string; value: number }>; label: string }) {
   if (points.length < 2) return null;
   const width = 320;
   const height = 96;
   const pad = 10;
-  const values = points.map((point) => point.weightKg);
+  const values = points.map((point) => point.value);
   const min = Math.min(...values);
   const max = Math.max(...values);
   const range = max - min || 1;
   const stepX = (width - pad * 2) / (points.length - 1);
   const coords = points.map((point, index) => {
     const x = pad + index * stepX;
-    const y = pad + (1 - (point.weightKg - min) / range) * (height - pad * 2);
+    const y = pad + (1 - (point.value - min) / range) * (height - pad * 2);
     return [x, y] as const;
   });
   const line = coords.map(([x, y], index) => `${index === 0 ? "M" : "L"}${x.toFixed(1)} ${y.toFixed(1)}`).join(" ");
   const area = `${line} L${coords[coords.length - 1][0].toFixed(1)} ${height} L${coords[0][0].toFixed(1)} ${height} Z`;
 
   return (
-    <svg className="progressSpark" viewBox={`0 0 ${width} ${height}`} preserveAspectRatio="none" role="img" aria-label="Evolución del peso">
+    <svg className="progressSpark" viewBox={`0 0 ${width} ${height}`} preserveAspectRatio="none" role="img" aria-label={`Evolución de ${label.toLowerCase()}`}>
       <path d={area} fill="var(--accent)" opacity={0.12} />
       <path d={line} fill="none" stroke="var(--accent)" strokeWidth={2.5} strokeLinejoin="round" strokeLinecap="round" />
     </svg>
+  );
+}
+
+function formatMeasure(measure: MeasurementSummary) {
+  return measure.current !== null ? `${measure.current} ${measure.unit}` : "Sin dato";
+}
+
+// Direction-aware delta vs the previous check-in. Colour only when there is a
+// clear reading (weight/fat/waist lower-is-better); chest/hip stay neutral.
+function DeltaTag({ measure }: { measure: MeasurementSummary }) {
+  if (measure.current === null) return <span className="progressDelta muted">Sin dato</span>;
+  if (measure.delta === null) return <span className="progressDelta muted">Primer registro</span>;
+  if (measure.delta === 0) return <span className="progressDelta muted">Sin cambio</span>;
+  const down = measure.delta < 0;
+  const tone = measure.goodWhenDown === true ? (down ? "down" : "up") : "neutral";
+  return (
+    <span className={`progressDelta ${tone}`}>
+      {down ? <TrendingDown size={14} /> : <TrendingUp size={14} />} {measure.delta > 0 ? "+" : ""}{measure.delta} {measure.unit} vs anterior
+    </span>
+  );
+}
+
+function MetricCard({ measure, icon }: { measure: MeasurementSummary; icon: ReactNode }) {
+  return (
+    <article className="card span4 progressMetricCard">
+      <span className="eyebrow">{icon} {measure.label}</span>
+      <strong className="progressMetric">{formatMeasure(measure)}</strong>
+      <DeltaTag measure={measure} />
+    </article>
   );
 }
 
@@ -60,7 +90,11 @@ export default async function ProgressPage({ searchParams }: ProgressPageProps) 
   const weightTrend = summary.weightTrend;
   const totalWeightDelta = weightTrend.length > 1 ? weightTrend[weightTrend.length - 1].weightKg - weightTrend[0].weightKg : null;
   const weightDeltaLabel = totalWeightDelta !== null ? `${totalWeightDelta > 0 ? "+" : ""}${totalWeightDelta.toFixed(1)} kg vs inicio` : "Sin histórico";
-  const losingWeight = totalWeightDelta !== null && totalWeightDelta < 0;
+
+  const measureByKey = Object.fromEntries(summary.measurements.map((measure) => [measure.key, measure])) as Record<MeasurementSummary["key"], MeasurementSummary>;
+  const keyMetrics = (["weightKg", "bodyFatPercent", "waistCm"] as const).map((key) => measureByKey[key]);
+  const sparkMetrics = keyMetrics.filter((measure) => measure.trend.length > 1);
+  const perimeters = (["chestCm", "hipCm"] as const).map((key) => measureByKey[key]);
 
   return (
     <>
@@ -79,46 +113,61 @@ export default async function ProgressPage({ searchParams }: ProgressPageProps) 
       <section className="grid">
         {tab === "resumen" ? (
           <>
-            <article className="card span6 progressMetricCard">
-              <span className="eyebrow"><Scale size={15} /> Peso actual</span>
-              <strong className="progressMetric">{latest?.values.weightKg ? `${latest.values.weightKg} kg` : "Sin dato"}</strong>
-              {totalWeightDelta !== null ? (
-                <span className={losingWeight ? "progressDelta down" : "progressDelta"}>
-                  {losingWeight ? <TrendingDown size={14} /> : <TrendingUp size={14} />} {weightDeltaLabel}
-                </span>
-              ) : (
-                <span className="progressDelta muted">Registra tu primer check-in</span>
-              )}
-            </article>
-
-            <article className="card span6 progressMetricCard">
-              <span className="eyebrow"><LineChart size={15} /> Grasa corporal</span>
-              <strong className="progressMetric">{latest?.values.bodyFatPercent ? `${latest.values.bodyFatPercent}%` : "Sin dato"}</strong>
-              <span className="progressDelta muted">{latest?.submittedAt ? `Último check-in · ${latest.submittedAt.slice(0, 10)}` : "Aún sin check-ins"}</span>
-            </article>
+            <MetricCard measure={measureByKey.weightKg} icon={<Scale size={15} />} />
+            <MetricCard measure={measureByKey.bodyFatPercent} icon={<LineChart size={15} />} />
+            <MetricCard measure={measureByKey.waistCm} icon={<Ruler size={15} />} />
 
             <article className="card span12 progressEvolutionCard">
               <div className="sectionHeader">
                 <div>
                   <h2>Evolución</h2>
-                  <p>Tu peso a lo largo de los check-ins enviados.</p>
+                  <p>Peso, grasa y cintura a lo largo de tus check-ins.</p>
                 </div>
-                <span className="tag">{weightDeltaLabel}</span>
+                <span className="tag">{summary.total} check-in(s)</span>
               </div>
-              {weightTrend.length > 1 ? (
-                <>
-                  <Sparkline points={weightTrend} />
-                  <div className="progressSparkAxis">
-                    <span>{weightTrend[0].date || "inicio"}</span>
-                    <span>{weightTrend[weightTrend.length - 1].date || "hoy"}</span>
-                  </div>
-                </>
+              {sparkMetrics.length ? (
+                <div className="progressSparkGrid">
+                  {sparkMetrics.map((measure) => (
+                    <div className="progressSparkItem" key={measure.key}>
+                      <div className="progressSparkHead">
+                        <span className="progressSparkLabel">{measure.label}</span>
+                        <DeltaTag measure={measure} />
+                      </div>
+                      <Sparkline points={measure.trend} label={measure.label} />
+                      <div className="progressSparkAxis">
+                        <span>{measure.trend[0].date || "inicio"}</span>
+                        <span>{measure.trend[measure.trend.length - 1].date || "hoy"}</span>
+                      </div>
+                    </div>
+                  ))}
+                </div>
               ) : (
-                <p className="muted">Cuando envíes varios check-ins, aquí verás tu gráfico de evolución.</p>
+                <p className="muted">Cuando envíes varios check-ins, aquí verás tus gráficos de evolución de peso, grasa y cintura.</p>
               )}
             </article>
 
-            <Link href="/app/progress?tab=fotos" className="card span12 panelCheckinCard">
+            <article className="card span6 progressPerimCard">
+              <div className="sectionHeader">
+                <div>
+                  <Ruler color="var(--accent)" />
+                  <h2>Perímetros</h2>
+                  <p>Pecho y cadera frente a tu check-in anterior.</p>
+                </div>
+              </div>
+              <ul className="list">
+                {perimeters.map((measure) => (
+                  <li className="row" key={measure.key}>
+                    {measure.label}
+                    <span className="progressPerimValue">
+                      <strong>{formatMeasure(measure)}</strong>
+                      <DeltaTag measure={measure} />
+                    </span>
+                  </li>
+                ))}
+              </ul>
+            </article>
+
+            <Link href="/app/progress?tab=fotos" className="card span6 panelCheckinCard">
               <div>
                 <span className="eyebrow"><Camera size={15} /> Fotos de progreso</span>
                 <h2>{latest?.photosAvailable ? "Fotos incluidas en tu último check-in." : "Sube tus fotos de progreso."}</h2>
