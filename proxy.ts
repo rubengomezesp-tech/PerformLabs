@@ -11,7 +11,8 @@ export function proxy(request: NextRequest) {
 
   const token = request.cookies.get(authAccessCookie)?.value;
   const protectedPath = request.nextUrl.pathname.startsWith("/console")
-    || request.nextUrl.pathname.startsWith("/coach");
+    || request.nextUrl.pathname.startsWith("/coach")
+    || request.nextUrl.pathname.startsWith("/app");
 
   if (!token && protectedPath) {
     const loginUrl = new URL("/login", request.url);
@@ -23,5 +24,5 @@ export function proxy(request: NextRequest) {
 }
 
 export const config = {
-  matcher: ["/console/:path*", "/coach/:path*"],
+  matcher: ["/console/:path*", "/coach/:path*", "/app/:path*"],
 };

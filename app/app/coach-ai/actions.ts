@@ -24,8 +24,13 @@ export async function askCoachAiAction(formData: FormData) {
   const brain = await getCoachBrain(brand.id);
   if (!brain.enabled) return;
 
+  // Require an authenticated member: server actions are reachable directly, so
+  // without this guard an anonymous/cross-tenant POST could spend a workspace's
+  // AI quota via the brand cookie. In open/demo mode getDefaultMember resolves
+  // the demo member, so local still works.
   const member = await getDefaultMember(brand.id);
-  const memberProfileId = member?.id ?? null;
+  if (!member) return;
+  const memberProfileId = member.id;
 
   // Persist the question first so the coach sees it even if the model hiccups.
   await appendCoachAiMessage({ workspaceId: brand.id, memberProfileId, role: "user", content: question });

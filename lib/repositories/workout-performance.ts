@@ -1,3 +1,4 @@
+import { getMemberContext } from "@/lib/auth/member-access";
 import { getSupabaseServiceEnv } from "@/lib/supabase/env";
 import { createServiceSupabaseClient } from "@/lib/supabase/server";
 
@@ -56,16 +57,9 @@ function parseNumber(value: unknown) {
 }
 
 async function getDefaultMemberProfileId(workspaceId: string) {
-  const supabase = createServiceSupabaseClient();
-  const { data } = await supabase
-    .from("member_profiles")
-    .select("id")
-    .eq("workspace_id", workspaceId)
-    .order("created_at", { ascending: true })
-    .limit(1)
-    .maybeSingle();
-
-  return data?.id ?? null;
+  const context = await getMemberContext(workspaceId);
+  if (!context || context.workspaceId !== workspaceId) return null;
+  return context.memberProfileId;
 }
 
 export async function createWorkoutSessionLog(input: WorkoutSessionLogInput) {

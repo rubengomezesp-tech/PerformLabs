@@ -1,3 +1,4 @@
+import { getMemberContext } from "@/lib/auth/member-access";
 import { exerciseCardImage } from "@/lib/cloudinary";
 import { getSupabaseServiceEnv } from "@/lib/supabase/env";
 import { createServiceSupabaseClient } from "@/lib/supabase/server";
@@ -293,20 +294,13 @@ function daysBetween(fromIso?: string | null, toIso = new Date().toISOString().s
 }
 
 async function getDefaultMemberProfile(workspaceId: string) {
-  const supabase = createServiceSupabaseClient();
-  const { data, error } = await supabase
-    .from("member_profiles")
-    .select("id,full_name")
-    .eq("workspace_id", workspaceId)
-    .order("created_at", { ascending: true })
-    .limit(1)
-    .maybeSingle();
-
-  if (error) {
-    throw new Error(`No se pudo localizar el perfil del cliente: ${error.message}`);
-  }
-
-  return data ?? null;
+  // Resolve from the verified member session (production) or the demo member
+  // (open mode) — never "the first profile in the workspace". The workspace
+  // guard closes cross-tenant access when a client-supplied workspaceId differs
+  // from the authenticated member's own workspace.
+  const context = await getMemberContext(workspaceId);
+  if (!context || context.workspaceId !== workspaceId) return null;
+  return { id: context.memberProfileId, full_name: context.fullName };
 }
 
 /**
