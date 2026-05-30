@@ -451,7 +451,7 @@ textarea {
   justify-content: center;
   gap: 8px;
   border: 1px solid var(--line);
-  border-radius: 8px;
+  border-radius: 10px;
   background: var(--panel);
   color: var(--text);
   font-family: var(--font-display, Arial, Helvetica, sans-serif);
@@ -576,10 +576,12 @@ textarea {
 
 .card {
   border: 1px solid var(--line);
-  border-radius: 8px;
+  border-radius: 16px;
   background: var(--panel);
   padding: 18px;
-  box-shadow: var(--shadow-sm);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.04),
+    0 14px 30px -24px rgba(0, 0, 0, 0.55);
   transition:
     border-color var(--dur) var(--ease),
     box-shadow var(--dur) var(--ease),
@@ -4736,12 +4738,12 @@ input,
 select,
 textarea {
   width: 100%;
-  min-height: 42px;
+  min-height: 44px;
   border: 1px solid var(--line);
-  border-radius: 8px;
-  background: #090a0b;
+  border-radius: 11px;
+  background: #0a0c0d;
   color: var(--text);
-  padding: 10px 12px;
+  padding: 11px 13px;
   transition:
     border-color var(--dur-fast) var(--ease),
     box-shadow var(--dur-fast) var(--ease);
