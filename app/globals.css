@@ -9015,7 +9015,7 @@ button[aria-busy="true"] {
     inset 0 1px 0 rgba(255, 255, 255, 0.08),
     0 34px 70px -36px color-mix(in srgb, var(--accent) 80%, transparent);
 }
-.bentoFeature { grid-column: span 4; grid-row: span 2; }
+.bentoFeature { grid-column: span 4; grid-row: span 2; justify-content: center; }
 .bentoIcon {
   display: grid;
   place-items: center;
@@ -9295,11 +9295,14 @@ button[aria-busy="true"] {
 
 /* Featured bento cell: photo -> calories visual */
 .bentoShot {
-  margin-top: auto;
+  margin-top: 16px;
   display: flex;
   gap: 12px;
   align-items: center;
-  padding-top: 10px;
+  padding: 14px;
+  border-radius: 16px;
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.06);
 }
 .bentoShotPhoto {
   display: grid;
@@ -9434,3 +9437,69 @@ button[aria-busy="true"] {
 }
 .appProgRow span { color: rgba(255, 255, 255, 0.7); }
 .appProgRow b { color: var(--accent); }
+
+/* ---- Demo: draggable app-screens gallery ---- */
+.screensGallery { margin-top: 36px; overflow: hidden; }
+.galTrack { display: flex; gap: 18px; padding: 4px 2px 10px; cursor: grab; }
+.galCard { flex: 0 0 auto; display: flex; flex-direction: column; align-items: center; gap: 12px; user-select: none; }
+.galPhoneMini {
+  width: 238px;
+  border-radius: 26px;
+  padding: 14px;
+  background: linear-gradient(165deg, #14171d, #0a0c10 62%);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.04), 0 30px 60px -34px rgba(0, 0, 0, 0.8);
+}
+.galPhoneMini * { pointer-events: none; }
+.galLabel { font-size: 13px; font-weight: 600; color: var(--text-muted); }
+.galHint { text-align: center; margin-top: 14px; font-size: 12px; color: var(--text-muted); }
+
+.galScreen { display: flex; flex-direction: column; gap: 8px; }
+.galHead { display: flex; align-items: center; gap: 9px; padding: 2px 0 4px; }
+.galDot { display: grid; place-items: center; width: 30px; height: 30px; border-radius: 9px; }
+.galDot.accent { background: color-mix(in srgb, var(--accent) 16%, transparent); color: var(--accent); }
+.galHead strong { font-size: 13px; display: block; line-height: 1.2; }
+.galHead small { font-size: 10px; color: rgba(255, 255, 255, 0.5); }
+.galExCard { display: flex; gap: 9px; align-items: center; padding: 9px; border-radius: 12px; background: rgba(255, 255, 255, 0.05); border: 1px solid rgba(255, 255, 255, 0.06); }
+.galVideo { position: relative; display: grid; place-items: center; width: 50px; height: 44px; flex-shrink: 0; border-radius: 9px; color: #fff; background: linear-gradient(135deg, color-mix(in srgb, var(--accent) 55%, #11131a), #11131a); }
+.galVideo i { position: absolute; bottom: 3px; right: 3px; font-size: 7px; font-style: normal; font-weight: 700; padding: 1px 4px; border-radius: 999px; background: rgba(0, 0, 0, 0.55); }
+.galMeta { display: flex; flex-wrap: wrap; gap: 4px; }
+.galMeta span { font-size: 9px; font-weight: 600; padding: 3px 6px; border-radius: 6px; background: rgba(255, 255, 255, 0.05); color: rgba(255, 255, 255, 0.6); }
+.galRow { display: flex; align-items: center; gap: 8px; padding: 8px 10px; border-radius: 10px; background: rgba(255, 255, 255, 0.04); border: 1px solid rgba(255, 255, 255, 0.06); }
+.galRow span { font-size: 10px; color: rgba(255, 255, 255, 0.55); width: 42px; }
+.galRow b { flex: 1; font-size: 11.5px; color: #fff; font-family: var(--font-mono, ui-monospace, monospace); }
+.galRow b.ph { color: rgba(255, 255, 255, 0.35); }
+.galRow b.up { flex: none; color: var(--accent); }
+.galRow.flat { justify-content: space-between; }
+.galRow.flat span { width: auto; }
+.galRow i { display: grid; place-items: center; width: 18px; height: 18px; border-radius: 5px; color: #fff; background: #30a46c; }
+.galRow i.empty { background: rgba(255, 255, 255, 0.08); }
+.galPhoto { height: 72px; border-radius: 12px; display: flex; flex-direction: column; gap: 5px; align-items: center; justify-content: center; color: rgba(255, 255, 255, 0.4); background: linear-gradient(135deg, rgba(255, 255, 255, 0.07), rgba(255, 255, 255, 0.02)); border: 1px solid rgba(255, 255, 255, 0.06); }
+.galPhoto span { font-size: 9px; }
+.galNutri { border-radius: 12px; padding: 10px; background: rgba(255, 255, 255, 0.05); border: 1px solid rgba(255, 255, 255, 0.06); }
+.galNutriHead { display: flex; align-items: center; justify-content: space-between; }
+.galNutriHead strong { font-size: 11.5px; }
+.galOk { display: grid; place-items: center; width: 18px; height: 18px; border-radius: 50%; background: #30a46c; color: #fff; }
+.galMacros { display: flex; gap: 5px; margin-top: 8px; }
+.galMacros span { flex: 1; text-align: center; padding: 5px 0; border-radius: 7px; background: rgba(255, 255, 255, 0.04); font-size: 9px; color: rgba(255, 255, 255, 0.6); }
+.galMacros span b { display: block; font-size: 12px; color: #fff; font-family: var(--font-mono, ui-monospace, monospace); }
+.galMacros .kcal { background: color-mix(in srgb, var(--accent) 16%, transparent); }
+.galMacros .kcal b { color: var(--accent); }
+.galProg { border-radius: 12px; padding: 11px; background: rgba(255, 255, 255, 0.05); border: 1px solid rgba(255, 255, 255, 0.06); }
+.galProgTop { display: flex; align-items: baseline; justify-content: space-between; }
+.galProgTop strong { font-size: 18px; color: #fff; font-family: var(--font-mono, ui-monospace, monospace); }
+.galProgTop span { display: inline-flex; align-items: center; gap: 3px; font-size: 9px; color: #30a46c; }
+.galBars { display: flex; align-items: flex-end; gap: 4px; height: 42px; margin-top: 10px; }
+.galBars span { flex: 1; border-radius: 3px; background: rgba(255, 255, 255, 0.12); min-height: 5px; }
+.galBars span.on { background: var(--accent); }
+.galChat { display: flex; flex-direction: column; gap: 6px; }
+.galBubble { max-width: 86%; padding: 7px 10px; border-radius: 12px; font-size: 11px; line-height: 1.35; }
+.galBubble.in { align-self: flex-start; background: rgba(255, 255, 255, 0.06); border-bottom-left-radius: 4px; }
+.galBubble.out { align-self: flex-end; background: color-mix(in srgb, var(--accent) 24%, transparent); border: 1px solid color-mix(in srgb, var(--accent) 36%, transparent); border-bottom-right-radius: 4px; }
+.galPost { border-radius: 12px; padding: 11px; background: rgba(255, 255, 255, 0.05); border: 1px solid rgba(255, 255, 255, 0.06); }
+.galPostHead { display: flex; align-items: center; gap: 8px; }
+.galAvatar { display: grid; place-items: center; width: 28px; height: 28px; border-radius: 50%; background: color-mix(in srgb, var(--accent) 18%, transparent); color: var(--accent); font-size: 10px; font-weight: 700; }
+.galPostHead strong { font-size: 11.5px; display: block; }
+.galPostHead small { font-size: 9px; color: rgba(255, 255, 255, 0.5); }
+.galPost p { margin: 9px 0; font-size: 11px; line-height: 1.4; color: rgba(255, 255, 255, 0.8); }
+.galLike { display: inline-flex; align-items: center; gap: 4px; font-size: 10px; color: var(--accent); }

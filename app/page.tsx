@@ -16,6 +16,7 @@ import {
 import { submitLeadAction } from "@/app/lead-actions";
 import { LandingNav } from "@/components/landing/landing-nav";
 import { PhoneBuild } from "@/components/landing/phone-build";
+import { ScreensGallery } from "@/components/landing/screens-gallery";
 import { MotionReveal, SmoothScroll } from "@/components/motion-reveal";
 import { platformBrand } from "@/lib/brand";
 
@@ -166,22 +167,14 @@ export default function Home() {
         </div>
       </section>
 
-      {/* ---- Demo ---- */}
+      {/* ---- Demo: swipeable screens ---- */}
       <section className="v2Section" id="demo">
-        <MotionReveal className="appScreensBand v2DemoBand">
-          <div>
-            <span className="v2Tag">Vista cliente</span>
-            <h2>Se siente como producto propio desde el primer día.</h2>
-            <p>El usuario final ve tu marca, su plan, sus comidas, sus métricas y una ruta clara para avanzar.</p>
-            <ul className="featureList">
-              <li><CheckCircle2 size={18} /> Entrenos en vídeo con progreso por serie</li>
-              <li><CheckCircle2 size={18} /> Nutrición con macros y calorías por foto</li>
-              <li><CheckCircle2 size={18} /> Check-ins, hábitos y comunidad</li>
-              <li><CheckCircle2 size={18} /> Soporte y perfil del cliente</li>
-            </ul>
-          </div>
-          <img src="/brand/performlabs-app-screens.png" alt="Pantallas de ejemplo de la app PerformLabs" />
+        <MotionReveal className="v2SectionHead">
+          <span className="v2Tag">Vista cliente</span>
+          <h2>Mira la app por dentro.</h2>
+          <p>Entreno, comida, progreso, mensajes con tu coach y comunidad. Arrastra para recorrerla, con tu marca de principio a fin.</p>
         </MotionReveal>
+        <ScreensGallery />
       </section>
 
       {/* ---- Lead form ---- */}
