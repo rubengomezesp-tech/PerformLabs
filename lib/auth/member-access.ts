@@ -83,7 +83,7 @@ export async function requireMemberContext(workspaceIdHint?: string): Promise<Me
   const context = await getMemberContext(workspaceIdHint);
   if (context) return context;
   if (isConsoleAuthRequired()) {
-    redirect("/login?error=Inicia sesión para acceder a tu app.");
+    redirect("/acceso?error=" + encodeURIComponent("Inicia sesión para acceder a tu app."));
   }
   return null;
 }

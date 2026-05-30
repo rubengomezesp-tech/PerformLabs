@@ -10,13 +10,17 @@ export function proxy(request: NextRequest) {
   }
 
   const token = request.cookies.get(authAccessCookie)?.value;
+  const isMemberPath = request.nextUrl.pathname.startsWith("/app");
   const protectedPath = request.nextUrl.pathname.startsWith("/console")
     || request.nextUrl.pathname.startsWith("/coach")
-    || request.nextUrl.pathname.startsWith("/app");
+    || isMemberPath;
 
   if (!token && protectedPath) {
-    const loginUrl = new URL("/login", request.url);
-    loginUrl.searchParams.set("next", `${request.nextUrl.pathname}${request.nextUrl.search}`);
+    // Members get the passwordless client entry; staff get the console login.
+    const loginUrl = new URL(isMemberPath ? "/acceso" : "/login", request.url);
+    if (!isMemberPath) {
+      loginUrl.searchParams.set("next", `${request.nextUrl.pathname}${request.nextUrl.search}`);
+    }
     return NextResponse.redirect(loginUrl);
   }
 
