@@ -7090,6 +7090,7 @@ a.diaryEntryTitle:hover {
   margin: 0;
 }
 .habitArchive {
+  position: relative;
   display: grid;
   place-items: center;
   width: 24px;
@@ -7099,6 +7100,12 @@ a.diaryEntryTitle:hover {
   background: transparent;
   color: var(--text-soft);
   cursor: pointer;
+}
+/* 44px tap target without enlarging the visible icon (WCAG 2.5.5). */
+.habitArchive::after {
+  content: "";
+  position: absolute;
+  inset: -10px;
 }
 .habitArchive:hover {
   color: var(--danger);
@@ -7346,7 +7353,9 @@ a.diaryEntryTitle:hover {
   display: flex;
   flex-direction: column;
   align-items: center;
+  justify-content: center;
   gap: 4px;
+  min-height: 44px; /* WCAG target size — primary nav */
   padding: 6px 0;
   color: var(--text-muted);
   font-size: 11px;
@@ -7403,6 +7412,7 @@ a.diaryEntryTitle:hover {
   gap: 8px;
 }
 .panelHabitCheck {
+  position: relative;
   display: grid;
   place-items: center;
   width: 28px;
@@ -7413,6 +7423,12 @@ a.diaryEntryTitle:hover {
   color: transparent;
   cursor: pointer;
   transition: background 0.15s ease, border-color 0.15s ease, color 0.15s ease;
+}
+/* 44px tap target without enlarging the visible 28px ring (WCAG 2.5.5). */
+.panelHabitCheck::after {
+  content: "";
+  position: absolute;
+  inset: -8px;
 }
 .panelHabitCheck.done {
   background: var(--accent);
@@ -7611,8 +7627,8 @@ a.diaryEntryTitle:hover {
 .memberHeaderBtn {
   display: grid;
   place-items: center;
-  width: 40px;
-  height: 40px;
+  width: 44px;
+  height: 44px;
   border-radius: 12px;
   border: 0;
   background: transparent;

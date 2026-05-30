@@ -14,6 +14,63 @@ export type Database = {
   }
   public: {
     Tables: {
+      ai_usage_events: {
+        Row: {
+          cache_read_tokens: number
+          cache_write_tokens: number
+          cost_usd: number
+          created_at: string
+          feature: string
+          id: string
+          input_tokens: number
+          member_profile_id: string | null
+          model: string
+          output_tokens: number
+          workspace_id: string
+        }
+        Insert: {
+          cache_read_tokens?: number
+          cache_write_tokens?: number
+          cost_usd?: number
+          created_at?: string
+          feature: string
+          id?: string
+          input_tokens?: number
+          member_profile_id?: string | null
+          model: string
+          output_tokens?: number
+          workspace_id: string
+        }
+        Update: {
+          cache_read_tokens?: number
+          cache_write_tokens?: number
+          cost_usd?: number
+          created_at?: string
+          feature?: string
+          id?: string
+          input_tokens?: number
+          member_profile_id?: string | null
+          model?: string
+          output_tokens?: number
+          workspace_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "ai_usage_events_member_profile_id_fkey"
+            columns: ["member_profile_id"]
+            isOneToOne: false
+            referencedRelation: "member_profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "ai_usage_events_workspace_id_fkey"
+            columns: ["workspace_id"]
+            isOneToOne: false
+            referencedRelation: "workspaces"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       app_banners: {
         Row: {
           created_at: string
@@ -855,6 +912,99 @@ export type Database = {
           },
         ]
       }
+      challenge_participants: {
+        Row: {
+          challenge_id: string
+          id: string
+          joined_at: string
+          member_profile_id: string
+          workspace_id: string
+        }
+        Insert: {
+          challenge_id: string
+          id?: string
+          joined_at?: string
+          member_profile_id: string
+          workspace_id: string
+        }
+        Update: {
+          challenge_id?: string
+          id?: string
+          joined_at?: string
+          member_profile_id?: string
+          workspace_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "challenge_participants_challenge_id_fkey"
+            columns: ["challenge_id"]
+            isOneToOne: false
+            referencedRelation: "challenges"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "challenge_participants_member_profile_id_fkey"
+            columns: ["member_profile_id"]
+            isOneToOne: false
+            referencedRelation: "member_profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "challenge_participants_workspace_id_fkey"
+            columns: ["workspace_id"]
+            isOneToOne: false
+            referencedRelation: "workspaces"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      challenges: {
+        Row: {
+          created_at: string
+          description: string
+          ends_on: string
+          goal: number
+          id: string
+          metric: string
+          starts_on: string
+          status: string
+          title: string
+          workspace_id: string
+        }
+        Insert: {
+          created_at?: string
+          description?: string
+          ends_on?: string
+          goal?: number
+          id?: string
+          metric?: string
+          starts_on?: string
+          status?: string
+          title: string
+          workspace_id: string
+        }
+        Update: {
+          created_at?: string
+          description?: string
+          ends_on?: string
+          goal?: number
+          id?: string
+          metric?: string
+          starts_on?: string
+          status?: string
+          title?: string
+          workspace_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "challenges_workspace_id_fkey"
+            columns: ["workspace_id"]
+            isOneToOne: false
+            referencedRelation: "workspaces"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       checkin_answers: {
         Row: {
           answer: Json
@@ -951,6 +1101,208 @@ export type Database = {
           },
         ]
       }
+      coach_ai_brains: {
+        Row: {
+          assistant_name: string
+          created_at: string
+          enabled: boolean
+          forbidden: string
+          greeting: string
+          id: string
+          persona: string
+          rules: string
+          specialties: string
+          substitutions: string
+          tone: string
+          updated_at: string
+          workspace_id: string
+        }
+        Insert: {
+          assistant_name?: string
+          created_at?: string
+          enabled?: boolean
+          forbidden?: string
+          greeting?: string
+          id?: string
+          persona?: string
+          rules?: string
+          specialties?: string
+          substitutions?: string
+          tone?: string
+          updated_at?: string
+          workspace_id: string
+        }
+        Update: {
+          assistant_name?: string
+          created_at?: string
+          enabled?: boolean
+          forbidden?: string
+          greeting?: string
+          id?: string
+          persona?: string
+          rules?: string
+          specialties?: string
+          substitutions?: string
+          tone?: string
+          updated_at?: string
+          workspace_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "coach_ai_brains_workspace_id_fkey"
+            columns: ["workspace_id"]
+            isOneToOne: true
+            referencedRelation: "workspaces"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      coach_ai_messages: {
+        Row: {
+          content: string
+          created_at: string
+          id: string
+          member_profile_id: string | null
+          role: string
+          workspace_id: string
+        }
+        Insert: {
+          content: string
+          created_at?: string
+          id?: string
+          member_profile_id?: string | null
+          role: string
+          workspace_id: string
+        }
+        Update: {
+          content?: string
+          created_at?: string
+          id?: string
+          member_profile_id?: string | null
+          role?: string
+          workspace_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "coach_ai_messages_member_profile_id_fkey"
+            columns: ["member_profile_id"]
+            isOneToOne: false
+            referencedRelation: "member_profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "coach_ai_messages_workspace_id_fkey"
+            columns: ["workspace_id"]
+            isOneToOne: false
+            referencedRelation: "workspaces"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      coach_ai_plan_drafts: {
+        Row: {
+          approved_at: string | null
+          brief: Json
+          content: Json
+          created_at: string
+          id: string
+          kind: string
+          status: string
+          template_id: string | null
+          title: string
+          workspace_id: string
+        }
+        Insert: {
+          approved_at?: string | null
+          brief?: Json
+          content?: Json
+          created_at?: string
+          id?: string
+          kind?: string
+          status?: string
+          template_id?: string | null
+          title: string
+          workspace_id: string
+        }
+        Update: {
+          approved_at?: string | null
+          brief?: Json
+          content?: Json
+          created_at?: string
+          id?: string
+          kind?: string
+          status?: string
+          template_id?: string | null
+          title?: string
+          workspace_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "coach_ai_plan_drafts_template_id_fkey"
+            columns: ["template_id"]
+            isOneToOne: false
+            referencedRelation: "workout_templates"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "coach_ai_plan_drafts_workspace_id_fkey"
+            columns: ["workspace_id"]
+            isOneToOne: false
+            referencedRelation: "workspaces"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      coach_client_plans: {
+        Row: {
+          active: boolean
+          amount_cents: number
+          created_at: string
+          currency: string
+          description: string | null
+          id: string
+          interval: string
+          name: string
+          stripe_price_id: string | null
+          stripe_product_id: string | null
+          workspace_id: string
+        }
+        Insert: {
+          active?: boolean
+          amount_cents: number
+          created_at?: string
+          currency?: string
+          description?: string | null
+          id?: string
+          interval?: string
+          name: string
+          stripe_price_id?: string | null
+          stripe_product_id?: string | null
+          workspace_id: string
+        }
+        Update: {
+          active?: boolean
+          amount_cents?: number
+          created_at?: string
+          currency?: string
+          description?: string | null
+          id?: string
+          interval?: string
+          name?: string
+          stripe_price_id?: string | null
+          stripe_product_id?: string | null
+          workspace_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "coach_client_plans_workspace_id_fkey"
+            columns: ["workspace_id"]
+            isOneToOne: false
+            referencedRelation: "workspaces"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       coach_member_notes: {
         Row: {
           author_user_id: string | null
@@ -995,6 +1347,103 @@ export type Database = {
           },
           {
             foreignKeyName: "coach_member_notes_workspace_id_fkey"
+            columns: ["workspace_id"]
+            isOneToOne: false
+            referencedRelation: "workspaces"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      community_post_likes: {
+        Row: {
+          created_at: string
+          id: string
+          member_profile_id: string
+          post_id: string
+          workspace_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          member_profile_id: string
+          post_id: string
+          workspace_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          member_profile_id?: string
+          post_id?: string
+          workspace_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "community_post_likes_member_profile_id_fkey"
+            columns: ["member_profile_id"]
+            isOneToOne: false
+            referencedRelation: "member_profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "community_post_likes_post_id_fkey"
+            columns: ["post_id"]
+            isOneToOne: false
+            referencedRelation: "community_posts"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "community_post_likes_workspace_id_fkey"
+            columns: ["workspace_id"]
+            isOneToOne: false
+            referencedRelation: "workspaces"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      community_posts: {
+        Row: {
+          author_name: string
+          body: string
+          created_at: string
+          id: string
+          is_coach: boolean
+          member_profile_id: string | null
+          pinned: boolean
+          status: string
+          workspace_id: string
+        }
+        Insert: {
+          author_name?: string
+          body: string
+          created_at?: string
+          id?: string
+          is_coach?: boolean
+          member_profile_id?: string | null
+          pinned?: boolean
+          status?: string
+          workspace_id: string
+        }
+        Update: {
+          author_name?: string
+          body?: string
+          created_at?: string
+          id?: string
+          is_coach?: boolean
+          member_profile_id?: string | null
+          pinned?: boolean
+          status?: string
+          workspace_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "community_posts_member_profile_id_fkey"
+            columns: ["member_profile_id"]
+            isOneToOne: false
+            referencedRelation: "member_profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "community_posts_workspace_id_fkey"
             columns: ["workspace_id"]
             isOneToOne: false
             referencedRelation: "workspaces"
@@ -1484,6 +1933,119 @@ export type Database = {
           },
           {
             foreignKeyName: "exercises_workspace_id_fkey"
+            columns: ["workspace_id"]
+            isOneToOne: false
+            referencedRelation: "workspaces"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      food_diary_entries: {
+        Row: {
+          calories: number | null
+          carbs_g: number | null
+          created_at: string
+          fat_g: number | null
+          id: string
+          logged_on: string
+          member_profile_id: string
+          name: string
+          protein_g: number | null
+          source: string
+          workspace_id: string
+        }
+        Insert: {
+          calories?: number | null
+          carbs_g?: number | null
+          created_at?: string
+          fat_g?: number | null
+          id?: string
+          logged_on?: string
+          member_profile_id: string
+          name: string
+          protein_g?: number | null
+          source?: string
+          workspace_id: string
+        }
+        Update: {
+          calories?: number | null
+          carbs_g?: number | null
+          created_at?: string
+          fat_g?: number | null
+          id?: string
+          logged_on?: string
+          member_profile_id?: string
+          name?: string
+          protein_g?: number | null
+          source?: string
+          workspace_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "food_diary_entries_member_profile_id_fkey"
+            columns: ["member_profile_id"]
+            isOneToOne: false
+            referencedRelation: "member_profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "food_diary_entries_workspace_id_fkey"
+            columns: ["workspace_id"]
+            isOneToOne: false
+            referencedRelation: "workspaces"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      food_library_items: {
+        Row: {
+          brand: string | null
+          calories: number
+          carbs_g: number
+          category: string
+          created_at: string
+          fat_g: number
+          id: string
+          name: string
+          protein_g: number
+          serving_label: string
+          sort_order: number
+          verified: boolean
+          workspace_id: string
+        }
+        Insert: {
+          brand?: string | null
+          calories?: number
+          carbs_g?: number
+          category?: string
+          created_at?: string
+          fat_g?: number
+          id?: string
+          name: string
+          protein_g?: number
+          serving_label?: string
+          sort_order?: number
+          verified?: boolean
+          workspace_id: string
+        }
+        Update: {
+          brand?: string | null
+          calories?: number
+          carbs_g?: number
+          category?: string
+          created_at?: string
+          fat_g?: number
+          id?: string
+          name?: string
+          protein_g?: number
+          serving_label?: string
+          sort_order?: number
+          verified?: boolean
+          workspace_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "food_library_items_workspace_id_fkey"
             columns: ["workspace_id"]
             isOneToOne: false
             referencedRelation: "workspaces"
@@ -2118,6 +2680,164 @@ export type Database = {
             columns: ["member_profile_id"]
             isOneToOne: true
             referencedRelation: "member_profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      member_food_favorites: {
+        Row: {
+          created_at: string
+          food_item_id: string
+          id: string
+          member_profile_id: string
+          workspace_id: string
+        }
+        Insert: {
+          created_at?: string
+          food_item_id: string
+          id?: string
+          member_profile_id: string
+          workspace_id: string
+        }
+        Update: {
+          created_at?: string
+          food_item_id?: string
+          id?: string
+          member_profile_id?: string
+          workspace_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "member_food_favorites_food_item_id_fkey"
+            columns: ["food_item_id"]
+            isOneToOne: false
+            referencedRelation: "food_library_items"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "member_food_favorites_member_profile_id_fkey"
+            columns: ["member_profile_id"]
+            isOneToOne: false
+            referencedRelation: "member_profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "member_food_favorites_workspace_id_fkey"
+            columns: ["workspace_id"]
+            isOneToOne: false
+            referencedRelation: "workspaces"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      member_habit_logs: {
+        Row: {
+          count: number
+          created_at: string
+          habit_id: string
+          id: string
+          logged_on: string
+          member_profile_id: string
+          workspace_id: string
+        }
+        Insert: {
+          count?: number
+          created_at?: string
+          habit_id: string
+          id?: string
+          logged_on?: string
+          member_profile_id: string
+          workspace_id: string
+        }
+        Update: {
+          count?: number
+          created_at?: string
+          habit_id?: string
+          id?: string
+          logged_on?: string
+          member_profile_id?: string
+          workspace_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "member_habit_logs_habit_id_fkey"
+            columns: ["habit_id"]
+            isOneToOne: false
+            referencedRelation: "member_habits"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "member_habit_logs_member_profile_id_fkey"
+            columns: ["member_profile_id"]
+            isOneToOne: false
+            referencedRelation: "member_profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "member_habit_logs_workspace_id_fkey"
+            columns: ["workspace_id"]
+            isOneToOne: false
+            referencedRelation: "workspaces"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      member_habits: {
+        Row: {
+          archived: boolean
+          cadence: string
+          created_at: string
+          icon: string | null
+          id: string
+          is_suggested: boolean
+          member_profile_id: string | null
+          name: string
+          sort_order: number
+          target_per_day: number
+          updated_at: string
+          workspace_id: string
+        }
+        Insert: {
+          archived?: boolean
+          cadence?: string
+          created_at?: string
+          icon?: string | null
+          id?: string
+          is_suggested?: boolean
+          member_profile_id?: string | null
+          name: string
+          sort_order?: number
+          target_per_day?: number
+          updated_at?: string
+          workspace_id: string
+        }
+        Update: {
+          archived?: boolean
+          cadence?: string
+          created_at?: string
+          icon?: string | null
+          id?: string
+          is_suggested?: boolean
+          member_profile_id?: string | null
+          name?: string
+          sort_order?: number
+          target_per_day?: number
+          updated_at?: string
+          workspace_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "member_habits_member_profile_id_fkey"
+            columns: ["member_profile_id"]
+            isOneToOne: false
+            referencedRelation: "member_profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "member_habits_workspace_id_fkey"
+            columns: ["workspace_id"]
+            isOneToOne: false
+            referencedRelation: "workspaces"
             referencedColumns: ["id"]
           },
         ]
@@ -2859,6 +3579,47 @@ export type Database = {
           },
         ]
       }
+      platform_subscriptions: {
+        Row: {
+          cancel_at_period_end: boolean
+          current_period_end: string | null
+          price_id: string | null
+          status: string
+          stripe_customer_id: string | null
+          stripe_subscription_id: string | null
+          updated_at: string
+          workspace_id: string
+        }
+        Insert: {
+          cancel_at_period_end?: boolean
+          current_period_end?: string | null
+          price_id?: string | null
+          status?: string
+          stripe_customer_id?: string | null
+          stripe_subscription_id?: string | null
+          updated_at?: string
+          workspace_id: string
+        }
+        Update: {
+          cancel_at_period_end?: boolean
+          current_period_end?: string | null
+          price_id?: string | null
+          status?: string
+          stripe_customer_id?: string | null
+          stripe_subscription_id?: string | null
+          updated_at?: string
+          workspace_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "platform_subscriptions_workspace_id_fkey"
+            columns: ["workspace_id"]
+            isOneToOne: true
+            referencedRelation: "workspaces"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       pricing_plans: {
         Row: {
           billing_interval: string
@@ -3181,6 +3942,60 @@ export type Database = {
           },
         ]
       }
+      push_subscriptions: {
+        Row: {
+          auth: string
+          created_at: string
+          enabled: boolean
+          endpoint: string
+          id: string
+          last_notified_at: string | null
+          member_profile_id: string | null
+          p256dh: string
+          user_agent: string | null
+          workspace_id: string
+        }
+        Insert: {
+          auth: string
+          created_at?: string
+          enabled?: boolean
+          endpoint: string
+          id?: string
+          last_notified_at?: string | null
+          member_profile_id?: string | null
+          p256dh: string
+          user_agent?: string | null
+          workspace_id: string
+        }
+        Update: {
+          auth?: string
+          created_at?: string
+          enabled?: boolean
+          endpoint?: string
+          id?: string
+          last_notified_at?: string | null
+          member_profile_id?: string | null
+          p256dh?: string
+          user_agent?: string | null
+          workspace_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "push_subscriptions_member_profile_id_fkey"
+            columns: ["member_profile_id"]
+            isOneToOne: false
+            referencedRelation: "member_profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "push_subscriptions_workspace_id_fkey"
+            columns: ["workspace_id"]
+            isOneToOne: false
+            referencedRelation: "workspaces"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       recipe_alternatives: {
         Row: {
           alternative_recipe_id: string
@@ -3286,7 +4101,9 @@ export type Database = {
           is_base_library: boolean
           meal_slot: string
           name: string
+          prep_minutes: number | null
           slug: string
+          status: Database["public"]["Enums"]["plan_status"]
           tags: string[]
           updated_at: string
           video_url: string | null
@@ -3302,7 +4119,9 @@ export type Database = {
           is_base_library?: boolean
           meal_slot: string
           name: string
+          prep_minutes?: number | null
           slug: string
+          status?: Database["public"]["Enums"]["plan_status"]
           tags?: string[]
           updated_at?: string
           video_url?: string | null
@@ -3318,7 +4137,9 @@ export type Database = {
           is_base_library?: boolean
           meal_slot?: string
           name?: string
+          prep_minutes?: number | null
           slug?: string
+          status?: Database["public"]["Enums"]["plan_status"]
           tags?: string[]
           updated_at?: string
           video_url?: string | null
@@ -3334,6 +4155,57 @@ export type Database = {
           },
           {
             foreignKeyName: "recipes_workspace_id_fkey"
+            columns: ["workspace_id"]
+            isOneToOne: false
+            referencedRelation: "workspaces"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      retention_outreach: {
+        Row: {
+          acted_at: string | null
+          created_at: string
+          id: string
+          member_profile_id: string
+          message: string
+          reason: string
+          risk_score: number
+          status: string
+          workspace_id: string
+        }
+        Insert: {
+          acted_at?: string | null
+          created_at?: string
+          id?: string
+          member_profile_id: string
+          message: string
+          reason?: string
+          risk_score?: number
+          status?: string
+          workspace_id: string
+        }
+        Update: {
+          acted_at?: string | null
+          created_at?: string
+          id?: string
+          member_profile_id?: string
+          message?: string
+          reason?: string
+          risk_score?: number
+          status?: string
+          workspace_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "retention_outreach_member_profile_id_fkey"
+            columns: ["member_profile_id"]
+            isOneToOne: false
+            referencedRelation: "member_profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "retention_outreach_workspace_id_fkey"
             columns: ["workspace_id"]
             isOneToOne: false
             referencedRelation: "workspaces"
@@ -3505,6 +4377,176 @@ export type Database = {
           },
           {
             foreignKeyName: "shopping_lists_workspace_id_fkey"
+            columns: ["workspace_id"]
+            isOneToOne: false
+            referencedRelation: "workspaces"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      stripe_accounts: {
+        Row: {
+          charges_enabled: boolean
+          connected_at: string
+          country: string | null
+          default_currency: string | null
+          details_submitted: boolean
+          livemode: boolean
+          payouts_enabled: boolean
+          scope: string | null
+          stripe_user_id: string
+          updated_at: string
+          workspace_id: string
+        }
+        Insert: {
+          charges_enabled?: boolean
+          connected_at?: string
+          country?: string | null
+          default_currency?: string | null
+          details_submitted?: boolean
+          livemode?: boolean
+          payouts_enabled?: boolean
+          scope?: string | null
+          stripe_user_id: string
+          updated_at?: string
+          workspace_id: string
+        }
+        Update: {
+          charges_enabled?: boolean
+          connected_at?: string
+          country?: string | null
+          default_currency?: string | null
+          details_submitted?: boolean
+          livemode?: boolean
+          payouts_enabled?: boolean
+          scope?: string | null
+          stripe_user_id?: string
+          updated_at?: string
+          workspace_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "stripe_accounts_workspace_id_fkey"
+            columns: ["workspace_id"]
+            isOneToOne: true
+            referencedRelation: "workspaces"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      stripe_webhook_events: {
+        Row: {
+          account_id: string | null
+          id: string
+          payload: Json | null
+          processed_at: string | null
+          received_at: string
+          type: string
+        }
+        Insert: {
+          account_id?: string | null
+          id: string
+          payload?: Json | null
+          processed_at?: string | null
+          received_at?: string
+          type: string
+        }
+        Update: {
+          account_id?: string | null
+          id?: string
+          payload?: Json | null
+          processed_at?: string | null
+          received_at?: string
+          type?: string
+        }
+        Relationships: []
+      }
+      supplement_logs: {
+        Row: {
+          created_at: string
+          id: string
+          member_profile_id: string
+          supplement_id: string
+          taken_on: string
+          workspace_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          member_profile_id: string
+          supplement_id: string
+          taken_on?: string
+          workspace_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          member_profile_id?: string
+          supplement_id?: string
+          taken_on?: string
+          workspace_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "supplement_logs_member_profile_id_fkey"
+            columns: ["member_profile_id"]
+            isOneToOne: false
+            referencedRelation: "member_profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "supplement_logs_supplement_id_fkey"
+            columns: ["supplement_id"]
+            isOneToOne: false
+            referencedRelation: "supplements"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "supplement_logs_workspace_id_fkey"
+            columns: ["workspace_id"]
+            isOneToOne: false
+            referencedRelation: "workspaces"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      supplements: {
+        Row: {
+          active: boolean
+          created_at: string
+          dose: string
+          id: string
+          name: string
+          notes: string
+          sort_order: number
+          timing: string
+          workspace_id: string
+        }
+        Insert: {
+          active?: boolean
+          created_at?: string
+          dose?: string
+          id?: string
+          name: string
+          notes?: string
+          sort_order?: number
+          timing?: string
+          workspace_id: string
+        }
+        Update: {
+          active?: boolean
+          created_at?: string
+          dose?: string
+          id?: string
+          name?: string
+          notes?: string
+          sort_order?: number
+          timing?: string
+          workspace_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "supplements_workspace_id_fkey"
             columns: ["workspace_id"]
             isOneToOne: false
             referencedRelation: "workspaces"
