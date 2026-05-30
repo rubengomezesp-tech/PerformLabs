@@ -1,7 +1,8 @@
-import { Apple, CheckCircle2, Droplets, NotebookPen, Sparkles, Trash2, Utensils } from "lucide-react";
+import { Apple, Camera, CheckCircle2, Droplets, NotebookPen, Sparkles, Trash2, Utensils } from "lucide-react";
 import Link from "next/link";
 import { MacroRings } from "@/components/macro-rings";
 import { MacroStrip } from "@/components/macro-strip";
+import { PhotoMealAdd } from "@/components/photo-meal-add";
 import { Topbar } from "@/components/topbar";
 import { getSelectedMemberAppBrand } from "@/lib/member-app";
 import { saveMealLogAction } from "@/app/app/meals/actions";
@@ -131,9 +132,21 @@ export default async function MemberDiaryPage({ searchParams }: DiaryPageProps) 
         <article className="card span12 smartAddCard">
           <div className="sectionHeader">
             <div>
+              <Camera color="var(--accent)" />
+              <h2>Foto a la comida</h2>
+              <p>Haz una foto a tu plato y la IA estima los macros y lo añade a tu día. Sin escribir.</p>
+            </div>
+            <span className="tag">IA · visión</span>
+          </div>
+          <PhotoMealAdd workspaceId={brand.id} date={selected} />
+        </article>
+
+        <article className="card span12 smartAddCard">
+          <div className="sectionHeader">
+            <div>
               <Sparkles color="var(--accent)" />
               <h2>Smart Add</h2>
-              <p>Describe lo que comiste y la IA estima los macros y lo añade a tu día.</p>
+              <p>O describe lo que comiste y la IA estima los macros y lo añade a tu día.</p>
             </div>
             <span className="tag">IA</span>
           </div>

@@ -8707,3 +8707,33 @@ button[aria-busy="true"] {
   .chipPlan { right: 0; }
   .chipBell { left: 0; }
 }
+
+/* ---- Photo meal add (member) ---- */
+.photoMealAdd {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  align-items: flex-start;
+}
+.photoMealResult {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  flex-wrap: wrap;
+  margin: 0;
+  font-size: 13px;
+}
+.photoMealResult.ok { color: #30a46c; }
+.photoMealResult.err { color: var(--danger, #e5484d); }
+.linkBtn {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  border: 0;
+  background: transparent;
+  color: var(--accent);
+  cursor: pointer;
+  font-weight: 600;
+  font-size: 13px;
+  padding: 0;
+}
