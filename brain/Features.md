@@ -10,8 +10,9 @@ app/consola. Stack en [[Arquitectura]].
 
 ## Cliente (app `/app/*`)
 
-- **Entreno** — plan, ejercicios con **vídeo**, series con reps/kg, registro y
-  mejores marcas (`workout-performance`).
+- **Entreno** — plan, ejercicios con **vídeo** e **imagen real** (foto base de
+  Free Exercise DB cuando no hay vídeo propio, optimizada por Cloudinary), series
+  con reps/kg, registro y mejores marcas (`workout-performance`).
 - **Comida** — plan de comidas, macros, **Smart Add** (texto) y **calorías por
   foto** (visión). Diario de comida. **Imagen en toda receta/comida** (key-less con
   fallback, ver [[Decisiones]]). Ver [[IA y coste]].

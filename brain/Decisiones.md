@@ -7,6 +7,16 @@ updated: 2026-05-30
 
 Las decisiones clave y su _por qué_. La más reciente arriba.
 
+- **2026-05-30 · Imágenes de ejercicio reales vía Cloudinary fetch** — los 873
+  ejercicios base (Free Exercise DB) traen `image_urls`, pero la app cliente no los
+  mostraba: en `/app/workouts` el thumbnail salía solo de un vídeo subido por la
+  marca, así que los ejercicios base aparecían sin foto. Ahora el join trae
+  `image_urls` y el thumbnail cae a la foto base cuando no hay vídeo propio. Todas
+  las imágenes (ejercicio y, a futuro, receta) se sirven por **Cloudinary fetch**
+  (`f_auto,q_auto,dpr_auto`): se optimizan y cachean en CDN **sin subir nada** al
+  media library — clave en plan Free con ~1.7k imágenes. Proveedor aislado en
+  `lib/cloudinary.ts` (`NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME`). Ver [[Features]] e
+  [[Infraestructura]].
 - **2026-05-30 · Stripe Connect Standard + 25% application fee** — construido el
   cobro real. Connect **Standard** (no admin del Stripe del coach): los cobros van
   directos a su cuenta y él mantiene el control; el 25% se toma como `application_fee`

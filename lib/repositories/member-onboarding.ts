@@ -1,3 +1,4 @@
+import { exerciseCardImage } from "@/lib/cloudinary";
 import { getSupabaseServiceEnv } from "@/lib/supabase/env";
 import { createServiceSupabaseClient } from "@/lib/supabase/server";
 import { assignDietTemplateToMember, assignWorkoutTemplateToMember } from "@/lib/repositories/member-management";
@@ -917,6 +918,30 @@ export async function getMemberTrainingContext(workspaceId?: string): Promise<Me
       console.error("Unable to load assigned workout exercises", exercisesResult.error.message);
     }
 
+    // Base library photo (e.g. Free Exercise DB) for assigned exercises that have
+    // no coach video, so the member's published plan still shows a real image —
+    // served optimized through Cloudinary, mirroring the template path.
+    const baseImageByExercise = new Map<string, string>();
+    const baseExerciseIds = [...new Set((exercisesResult.data ?? [])
+      .map((exercise) => exercise.exercise_id)
+      .filter((value): value is string => Boolean(value)))];
+    if (baseExerciseIds.length) {
+      const baseImagesResult = await supabase
+        .from("exercises")
+        .select("id,image_urls")
+        .in("id", baseExerciseIds);
+      if (baseImagesResult.error) {
+        console.error("Unable to load assigned exercise images", baseImagesResult.error.message);
+      }
+      for (const row of baseImagesResult.data ?? []) {
+        const urls = Array.isArray(row.image_urls)
+          ? row.image_urls.filter((url): url is string => typeof url === "string" && url.trim().length > 0)
+          : [];
+        const optimized = exerciseCardImage(urls);
+        if (optimized) baseImageByExercise.set(row.id, optimized);
+      }
+    }
+
     const exercisesByDay = new Map<string, MemberAssignedWorkoutExercise[]>();
     for (const exercise of exercisesResult.data ?? []) {
       const list = exercisesByDay.get(exercise.assigned_workout_day_id) ?? [];
@@ -926,7 +951,7 @@ export async function getMemberTrainingContext(workspaceId?: string): Promise<Me
         exerciseId: exercise.exercise_id ?? "",
         exerciseName: exercise.title,
         videoUrl: exercise.video_url ?? "",
-        thumbnailUrl: "",
+        thumbnailUrl: baseImageByExercise.get(exercise.exercise_id ?? "") ?? "",
         sets: exercise.sets,
         reps: exercise.reps ?? "",
         tempo: exercise.tempo ?? "",
