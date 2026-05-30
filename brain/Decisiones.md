@@ -7,6 +7,18 @@ updated: 2026-05-30
 
 Las decisiones clave y su _por qué_. La más reciente arriba.
 
+- **2026-05-30 · Auth de miembro en `/app` (cierra P0 de auditoría) + login passwordless** —
+  una auditoría (seguridad/arquitectura/UX) destapó que `/app` no tenía identidad
+  de miembro: el "miembro actual" era el primer perfil del workspace, `/app`
+  estaba fuera del middleware y las actions confiaban en el `workspaceId` del
+  cliente → cualquiera leía/escribía datos de cualquier marca. Solución:
+  `lib/auth/member-access.ts` (`getMemberContext` resuelve por sesión verificada,
+  `member_profiles.user_id`), gate en `proxy.ts` + layout, y los 11 resolvers de
+  miembro validan `workspaceId`. Acceso del cliente **passwordless por magic-link**
+  (`/acceso` → `signInWithOtp` → el `AuthHashBridge` global activa la sesión),
+  reutilizando el callback de invitación existente. Staff sigue en `/login`. El
+  modo open/local conserva el demo sin auth. Ver [[Arquitectura]] y [[Features]].
+
 - **2026-05-30 · Imágenes de ejercicio reales vía Cloudinary fetch** — los 873
   ejercicios base (Free Exercise DB) traen `image_urls`, pero la app cliente no los
   mostraba: en `/app/workouts` el thumbnail salía solo de un vídeo subido por la

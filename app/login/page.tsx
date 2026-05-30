@@ -41,6 +41,7 @@ export default async function LoginPage({ searchParams }: LoginPageProps) {
             Entrar <LogIn size={18} />
           </button>
         </form>
+        <p className="muted">¿Eres cliente de un entrenador? <Link href="/acceso">Entra a tu app</Link></p>
         <p className="muted">¿No tienes acceso? <Link href="/registro">Solicitar cuenta</Link></p>
       </section>
       <section className="authAside">

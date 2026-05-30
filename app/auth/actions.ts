@@ -126,6 +126,51 @@ export async function signInAction(formData: FormData) {
   redirect(nextPath);
 }
 
+/**
+ * Member access via magic link (passwordless). Members are created by their
+ * coach without a password, so they get in with a one-time email link that the
+ * global AuthHashBridge turns into a session and lands them in /app.
+ * `shouldCreateUser: false` means we never create accounts here, and we always
+ * return the same generic message so the form can't be used to probe emails.
+ */
+export async function requestMemberAccessLinkAction(formData: FormData) {
+  const email = readText(formData, "email").toLowerCase();
+  const genericSuccess = "/acceso?success=" + encodeURIComponent("Si tu email tiene acceso, te hemos enviado un enlace para entrar. Revisa tu correo.");
+
+  if (!email || !email.includes("@")) {
+    redirect("/acceso?error=" + encodeURIComponent("Escribe un email válido."));
+  }
+
+  const securityContext = await getLoginSecurityContext(email);
+  const rateLimit = checkLoginRateLimit(securityContext.rateLimitKey);
+  if (!rateLimit.allowed) {
+    redirect("/acceso?error=" + encodeURIComponent(`Demasiados intentos. Espera ${rateLimit.retryAfterSeconds} segundos.`));
+  }
+
+  const headerStore = await headers();
+  const host = headerStore.get("x-forwarded-host") || headerStore.get("host") || "";
+  const proto = headerStore.get("x-forwarded-proto") || (process.env.NODE_ENV === "production" ? "https" : "http");
+
+  if (host) {
+    const supabase = createAuthClient();
+    await supabase.auth.signInWithOtp({
+      email,
+      options: {
+        shouldCreateUser: false,
+        emailRedirectTo: `${proto}://${host}/auth/callback?next=/app`,
+      },
+    });
+  }
+
+  await recordSecurityAuditEvent({
+    action: "auth.member_link_requested",
+    entityType: "auth",
+    metadata: securityContext.auditMetadata,
+  });
+
+  redirect(genericSuccess);
+}
+
 export async function signUpAction(formData: FormData) {
   const email = readText(formData, "email").toLowerCase();
   await recordSecurityAuditEvent({
