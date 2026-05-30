@@ -12,6 +12,7 @@ dist
 *.key
 supabase/.temp
 .agents
+.claude/skills
 skills-lock.json
 .DS_Store
 *.log

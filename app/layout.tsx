@@ -1,20 +1,29 @@
 import type { Metadata, Viewport } from "next";
-import { Manrope, Space_Grotesk } from "next/font/google";
+import { Bricolage_Grotesque, Geist, Geist_Mono } from "next/font/google";
 import { AuthHashBridge } from "@/components/auth-hash-bridge";
 import { ServiceWorkerRegister } from "@/components/sw-register";
 import { ToastProvider } from "@/components/ui";
 import { platformBrand } from "@/lib/brand";
 import "./globals.css";
 
-const manrope = Manrope({
+// 2026 type system: Geist (UI/body, Vercel-tier) + Bricolage Grotesque (display
+// character) + Geist Mono (tabular numbers).
+const geist = Geist({
   subsets: ["latin"],
   variable: "--font-sans",
   display: "swap",
 });
 
-const spaceGrotesk = Space_Grotesk({
+const bricolage = Bricolage_Grotesque({
   subsets: ["latin"],
+  weight: ["500", "600", "700", "800"],
   variable: "--font-display",
+  display: "swap",
+});
+
+const geistMono = Geist_Mono({
+  subsets: ["latin"],
+  variable: "--font-mono",
   display: "swap",
 });
 
@@ -38,7 +47,7 @@ export const viewport: Viewport = {
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html className={`${manrope.variable} ${spaceGrotesk.variable}`} lang="es">
+    <html className={`${geist.variable} ${bricolage.variable} ${geistMono.variable}`} lang="es">
       <body>
         <AuthHashBridge />
         <ServiceWorkerRegister />
