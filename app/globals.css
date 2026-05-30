@@ -8341,3 +8341,37 @@ button[aria-busy="true"] {
     max-width: none;
   }
 }
+
+/* ---- Push opt-in (member) ---- */
+.pushOptIn {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  flex-wrap: wrap;
+  border-color: color-mix(in srgb, var(--accent) 35%, var(--border));
+  background: color-mix(in srgb, var(--accent) 6%, var(--surface));
+}
+.pushOptInIcon {
+  display: grid;
+  place-items: center;
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  background: color-mix(in srgb, var(--accent) 16%, var(--surface));
+  flex-shrink: 0;
+}
+.pushOptInBody {
+  flex: 1;
+  min-width: 180px;
+}
+.pushOptInBody strong {
+  display: block;
+}
+.pushOptInBody p {
+  margin: 2px 0 0;
+  color: var(--text-muted);
+  font-size: 13px;
+}
+.pushOptIn .btn {
+  flex-shrink: 0;
+}

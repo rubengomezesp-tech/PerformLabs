@@ -32,10 +32,12 @@
     "react-dom": "latest",
     "three": "^0.184.0",
     "typescript": "latest",
+    "web-push": "^3.6.7",
     "zod": "^4.4.3"
   },
   "devDependencies": {
     "@types/three": "^0.184.1",
+    "@types/web-push": "^3.6.4",
     "vitest": "^4.1.7"
   },
   "pnpm": {
