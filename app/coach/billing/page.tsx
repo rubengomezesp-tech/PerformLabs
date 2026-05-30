@@ -1,10 +1,11 @@
-import { CheckCircle2, CreditCard, Link2, ShieldCheck, Unplug } from "lucide-react";
+import { CheckCircle2, CreditCard, Link2, Plus, ShieldCheck, Trash2, Unplug } from "lucide-react";
 import Link from "next/link";
 import { Topbar } from "@/components/topbar";
 import { getSelectedMemberAppBrand } from "@/lib/member-app";
+import { listCoachPlans } from "@/lib/repositories/coach-plans";
 import { getPlatformSubscription, getStripeAccount } from "@/lib/repositories/stripe-billing";
 import { getStripeEnv, isPlatformBillingConfigured, isStripeConnectConfigured } from "@/lib/stripe/env";
-import { disconnectStripeAction, subscribePlatformAction } from "./actions";
+import { archiveCoachPlanAction, createCoachPlanAction, disconnectStripeAction, subscribePlatformAction } from "./actions";
 
 export const dynamic = "force-dynamic";
 
@@ -16,6 +17,8 @@ const STATUS_MESSAGES: Record<string, { tone: "ok" | "err"; text: string }> = {
   error: { tone: "err", text: "No se pudo completar la conexión. Inténtalo de nuevo." },
   cancelled: { tone: "err", text: "Pago cancelado." },
   not_configured: { tone: "err", text: "Stripe aún no está configurado en la plataforma." },
+  connect_first: { tone: "err", text: "Conecta tu Stripe y activa los cobros antes de crear planes." },
+  invalid_plan: { tone: "err", text: "Revisa el nombre y el importe del plan (mínimo 0,50)." },
 };
 
 type BillingPageProps = { searchParams?: Promise<{ status?: string }> };
@@ -27,9 +30,10 @@ export default async function CoachBillingPage({ searchParams }: BillingPageProp
   const brand = await getSelectedMemberAppBrand();
   const connectReady = isStripeConnectConfigured();
   const billingReady = isPlatformBillingConfigured();
-  const [account, subscription] = await Promise.all([
+  const [account, subscription, plans] = await Promise.all([
     getStripeAccount(brand.id),
     getPlatformSubscription(brand.id),
+    listCoachPlans(brand.id),
   ]);
   const { applicationFeePercent } = getStripeEnv();
   const subscriptionActive = subscription?.status === "active" || subscription?.status === "trialing";
@@ -114,6 +118,68 @@ export default async function CoachBillingPage({ searchParams }: BillingPageProp
                   <p className="muted">El plan de plataforma estará disponible en breve.</p>
                 )
               ) : null}
+            </article>
+
+            <article className="card span12">
+              <div className="sectionHeader">
+                <div>
+                  <CreditCard color="var(--accent)" />
+                  <h2>Planes para tus clientes.</h2>
+                  <p>Define lo que cobras a tus clientes. El precio se crea en tu cuenta de Stripe; PerformLabs retiene el {applicationFeePercent}%.</p>
+                </div>
+                <span className="tag">{plans.length} plan(es)</span>
+              </div>
+
+              {plans.length ? (
+                <div className="catalogGrid">
+                  {plans.map((plan) => (
+                    <article className="catalogCard" key={plan.id}>
+                      <div className="catalogCardHead">
+                        <strong>{plan.name}</strong>
+                        <form action={archiveCoachPlanAction}>
+                          <input type="hidden" name="planId" value={plan.id} />
+                          <button className="btn ghost sm" type="submit" aria-label="Archivar plan"><Trash2 size={14} /></button>
+                        </form>
+                      </div>
+                      {plan.description ? <p className="muted">{plan.description}</p> : null}
+                      <div className="catalogChips">
+                        <span className="catalogChip accent">{(plan.amountCents / 100).toFixed(2)} {plan.currency.toUpperCase()}</span>
+                        <span className="catalogChip">/{plan.interval === "year" ? "año" : "mes"}</span>
+                        {plan.stripePriceId ? <span className="catalogChip muted">Stripe</span> : null}
+                      </div>
+                    </article>
+                  ))}
+                </div>
+              ) : (
+                <p className="muted">Aún no has creado planes de cobro para tus clientes.</p>
+              )}
+
+              {account?.chargesEnabled ? (
+                <form action={createCoachPlanAction} className="editForm">
+                  <label>
+                    Nombre del plan
+                    <input name="name" placeholder="Coaching mensual" required maxLength={120} />
+                  </label>
+                  <label>
+                    Precio
+                    <input name="amount" type="number" min="0.5" step="0.5" placeholder="49.90" required />
+                  </label>
+                  <label>
+                    Periodicidad
+                    <select name="interval" defaultValue="month">
+                      <option value="month">Mensual</option>
+                      <option value="year">Anual</option>
+                    </select>
+                  </label>
+                  <label className="spanFull">
+                    Descripción (opcional)
+                    <input name="description" placeholder="Qué incluye el plan" maxLength={200} />
+                  </label>
+                  <button className="btn primary spanFull" type="submit"><Plus size={16} /> Crear plan</button>
+                </form>
+              ) : (
+                <p className="muted">Conecta tu Stripe y activa los cobros para crear planes.</p>
+              )}
             </article>
           </>
         )}
