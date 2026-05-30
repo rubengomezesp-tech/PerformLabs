@@ -4651,13 +4651,13 @@ a.card:hover {
 }
 
 .formGrid {
-  grid-template-columns: repeat(5, minmax(0, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(190px, 1fr));
   align-items: end;
 }
 
 .editForm {
-  margin-top: 16px;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
+  margin-top: 14px;
+  grid-template-columns: repeat(auto-fit, minmax(170px, 1fr));
 }
 
 .entitlementForm {
@@ -4697,7 +4697,7 @@ a.card:hover {
   width: 18px;
   min-height: 18px;
   margin-top: 2px;
-  accent-color: var(--gold);
+  accent-color: var(--accent);
 }
 
 .moduleToggle strong {
@@ -4732,25 +4732,30 @@ a.card:hover {
 
 .formActions {
   display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  grid-column: 1 / -1;
+  align-items: end;
 }
 
 label {
   display: grid;
-  gap: 7px;
+  gap: 6px;
   color: var(--muted);
   font-size: 13px;
+  font-weight: 500;
 }
 
 input,
 select,
 textarea {
   width: 100%;
-  min-height: 44px;
+  min-height: 40px;
   border: 1px solid var(--line);
-  border-radius: 11px;
+  border-radius: 8px;
   background: #0a0c0d;
   color: var(--text);
-  padding: 11px 13px;
+  padding: 9px 12px;
   transition:
     border-color var(--dur-fast) var(--ease),
     box-shadow var(--dur-fast) var(--ease);
