@@ -14,9 +14,16 @@ app/consola. Stack en [[Arquitectura]].
   mejores marcas (`workout-performance`).
 - **Comida** — plan de comidas, macros, **Smart Add** (texto) y **calorías por
   foto** (visión). Diario de comida. Ver [[IA y coste]].
+- **Alimentos** — biblioteca propia de la marca + **favoritos**; añadido rápido
+  al diario por raciones, sin escribir macros (camino manual, no IA). Trae una
+  base de ~36 alimentos comunes que el coach puede cargar y editar.
+- **Suplementos** — protocolo pautado por el coach, ordenado por momento del día
+  (mañana/pre/post/comida/noche), el cliente lo marca cada día.
 - **Progreso** — peso, grasa, tendencia, fotos (fotos necesitan Storage).
 - **Hábitos**, **Cardio**, **Recetas**, **Guías**.
 - **Comunidad** — feed, posts, likes.
+- **Retos** — retos con **leaderboard** calculado de la actividad real
+  (entrenos/hábitos/check-ins).
 - **Coach IA** — asistente en la voz del coach (herramienta, no titular → [[Posicionamiento]]).
 - **Soporte / Mensajes** — conversación 1:1 con el coach.
 - **Onboarding** — cuestionario + briefing.
@@ -26,9 +33,9 @@ app/consola. Stack en [[Arquitectura]].
 
 - **Coach IA** (cerebro) + **Generador de planes** (coach-in-the-loop).
 - **Radar de retención** + **Coach Copilot** (mensaje de reenganche en su voz).
-- **Programas**, **Ejercicios**, **Nutrición**, **Miembros**, **Check-ins** (con
-  medidas: cintura/pecho/cadera), **Comunidad**, **Contenido**, **Marca**,
-  **Avisos**, **Analítica**.
+- **Programas**, **Ejercicios**, **Nutrición**, **Alimentos** (biblioteca),
+  **Suplementos**, **Miembros**, **Check-ins** (con medidas: cintura/pecho/cadera),
+  **Comunidad**, **Retos**, **Contenido**, **Marca**, **Avisos**, **Analítica**.
 
 ## Plataforma (consola `/console/*`)
 
@@ -36,5 +43,4 @@ CRM de leads, marcas, entitlements, seguridad/auditoría, proyectos, plantillas.
 
 ## Falta (ver [[Mercado y competencia]] y [[Roadmap]])
 
-Retos/leaderboard · suplementos · biblioteca de alimentos/favoritos · fotos de
-progreso (Storage) · track nativo · Stripe.
+Fotos de progreso (necesita Storage) · track nativo · Stripe.

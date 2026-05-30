@@ -12,6 +12,7 @@ import {
   MessagesSquare,
   Palette,
   Pill,
+  Salad,
   Sparkles,
   Trophy,
   Users,
@@ -41,6 +42,7 @@ export const coachNav = [
     icon: Apple,
     children: [
       { label: "Comidas y planes", href: "/coach/nutrition", icon: Apple },
+      { label: "Alimentos", href: "/coach/foods", icon: Salad },
       { label: "Suplementos", href: "/coach/supplements", icon: Pill },
     ],
   },

@@ -1,4 +1,4 @@
-import { Apple, Camera, CheckCircle2, Droplets, NotebookPen, Sparkles, Trash2, Utensils } from "lucide-react";
+import { Apple, Camera, CheckCircle2, Droplets, NotebookPen, Salad, Sparkles, Trash2, Utensils } from "lucide-react";
 import Link from "next/link";
 import { MacroRings } from "@/components/macro-rings";
 import { MacroStrip } from "@/components/macro-strip";
@@ -77,7 +77,8 @@ export default async function MemberDiaryPage({ searchParams }: DiaryPageProps) 
         text="Lleva el control de lo que comes y mira cómo avanzas hacia tus objetivos del día."
         actions={
           <>
-            <Link className="btn" href="/app/meals"><Utensils size={16} /> Mi plan</Link>
+            <Link className="btn" href={`/app/foods?date=${selected}`}><Salad size={16} /> Añadir alimento</Link>
+            <Link className="btn ghost" href="/app/meals"><Utensils size={16} /> Mi plan</Link>
             <Link className="btn ghost" href="/app/recipes"><Apple size={16} /> Recetas</Link>
           </>
         }

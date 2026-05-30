@@ -7,6 +7,11 @@ updated: 2026-05-30
 
 Las decisiones clave y su _por qué_. La más reciente arriba.
 
+- **2026-05-30 · Biblioteca de alimentos propia (no API externa)** — OpenFoodFacts
+  está bloqueado por la política de red, así que la base de alimentos es propia
+  del workspace + una semilla de ~36 alimentos comunes. El añadido rápido copia
+  los macros al diario (sin FK), así favoritos y diario siguen simples. Es el
+  camino **manual** de registro (complementa la IA, no la sustituye). Ver [[Features]].
 - **2026-05-30 · Cerebro del proyecto en Obsidian** — este vault `brain/` como
   fuente de verdad del _por qué_. Lo mantiene Claude Code.
 - **2026-05-30 · Diseño 2026 en toda la plataforma** — Geist + Bricolage + Geist
