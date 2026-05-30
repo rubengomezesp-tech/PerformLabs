@@ -148,6 +148,38 @@ export async function createPlatformCheckoutSession(opts: {
   });
 }
 
+// ---- Client plans on the coach's connected account (Direct charges) ----
+
+export async function createConnectedProduct(
+  stripeAccount: string,
+  name: string,
+  description?: string | null,
+): Promise<{ id: string }> {
+  return stripeRequest<{ id: string }>(
+    "POST",
+    "/products",
+    { name, description: description || undefined },
+    { stripeAccount },
+  );
+}
+
+export async function createConnectedPrice(
+  stripeAccount: string,
+  opts: { product: string; amountCents: number; currency: string; interval: string },
+): Promise<{ id: string }> {
+  return stripeRequest<{ id: string }>(
+    "POST",
+    "/prices",
+    {
+      product: opts.product,
+      unit_amount: opts.amountCents,
+      currency: opts.currency,
+      "recurring[interval]": opts.interval,
+    },
+    { stripeAccount },
+  );
+}
+
 // ---- Webhook signature verification ----
 
 export function verifyStripeSignature(payload: string, signatureHeader: string | null, secret: string): boolean {
