@@ -1,5 +1,5 @@
 import type { CSSProperties } from "react";
-import { ArrowRight, ShieldCheck } from "lucide-react";
+import { ArrowRight, MailCheck, ShieldCheck } from "lucide-react";
 import { getSelectedMemberAppBrand } from "@/lib/member-app";
 import { enterAppAction } from "./actions";
 
@@ -10,7 +10,12 @@ export async function generateMetadata() {
   return { title: `Entrar · ${brand.name}` };
 }
 
-export default async function MemberLandingPage() {
+type MemberLandingPageProps = {
+  searchParams?: Promise<{ sent?: string; error?: string }>;
+};
+
+export default async function MemberLandingPage({ searchParams }: MemberLandingPageProps) {
+  const params = await searchParams;
   const brand = await getSelectedMemberAppBrand();
   const accent = brand.accentColor || "#078df2";
   const background = brand.backgroundColor || "#0d0d10";
@@ -32,23 +37,27 @@ export default async function MemberLandingPage() {
         </div>
 
         <div className="memberLandingHero">
-          <h1>{headline}</h1>
-          <p>{subtext}</p>
+          <h1>{params?.sent ? "Revisa tu correo." : headline}</h1>
+          <p>{params?.sent ? "Te hemos enviado un enlace para entrar a tu app. Ábrelo desde este dispositivo y estarás dentro." : subtext}</p>
         </div>
 
-        <form action={enterAppAction} className="memberAccessForm">
-          <label>
-            Email
-            <input name="email" type="email" required placeholder="tu@email.com" autoComplete="email" />
-          </label>
-          <label>
-            Código de acceso <span className="muted">(opcional)</span>
-            <input name="code" type="text" placeholder="Si tu entrenador te dio uno" />
-          </label>
-          <button className="btn primary" type="submit" style={{ background: accent, borderColor: accent }}>
-            Entrar a la app <ArrowRight size={18} />
-          </button>
-        </form>
+        {params?.sent ? (
+          <div className="memberAccessSent">
+            <MailCheck size={20} style={{ color: accent }} />
+            <span>Enlace enviado. Si no lo ves en unos minutos, mira en spam o vuelve a pedirlo.</span>
+          </div>
+        ) : (
+          <form action={enterAppAction} className="memberAccessForm">
+            {params?.error ? <p className="formMessage danger">{params.error}</p> : null}
+            <label>
+              Email
+              <input name="email" type="email" required placeholder="tu@email.com" autoComplete="email" />
+            </label>
+            <button className="btn primary" type="submit" style={{ background: accent, borderColor: accent }}>
+              Enviarme el enlace <ArrowRight size={18} />
+            </button>
+          </form>
+        )}
 
         <p className="muted memberLandingSupport">
           <ShieldCheck size={15} /> ¿Sin acceso todavía? Escribe a {brand.supportEmail}.

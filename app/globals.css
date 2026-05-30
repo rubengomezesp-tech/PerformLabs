@@ -7255,6 +7255,17 @@ a.diaryEntryTitle:hover {
   flex-direction: column;
   gap: 14px;
 }
+.memberAccessSent {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 14px 16px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  background: var(--surface-2);
+  font-size: 14px;
+  line-height: 1.5;
+}
 .memberAccessForm label {
   display: flex;
   flex-direction: column;
