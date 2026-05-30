@@ -1,6 +1,7 @@
 import { Apple, Calculator, Flame, Plus, Soup, Trash2, TrendingUp, UtensilsCrossed } from "lucide-react";
 import { Dialog } from "@/components/dialog";
 import { NutritionAgentClient } from "@/components/nutrition-agent";
+import { RecipeImage } from "@/components/recipe-image";
 import { Topbar } from "@/components/topbar";
 import { isNutritionAgentConfigured } from "@/lib/ai/nutrition-agent";
 import { buildCarbCyclingTargets, calculateNutritionTargets, nutritionGoalLabels, recommendNutritionAdjustment } from "@/lib/domain/nutrition-engine";
@@ -317,7 +318,14 @@ export default async function CoachNutritionPage() {
         {recipes.length ? recipes.map((recipe) => (
           <article className="card span6 motionCard" key={recipe.id}>
             <div className="appCardHeader">
-              <Soup color="var(--accent)" />
+              <RecipeImage
+                variant="thumb"
+                className="recipeCardThumb"
+                id={recipe.id}
+                name={recipe.name}
+                mealSlot={recipe.mealSlot}
+                imageUrl={recipe.imageUrl}
+              />
               <div>
                 <h3>{recipe.name}</h3>
                 <div className="catalogChips">

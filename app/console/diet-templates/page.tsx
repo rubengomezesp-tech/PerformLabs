@@ -1,5 +1,6 @@
 import { Apple, Calculator, Soup } from "lucide-react";
 import { EmptyState } from "@/components/empty-state";
+import { RecipeImage } from "@/components/recipe-image";
 import { Topbar } from "@/components/topbar";
 import {
   listManagedDietCategories,
@@ -62,24 +63,27 @@ export default async function DietTemplatesPage({ searchParams }: DietTemplatesP
         {selectedWorkspace ? (
           <>
             <article className="card span5">
-              <h2>Nueva categoría</h2>
-              <form action={createDietCategoryAction} className="formStack">
-                <input name="workspaceId" type="hidden" value={selectedWorkspace.id} />
-                <label>
-                  Nombre
-                  <input name="name" placeholder="Sin gluten" required />
-                </label>
-                <label>
-                  Descripción
-                  <textarea name="description" rows={3} placeholder="Reglas de inclusión/exclusión y objetivo de la categoría." />
-                </label>
-                <button className="btn primary" type="submit">Crear categoría <Soup size={18} /></button>
-              </form>
+              <details className="editDetails noTopRule" open>
+                <summary><Soup size={15} /> Nueva categoría</summary>
+                <form action={createDietCategoryAction} className="formStack">
+                  <input name="workspaceId" type="hidden" value={selectedWorkspace.id} />
+                  <label>
+                    Nombre
+                    <input name="name" placeholder="Sin gluten" required />
+                  </label>
+                  <label>
+                    Descripción
+                    <textarea name="description" rows={3} placeholder="Reglas de inclusión/exclusión y objetivo de la categoría." />
+                  </label>
+                  <button className="btn primary" type="submit">Crear categoría <Soup size={18} /></button>
+                </form>
+              </details>
             </article>
 
             <article className="card span7">
-              <h2>Nueva plantilla</h2>
-              <form action={createDietTemplateAction} className="dietTemplateForm">
+              <details className="editDetails noTopRule" open>
+                <summary><Soup size={15} /> Nueva plantilla</summary>
+                <form action={createDietTemplateAction} className="dietTemplateForm">
                 <input name="workspaceId" type="hidden" value={selectedWorkspace.id} />
                 <label>
                   Nombre
@@ -123,7 +127,8 @@ export default async function DietTemplatesPage({ searchParams }: DietTemplatesP
                   <input name="tags" placeholder="sin gluten, alta proteína, fácil" />
                 </label>
                 <button className="btn primary" type="submit">Crear plantilla <Soup size={18} /></button>
-              </form>
+                </form>
+              </details>
             </article>
           </>
         ) : null}
@@ -131,44 +136,47 @@ export default async function DietTemplatesPage({ searchParams }: DietTemplatesP
         {selectedWorkspace ? (
           <>
             <article className="card span5">
-              <h2>Nuevo ingrediente</h2>
-              <form action={createIngredientAction} className="ingredientForm">
-                <input name="workspaceId" type="hidden" value={selectedWorkspace.id} />
-                <label className="spanFull">
-                  Nombre
-                  <input name="name" placeholder="Arroz jazmín" required />
-                </label>
-                <label>
-                  Kcal/100g
-                  <input name="caloriesPer100g" placeholder="360" />
-                </label>
-                <label>
-                  Proteína
-                  <input name="proteinPer100g" placeholder="7" />
-                </label>
-                <label>
-                  Carbos
-                  <input name="carbsPer100g" placeholder="78" />
-                </label>
-                <label>
-                  Grasas
-                  <input name="fatPer100g" placeholder="1" />
-                </label>
-                <label>
-                  Alérgenos
-                  <input name="allergens" placeholder="gluten, lactosa..." />
-                </label>
-                <label>
-                  Tags
-                  <input name="tags" placeholder="base, carbohidrato" />
-                </label>
-                <button className="btn primary spanFull" type="submit">Crear ingrediente <Apple size={18} /></button>
-              </form>
+              <details className="editDetails noTopRule">
+                <summary><Apple size={15} /> Nuevo ingrediente</summary>
+                <form action={createIngredientAction} className="ingredientForm">
+                  <input name="workspaceId" type="hidden" value={selectedWorkspace.id} />
+                  <label className="spanFull">
+                    Nombre
+                    <input name="name" placeholder="Arroz jazmín" required />
+                  </label>
+                  <label>
+                    Kcal/100g
+                    <input name="caloriesPer100g" placeholder="360" />
+                  </label>
+                  <label>
+                    Proteína
+                    <input name="proteinPer100g" placeholder="7" />
+                  </label>
+                  <label>
+                    Carbos
+                    <input name="carbsPer100g" placeholder="78" />
+                  </label>
+                  <label>
+                    Grasas
+                    <input name="fatPer100g" placeholder="1" />
+                  </label>
+                  <label>
+                    Alérgenos
+                    <input name="allergens" placeholder="gluten, lactosa..." />
+                  </label>
+                  <label>
+                    Tags
+                    <input name="tags" placeholder="base, carbohidrato" />
+                  </label>
+                  <button className="btn primary spanFull" type="submit">Crear ingrediente <Apple size={18} /></button>
+                </form>
+              </details>
             </article>
 
             <article className="card span7">
-              <h2>Nueva receta</h2>
-              <form action={createRecipeAction} className="dietTemplateForm">
+              <details className="editDetails noTopRule">
+                <summary><Soup size={15} /> Nueva receta</summary>
+                <form action={createRecipeAction} className="dietTemplateForm">
                 <input name="workspaceId" type="hidden" value={selectedWorkspace.id} />
                 <label>
                   Nombre
@@ -201,7 +209,8 @@ export default async function DietTemplatesPage({ searchParams }: DietTemplatesP
                   <input name="tags" placeholder="alta proteína, fácil, meal prep" />
                 </label>
                 <button className="btn primary" type="submit">Crear receta <Soup size={18} /></button>
-              </form>
+                </form>
+              </details>
             </article>
           </>
         ) : null}
@@ -226,18 +235,29 @@ export default async function DietTemplatesPage({ searchParams }: DietTemplatesP
             filtros por alergias y ajuste de porciones quedan guardados como
             fórmulas versionadas para cada marca.
           </p>
-          <div className="tagCloud">
-            {templates.map((template) => (
-              <span className="tag" key={template.id}>
-                {template.name}
-              </span>
-            ))}
-          </div>
+          {templates.length ? (
+            <div className="tagCloud">
+              {templates.map((template) => (
+                <span className="tag" key={template.id}>
+                  {template.name}
+                </span>
+              ))}
+            </div>
+          ) : (
+            <p className="muted">Aún no hay plantillas guardadas para esta marca. Crea una desde "Nueva plantilla" y aparecerá aquí como fórmula versionada.</p>
+          )}
         </article>
 
         {recipes.map((recipe) => (
-          <article className="card span6" key={recipe.id}>
-            <Apple color="var(--gold)" />
+          <article className="card span6 recipeConsoleCard" key={recipe.id}>
+            <RecipeImage
+              variant="thumb"
+              className="recipeConsoleThumb"
+              id={recipe.id}
+              name={recipe.name}
+              mealSlot={recipe.mealSlot}
+              imageUrl={recipe.imageUrl}
+            />
             <h3>{recipe.name}</h3>
             <p>{recipe.mealSlot} · {recipe.instructions || "Sin instrucciones"}</p>
             <ul className="list">
@@ -270,6 +290,14 @@ export default async function DietTemplatesPage({ searchParams }: DietTemplatesP
             icon={Soup}
             title="Esta marca todavía no tiene categorías nutricionales."
             text="Crea categorías como sin gluten, vegana, definición o alta proteína para ordenar las plantillas."
+          />
+        ) : null}
+
+        {selectedWorkspace && categories.length > 0 && recipes.length === 0 ? (
+          <EmptyState
+            icon={Apple}
+            title="Aún no hay recetas en esta marca."
+            text="Crea una receta desde el formulario de arriba, asígnale momento del día e ingredientes, y la verás aquí con sus macros calculadas."
           />
         ) : null}
       </section>

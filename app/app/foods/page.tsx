@@ -1,5 +1,6 @@
 import { Heart, NotebookPen, Plus, Salad, Search } from "lucide-react";
 import Link from "next/link";
+import { RecipeImage } from "@/components/recipe-image";
 import { SubmitButton } from "@/components/submit-button";
 import { Topbar } from "@/components/topbar";
 import { getSelectedMemberAppBrand } from "@/lib/member-app";
@@ -10,6 +11,19 @@ import {
   type FoodCategory,
   type MemberFoodItem,
 } from "@/lib/repositories/food-library";
+
+/** English Loremflickr keywords by food category, so the thumb photo is relevant. */
+const FOOD_KEYWORD: Record<FoodCategory, string> = {
+  protein: "meat,protein",
+  carb: "rice,grains",
+  fat: "nuts,oil",
+  dairy: "dairy,milk",
+  veg: "vegetables",
+  fruit: "fruit",
+  snack: "snack",
+  drink: "drink,beverage",
+  other: "food,meal",
+};
 import { getMemberNutritionVisibility } from "@/lib/repositories/nutrition-tracking";
 import { quickAddFoodAction, toggleFoodFavoriteAction } from "./actions";
 
@@ -36,6 +50,13 @@ function FoodRow({
 }) {
   return (
     <li className="foodRow">
+      <RecipeImage
+        variant="thumb"
+        className="foodThumb"
+        id={food.id}
+        name={food.name}
+        keyword={FOOD_KEYWORD[food.category]}
+      />
       <div className="foodInfo">
         <strong>{food.name}{food.brand ? <span className="foodBrand"> · {food.brand}</span> : null}</strong>
         <small>

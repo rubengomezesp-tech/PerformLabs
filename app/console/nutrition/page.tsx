@@ -1,5 +1,6 @@
 import { Apple, Calculator, ShoppingBasket, Sparkles } from "lucide-react";
 import Link from "next/link";
+import { RecipeImage } from "@/components/recipe-image";
 import { Topbar } from "@/components/topbar";
 import { Badge, SubmitButton, Table } from "@/components/ui";
 import { cloneRecipeAction } from "./actions";
@@ -145,7 +146,23 @@ export default async function NutritionPage({ searchParams }: NutritionPageProps
           {recipes.length ? (
             <Table<ManagedRecipe>
               columns={[
-                { key: "name", header: "Nombre", cell: (recipe) => <strong>{recipe.name}</strong> },
+                {
+                  key: "name",
+                  header: "Nombre",
+                  cell: (recipe) => (
+                    <span className="recipeTableName">
+                      <RecipeImage
+                        variant="thumb"
+                        className="recipeTableThumb"
+                        id={recipe.id}
+                        name={recipe.name}
+                        mealSlot={recipe.mealSlot}
+                        imageUrl={recipe.imageUrl}
+                      />
+                      <strong>{recipe.name}</strong>
+                    </span>
+                  ),
+                },
                 { key: "slot", header: "Momento", cell: (recipe) => MEAL_SLOT_LABELS[recipe.mealSlot] ?? recipe.mealSlot },
                 {
                   key: "macros",

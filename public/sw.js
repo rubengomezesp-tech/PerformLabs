@@ -1,5 +1,5 @@
 // Minimal service worker for installability + offline shell fallback.
-const CACHE = "performlabs-shell-v1";
+const CACHE = "performlabs-shell-v2";
 
 self.addEventListener("install", () => {
   self.skipWaiting();
@@ -14,20 +14,34 @@ self.addEventListener("activate", (event) => {
   );
 });
 
+// Cache ONLY static, immutable assets. Navigations, RSC fetches, Server Actions
+// and API calls must always reach the network untouched, so the app's dynamic
+// logic (auth, onboarding submit, redirects) is never served a stale or invalid
+// response. The previous version returned `undefined` from the catch (cache miss),
+// which made respondWith throw "Failed to convert value to 'Response'" and broke
+// navigation — that's what stopped the onboarding from completing.
 self.addEventListener("fetch", (event) => {
   const request = event.request;
-  if (request.method !== "GET" || new URL(request.url).origin !== self.location.origin) {
-    return;
-  }
+  if (request.method !== "GET") return;
+
+  const url = new URL(request.url);
+  if (url.origin !== self.location.origin) return;
+
+  const isStaticAsset =
+    url.pathname.startsWith("/_next/static/") ||
+    /\.(?:css|js|mjs|woff2?|png|jpe?g|svg|webp|gif|ico)$/.test(url.pathname);
+  if (!isStaticAsset) return;
 
   event.respondWith(
-    fetch(request)
-      .then((response) => {
-        const copy = response.clone();
-        caches.open(CACHE).then((cache) => cache.put(request, copy)).catch(() => {});
-        return response;
-      })
-      .catch(() => caches.match(request)),
+    caches.open(CACHE).then(async (cache) => {
+      const cached = await cache.match(request);
+      if (cached) return cached;
+      const response = await fetch(request);
+      if (response && response.ok) {
+        cache.put(request, response.clone()).catch(() => {});
+      }
+      return response;
+    }),
   );
 });
 

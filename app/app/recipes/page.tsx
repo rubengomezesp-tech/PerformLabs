@@ -1,6 +1,7 @@
 import { ChefHat, Filter, Utensils } from "lucide-react";
 import Link from "next/link";
 import { MacroStrip } from "@/components/macro-strip";
+import { RecipeImage } from "@/components/recipe-image";
 import { Topbar } from "@/components/topbar";
 import { getSelectedMemberAppBrand } from "@/lib/member-app";
 import { listManagedRecipes } from "@/lib/repositories/nutrition-management";
@@ -67,10 +68,15 @@ export default async function MemberRecipesPage({ searchParams }: RecipesPagePro
           <div className="span12 recipeGrid">
             {recipes.map((recipe) => (
               <Link className="recipeCard" href={`/app/recipes/${recipe.id}`} key={recipe.id}>
-                <div className="recipeMedia">
-                  {recipe.imageUrl ? <img alt="" src={recipe.imageUrl} /> : <ChefHat size={30} />}
+                <RecipeImage
+                  className="recipeMedia"
+                  id={recipe.id}
+                  name={recipe.name}
+                  mealSlot={recipe.mealSlot}
+                  imageUrl={recipe.imageUrl}
+                >
                   {recipe.mealSlot ? <span className="recipeSlot">{recipe.mealSlot}</span> : null}
-                </div>
+                </RecipeImage>
                 <div className="recipeBody">
                   <h3>{recipe.name}</h3>
                   {recipe.tags.length ? <p className="recipeTags">{recipe.tags.slice(0, 3).join(" · ")}</p> : null}

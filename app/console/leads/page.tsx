@@ -225,10 +225,13 @@ export default async function LeadsPage({ searchParams }: LeadsPageProps) {
         </article>
 
         {filteredLeads.map((lead) => (
-          <article className="card span6 leadCard" key={lead.id}>
-            <div className="sectionHeader">
-              <div>
-                <UserRound color="var(--gold)" />
+          <article className="card span4 leadCard" key={lead.id}>
+            <div className="leadCardHead">
+              <div className="scoreRing" style={{ "--score": `${getLeadScore(lead)}%` } as CSSProperties}>
+                <strong>{getLeadScore(lead)}</strong>
+                <span>fit</span>
+              </div>
+              <div className="leadCardTitle">
                 <h2>{lead.fullName}</h2>
                 <p>{lead.brandName || "Marca sin definir"}</p>
               </div>
@@ -237,27 +240,10 @@ export default async function LeadsPage({ searchParams }: LeadsPageProps) {
               </span>
             </div>
 
-            <div className="leadQuality">
-              <div className="scoreRing" style={{ "--score": `${getLeadScore(lead)}%` } as CSSProperties}>
-                <strong>{getLeadScore(lead)}</strong>
-                <span>fit</span>
-              </div>
-              <div>
-                <span className="eyebrow">Diagnóstico comercial</span>
-                <p>
-                  {lead.projectId
-                    ? "Proyecto creado. Mantén actualizado el briefing y la fecha objetivo."
-                    : lead.status === "new"
-                      ? "Responder rápido, confirmar objetivo y agendar siguiente paso."
-                      : "Cualificar alcance, urgencia, marca y contenido antes de convertir."}
-                </p>
-              </div>
-            </div>
-
-            <ul className="list">
-              <li className="row">Objetivo <span>{goalLabels[lead.mainGoal] ?? (lead.mainGoal || "Pendiente")}</span></li>
-              <li className="row">Clientes actuales <span>{lead.monthlyClients || "Pendiente"}</span></li>
+            <ul className="list leadFacts">
               <li className="row">Estado <span className="tag">{lead.status}</span></li>
+              <li className="row">Objetivo <span>{goalLabels[lead.mainGoal] ?? (lead.mainGoal || "Pendiente")}</span></li>
+              <li className="row">Clientes <span>{lead.monthlyClients || "Pendiente"}</span></li>
               <li className="row">Agente <span>{lead.assignedAgent || "Sin asignar"}</span></li>
               <li className="row">Notas <strong>{lead.noteCount}</strong></li>
             </ul>
@@ -267,55 +253,61 @@ export default async function LeadsPage({ searchParams }: LeadsPageProps) {
               {lead.phone ? <span><Phone size={14} /> {lead.phone}</span> : null}
             </div>
 
-            <form action={updateLeadAction} className="leadControlGrid">
-              <input name="id" type="hidden" value={lead.id} />
-              <label>
-                Estado
-                <select name="status" defaultValue={lead.status}>
-                  {statusOptions.map(([value, label]) => (
-                    <option key={value} value={value}>{label}</option>
-                  ))}
-                </select>
-              </label>
-              <label>
-                Prioridad
-                <select name="priority" defaultValue={lead.priority}>
-                  {priorityOptions.map(([value, label]) => (
-                    <option key={value} value={value}>{label}</option>
-                  ))}
-                </select>
-              </label>
-              <label>
-                Agente asignado
-                <input name="assignedAgent" defaultValue={lead.assignedAgent} placeholder="Equipo comercial..." />
-              </label>
-              <label>
-                Próxima acción
-                <input name="nextActionAt" type="datetime-local" />
-              </label>
-              <label className="spanFull">
-                Cualificación
-                <textarea name="qualificationNotes" defaultValue={lead.notes} rows={3} />
-              </label>
-              <button className="btn" type="submit">
-                Guardar lead <Save size={16} />
-              </button>
-            </form>
+            <details className="editDetails">
+              <summary><Save size={14} /> Gestionar lead</summary>
+              <form action={updateLeadAction} className="leadControlGrid">
+                <input name="id" type="hidden" value={lead.id} />
+                <label>
+                  Estado
+                  <select name="status" defaultValue={lead.status}>
+                    {statusOptions.map(([value, label]) => (
+                      <option key={value} value={value}>{label}</option>
+                    ))}
+                  </select>
+                </label>
+                <label>
+                  Prioridad
+                  <select name="priority" defaultValue={lead.priority}>
+                    {priorityOptions.map(([value, label]) => (
+                      <option key={value} value={value}>{label}</option>
+                    ))}
+                  </select>
+                </label>
+                <label>
+                  Agente asignado
+                  <input name="assignedAgent" defaultValue={lead.assignedAgent} placeholder="Equipo comercial..." />
+                </label>
+                <label>
+                  Próxima acción
+                  <input name="nextActionAt" type="datetime-local" />
+                </label>
+                <label className="spanFull">
+                  Cualificación
+                  <textarea name="qualificationNotes" defaultValue={lead.notes} rows={3} />
+                </label>
+                <button className="btn" type="submit">
+                  Guardar lead <Save size={16} />
+                </button>
+              </form>
+            </details>
 
-            <form action={addLeadNoteAction} className="leadNoteForm">
-              <input name="leadId" type="hidden" value={lead.id} />
-              <input name="authorName" type="hidden" value="Equipo" />
-              <label>
-                Nota interna
-                <textarea name="note" placeholder="Resumen de llamada, objeciones, presupuesto, urgencia..." rows={3} />
-              </label>
-              {lead.latestNote ? (
-                <p className="muted"><MessageSquareText size={14} /> Última nota: {lead.latestNote}</p>
-              ) : null}
-              <button className="btn" type="submit">
-                Añadir nota <MessageSquareText size={16} />
-              </button>
-            </form>
+            <details className="editDetails">
+              <summary><MessageSquareText size={14} /> Notas internas{lead.noteCount ? ` (${lead.noteCount})` : ""}</summary>
+              <form action={addLeadNoteAction} className="leadNoteForm">
+                <input name="leadId" type="hidden" value={lead.id} />
+                <input name="authorName" type="hidden" value="Equipo" />
+                <label>
+                  Nota interna
+                  <textarea name="note" placeholder="Resumen de llamada, objeciones, presupuesto, urgencia..." rows={3} />
+                </label>
+                {lead.latestNote ? (
+                  <p className="muted"><MessageSquareText size={14} /> Última nota: {lead.latestNote}</p>
+                ) : null}
+                <button className="btn" type="submit">
+                  Añadir nota <MessageSquareText size={16} />
+                </button>
+              </form>
+            </details>
 
             <form action={convertLeadToProjectAction} className="convertForm">
               <input name="leadId" type="hidden" value={lead.id} />

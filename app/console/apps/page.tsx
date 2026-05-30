@@ -1,4 +1,5 @@
-import { AppWindow, ArrowRight, Eye, Globe, KeyRound, Layers, Pause, Play, Plus, Save } from "lucide-react";
+import { AppWindow, ArrowRight, Eye, Globe, KeyRound, Layers, Pause, Pencil, Play, Plus, Save } from "lucide-react";
+import { EmptyState } from "@/components/empty-state";
 import { Topbar } from "@/components/topbar";
 import { baseAppBlueprint, baseAppMetrics } from "@/lib/domain/app-blueprint";
 import { entitlementModuleDescriptions, entitlementModuleLabels, entitlementModules, entitlementStatusLabels } from "@/lib/repositories/entitlements";
@@ -22,7 +23,7 @@ export default async function ChildAppsPage() {
         <article className="card span12 consoleEngineCard">
           <div className="sectionHeader">
             <div>
-              <AppWindow color="var(--gold)" />
+              <AppWindow color="var(--accent)" />
               <h2>Motor app base</h2>
               <p>
                 La consola no crea fichas vacías. Prepara una app operativa con navegación,
@@ -56,7 +57,7 @@ export default async function ChildAppsPage() {
         <article className="card span12" id="crear-app">
           <div className="sectionHeader">
             <div>
-              <Layers color="var(--gold)" />
+              <Layers color="var(--accent)" />
               <h2>Nueva implantación</h2>
               <p>Registra un proyecto premium. Nace preparado, pero bloqueado hasta pago y activación comercial.</p>
             </div>
@@ -89,126 +90,147 @@ export default async function ChildAppsPage() {
             </div>
           </form>
         </article>
-        {workspaces.map((app) => (
-          <article className="card span6" key={app.id}>
-            <div className="appCardHeader">
-              <span className="swatch" style={{ background: app.accentColor }} />
-              <Globe color="var(--gold)" />
-              <div>
-                <h2>{app.name}</h2>
-                <p>{app.appName}</p>
-              </div>
-            </div>
-            <ul className="list">
-              <li className="row">Dominio <span>{app.domain}</span></li>
-              <li className="row">Soporte <span>{app.supportEmail || "Pendiente"}</span></li>
-              <li className="row">Estado <span className={app.isActive ? "tag" : "tag danger"}>{app.status}</span></li>
-              <li className="row">Licencia <span className={app.entitlement.status === "active" ? "tag" : "tag danger"}>{entitlementStatusLabels[app.entitlement.status]}</span></li>
-              <li className="row">Miembros <strong>{app.members}</strong></li>
-              <li className="row">MRR <strong>{app.mrr}</strong></li>
-            </ul>
-            <form action={updateWorkspaceAction} className="editForm">
-              <input name="id" type="hidden" value={app.id} />
-              <label>
-                Marca
-                <input name="name" defaultValue={app.name} required />
-              </label>
-              <label>
-                App
-                <input name="appName" defaultValue={app.appName} />
-              </label>
-              <label>
-                Dominio
-                <input name="customDomain" defaultValue={app.domain} />
-              </label>
-              <label>
-                Soporte
-                <input name="supportEmail" defaultValue={app.supportEmail} type="email" />
-              </label>
-              <label>
-                Color
-                <input name="accentColor" type="color" defaultValue={app.accentColor} />
-              </label>
-              <div className="actions">
-                <button className="btn" type="submit">
-                  Guardar <Save size={16} />
-                </button>
-              </div>
-            </form>
-            <form action={updateWorkspaceEntitlementAction} className="editForm entitlementForm">
-              <input name="workspaceId" type="hidden" value={app.id} />
-              <div className="sectionHeader compact">
+        {workspaces.map((app) => {
+          const licenseActive = app.entitlement.status === "active";
+          return (
+            <article className="card span6" key={app.id}>
+              <div className="appCardHeader">
+                <span className="swatch" style={{ background: app.accentColor }} />
+                <Globe color="var(--accent)" />
                 <div>
-                  <KeyRound color="var(--gold)" size={18} />
-                  <h3>Hilo operativo privado</h3>
-                  <p>Control interno de licencia, invisible para entrenador y miembros.</p>
+                  <h2>{app.name}</h2>
+                  <p>{app.appName}</p>
                 </div>
+                <span className={licenseActive ? "tag success" : "tag danger"}>
+                  {entitlementStatusLabels[app.entitlement.status]}
+                </span>
               </div>
-              <label>
-                Estado de licencia
-                <select name="status" defaultValue={app.entitlement.status}>
-                  <option value="active">Activa</option>
-                  <option value="past_due">Pendiente de regularizar</option>
-                  <option value="suspended">Suspendida</option>
-                  <option value="revoked">Revocada</option>
-                  <option value="terminated">Finalizada</option>
-                </select>
-              </label>
-              <label>
-                Contrato / referencia
-                <input name="contractRef" defaultValue={app.entitlement.contractRef} placeholder="MSA-2026-001" />
-              </label>
-              <label className="span2">
-                Motivo interno
-                <input name="reason" defaultValue={app.entitlement.reason} placeholder="Impago, revisión contractual, soporte interno..." />
-              </label>
-              <fieldset className="moduleMatrix span2">
-                <legend>Modulos autorizados</legend>
-                {entitlementModules.map((module) => (
-                  <label className="moduleToggle" key={module}>
-                    <input
-                      name="modules"
-                      type="checkbox"
-                      value={module}
-                      defaultChecked={app.entitlement.modules[module]}
-                    />
-                    <span>
-                      <strong>{entitlementModuleLabels[module]}</strong>
-                      <small>{entitlementModuleDescriptions[module]}</small>
-                    </span>
+              <ul className="list">
+                <li className="row">Dominio <span>{app.domain}</span></li>
+                <li className="row">Soporte <span>{app.supportEmail || "Pendiente"}</span></li>
+                <li className="row">Estado app <span className={app.isActive ? "tag" : "tag danger"}>{app.status}</span></li>
+                <li className="row">Miembros <strong>{app.members}</strong></li>
+                <li className="row">MRR <strong>{app.mrr}</strong></li>
+              </ul>
+
+              {/* License & access: the primary control, kept at the top of the card. */}
+              <form action={updateWorkspaceEntitlementAction} className="editForm entitlementForm">
+                <input name="workspaceId" type="hidden" value={app.id} />
+                <div className="sectionHeader compact">
+                  <div>
+                    <KeyRound color="var(--accent)" size={18} />
+                    <h3>Licencia y acceso</h3>
+                    <p>Activa o suspende el acceso de esta marca a la app, la consola del entrenador y los módulos.</p>
+                  </div>
+                </div>
+                <label>
+                  Estado de licencia
+                  <select name="status" defaultValue={app.entitlement.status}>
+                    <option value="active">Activa</option>
+                    <option value="past_due">Pendiente de regularizar</option>
+                    <option value="suspended">Suspendida</option>
+                    <option value="revoked">Revocada</option>
+                    <option value="terminated">Finalizada</option>
+                  </select>
+                </label>
+                <label>
+                  Contrato / referencia
+                  <input name="contractRef" defaultValue={app.entitlement.contractRef} placeholder="MSA-2026-001" />
+                </label>
+                <label className="span2">
+                  Motivo interno
+                  <input name="reason" defaultValue={app.entitlement.reason} placeholder="Impago, revisión contractual, soporte interno..." />
+                </label>
+                <fieldset className="moduleMatrix span2">
+                  <legend>Módulos autorizados</legend>
+                  {entitlementModules.map((module) => (
+                    <label className="moduleToggle" key={module}>
+                      <input
+                        name="modules"
+                        type="checkbox"
+                        value={module}
+                        defaultChecked={app.entitlement.modules[module]}
+                      />
+                      <span>
+                        <strong>{entitlementModuleLabels[module]}</strong>
+                        <small>{entitlementModuleDescriptions[module]}</small>
+                      </span>
+                    </label>
+                  ))}
+                </fieldset>
+                <div className="actions">
+                  <button className="btn primary" type="submit">
+                    Guardar licencia <Save size={16} />
+                  </button>
+                </div>
+              </form>
+
+              {/* Brand metadata: secondary, collapsed so it doesn't bury the license control. */}
+              <details className="editDetails">
+                <summary><Pencil size={15} /> Editar datos de marca</summary>
+                <form action={updateWorkspaceAction} className="editForm">
+                  <input name="id" type="hidden" value={app.id} />
+                  <label>
+                    Marca
+                    <input name="name" defaultValue={app.name} required />
                   </label>
-                ))}
-              </fieldset>
-              <div className="actions">
-                <button className="btn" type="submit">
-                  Guardar licencia <Save size={16} />
-                </button>
-              </div>
-            </form>
-            <form action={toggleWorkspaceAction}>
-              <input name="id" type="hidden" value={app.id} />
-              <input name="isActive" type="hidden" value={String(!app.isActive)} />
-              <div className="actions">
-                <a className="btn primary" href={`/app/select?brand=${app.id}`}>
-                  Vista cliente <Eye size={16} />
-                </a>
-                <a className="btn" href={`/console/brand?brand=${app.id}`}>
-                  Marca
-                </a>
-                <a className="btn" href={`/console/content?brand=${app.id}`}>
-                  Contenido
-                </a>
-                <a className="btn" href={`/console/programs?brand=${app.id}`}>
-                  Programas
-                </a>
-                <button className="btn" type="submit">
-                  {app.isActive ? "Pausar app" : "Activar app"}
-                  {app.isActive ? <Pause size={16} /> : <Play size={16} />}
-                </button>
-              </div>
-            </form>
-          </article>
-        ))}
+                  <label>
+                    App
+                    <input name="appName" defaultValue={app.appName} />
+                  </label>
+                  <label>
+                    Dominio
+                    <input name="customDomain" defaultValue={app.domain} />
+                  </label>
+                  <label>
+                    Soporte
+                    <input name="supportEmail" defaultValue={app.supportEmail} type="email" />
+                  </label>
+                  <label>
+                    Color
+                    <input name="accentColor" type="color" defaultValue={app.accentColor} />
+                  </label>
+                  <div className="actions">
+                    <button className="btn" type="submit">
+                      Guardar <Save size={16} />
+                    </button>
+                  </div>
+                </form>
+              </details>
+
+              <form action={toggleWorkspaceAction}>
+                <input name="id" type="hidden" value={app.id} />
+                <input name="isActive" type="hidden" value={String(!app.isActive)} />
+                <div className="actions">
+                  <a className="btn primary" href={`/app/select?brand=${app.id}`}>
+                    Vista cliente <Eye size={16} />
+                  </a>
+                  <a className="btn" href={`/console/brand?brand=${app.id}`}>
+                    Marca
+                  </a>
+                  <a className="btn" href={`/console/content?brand=${app.id}`}>
+                    Contenido
+                  </a>
+                  <a className="btn" href={`/console/programs?brand=${app.id}`}>
+                    Programas
+                  </a>
+                  <button className="btn" type="submit">
+                    {app.isActive ? "Pausar app" : "Activar app"}
+                    {app.isActive ? <Pause size={16} /> : <Play size={16} />}
+                  </button>
+                </div>
+              </form>
+            </article>
+          );
+        })}
+
+        {workspaces.length === 0 ? (
+          <EmptyState
+            icon={AppWindow}
+            title="Todavía no hay marcas creadas."
+            text="Crea la primera implantación desde el formulario de arriba para empezar a configurar dominio, licencia y módulos de la app del entrenador."
+          />
+        ) : null}
       </section>
     </>
   );

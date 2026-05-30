@@ -1,6 +1,7 @@
 import { Apple, CheckCircle2, ChefHat, Droplets, MessageSquare, NotebookPen, Plus, Repeat, ShoppingBasket, Sparkles, Utensils } from "lucide-react";
 import Link from "next/link";
 import { MacroStrip } from "@/components/macro-strip";
+import { RecipeImage } from "@/components/recipe-image";
 import { Topbar } from "@/components/topbar";
 import { getSelectedMemberAppBrand } from "@/lib/member-app";
 import { Dialog } from "@/components/dialog";
@@ -153,6 +154,12 @@ export default async function MealsPage() {
 
         {mealCards.map((meal, index) => (
           <article className={meal.id === nextMeal?.id ? "card span3 mealAppCard isNextMeal" : "card span3 mealAppCard"} key={meal.id}>
+            <RecipeImage
+              className="mealAppCardMedia"
+              id={meal.recipeId || meal.id}
+              name={meal.title}
+              mealSlot={meal.slot}
+            />
             <div className="mealAppCardTop">
               <span>{String(index + 1).padStart(2, "0")}</span>
               {mealLogBySlot.get(meal.slot)?.status === "done" ? <CheckCircle2 color="var(--gold)" size={22} /> : <Apple color="var(--gold)" size={22} />}
