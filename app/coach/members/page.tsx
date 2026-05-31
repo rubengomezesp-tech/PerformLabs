@@ -1,6 +1,6 @@
-import { Mail, Plus, UserPlus, UserRound, Users } from "lucide-react";
+import { Plus, UserPlus } from "lucide-react";
 import { Dialog } from "@/components/dialog";
-import { EmptyState } from "@/components/empty-state";
+import { MembersExplorer } from "@/components/coach/members-explorer";
 import { Topbar } from "@/components/topbar";
 import { SubmitButton } from "@/components/ui";
 import { getSelectedMemberAppBrand } from "@/lib/member-app";
@@ -60,93 +60,13 @@ export default async function CoachMembersPage() {
         }
       />
       <section className="grid">
-        {members.length ? members.map((member) => (
-          <article className="card span4 motionCard" key={member.id}>
-            <UserRound color="var(--gold)" aria-hidden="true" />
-            <h2>{member.fullName}</h2>
-            <p><Mail size={15} /> {member.email}</p>
-            <ul className="list">
-              <li className="row">Objetivo <span>{member.goal || "Pendiente"}</span></li>
-              <li className="row">Estado <span className="tag">{member.subscriptionStatus}</span></li>
-              <li className="row">Onboarding <span>{member.onboardingStatus}</span></li>
-              <li className="row">Zona <strong>{member.timezone}</strong></li>
-            </ul>
-            <div className="memberAssignmentState">
-              <span className="eyebrow">Entrenamiento activo</span>
-              {member.activeWorkoutPlan ? (
-                <>
-                  <strong>{member.activeWorkoutPlan.name}</strong>
-                  <p>
-                    {member.activeWorkoutPlan.daysPerWeek ?? "-"} dias/semana · Mes {member.activeWorkoutPlan.currentMonth} · Semana {member.activeWorkoutPlan.currentWeek}
-                  </p>
-                  <small>Revision: {member.activeWorkoutPlan.nextReviewOn || "sin fecha"} · {member.activeWorkoutPlan.reviewStatus}</small>
-                </>
-              ) : (
-                <p>Sin entrenamiento asignado todavia.</p>
-              )}
-            </div>
-            <Dialog
-              triggerClassName="btn"
-              trigger={<>Asignar / editar planes <Plus size={16} /></>}
-              title={`Planes de ${member.fullName}`}
-              description="Entrenamiento, nutrición, fase del bloque y próxima revisión."
-            >
-            <form action={assignCoachMemberPlansAction} className="coachAssignForm">
-              <input name="workspaceId" type="hidden" value={brand.id} />
-              <input name="memberProfileId" type="hidden" value={member.id} />
-              <label>
-                Entrenamiento
-                <select name="workoutTemplateId" defaultValue="">
-                  <option value="">Sin cambio</option>
-                  {workoutTemplates.map((template) => (
-                    <option key={template.id} value={template.id}>{template.name}</option>
-                  ))}
-                </select>
-              </label>
-              <label>
-                Objetivo de fase
-                <input name="assignmentGoal" defaultValue={member.activeWorkoutPlan?.assignmentGoal ?? member.goal} placeholder="Definicion, fuerza, adherencia..." />
-              </label>
-              <label>
-                Mes
-                <select name="currentMonth" defaultValue={String(member.activeWorkoutPlan?.currentMonth ?? 1)}>
-                  <option value="1">Mes 1</option>
-                  <option value="2">Mes 2</option>
-                  <option value="3">Mes 3</option>
-                </select>
-              </label>
-              <label>
-                Semana
-                <input name="currentWeek" defaultValue={String(member.activeWorkoutPlan?.currentWeek ?? 1)} min="1" max="12" type="number" inputMode="numeric" />
-              </label>
-              <label>
-                Próxima revisión
-                <input name="nextReviewOn" defaultValue={member.activeWorkoutPlan?.nextReviewOn ?? ""} type="date" />
-              </label>
-              <label>
-                Nutrición
-                <select name="dietTemplateId" defaultValue="">
-                  <option value="">Sin cambio</option>
-                  {dietTemplates.map((template) => (
-                    <option key={template.id} value={template.id}>{template.name}</option>
-                  ))}
-                </select>
-              </label>
-              <label className="spanFull">
-                Notas internas
-                <input name="assignmentNotes" placeholder="Contexto, molestias, preferencias, foco de la fase..." />
-              </label>
-              <SubmitButton variant="primary" className="spanFull" successToast="Planes asignados">Asignar planes</SubmitButton>
-            </form>
-            </Dialog>
-          </article>
-        )) : (
-          <EmptyState
-            icon={Users}
-            title="Todavia no hay miembros en esta app."
-            text="Crea el primer miembro para asignarle entrenamiento, nutrición y seguimiento."
-          />
-        )}
+        <MembersExplorer
+          brandId={brand.id}
+          members={members}
+          workoutTemplates={workoutTemplates}
+          dietTemplates={dietTemplates}
+          assignAction={assignCoachMemberPlansAction}
+        />
       </section>
     </>
   );

@@ -2622,6 +2622,68 @@ a.card:hover {
   color: var(--muted);
 }
 
+.membersFilters {
+  display: grid;
+  grid-template-columns: minmax(220px, 1.4fr) minmax(180px, 1fr) auto;
+  gap: 12px;
+  align-items: end;
+}
+
+.membersFilters label {
+  display: grid;
+  gap: 6px;
+  margin: 0;
+}
+
+.membersSearchField {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.membersSearchField svg {
+  position: absolute;
+  left: 12px;
+  color: var(--muted);
+  pointer-events: none;
+}
+
+.membersSearchField input {
+  width: 100%;
+  padding-left: 36px;
+}
+
+.membersCount {
+  margin: 0;
+  color: var(--muted);
+  font-size: 0.85rem;
+  white-space: nowrap;
+  padding-bottom: 10px;
+}
+
+.memberQuickLinks {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 12px;
+}
+
+.memberQuickLinks .btn {
+  flex: 1 1 auto;
+  justify-content: center;
+}
+
+@media (max-width: 640px) {
+  .membersFilters {
+    grid-template-columns: 1fr;
+    align-items: stretch;
+  }
+
+  .membersCount {
+    padding-bottom: 0;
+  }
+}
+
 /* Canonical app hero shared by the member workout & meal surfaces. */
 .workoutAppHero,
 .mealAppHero {
