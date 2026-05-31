@@ -4,20 +4,42 @@ import { useState } from "react";
 import {
   Activity,
   Apple,
+  Armchair,
+  Bike,
+  Briefcase,
+  Carrot,
+  Check,
   CheckCircle2,
   ChevronLeft,
   ChevronRight,
+  Clock,
+  Drumstick,
   Dumbbell,
+  Fish,
+  Flame,
+  Footprints,
   HeartPulse,
   Home,
+  Leaf,
+  Moon,
+  Mountain,
+  PiggyBank,
+  Salad,
   Scale,
   ShieldCheck,
+  Sparkles,
   Target,
+  Timer,
+  TrendingUp,
+  Trophy,
   UserRound,
+  Wallet,
+  Wheat,
 } from "lucide-react";
 import { saveMemberOnboardingAction } from "./actions";
 
-type Choice = { value: string; label: string; hint?: string };
+type IconType = React.ComponentType<{ size?: number }>;
+type Choice = { value: string; label: string; hint?: string; icon?: IconType };
 
 type Answers = {
   sex: string;
@@ -26,6 +48,7 @@ type Answers = {
   heightCm: string;
   weightKg: string;
   weightUnknown: boolean;
+  activityLevel: string;
   goal: string;
   trainingLocation: string;
   equipment: string[];
@@ -36,10 +59,18 @@ type Answers = {
   injuriesOther: string;
   healthConditions: string[];
   healthOther: string;
+  sleepHours: string;
+  stepsTarget: string;
   dietStyle: string[];
   allergies: string[];
   allergiesOther: string;
   mealsPerDay: string;
+  preferredFoods: string[];
+  preferredFoodsOther: string;
+  dislikedFoods: string[];
+  dislikedFoodsOther: string;
+  cookingTimeMinutes: string;
+  budgetLevel: string;
   fullName: string;
   notes: string;
 };
@@ -51,28 +82,37 @@ const initialAnswers: Answers = {
   heightCm: "",
   weightKg: "",
   weightUnknown: false,
+  activityLevel: "",
   goal: "",
   trainingLocation: "",
   equipment: [],
   experienceLevel: "",
   daysPerWeek: "",
-  sessionMinutes: "60",
+  sessionMinutes: "",
   injuries: [],
   injuriesOther: "",
   healthConditions: [],
   healthOther: "",
+  sleepHours: "",
+  stepsTarget: "",
   dietStyle: [],
   allergies: [],
   allergiesOther: "",
   mealsPerDay: "",
+  preferredFoods: [],
+  preferredFoodsOther: "",
+  dislikedFoods: [],
+  dislikedFoodsOther: "",
+  cookingTimeMinutes: "",
+  budgetLevel: "",
   fullName: "",
   notes: "",
 };
 
 const sexOptions: Choice[] = [
-  { value: "male", label: "Hombre" },
-  { value: "female", label: "Mujer" },
-  { value: "na", label: "Prefiero no decirlo" },
+  { value: "male", label: "Hombre", icon: UserRound },
+  { value: "female", label: "Mujer", icon: UserRound },
+  { value: "na", label: "Prefiero no decirlo", icon: ShieldCheck },
 ];
 
 const ageRanges: Choice[] = [
@@ -84,35 +124,42 @@ const ageRanges: Choice[] = [
   { value: "65+", label: "65 o más" },
 ];
 
+const activityOptions: Choice[] = [
+  { value: "1.2", label: "Sedentario", hint: "Trabajo de oficina, poco movimiento", icon: Armchair },
+  { value: "1.375", label: "Ligero", hint: "De pie a ratos, paseos suaves", icon: Footprints },
+  { value: "1.55", label: "Moderado", hint: "Activo durante el día", icon: Activity },
+  { value: "1.725", label: "Muy activo", hint: "Trabajo físico o muy en movimiento", icon: Flame },
+];
+
 const goalOptions: Choice[] = [
-  { value: "Definicion", label: "Perder grasa", hint: "Definición, bajar % graso" },
-  { value: "Volumen", label: "Ganar músculo", hint: "Volumen y fuerza" },
-  { value: "Recomposicion", label: "Recomposición", hint: "Perder grasa y ganar músculo" },
-  { value: "Rendimiento", label: "Rendimiento", hint: "Más fuerte y atlético" },
-  { value: "Salud", label: "Salud y forma", hint: "Sentirme bien y constante" },
+  { value: "Definicion", label: "Perder grasa", hint: "Definición, bajar % graso", icon: TrendingUp },
+  { value: "Volumen", label: "Ganar músculo", hint: "Volumen y fuerza", icon: Dumbbell },
+  { value: "Recomposicion", label: "Recomposición", hint: "Perder grasa y ganar músculo", icon: Sparkles },
+  { value: "Rendimiento", label: "Rendimiento", hint: "Más fuerte y atlético", icon: Trophy },
+  { value: "Salud", label: "Salud y forma", hint: "Sentirme bien y constante", icon: HeartPulse },
 ];
 
 const locationOptions: Choice[] = [
-  { value: "gym", label: "Gimnasio", hint: "Máquinas y peso libre" },
-  { value: "home", label: "En casa", hint: "Material limitado o peso corporal" },
-  { value: "outdoor", label: "Exterior", hint: "Calistenia, parque, aire libre" },
+  { value: "gym", label: "Gimnasio", hint: "Máquinas y peso libre", icon: Dumbbell },
+  { value: "home", label: "En casa", hint: "Material limitado o peso corporal", icon: Home },
+  { value: "outdoor", label: "Exterior", hint: "Calistenia, parque, aire libre", icon: Mountain },
 ];
 
 const equipmentOptions: Choice[] = [
-  { value: "Mancuernas", label: "Mancuernas" },
-  { value: "Barra y discos", label: "Barra y discos" },
-  { value: "Bandas elásticas", label: "Bandas elásticas" },
-  { value: "Kettlebells", label: "Kettlebells" },
-  { value: "Banco", label: "Banco" },
-  { value: "Barra de dominadas", label: "Barra de dominadas" },
-  { value: "Peso corporal", label: "Solo peso corporal" },
-  { value: "Bici/Cinta", label: "Bici o cinta" },
+  { value: "Mancuernas", label: "Mancuernas", icon: Dumbbell },
+  { value: "Barra y discos", label: "Barra y discos", icon: Dumbbell },
+  { value: "Bandas elásticas", label: "Bandas elásticas", icon: Activity },
+  { value: "Kettlebells", label: "Kettlebells", icon: Dumbbell },
+  { value: "Banco", label: "Banco", icon: Armchair },
+  { value: "Barra de dominadas", label: "Barra de dominadas", icon: Activity },
+  { value: "Peso corporal", label: "Solo peso corporal", icon: UserRound },
+  { value: "Bici/Cinta", label: "Bici o cinta", icon: Bike },
 ];
 
 const experienceOptions: Choice[] = [
-  { value: "Principiante", label: "Principiante", hint: "Menos de 1 año entrenando" },
-  { value: "Intermedio", label: "Intermedio", hint: "1 – 3 años constante" },
-  { value: "Avanzado", label: "Avanzado", hint: "+3 años, buena técnica" },
+  { value: "Principiante", label: "Principiante", hint: "Menos de 1 año entrenando", icon: Leaf },
+  { value: "Intermedio", label: "Intermedio", hint: "1 – 3 años constante", icon: Activity },
+  { value: "Avanzado", label: "Avanzado", hint: "+3 años, buena técnica", icon: Flame },
 ];
 
 const daysOptions: Choice[] = [
@@ -123,8 +170,16 @@ const daysOptions: Choice[] = [
   { value: "7", label: "7 días" },
 ];
 
+const sessionOptions: Choice[] = [
+  { value: "30", label: "30 min", hint: "Sesiones exprés", icon: Timer },
+  { value: "45", label: "45 min", hint: "Eficiente y directo", icon: Timer },
+  { value: "60", label: "60 min", hint: "El estándar", icon: Clock },
+  { value: "75", label: "75 min", hint: "Con margen extra", icon: Clock },
+  { value: "90", label: "90 min", hint: "Sesiones largas", icon: Clock },
+];
+
 const injuryOptions: Choice[] = [
-  { value: "Ninguna", label: "Ninguna" },
+  { value: "Ninguna", label: "Ninguna", icon: Check },
   { value: "Hombro", label: "Hombro" },
   { value: "Rodilla", label: "Rodilla" },
   { value: "Lumbar", label: "Lumbar / espalda baja" },
@@ -136,7 +191,7 @@ const injuryOptions: Choice[] = [
 ];
 
 const healthOptions: Choice[] = [
-  { value: "Ninguna", label: "Ninguna" },
+  { value: "Ninguna", label: "Ninguna", icon: Check },
   { value: "Hipertensión", label: "Hipertensión" },
   { value: "Diabetes", label: "Diabetes" },
   { value: "Problema cardíaco", label: "Problema cardíaco" },
@@ -146,23 +201,37 @@ const healthOptions: Choice[] = [
   { value: "Embarazo / postparto", label: "Embarazo / postparto" },
 ];
 
+const sleepOptions: Choice[] = [
+  { value: "5", label: "Menos de 6h", hint: "Descanso justo", icon: Moon },
+  { value: "6.5", label: "6 – 7h", hint: "Aceptable", icon: Moon },
+  { value: "7.5", label: "7 – 8h", hint: "Óptimo", icon: Moon },
+  { value: "8.5", label: "Más de 8h", hint: "De sobra", icon: Moon },
+];
+
+const stepsOptions: Choice[] = [
+  { value: "5000", label: "~5.000", hint: "Poco movimiento", icon: Footprints },
+  { value: "8000", label: "~8.000", hint: "Recomendado", icon: Footprints },
+  { value: "10000", label: "~10.000", hint: "Activo", icon: Footprints },
+  { value: "12000", label: "+12.000", hint: "Muy activo", icon: Footprints },
+];
+
 const dietOptions: Choice[] = [
-  { value: "Sin restricciones", label: "Sin restricciones" },
-  { value: "Vegetariana", label: "Vegetariana" },
-  { value: "Vegana", label: "Vegana" },
-  { value: "Pescetariana", label: "Pescetariana" },
-  { value: "Sin gluten", label: "Sin gluten" },
+  { value: "Sin restricciones", label: "Sin restricciones", icon: Check },
+  { value: "Vegetariana", label: "Vegetariana", icon: Salad },
+  { value: "Vegana", label: "Vegana", icon: Leaf },
+  { value: "Pescetariana", label: "Pescetariana", icon: Fish },
+  { value: "Sin gluten", label: "Sin gluten", icon: Wheat },
   { value: "Sin lactosa", label: "Sin lactosa" },
   { value: "Halal", label: "Halal" },
-  { value: "Keto", label: "Keto / baja en carbos" },
+  { value: "Keto", label: "Keto / baja en carbos", icon: Flame },
 ];
 
 const allergyOptions: Choice[] = [
-  { value: "Ninguna", label: "Ninguna" },
+  { value: "Ninguna", label: "Ninguna", icon: Check },
   { value: "Frutos secos", label: "Frutos secos" },
   { value: "Lactosa", label: "Lactosa" },
-  { value: "Gluten", label: "Gluten" },
-  { value: "Marisco", label: "Marisco" },
+  { value: "Gluten", label: "Gluten", icon: Wheat },
+  { value: "Marisco", label: "Marisco", icon: Fish },
   { value: "Huevo", label: "Huevo" },
   { value: "Soja", label: "Soja" },
 ];
@@ -173,19 +242,84 @@ const mealsOptions: Choice[] = [
   { value: "5", label: "5 comidas" },
 ];
 
+const favoriteFoodOptions: Choice[] = [
+  { value: "Pollo", label: "Pollo", icon: Drumstick },
+  { value: "Ternera", label: "Ternera", icon: Drumstick },
+  { value: "Pescado", label: "Pescado", icon: Fish },
+  { value: "Huevos", label: "Huevos" },
+  { value: "Arroz", label: "Arroz" },
+  { value: "Pasta", label: "Pasta" },
+  { value: "Legumbres", label: "Legumbres", icon: Leaf },
+  { value: "Verduras", label: "Verduras", icon: Carrot },
+  { value: "Fruta", label: "Fruta", icon: Apple },
+  { value: "Lácteos", label: "Lácteos" },
+  { value: "Avena", label: "Avena", icon: Wheat },
+  { value: "Frutos secos", label: "Frutos secos" },
+];
+
+const dislikedFoodOptions: Choice[] = [
+  { value: "Ninguno", label: "Nada en concreto", icon: Check },
+  { value: "Pescado", label: "Pescado", icon: Fish },
+  { value: "Verduras", label: "Verduras", icon: Carrot },
+  { value: "Legumbres", label: "Legumbres" },
+  { value: "Huevos", label: "Huevos" },
+  { value: "Lácteos", label: "Lácteos" },
+  { value: "Carne roja", label: "Carne roja" },
+  { value: "Picante", label: "Picante", icon: Flame },
+  { value: "Vísceras", label: "Vísceras" },
+];
+
+const cookingOptions: Choice[] = [
+  { value: "10", label: "10 min", hint: "Rápido y simple", icon: Timer },
+  { value: "20", label: "20 min", hint: "Equilibrado", icon: Clock },
+  { value: "30", label: "30 min", hint: "Me gusta cocinar", icon: Clock },
+  { value: "45", label: "45+ min", hint: "Sin prisa", icon: Clock },
+];
+
+const budgetOptions: Choice[] = [
+  { value: "Bajo", label: "Ajustado", hint: "Básicos económicos", icon: PiggyBank },
+  { value: "Medio", label: "Medio", hint: "Equilibrio calidad-precio", icon: Wallet },
+  { value: "Alto", label: "Flexible", hint: "Sin límite estricto", icon: Briefcase },
+];
+
+function OptionButton({
+  option,
+  active,
+  onClick,
+}: {
+  option: Choice;
+  active: boolean;
+  onClick: () => void;
+}) {
+  const Icon = option.icon;
+  return (
+    <button
+      type="button"
+      className={`quizOption${active ? " selected" : ""}`}
+      onClick={onClick}
+      aria-pressed={active}
+    >
+      {Icon ? (
+        <span className="quizOptionIcon" aria-hidden>
+          <Icon size={18} />
+        </span>
+      ) : null}
+      <span className="quizOptionBody">
+        <span className="quizOptionLabel">{option.label}</span>
+        {option.hint ? <span className="quizOptionHint">{option.hint}</span> : null}
+      </span>
+      <span className="quizOptionCheck" aria-hidden>
+        <Check size={14} />
+      </span>
+    </button>
+  );
+}
+
 function SingleSelect({ options, value, onChange }: { options: Choice[]; value: string; onChange: (next: string) => void }) {
   return (
     <div className="quizOptions">
       {options.map((option) => (
-        <button
-          type="button"
-          key={option.value}
-          className={`quizOption${value === option.value ? " selected" : ""}`}
-          onClick={() => onChange(option.value)}
-        >
-          <span className="quizOptionLabel">{option.label}</span>
-          {option.hint ? <span className="quizOptionHint">{option.hint}</span> : null}
-        </button>
+        <OptionButton key={option.value} option={option} active={value === option.value} onClick={() => onChange(option.value)} />
       ))}
     </div>
   );
@@ -218,15 +352,7 @@ function MultiSelect({
   return (
     <div className="quizOptions">
       {options.map((option) => (
-        <button
-          type="button"
-          key={option.value}
-          className={`quizOption${values.includes(option.value) ? " selected" : ""}`}
-          onClick={() => toggle(option.value)}
-        >
-          <span className="quizOptionLabel">{option.label}</span>
-          {option.hint ? <span className="quizOptionHint">{option.hint}</span> : null}
-        </button>
+        <OptionButton key={option.value} option={option} active={values.includes(option.value)} onClick={() => toggle(option.value)} />
       ))}
     </div>
   );
@@ -261,6 +387,7 @@ function buildFormValues(answers: Answers): Record<string, string> {
     birthDate: ageToBirthDate(answers),
     height: answers.heightCm.trim(),
     weight: answers.weightUnknown ? "" : answers.weightKg.trim(),
+    activityLevel: answers.activityLevel || "1.55",
     goal: answers.goal,
     trainingLocation: answers.trainingLocation,
     availableEquipment: answers.equipment.join(", "),
@@ -269,26 +396,25 @@ function buildFormValues(answers: Answers): Record<string, string> {
     sessionMinutes: answers.sessionMinutes || "60",
     injuries: joinList(answers.injuries, answers.injuriesOther, ["Ninguna"]),
     healthConditions: joinList(answers.healthConditions, answers.healthOther, ["Ninguna"]),
+    sleepHours: answers.sleepHours,
+    stepsTarget: answers.stepsTarget || "8000",
     dietStyle: diet.length ? diet.join(", ") : "Flexible",
     allergies: joinList(answers.allergies, answers.allergiesOther, ["Ninguna"]),
     mealsPerDay: answers.mealsPerDay || "4",
+    preferredFoods: joinList(answers.preferredFoods, answers.preferredFoodsOther),
+    dislikedFoods: joinList(answers.dislikedFoods, answers.dislikedFoodsOther, ["Ninguno"]),
+    cookingTimeMinutes: answers.cookingTimeMinutes || "20",
+    budgetLevel: answers.budgetLevel || "Medio",
     // Sensible defaults for fields the coach can still refine later.
     timezone: "Europe/Madrid",
     cardioPreference: "Caminar",
-    activityLevel: "1.55",
-    sleepHours: "",
-    stepsTarget: "8000",
     preferredTrainingDays: "",
-    preferredFoods: "",
-    dislikedFoods: "",
-    cookingTimeMinutes: "20",
-    budgetLevel: "Medio",
   };
 }
 
 type Screen = {
   key: string;
-  icon: React.ComponentType<{ size?: number }>;
+  icon: IconType;
   title: string;
   subtitle: string;
   valid: boolean;
@@ -387,6 +513,14 @@ export function OnboardingQuiz({ workspaceId, appName }: { workspaceId: string; 
       ),
     },
     {
+      key: "activity",
+      icon: Activity,
+      title: "¿Cómo es tu día a día?",
+      subtitle: "Tu actividad fuera del entreno afina tus calorías objetivo.",
+      valid: answers.activityLevel !== "",
+      content: <SingleSelect options={activityOptions} value={answers.activityLevel} onChange={(value) => update("activityLevel", value)} />,
+    },
+    {
       key: "goal",
       icon: Target,
       title: "¿Cuál es tu objetivo?",
@@ -430,7 +564,7 @@ export function OnboardingQuiz({ workspaceId, appName }: { workspaceId: string; 
   screens.push(
     {
       key: "experience",
-      icon: Activity,
+      icon: TrendingUp,
       title: "¿Cuál es tu nivel?",
       subtitle: "Para ajustar volumen, técnica y progresión.",
       valid: answers.experienceLevel !== "",
@@ -443,6 +577,14 @@ export function OnboardingQuiz({ workspaceId, appName }: { workspaceId: string; 
       subtitle: "Sé realista con lo que puedas cumplir cada semana.",
       valid: answers.daysPerWeek !== "",
       content: <SingleSelect options={daysOptions} value={answers.daysPerWeek} onChange={(value) => update("daysPerWeek", value)} />,
+    },
+    {
+      key: "session",
+      icon: Timer,
+      title: "¿Cuánto tiempo por sesión?",
+      subtitle: "Ajustamos el volumen para que cada entreno cuadre con tu tiempo.",
+      valid: answers.sessionMinutes !== "",
+      content: <SingleSelect options={sessionOptions} value={answers.sessionMinutes} onChange={(value) => update("sessionMinutes", value)} />,
     },
     {
       key: "injuries",
@@ -477,6 +619,25 @@ export function OnboardingQuiz({ workspaceId, appName }: { workspaceId: string; 
       ),
     },
     {
+      key: "recovery",
+      icon: Moon,
+      title: "Descanso y movimiento",
+      subtitle: "El sueño y los pasos marcan tu recuperación y tu gasto diario.",
+      valid: answers.sleepHours !== "" && answers.stepsTarget !== "",
+      content: (
+        <div className="quizGroup">
+          <div className="quizGroupBlock">
+            <span className="quizGroupLabel"><Moon size={14} /> ¿Cuánto sueles dormir?</span>
+            <SingleSelect options={sleepOptions} value={answers.sleepHours} onChange={(value) => update("sleepHours", value)} />
+          </div>
+          <div className="quizGroupBlock">
+            <span className="quizGroupLabel"><Footprints size={14} /> Pasos al día (aprox.)</span>
+            <SingleSelect options={stepsOptions} value={answers.stepsTarget} onChange={(value) => update("stepsTarget", value)} />
+          </div>
+        </div>
+      ),
+    },
+    {
       key: "diet",
       icon: Apple,
       title: "¿Sigues algún tipo de dieta?",
@@ -486,7 +647,7 @@ export function OnboardingQuiz({ workspaceId, appName }: { workspaceId: string; 
     },
     {
       key: "allergies",
-      icon: Apple,
+      icon: ShieldCheck,
       title: "¿Alergias o intolerancias?",
       subtitle: "No incluiremos estos alimentos en tu plan.",
       valid: answers.allergies.length > 0 || answers.allergiesOther.trim() !== "",
@@ -507,6 +668,52 @@ export function OnboardingQuiz({ workspaceId, appName }: { workspaceId: string; 
       subtitle: "Organizamos tus calorías según tu rutina diaria.",
       valid: answers.mealsPerDay !== "",
       content: <SingleSelect options={mealsOptions} value={answers.mealsPerDay} onChange={(value) => update("mealsPerDay", value)} />,
+    },
+    {
+      key: "foods",
+      icon: Salad,
+      title: "Tus alimentos",
+      subtitle: "Para que tu plan tenga lo que te gusta y evite lo que no.",
+      valid: answers.preferredFoods.length > 0 || answers.preferredFoodsOther.trim() !== "",
+      content: (
+        <div className="quizGroup">
+          <div className="quizGroupBlock">
+            <span className="quizGroupLabel"><Drumstick size={14} /> Te encantan</span>
+            <MultiSelect options={favoriteFoodOptions} values={answers.preferredFoods} onChange={(value) => update("preferredFoods", value)} />
+            <label className="quizInline">
+              Otros (opcional)
+              <input value={answers.preferredFoodsOther} placeholder="Ej. salmón, aguacate..." onChange={(event) => update("preferredFoodsOther", event.target.value)} />
+            </label>
+          </div>
+          <div className="quizGroupBlock">
+            <span className="quizGroupLabel"><Carrot size={14} /> Prefieres evitar</span>
+            <MultiSelect options={dislikedFoodOptions} values={answers.dislikedFoods} onChange={(value) => update("dislikedFoods", value)} exclusiveValue="Ninguno" />
+            <label className="quizInline">
+              Otros (opcional)
+              <input value={answers.dislikedFoodsOther} placeholder="Ej. coliflor, hígado..." onChange={(event) => update("dislikedFoodsOther", event.target.value)} />
+            </label>
+          </div>
+        </div>
+      ),
+    },
+    {
+      key: "kitchen",
+      icon: Clock,
+      title: "Tu cocina",
+      subtitle: "Adaptamos las recetas a tu tiempo y tu presupuesto.",
+      valid: answers.cookingTimeMinutes !== "" && answers.budgetLevel !== "",
+      content: (
+        <div className="quizGroup">
+          <div className="quizGroupBlock">
+            <span className="quizGroupLabel"><Timer size={14} /> Tiempo para cocinar</span>
+            <SingleSelect options={cookingOptions} value={answers.cookingTimeMinutes} onChange={(value) => update("cookingTimeMinutes", value)} />
+          </div>
+          <div className="quizGroupBlock">
+            <span className="quizGroupLabel"><Wallet size={14} /> Presupuesto</span>
+            <SingleSelect options={budgetOptions} value={answers.budgetLevel} onChange={(value) => update("budgetLevel", value)} />
+          </div>
+        </div>
+      ),
     },
   );
 
@@ -534,11 +741,11 @@ export function OnboardingQuiz({ workspaceId, appName }: { workspaceId: string; 
         <div className="quizSummary">
           <span><strong>Objetivo</strong>{goalOptions.find((option) => option.value === answers.goal)?.label ?? "—"}</span>
           <span><strong>Dónde</strong>{locationOptions.find((option) => option.value === answers.trainingLocation)?.label ?? "—"}</span>
-          <span><strong>Días</strong>{answers.daysPerWeek || "—"}/semana</span>
-          <span><strong>Nivel</strong>{answers.experienceLevel || "—"}</span>
+          <span><strong>Días</strong>{answers.daysPerWeek || "—"}/semana · {answers.sessionMinutes || "—"} min</span>
+          <span><strong>Comidas</strong>{answers.mealsPerDay || "—"}/día</span>
         </div>
         <button className="btn primary quizSubmit" type="submit">
-          Crear mi plan en {appName}
+          <Sparkles size={16} /> Crear mi plan en {appName}
         </button>
       </form>
     ),
@@ -553,10 +760,15 @@ export function OnboardingQuiz({ workspaceId, appName }: { workspaceId: string; 
 
   return (
     <div className="onboardingQuiz">
-      <div className="quizProgress" aria-hidden>
-        <span style={{ width: `${progress}%` }} />
+      <div className="quizHeader">
+        <div className="quizProgress" aria-hidden>
+          <span style={{ width: `${progress}%` }} />
+        </div>
+        <p className="quizStepCount">
+          <span>Paso {safeStep + 1} de {screens.length}</span>
+          <span className="quizStepPct">{progress}%</span>
+        </p>
       </div>
-      <p className="quizStepCount">Paso {safeStep + 1} de {screens.length}</p>
 
       <div className="quizCard" key={current.key}>
         <span className="quizIcon"><Icon size={22} /></span>
