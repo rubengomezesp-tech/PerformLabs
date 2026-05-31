@@ -126,6 +126,10 @@ export default async function CoachNutritionPage() {
                   Tags
                   <input name="tags" placeholder="alta proteina, sin lactosa" />
                 </label>
+                <label className="spanFull">
+                  Foto (URL, opcional)
+                  <input name="imageUrl" type="url" inputMode="url" placeholder="https://… (si la dejas vacía, se usa el placeholder de marca)" />
+                </label>
                 <button className="btn primary spanFull" type="submit">Crear receta</button>
               </form>
             </Dialog>

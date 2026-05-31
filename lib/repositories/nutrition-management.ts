@@ -101,6 +101,7 @@ export type RecipeInput = {
   name: string;
   mealSlot: string;
   instructions: string;
+  imageUrl?: string;
   tags: string;
 };
 
@@ -535,6 +536,7 @@ export async function createManagedRecipe(input: RecipeInput) {
     slug: `${slugify(name)}-${Date.now().toString(36)}`,
     meal_slot: input.mealSlot.trim() || "comida",
     instructions: input.instructions.trim() || null,
+    image_url: input.imageUrl?.trim() || null,
     tags: splitList(input.tags),
   });
 
