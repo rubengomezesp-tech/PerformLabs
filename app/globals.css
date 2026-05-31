@@ -12398,3 +12398,250 @@ button[aria-busy="true"] {
   padding-inline: 16px;
 }
 /* ===== END MEMBER CHAT ===== */
+
+/* ===== UI UPLIFT C (agent) =====
+   Cluster C elevation: Progreso, Hábitos, Comunidad, Retos, Soporte, Coach IA,
+   Guías, Perfil, Ciclo. Builds on the Ethereal-Glass foundation utilities
+   (.uiGlass/.uiSheen/.uiIconChip/.uiStat*/.uiFadeUp). Visual only — namespaced
+   to avoid collisions, refines existing .chat*/.profile*/.dangerZone*/.cycle*. */
+
+/* ---- Progreso — metric cards as Whoop-style stats ---- */
+.progressMetricCard {
+  position: relative;
+  gap: 10px;
+  overflow: hidden;
+}
+.progressMetricHead {
+  display: inline-flex;
+  align-items: center;
+  gap: 9px;
+}
+/* Compact icon-chip when nested in an eyebrow / metric head (smaller text scale). */
+.progressMetricHead .uiIconChip,
+.eyebrow .uiIconChip {
+  width: 30px;
+  height: 30px;
+  border-radius: 9px;
+}
+.eyebrow .uiIconChip { vertical-align: middle; }
+.progressMetricCard .uiStatValue {
+  font-size: clamp(28px, 3.4vw, 36px);
+}
+.progressMetricCard:hover {
+  border-color: color-mix(in srgb, var(--accent) 38%, var(--border));
+}
+.progressInlineEmpty {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 18px;
+  border-radius: 14px;
+  border: 1px dashed color-mix(in srgb, var(--accent) 30%, var(--border));
+  background: color-mix(in srgb, var(--accent) 4%, transparent);
+}
+.progressInlineEmpty p { margin: 0; color: var(--text-muted); font-size: 14px; }
+
+/* Progreso — "Mi evolución en fotos" tasteful angle placeholders */
+.progressPhotosCard { display: flex; flex-direction: column; gap: 16px; }
+.progressPhotoSlots {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 14px;
+}
+.progressPhotoSlot {
+  display: flex;
+  flex-direction: column;
+  gap: 9px;
+  margin: 0;
+}
+.progressPhotoFrame {
+  display: grid;
+  place-items: center;
+  aspect-ratio: 3 / 4;
+  border-radius: 16px;
+  border: 1px solid color-mix(in srgb, var(--accent) 18%, var(--border));
+  background:
+    radial-gradient(120% 90% at 50% 0%, color-mix(in srgb, var(--accent) 16%, transparent), transparent 60%),
+    linear-gradient(165deg, color-mix(in srgb, var(--surface-2) 92%, transparent), color-mix(in srgb, var(--surface) 88%, transparent));
+  color: color-mix(in srgb, var(--accent) 70%, var(--text-muted));
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.06);
+}
+.progressPhotoSlot figcaption {
+  font-size: 12.5px;
+  font-weight: 600;
+  letter-spacing: 0.03em;
+  color: var(--text-muted);
+  text-align: center;
+}
+@media (max-width: 640px) {
+  .progressPhotoSlots { grid-template-columns: 1fr 1fr; }
+}
+
+/* ---- Hábitos — streak flame + glass hero ---- */
+.habitStreakFlame {
+  display: inline-grid;
+  place-items: center;
+  width: 52px;
+  height: 52px;
+  border-radius: 16px;
+  background: color-mix(in srgb, var(--accent) 16%, transparent);
+  box-shadow: 0 0 30px -12px color-mix(in srgb, var(--accent) 75%, transparent);
+}
+.habitEmptyCard { align-items: flex-start; }
+
+/* ---- Comunidad — composer with avatar, post hover ---- */
+.communityComposerRow {
+  display: flex;
+  gap: 12px;
+  align-items: flex-start;
+}
+.communityComposerRow textarea { flex: 1; }
+.communityAvatarMe {
+  background: linear-gradient(160deg, color-mix(in srgb, var(--accent) 26%, var(--surface)), color-mix(in srgb, var(--accent) 12%, var(--surface)));
+  margin-top: 2px;
+}
+.communityPost {
+  transition: border-color var(--dur-fast, 0.18s) var(--ease, ease), transform var(--dur-fast, 0.18s) var(--ease, ease);
+}
+.communityPost:hover {
+  border-color: color-mix(in srgb, var(--accent) 30%, var(--border));
+}
+.communityLike {
+  transition: color var(--dur-fast, 0.18s) var(--ease, ease), border-color var(--dur-fast, 0.18s) var(--ease, ease), background var(--dur-fast, 0.18s) var(--ease, ease);
+}
+.communityLike:hover {
+  border-color: color-mix(in srgb, #e5484d 40%, var(--border));
+  color: #e5484d;
+}
+.communityLike.liked:active { transform: scale(0.94); }
+
+/* ---- Soporte — chat header identity + thread polish ---- */
+.chatHeader { align-items: center; }
+.chatHeaderId { display: flex; align-items: center; gap: 12px; min-width: 0; }
+.chatHeaderId h2 { margin: 0; }
+.chatHeaderId p { margin: 2px 0 0; }
+.chatHeaderAvatar {
+  display: grid;
+  place-items: center;
+  width: 44px;
+  height: 44px;
+  border-radius: 14px;
+  flex-shrink: 0;
+  background: linear-gradient(160deg, var(--accent), color-mix(in srgb, var(--accent) 70%, #000));
+  color: var(--accent-contrast, #fff);
+  font-weight: 700;
+  font-size: 17px;
+  box-shadow: 0 0 26px -10px color-mix(in srgb, var(--accent) 80%, transparent);
+}
+.supportThread {
+  transition: border-color var(--dur-fast, 0.18s) var(--ease, ease);
+}
+.supportThread:hover {
+  border-color: color-mix(in srgb, var(--accent) 30%, var(--border));
+}
+.supportThreadStatus {
+  flex: 0 0 auto;
+  text-transform: capitalize;
+  font-size: 12.5px;
+  color: var(--text-muted);
+}
+.supportThreadEmpty {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 18px;
+  border-radius: 14px;
+  border: 1px dashed color-mix(in srgb, var(--accent) 28%, var(--border));
+  background: color-mix(in srgb, var(--accent) 4%, transparent);
+}
+.supportThreadEmpty p { margin: 0; }
+
+/* ---- Coach IA — gated "Próximamente" state ---- */
+.coachAiGate { justify-items: start; gap: 14px; }
+.coachAiGateChip {
+  width: 56px;
+  height: 56px;
+  border-radius: 18px;
+  background: color-mix(in srgb, var(--accent) 16%, transparent);
+  box-shadow: 0 0 36px -14px color-mix(in srgb, var(--accent) 80%, transparent);
+}
+.coachAiGate strong { font-size: 18px; color: var(--text); }
+.coachAiGateList {
+  list-style: none;
+  margin: 4px 0 0;
+  padding: 0;
+  display: grid;
+  gap: 9px;
+}
+.coachAiGateList li {
+  display: inline-flex;
+  align-items: center;
+  gap: 9px;
+  color: var(--text-muted);
+  font-size: 14px;
+}
+.coachAiGateList svg { color: var(--accent); flex-shrink: 0; }
+
+/* ---- Guías — icon-chip cards ---- */
+.guideCard {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  overflow: hidden;
+  transition: border-color var(--dur-fast, 0.18s) var(--ease, ease), transform var(--dur-fast, 0.18s) var(--ease, ease);
+}
+.guideCard h3 { margin: 2px 0 0; }
+.guideCard p { color: var(--text-muted); margin: 0; flex: 1; }
+.guideCard .tag { align-self: flex-start; }
+.guideCard:hover {
+  border-color: color-mix(in srgb, var(--accent) 38%, var(--border));
+  transform: translateY(-2px);
+}
+
+/* ---- Perfil — info cards + danger chip ---- */
+.profileInfoCard {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  overflow: hidden;
+}
+.profileInfoCard h2 { margin: 0; }
+.dangerZoneChip {
+  display: inline-grid;
+  place-items: center;
+  width: 44px;
+  height: 44px;
+  border-radius: 13px;
+  background: color-mix(in srgb, var(--danger) 16%, transparent);
+  border: 1px solid color-mix(in srgb, var(--danger) 32%, transparent);
+  color: var(--danger, #ef4444);
+}
+.dangerZoneCard {
+  box-shadow: var(--shadow), 0 0 40px -22px color-mix(in srgb, var(--danger) 60%, transparent);
+}
+.dangerZoneSubmit:hover {
+  box-shadow: 0 0 24px -8px color-mix(in srgb, var(--danger) 70%, transparent);
+}
+
+/* ---- Ciclo — frosted hero gets inset padding + radius now it's .uiGlass ---- */
+.cycleHero {
+  padding: 18px;
+  border-radius: var(--radius-lg, 16px);
+}
+.cycleHero .cycleHeroStat {
+  background: color-mix(in srgb, var(--surface-2) 55%, transparent);
+}
+.cycleHeroPredict {
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--accent) 30%, transparent), 0 0 34px -18px color-mix(in srgb, var(--accent) 80%, transparent);
+}
+.cycleHistoryRow {
+  transition: border-color var(--dur-fast, 0.18s) var(--ease, ease);
+}
+
+/* Reduced-motion: kill hover lifts */
+@media (prefers-reduced-motion: reduce) {
+  .guideCard:hover { transform: none; }
+}
+/* ===== END UI UPLIFT C ===== */

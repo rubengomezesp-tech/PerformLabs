@@ -35,18 +35,21 @@ export default async function MemberCommunityPage() {
         text="Comparte tus avances, pregunta y motívate con el resto. Lo que se celebra, se repite."
       />
       <section className="grid">
-        <article className="card span12 communityComposer">
+        <article className="card span12 communityComposer uiGlass uiSheen">
           <form action={createCommunityPostAction} className="communityComposerForm">
             <input name="workspaceId" type="hidden" value={brand.id} />
-            <textarea name="body" rows={3} required placeholder="¿Cómo va tu semana? Comparte un logro, una duda o un tip…" />
+            <div className="communityComposerRow">
+              <span className="communityAvatar communityAvatarMe" aria-hidden="true">{initials(brand.name)}</span>
+              <textarea name="body" rows={3} required placeholder="¿Cómo va tu semana? Comparte un logro, una duda o un tip…" />
+            </div>
             <SubmitButton className="btn primary" pendingLabel="Publicando…"><Send size={16} /> Publicar</SubmitButton>
           </form>
         </article>
 
         {posts.length ? (
           <div className="span12 communityFeed">
-            {posts.map((post) => (
-              <article className={post.isCoach ? "card communityPost coachPost" : "card communityPost"} key={post.id}>
+            {posts.map((post, idx) => (
+              <article className={`${post.isCoach ? "card communityPost coachPost" : "card communityPost"} uiFadeUp`} style={{ ["--i" as string]: idx }} key={post.id}>
                 <div className="communityPostHead">
                   <span className={post.isCoach ? "communityAvatar coach" : "communityAvatar"}>
                     {post.isCoach ? <Sparkles size={16} /> : initials(post.authorName)}
@@ -79,8 +82,8 @@ export default async function MemberCommunityPage() {
             ))}
           </div>
         ) : (
-          <article className="card span12 inlineEmpty">
-            <MessageSquare color="var(--accent)" />
+          <article className="card span12 inlineEmpty uiGlass">
+            <span className="uiIconChip" style={{ width: 52, height: 52, borderRadius: 16 }}><MessageSquare size={24} /></span>
             <strong>Sé el primero en publicar.</strong>
             <p>Comparte tu primer avance y arranca la comunidad de tu marca.</p>
           </article>

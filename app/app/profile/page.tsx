@@ -41,8 +41,8 @@ export default async function ProfilePage({ searchParams }: { searchParams?: Pro
         </div>
       ) : null}
       <section className="grid">
-        <article className="card span4">
-          <UserRound color="var(--gold)" />
+        <article className="card span4 profileInfoCard uiSheen uiFadeUp" style={{ ["--i" as string]: 0 }}>
+          <span className="uiIconChip"><UserRound size={18} /></span>
           <h2>Cuenta</h2>
           <ul className="list">
             <li className="row">Nombre <strong>{displayName}</strong></li>
@@ -50,8 +50,8 @@ export default async function ProfilePage({ searchParams }: { searchParams?: Pro
             <li className="row">Plan <span className={`tag${planActive ? "" : " profileTagMuted"}`}>{planLabel}</span></li>
           </ul>
         </article>
-        <article className="card span4">
-          <Ruler color="var(--gold)" />
+        <article className="card span4 profileInfoCard uiSheen uiFadeUp" style={{ ["--i" as string]: 1 }}>
+          <span className="uiIconChip"><Ruler size={18} /></span>
           <h2>Preferencias</h2>
           <ul className="list">
             <li className="row">Objetivo <strong>{objective}</strong></li>
@@ -60,8 +60,8 @@ export default async function ProfilePage({ searchParams }: { searchParams?: Pro
             <li className="row">Calorías y macros <span className="tag">{macrosLabel}</span></li>
           </ul>
         </article>
-        <article className="card span4">
-          <Bell color="var(--gold)" />
+        <article className="card span4 profileInfoCard uiSheen uiFadeUp" style={{ ["--i" as string]: 2 }}>
+          <span className="uiIconChip"><Bell size={18} /></span>
           <h2>Comunicación</h2>
           <ul className="list">
             <li className="row"><Mail size={16} /> Email <span className={`tag${summary?.email ? "" : " profileTagMuted"}`}>{summary?.email ? "Activo" : "Sin email"}</span></li>
@@ -128,7 +128,7 @@ export default async function ProfilePage({ searchParams }: { searchParams?: Pro
         <article className="card span12 dangerZoneCard">
           <div className="sectionHeader">
             <div>
-              <Trash2 color="var(--danger, #ef4444)" />
+              <span className="dangerZoneChip"><Trash2 size={18} /></span>
               <h2>Eliminar mi cuenta</h2>
               <p>
                 Borra de forma <strong>permanente</strong> tu cuenta y todos tus datos en {brand.name}: plan de

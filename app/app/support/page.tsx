@@ -42,12 +42,14 @@ export default async function SupportPage() {
       />
       <section className="grid">
         {conversation ? (
-          <article className="card span12 chatCard">
-            <div className="sectionHeader">
-              <div>
-                <MessageSquare color="var(--accent)" />
-                <h2>Tu chat con el coach.</h2>
-                <p>Mensajes 1:1 con tu entrenador, en directo. Las respuestas aparecen aquí sin recargar.</p>
+          <article className="card span12 chatCard uiGlass uiSheen">
+            <div className="sectionHeader chatHeader">
+              <div className="chatHeaderId">
+                <span className="chatHeaderAvatar" aria-hidden="true">{brand.name.slice(0, 1).toUpperCase()}</span>
+                <div>
+                  <h2>{brand.name}</h2>
+                  <p>Mensajes 1:1 con tu coach, en directo. Las respuestas aparecen aquí sin recargar.</p>
+                </div>
               </div>
               <span className="chatLiveDot" aria-label="En directo">En directo</span>
             </div>
@@ -178,9 +180,14 @@ export default async function SupportPage() {
                   <h3>{conversation.subject}</h3>
                   <p>{conversation.messages.at(-1)?.body ?? "Sin mensajes"}</p>
                 </div>
-                <strong>{conversation.status}</strong>
+                <strong className="supportThreadStatus">{conversation.status}</strong>
               </section>
-            )) : <p className="muted">Aún no hay conversaciones abiertas.</p>}
+            )) : (
+              <div className="supportThreadEmpty">
+                <span className="uiIconChip"><MessageSquare size={18} /></span>
+                <p className="muted">Aún no hay conversaciones abiertas. Abre una arriba con todo el contexto que quieras.</p>
+              </div>
+            )}
           </div>
         </article>
       </section>

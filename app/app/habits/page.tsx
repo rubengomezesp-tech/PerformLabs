@@ -31,9 +31,9 @@ export default async function MemberHabitsPage() {
       <section className="grid">
         {day.hasHabits ? (
           <>
-            <article className="card span12 habitStreakCard">
+            <article className="card span12 habitStreakCard uiGlass uiSheen">
               <div className="habitStreak">
-                <Flame size={26} color="var(--accent)" />
+                <span className="habitStreakFlame"><Flame size={26} color="var(--accent)" /></span>
                 <div>
                   <strong>{day.streak}</strong>
                   <small>{day.streak === 1 ? "día de racha" : "días de racha"}</small>
@@ -48,10 +48,10 @@ export default async function MemberHabitsPage() {
             </article>
 
             <div className="span12 habitGrid">
-              {day.habits.map((habit) => {
+              {day.habits.map((habit, idx) => {
                 const Icon = HABIT_ICONS[habit.icon] ?? Check;
                 return (
-                  <article className={habit.done ? "habitCard done" : "habitCard"} key={habit.id}>
+                  <article className={`${habit.done ? "habitCard done" : "habitCard"} uiFadeUp`} style={{ ["--i" as string]: idx }} key={habit.id}>
                     <form action={toggleHabitAction} className="habitToggleForm">
                       <input name="workspaceId" type="hidden" value={brand.id} />
                       <input name="habitId" type="hidden" value={habit.id} />
@@ -80,8 +80,8 @@ export default async function MemberHabitsPage() {
             </article>
           </>
         ) : (
-          <article className="card span12 habitEmptyCard">
-            <Sparkles color="var(--accent)" size={28} />
+          <article className="card span12 habitEmptyCard uiGlass uiSheen">
+            <span className="uiIconChip" style={{ width: 52, height: 52, borderRadius: 16 }}><Sparkles size={26} /></span>
             <h2>Empieza con unos hábitos sencillos.</h2>
             <p>Activa esta selección y empieza a marcarlos cada día. Podrás quitar los que no encajen y añadir los tuyos.</p>
             <ul className="habitSuggestList">
