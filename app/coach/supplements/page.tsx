@@ -1,4 +1,5 @@
 import { Pill, Trash2 } from "lucide-react";
+import { Dialog } from "@/components/dialog";
 import { SubmitButton } from "@/components/submit-button";
 import { Topbar } from "@/components/topbar";
 import { getSelectedMemberAppBrand } from "@/lib/member-app";
@@ -63,11 +64,20 @@ export default async function CoachSupplementsPage() {
                     <strong>{s.name}{s.dose ? <span className="suppDose"> · {s.dose}</span> : null}</strong>
                     {s.notes ? <small>{s.notes}</small> : null}
                   </div>
-                  <form action={deleteSupplementAction}>
-                    <input name="workspaceId" type="hidden" value={brand.id} />
-                    <input name="supplementId" type="hidden" value={s.id} />
-                    <button type="submit" className="btn ghost sm" aria-label="Eliminar"><Trash2 size={14} /></button>
-                  </form>
+                  <Dialog
+                    triggerClassName="btn ghost sm"
+                    triggerAriaLabel={`Eliminar ${s.name}`}
+                    trigger={<Trash2 size={14} />}
+                    title={`Eliminar ${s.name}`}
+                    description="Esta acción no se puede deshacer."
+                  >
+                    <form action={deleteSupplementAction} className="editForm">
+                      <input name="workspaceId" type="hidden" value={brand.id} />
+                      <input name="supplementId" type="hidden" value={s.id} />
+                      <p className="spanFull">¿Seguro que quieres eliminar <strong>{s.name}</strong>? Esta acción no se puede deshacer.</p>
+                      <button className="btn danger spanFull" type="submit">Sí, eliminar</button>
+                    </form>
+                  </Dialog>
                 </li>
               ))}
             </ul>

@@ -468,11 +468,20 @@ export default async function CoachProgramsPage({ searchParams }: CoachProgramsP
                                         <button className="btn primary spanFull" type="submit">Guardar cambios</button>
                                       </form>
                                     </Dialog>
-                                    <form action={deleteCoachWorkoutExerciseAction}>
-                                      <input name="workspaceId" type="hidden" value={brand.id} />
-                                      <input name="templateExerciseId" type="hidden" value={exercise.id} />
-                                      <button className="btn ghost sm coachExerciseDelete" type="submit" title={`Quitar ${exercise.exerciseName}`} aria-label={`Quitar ${exercise.exerciseName}`}><Trash2 size={15} /></button>
-                                    </form>
+                                    <Dialog
+                                      triggerClassName="btn ghost sm coachExerciseDelete"
+                                      triggerAriaLabel={`Quitar ${exercise.exerciseName}`}
+                                      trigger={<Trash2 size={15} />}
+                                      title={`Quitar ${exercise.exerciseName}`}
+                                      description="Esta acción no se puede deshacer."
+                                    >
+                                      <form action={deleteCoachWorkoutExerciseAction} className="editForm">
+                                        <input name="workspaceId" type="hidden" value={brand.id} />
+                                        <input name="templateExerciseId" type="hidden" value={exercise.id} />
+                                        <p className="spanFull">¿Seguro que quieres quitar <strong>{exercise.exerciseName}</strong> de este día? Esta acción no se puede deshacer.</p>
+                                        <button className="btn danger spanFull" type="submit">Sí, quitar</button>
+                                      </form>
+                                    </Dialog>
                                     </div>
                                   </li>
                                 ))}

@@ -248,14 +248,21 @@ export default async function CoachNutritionPage() {
                             {recipe ? ` · ${Math.round(recipe.calories * meal.servingMultiplier)} kcal` : ""}
                           </p>
                         </div>
-                        <form action={removeCoachDietTemplateMealAction}>
-                          <input name="workspaceId" type="hidden" value={brand.id} />
-                          <input name="dietTemplateId" type="hidden" value={template.id} />
-                          <input name="mealId" type="hidden" value={meal.id} />
-                          <button className="btn ghost sm" type="submit" aria-label="Quitar comida">
-                            <Trash2 size={14} />
-                          </button>
-                        </form>
+                        <Dialog
+                          triggerClassName="btn ghost sm"
+                          triggerAriaLabel="Quitar comida"
+                          trigger={<Trash2 size={14} />}
+                          title="Quitar comida"
+                          description="Esta acción no se puede deshacer."
+                        >
+                          <form action={removeCoachDietTemplateMealAction} className="editForm">
+                            <input name="workspaceId" type="hidden" value={brand.id} />
+                            <input name="dietTemplateId" type="hidden" value={template.id} />
+                            <input name="mealId" type="hidden" value={meal.id} />
+                            <p className="spanFull">¿Seguro que quieres quitar <strong>{meal.recipeName}</strong> (Día {meal.dayNumber} · {meal.mealSlot}) del plan? Esta acción no se puede deshacer.</p>
+                            <button className="btn danger spanFull" type="submit">Sí, quitar</button>
+                          </form>
+                        </Dialog>
                       </li>
                     );
                   })}

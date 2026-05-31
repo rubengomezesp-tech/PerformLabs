@@ -1,4 +1,5 @@
 import { Salad, Sparkles, Trash2 } from "lucide-react";
+import { Dialog } from "@/components/dialog";
 import { SubmitButton } from "@/components/submit-button";
 import { Topbar } from "@/components/topbar";
 import { getSelectedMemberAppBrand } from "@/lib/member-app";
@@ -104,11 +105,20 @@ export default async function CoachFoodsPage() {
                       // hide/duplicate but not delete them from their own library.
                       food.isBase ? <span className="catalogChip" title="Alimento base de la plataforma">Base</span> : null
                     ) : (
-                      <form action={deleteFoodItemAction}>
-                        <input name="workspaceId" type="hidden" value={brand.id} />
-                        <input name="foodId" type="hidden" value={food.id} />
-                        <button type="submit" className="btn ghost sm" aria-label="Eliminar"><Trash2 size={14} /></button>
-                      </form>
+                      <Dialog
+                        triggerClassName="btn ghost sm"
+                        triggerAriaLabel={`Eliminar ${food.name}`}
+                        trigger={<Trash2 size={14} />}
+                        title={`Eliminar ${food.name}`}
+                        description="Esta acción no se puede deshacer."
+                      >
+                        <form action={deleteFoodItemAction} className="editForm">
+                          <input name="workspaceId" type="hidden" value={brand.id} />
+                          <input name="foodId" type="hidden" value={food.id} />
+                          <p className="spanFull">¿Seguro que quieres eliminar <strong>{food.name}</strong>? Esta acción no se puede deshacer.</p>
+                          <button className="btn danger spanFull" type="submit">Sí, eliminar</button>
+                        </form>
+                      </Dialog>
                     )}
                   </li>
                 ))}

@@ -1,4 +1,5 @@
 import { Heart, Megaphone, MessageSquare, Pin, PinOff, Sparkles, Trash2, Users } from "lucide-react";
+import { Dialog } from "@/components/dialog";
 import { SubmitButton } from "@/components/submit-button";
 import { Topbar } from "@/components/topbar";
 import { getSelectedMemberAppBrand } from "@/lib/member-app";
@@ -97,11 +98,20 @@ export default async function CoachCommunityPage() {
                         {post.pinned ? <PinOff size={15} /> : <Pin size={15} />}
                       </button>
                     </form>
-                    <form action={moderateDeleteCommunityPostAction}>
-                      <input name="workspaceId" type="hidden" value={brand.id} />
-                      <input name="postId" type="hidden" value={post.id} />
-                      <button type="submit" aria-label="Eliminar" title="Eliminar publicación" className="danger"><Trash2 size={15} /></button>
-                    </form>
+                    <Dialog
+                      triggerClassName="danger"
+                      triggerAriaLabel="Eliminar publicación"
+                      trigger={<Trash2 size={15} />}
+                      title="Eliminar publicación"
+                      description="Esta acción no se puede deshacer."
+                    >
+                      <form action={moderateDeleteCommunityPostAction} className="editForm">
+                        <input name="workspaceId" type="hidden" value={brand.id} />
+                        <input name="postId" type="hidden" value={post.id} />
+                        <p className="spanFull">¿Seguro que quieres eliminar esta publicación de <strong>{post.authorName}</strong>? Esta acción no se puede deshacer.</p>
+                        <button className="btn danger spanFull" type="submit">Sí, eliminar</button>
+                      </form>
+                    </Dialog>
                   </div>
                 </div>
                 <p className="communityBody">{post.body}</p>
