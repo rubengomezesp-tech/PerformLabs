@@ -148,6 +148,58 @@ export async function createPlatformCheckoutSession(opts: {
   });
 }
 
+// ---- Connected (Direct charge) checkout ----
+
+/**
+ * Create a Checkout Session on a coach's connected account (Direct charge).
+ * Thin wrapper over `stripeRequest` — same form-encoded HTTP path as every other
+ * call; `options.stripeAccount` sets the `Stripe-Account` header so the charge
+ * runs on the coach's account, and `applicationFeePercent` lets the platform keep
+ * its cut of each subscription invoice.
+ */
+export async function createConnectedCheckoutSession(
+  input: {
+    mode: "subscription" | "payment";
+    lineItems: Array<{ price: string; quantity?: number }>;
+    successUrl: string;
+    cancelUrl: string;
+    customerEmail?: string;
+    applicationFeePercent?: number;
+    clientReferenceId?: string;
+    metadata?: Record<string, string>;
+    subscriptionMetadata?: Record<string, string>;
+  },
+  options: { stripeAccount: string },
+): Promise<{ id: string; url: string }> {
+  const params: StripeParams = {
+    mode: input.mode,
+    success_url: input.successUrl,
+    cancel_url: input.cancelUrl,
+    customer_email: input.customerEmail,
+    client_reference_id: input.clientReferenceId,
+  };
+
+  input.lineItems.forEach((item, index) => {
+    params[`line_items[${index}][price]`] = item.price;
+    params[`line_items[${index}][quantity]`] = item.quantity ?? 1;
+  });
+
+  if (input.mode === "subscription" && typeof input.applicationFeePercent === "number") {
+    params["subscription_data[application_fee_percent]"] = input.applicationFeePercent;
+  }
+
+  for (const [key, value] of Object.entries(input.metadata ?? {})) {
+    params[`metadata[${key}]`] = value;
+  }
+  for (const [key, value] of Object.entries(input.subscriptionMetadata ?? {})) {
+    params[`subscription_data[metadata][${key}]`] = value;
+  }
+
+  return stripeRequest<{ id: string; url: string }>("POST", "/checkout/sessions", params, {
+    stripeAccount: options.stripeAccount,
+  });
+}
+
 // ---- Client plans on the coach's connected account (Direct charges) ----
 
 export async function createConnectedProduct(
