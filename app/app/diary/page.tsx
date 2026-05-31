@@ -45,6 +45,15 @@ export default async function MemberDiaryPage({ searchParams }: DiaryPageProps) 
     summary.mealLogs.filter((log) => log.status === "done").map((log) => log.mealSlot),
   );
   const consumed = sumConsumedMacros(items, doneSlots, foodEntries);
+  // What's left for the day (the number top nutrition apps lead with). Clamped at 0.
+  const remaining = plan?.targetCalories
+    ? {
+        protein: Math.max(0, Math.round((plan.targetProteinG ?? 0) - consumed.protein)),
+        carbs: Math.max(0, Math.round((plan.targetCarbsG ?? 0) - consumed.carbs)),
+        fat: Math.max(0, Math.round((plan.targetFatG ?? 0) - consumed.fat)),
+        calories: Math.max(0, Math.round((plan.targetCalories ?? 0) - consumed.calories)),
+      }
+    : null;
 
   const days = Array.from({ length: 7 }, (_, index) => {
     const date = new Date(today);
@@ -99,14 +108,25 @@ export default async function MemberDiaryPage({ searchParams }: DiaryPageProps) 
           {hideMacros ? (
             <p className="muted">Tu coach ha ocultado calorías y macros. Céntrate en cumplir tus comidas del día.</p>
           ) : (
-            <MacroRings
-              rings={[
-                { label: "Proteínas", consumed: consumed.protein, target: plan?.targetProteinG ?? null, color: "var(--accent)" },
-                { label: "Grasas", consumed: consumed.fat, target: plan?.targetFatG ?? null, color: "#f2a007" },
-                { label: "Carbos", consumed: consumed.carbs, target: plan?.targetCarbsG ?? null, color: "#22b07d" },
-              ]}
-              calories={{ consumed: consumed.calories, target: plan?.targetCalories ?? null }}
-            />
+            <>
+              <MacroRings
+                rings={[
+                  { label: "Proteínas", consumed: consumed.protein, target: plan?.targetProteinG ?? null, color: "var(--accent)" },
+                  { label: "Grasas", consumed: consumed.fat, target: plan?.targetFatG ?? null, color: "#f2a007" },
+                  { label: "Carbos", consumed: consumed.carbs, target: plan?.targetCarbsG ?? null, color: "#22b07d" },
+                ]}
+                calories={{ consumed: consumed.calories, target: plan?.targetCalories ?? null }}
+              />
+              {remaining ? (
+                <div className="diaryRemaining" role="group" aria-label="Lo que te queda hoy para cumplir tus objetivos">
+                  <span className="diaryRemainingLabel">Te queda hoy</span>
+                  <span className="diaryRemainingItem"><strong>{remaining.protein}</strong> g prot</span>
+                  <span className="diaryRemainingItem"><strong>{remaining.carbs}</strong> g carb</span>
+                  <span className="diaryRemainingItem"><strong>{remaining.fat}</strong> g grasa</span>
+                  <span className="diaryRemainingItem diaryRemainingKcal"><strong>{remaining.calories}</strong> kcal</span>
+                </div>
+              ) : null}
+            </>
           )}
         </article>
 
