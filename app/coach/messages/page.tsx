@@ -89,7 +89,7 @@ export default async function CoachMessagesPage() {
                   maxLength={2000}
                   autoComplete="off"
                 />
-                <SubmitButton className="btn primary chatSend" pendingLabel="">
+                <SubmitButton className="btn primary chatSend" pendingLabel="" aria-label="Enviar respuesta">
                   <Send size={16} />
                 </SubmitButton>
               </form>

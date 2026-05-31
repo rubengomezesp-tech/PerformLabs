@@ -11,9 +11,10 @@ export function NavLink({
   children: React.ReactNode;
 }) {
   const pathname = usePathname();
+  const active = pathname === href;
 
   return (
-    <Link className={pathname === href ? "active" : ""} href={href}>
+    <Link className={active ? "active" : ""} href={href} aria-current={active ? "page" : undefined}>
       {children}
     </Link>
   );

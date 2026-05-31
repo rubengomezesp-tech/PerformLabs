@@ -2,6 +2,7 @@ import { Mail, Plus, UserPlus, UserRound, Users } from "lucide-react";
 import { Dialog } from "@/components/dialog";
 import { EmptyState } from "@/components/empty-state";
 import { Topbar } from "@/components/topbar";
+import { SubmitButton } from "@/components/ui";
 import { getSelectedMemberAppBrand } from "@/lib/member-app";
 import { listManagedMembers } from "@/lib/repositories/member-management";
 import { listManagedDietTemplates } from "@/lib/repositories/nutrition-management";
@@ -27,7 +28,7 @@ export default async function CoachMembersPage() {
         actions={
           <Dialog
             triggerClassName="btn primary"
-            trigger={<>Invitar miembro <Plus size={18} /></>}
+            trigger={<>Crear miembro <Plus size={18} /></>}
             title={`Crear miembro en ${brand.name}`}
             description="Después podrás asignarle entrenamiento, nutrición y check-ins."
           >
@@ -53,7 +54,7 @@ export default async function CoachMembersPage() {
               <input name="heightCm" type="hidden" value="" />
               <input name="sex" type="hidden" value="" />
               <input name="timezone" type="hidden" value="Europe/Madrid" />
-              <button className="btn primary spanFull" type="submit">Crear miembro <UserPlus size={18} /></button>
+              <SubmitButton variant="primary" className="spanFull" successToast="Miembro creado">Crear miembro <UserPlus size={18} /></SubmitButton>
             </form>
           </Dialog>
         }
@@ -135,7 +136,7 @@ export default async function CoachMembersPage() {
                 Notas internas
                 <input name="assignmentNotes" placeholder="Contexto, molestias, preferencias, foco de la fase..." />
               </label>
-              <button className="btn primary spanFull" type="submit">Asignar planes</button>
+              <SubmitButton variant="primary" className="spanFull" successToast="Planes asignados">Asignar planes</SubmitButton>
             </form>
             </Dialog>
           </article>

@@ -2,6 +2,7 @@ import { Camera, CheckCircle2, ClipboardCheck, MessageSquareText, TrendingUp } f
 import { Dialog } from "@/components/dialog";
 import { EmptyState } from "@/components/empty-state";
 import { Topbar } from "@/components/topbar";
+import { SubmitButton } from "@/components/ui";
 import { getSelectedMemberAppBrand } from "@/lib/member-app";
 import { getCoachIntelligenceAlerts, listManagedCheckins } from "@/lib/repositories/checkin-management";
 import { reviewCoachCheckinAction } from "./actions";
@@ -129,9 +130,9 @@ export default async function CoachCheckinsPage() {
                 Próxima revisión (días)
                 <input name="reviewInDays" type="number" inputMode="numeric" min="1" max="60" defaultValue="7" />
               </label>
-              <button className="btn primary spanFull" type="submit">
+              <SubmitButton variant="primary" className="spanFull" successToast="Revisión guardada">
                 Guardar revisión <CheckCircle2 size={16} />
-              </button>
+              </SubmitButton>
             </form>
             </Dialog>
           </article>
