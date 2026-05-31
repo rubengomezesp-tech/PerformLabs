@@ -49,6 +49,24 @@ export async function swapMealAction(formData: FormData) {
   revalidatePath("/app/diary");
 }
 
+/**
+ * Member picks one of the surfaced swap alternatives for a meal. The alternative
+ * references a real brand recipe, so we reuse swapAssignedMealItem to record the
+ * choice in the assigned plan item (recipe + macros) in place — keeping a single
+ * source of truth for "what is this meal now".
+ */
+export async function chooseMealSwapAction(formData: FormData) {
+  await swapAssignedMealItem({
+    workspaceId: readText(formData, "workspaceId"),
+    itemId: readText(formData, "itemId"),
+    recipeId: readText(formData, "recipeId"),
+  });
+
+  revalidatePath("/app/meals");
+  revalidatePath("/app/diary");
+  revalidatePath("/app/progress");
+}
+
 export async function logWaterGlassAction(formData: FormData) {
   await logWaterGlass(readText(formData, "workspaceId"), 1);
 
