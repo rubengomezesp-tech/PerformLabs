@@ -206,6 +206,9 @@ function indexExercises(rows, place) {
 
   for (const [bucket, list] of byBucket) {
     list.sort((a, b) => {
+      const an = nonStrength(a) ? 1 : 0;
+      const bn = nonStrength(b) ? 1 : 0;
+      if (an !== bn) return an - bn; // real strength lifts first → mains are never stretch/plyo
       const am = a.mechanic === "compound" ? 0 : 1;
       const bm = b.mechanic === "compound" ? 0 : 1;
       if (am !== bm) return am - bm;
@@ -214,6 +217,16 @@ function indexExercises(rows, place) {
     byBucket.set(bucket, list);
   }
   return byBucket;
+}
+
+// Stretches / plyometrics / cardio are demoted so they never fill a "main" slot
+// (works on the fixture via name, and live via movement_category too).
+function nonStrength(ex) {
+  const n = norm(ex.name ?? "");
+  const cat = norm(ex.movement_category ?? "");
+  if (/stretch|estira|plyo|pliom|jump|salto|\bhop\b|burpee|flutter|mountain climber|\bskip\b|sprint|\bjog\b|jumping|bound|wall sit/.test(n)) return true;
+  if (/stretching|plyometrics|cardio/.test(cat)) return true;
+  return false;
 }
 
 // Pick `count` distinct exercises for a day: round-robin across the focus's muscle
@@ -387,7 +400,7 @@ async function main() {
     for (let from = 0; ; from += pageSize) {
       const { data, error } = await supabase
         .from("exercises")
-        .select("id,name,muscle_groups,equipment,locations,difficulty,mechanic,is_base_library,workspace_id")
+        .select("id,name,muscle_groups,equipment,locations,difficulty,mechanic,movement_category,is_base_library,workspace_id")
         .is("workspace_id", null)
         .order("name", { ascending: true })
         .range(from, from + pageSize - 1);
