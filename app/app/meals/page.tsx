@@ -87,12 +87,12 @@ export default async function MealsPage() {
         }
       />
       <section className="grid">
-        <article className="span12 mealAppHero">
+        <article className="span12 mealAppHero uiGlass uiSheen ntrbHero">
           <div>
             <span className="eyebrow">Siguiente comida</span>
             <h2>{nextMeal?.title || "Plan en revisión"}</h2>
             <p>{nextMeal ? "Cuando termines, márcala como hecha. Si hay una causa real que te lo impide, avisa al coach desde esa comida." : "Tu coach está preparando tu plan de comidas."}</p>
-            <div className="mealHeroMeta">
+            <div className="mealHeroMeta uiMeta ntrbHeroMeta">
               <span><Utensils size={16} /> {completedMealLabel}</span>
               <span><Droplets size={16} /> {dailySummary.waterGlasses}/{waterTargetGlasses} vasos de agua</span>
               <span><Repeat size={16} /> {hasApprovedMealPlan ? dailySummary.swapRequests ? `${dailySummary.swapRequests} incidencia enviada` : "Plan marcado por tu coach" : "Pendiente del coach"}</span>
@@ -122,18 +122,20 @@ export default async function MealsPage() {
 
       <section className="grid" id="comidas">
         <div className="span12 mealStatusGrid">
-          <article className="card mealStatusCard">
+          <article className="card mealStatusCard uiSheen ntrbStatCard uiFadeUp" style={{ ["--i" as string]: 0 }}>
             <div>
               <span><small>Hoy</small>Comidas completadas</span>
-              <strong>{completedMealMetric}</strong>
+              <span className="uiIconChip ntrbStatChip"><Utensils size={18} /></span>
             </div>
+            <strong className="uiStatValue ntrbStatValue">{completedMealMetric}</strong>
             <p>{hasApprovedMealPlan ? "Marca cada comida cuando la hagas para llevar el día controlado." : "Cuando el coach publique el plan verás tus comidas aquí."}</p>
           </article>
-          <article className="card mealStatusCard ntrWaterCard">
+          <article className="card mealStatusCard ntrWaterCard uiSheen ntrbStatCard uiFadeUp" style={{ ["--i" as string]: 1 }}>
             <div>
               <span><small>Hidratación</small>Agua del día</span>
-              <strong>{dailySummary.waterGlasses}/{waterTargetGlasses}</strong>
+              <span className="uiIconChip ntrbStatChip"><Droplets size={18} /></span>
             </div>
+            <strong className="uiStatValue ntrbStatValue">{dailySummary.waterGlasses}<i>/{waterTargetGlasses}</i></strong>
             <div className="mealMiniProgress"><span style={{ width: `${Math.max(6, waterPercent)}%` }} /></div>
             <form action={logWaterGlassAction} className="ntrWaterLog">
               <input name="workspaceId" type="hidden" value={brand.id} />
@@ -143,20 +145,21 @@ export default async function MealsPage() {
               <span className="ntrWaterHint">{waterPercent}% de tu objetivo</span>
             </form>
           </article>
-          <article className="card mealStatusCard">
+          <article className="card mealStatusCard uiSheen ntrbStatCard uiFadeUp" style={{ ["--i" as string]: 2 }}>
             <div>
               <span><small>Sensaciones</small>Cómo vas hoy</span>
-              <strong>{dailySummary.energyLevel ? `${dailySummary.energyLevel}/5` : "Pendiente"}</strong>
+              <span className="uiIconChip ntrbStatChip"><Sparkles size={18} /></span>
             </div>
+            <strong className="uiStatValue ntrbStatValue">{dailySummary.energyLevel ? <>{dailySummary.energyLevel}<i>/5</i></> : "Pendiente"}</strong>
             <p>Registra energía y hambre para que el coach tenga contexto real.</p>
           </article>
         </div>
 
         {hasApprovedMealPlan && !hideMacros && hasDailyTargets ? (
-          <article className="card span12 macroDailyCard ntrTodayCard">
+          <article className="card span12 macroDailyCard ntrTodayCard uiAccentCard uiSheen">
             <div className="sectionHeader">
               <div>
-                <Apple color="var(--gold)" size={26} />
+                <span className="uiIconChip ntrbSectionChip"><Apple size={20} /></span>
                 <h2>Tu día de hoy</h2>
                 <p>Lo que llevas consumido frente a tu objetivo. Marca comidas y añade alimentos para verlo subir.</p>
               </div>
@@ -203,22 +206,27 @@ export default async function MealsPage() {
           </article>
         ) : null}
 
-        {mealCards.map((meal, index) => (
-          <article className={meal.id === nextMeal?.id ? "card span3 mealAppCard isNextMeal" : "card span3 mealAppCard"} key={meal.id}>
+        {mealCards.map((meal, index) => {
+          const mealDone = mealLogBySlot.get(meal.slot)?.status === "done";
+          return (
+          <article className={`card span3 mealAppCard uiSheen ntrbMealCard uiFadeUp${meal.id === nextMeal?.id ? " isNextMeal" : ""}${mealDone ? " ntrbMealDone" : ""}`} style={{ ["--i" as string]: index }} key={meal.id}>
+            {meal.id === nextMeal?.id ? <span className="ntrbNextFlag">Siguiente</span> : null}
             <RecipeImage
-              className="mealAppCardMedia"
+              className="mealAppCardMedia ntrbMealMedia"
               id={meal.recipeId || meal.id}
               name={meal.title}
               mealSlot={meal.slot}
             />
-            <div className="mealAppCardTop">
-              <span>{String(index + 1).padStart(2, "0")}</span>
-              {mealLogBySlot.get(meal.slot)?.status === "done" ? <CheckCircle2 color="var(--gold)" size={22} /> : <Apple color="var(--gold)" size={22} />}
+            <div className="mealAppCardTop ntrbMealTop">
+              <span className={mealDone ? "uiIconChip is-active ntrbMealChip" : "uiIconChip ntrbMealChip"} aria-hidden="true">
+                {mealDone ? <CheckCircle2 size={18} /> : <Utensils size={18} />}
+              </span>
+              <span className="ntrbMealIndex">{String(index + 1).padStart(2, "0")}</span>
             </div>
-            <small>{meal.slot}</small>
+            <small className="ntrbMealSlot">{meal.slot}</small>
             <h3>{meal.title}</h3>
             <p>{meal.instructions || "Comida preparada para cumplir tu plan de hoy."}</p>
-            <div className="workoutExerciseChips">
+            <div className="workoutExerciseChips ntrbMealChips">
               <span>{meal.ingredients ? `${meal.ingredients} ingredientes` : "Plan de hoy"}</span>
               {meal.tags.slice(0, 2).map((tag) => <span key={tag}>{tag}</span>)}
             </div>
@@ -280,7 +288,8 @@ export default async function MealsPage() {
               ) : null}
             </div>
           </article>
-        ))}
+          );
+        })}
 
         <article className="card span7 mealDailyCheckCard">
           <div className="sectionHeader">

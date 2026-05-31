@@ -1,4 +1,4 @@
-import { ChevronLeft, NotebookPen, Utensils } from "lucide-react";
+import { ChefHat, ChevronLeft, NotebookPen, ShoppingBasket, Utensils } from "lucide-react";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { RecipeImage } from "@/components/recipe-image";
@@ -44,7 +44,7 @@ export default async function MemberRecipeDetailPage({ params }: RecipeDetailPag
         <Link className="btn ghost sm" href="/app/recipes"><ChevronLeft size={16} /> Recetas</Link>
       </div>
 
-      <article className="card span12 recipeDetailHero">
+      <article className="card span12 recipeDetailHero uiGlass uiSheen ntrbRecipeHero">
         <RecipeImage
           variant="detail"
           className="recipeDetailMedia"
@@ -54,7 +54,7 @@ export default async function MemberRecipeDetailPage({ params }: RecipeDetailPag
           imageUrl={heroImageUrl}
         />
         <div className="recipeDetailHeading">
-          {recipe.mealSlot ? <span className="eyebrow">{recipe.mealSlot}</span> : null}
+          {recipe.mealSlot ? <span className="eyebrow ntrbRecipeEyebrow">{recipe.mealSlot}</span> : null}
           <h1>{recipe.name}</h1>
           {recipe.tags.length ? <p className="recipeTags">{recipe.tags.join(" · ")}</p> : null}
           <RecipeMacroToggle
@@ -79,8 +79,8 @@ export default async function MemberRecipeDetailPage({ params }: RecipeDetailPag
         </div>
       </article>
 
-      <article className="card span5 recipeIngredients">
-        <h2>Ingredientes</h2>
+      <article className="card span5 recipeIngredients uiSheen">
+        <h2 className="ntrbRecipeSubhead"><span className="uiIconChip ntrbSectionChip"><ShoppingBasket size={18} /></span>Ingredientes</h2>
         {recipe.ingredients.length ? (
           <ul className="list">
             {recipe.ingredients.map((ingredient, index) => (
@@ -95,8 +95,8 @@ export default async function MemberRecipeDetailPage({ params }: RecipeDetailPag
         )}
       </article>
 
-      <article className="card span7 recipeSteps">
-        <h2>Preparación</h2>
+      <article className="card span7 recipeSteps uiSheen">
+        <h2 className="ntrbRecipeSubhead"><span className="uiIconChip ntrbSectionChip"><ChefHat size={18} /></span>Preparación</h2>
         {steps.length ? (
           <ol className="recipeStepList">
             {steps.map((step, index) => (
