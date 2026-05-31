@@ -1,7 +1,7 @@
 import type { CSSProperties } from "react";
-import { ArrowRight, MailCheck, ShieldCheck } from "lucide-react";
+import { LogIn, ShieldCheck } from "lucide-react";
+import { memberSignInAction } from "@/app/auth/actions";
 import { getSelectedMemberAppBrand } from "@/lib/member-app";
-import { enterAppAction } from "./actions";
 
 export const dynamic = "force-dynamic";
 
@@ -11,7 +11,7 @@ export async function generateMetadata() {
 }
 
 type MemberLandingPageProps = {
-  searchParams?: Promise<{ sent?: string; error?: string }>;
+  searchParams?: Promise<{ error?: string }>;
 };
 
 export default async function MemberLandingPage({ searchParams }: MemberLandingPageProps) {
@@ -37,27 +37,24 @@ export default async function MemberLandingPage({ searchParams }: MemberLandingP
         </div>
 
         <div className="memberLandingHero">
-          <h1>{params?.sent ? "Revisa tu correo." : headline}</h1>
-          <p>{params?.sent ? "Te hemos enviado un enlace para entrar a tu app. Ábrelo desde este dispositivo y estarás dentro." : subtext}</p>
+          <h1>{headline}</h1>
+          <p>{subtext}</p>
         </div>
 
-        {params?.sent ? (
-          <div className="memberAccessSent">
-            <MailCheck size={20} style={{ color: accent }} />
-            <span>Enlace enviado. Si no lo ves en unos minutos, mira en spam o vuelve a pedirlo.</span>
-          </div>
-        ) : (
-          <form action={enterAppAction} className="memberAccessForm">
-            {params?.error ? <p className="formMessage danger">{params.error}</p> : null}
-            <label>
-              Email
-              <input name="email" type="email" required placeholder="tu@email.com" autoComplete="email" />
-            </label>
-            <button className="btn primary" type="submit" style={{ background: accent, borderColor: accent }}>
-              Enviarme el enlace <ArrowRight size={18} />
-            </button>
-          </form>
-        )}
+        <form action={memberSignInAction} className="memberAccessForm">
+          {params?.error ? <p className="formMessage danger">{params.error}</p> : null}
+          <label>
+            Email
+            <input name="email" type="email" required placeholder="tu@email.com" autoComplete="email" />
+          </label>
+          <label>
+            Contraseña
+            <input name="password" type="password" required autoComplete="current-password" />
+          </label>
+          <button className="btn primary" type="submit" style={{ background: accent, borderColor: accent }}>
+            Entrar a la app <LogIn size={18} />
+          </button>
+        </form>
 
         <p className="muted memberLandingSupport">
           <ShieldCheck size={15} /> ¿Sin acceso todavía? Escribe a {brand.supportEmail}.

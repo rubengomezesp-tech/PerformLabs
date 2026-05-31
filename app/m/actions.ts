@@ -31,7 +31,7 @@ export async function enterAppAction(formData: FormData) {
       email,
       options: {
         shouldCreateUser: false,
-        emailRedirectTo: `${proto}://${host}/auth/callback?next=/app`,
+        emailRedirectTo: `${proto}://${host}/auth/callback`,
       },
     });
   }

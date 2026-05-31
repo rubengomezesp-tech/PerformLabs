@@ -127,6 +127,50 @@ export async function signInAction(formData: FormData) {
 }
 
 /**
+ * Member sign-in with email + password on a trainer's domain. Reuses the same
+ * verified-session cookies as the console and lands in /app (resolved by host).
+ * Errors return to the branded /acceso entry. Rate-limited like console login.
+ */
+export async function memberSignInAction(formData: FormData) {
+  const email = readText(formData, "email").toLowerCase();
+  const password = readText(formData, "password");
+  const securityContext = await getLoginSecurityContext(email);
+  const rateLimit = checkLoginRateLimit(securityContext.rateLimitKey);
+
+  if (!rateLimit.allowed) {
+    redirect("/acceso?error=" + encodeURIComponent(`Demasiados intentos. Espera ${rateLimit.retryAfterSeconds} segundos.`));
+  }
+
+  const supabase = createAuthClient();
+  const { data, error } = await supabase.auth.signInWithPassword({ email, password });
+
+  if (error || !data.session) {
+    recordFailedLogin(securityContext.rateLimitKey);
+    await recordSecurityAuditEvent({
+      action: "auth.member_sign_in_failed",
+      entityType: "auth",
+      metadata: securityContext.auditMetadata,
+    });
+    redirect("/acceso?error=" + encodeURIComponent("Email o contraseña incorrectos."));
+  }
+
+  clearLoginRateLimit(securityContext.rateLimitKey);
+  await setAuthCookies({
+    accessToken: data.session.access_token,
+    refreshToken: data.session.refresh_token,
+    expiresIn: data.session.expires_in,
+  });
+  await recordSecurityAuditEvent({
+    actorUserId: data.user?.id ?? null,
+    action: "auth.member_sign_in_success",
+    entityType: "auth",
+    metadata: securityContext.auditMetadata,
+  });
+
+  redirect("/app");
+}
+
+/**
  * Member access via magic link (passwordless). Members are created by their
  * coach without a password, so they get in with a one-time email link that the
  * global AuthHashBridge turns into a session and lands them in /app.
@@ -157,7 +201,7 @@ export async function requestMemberAccessLinkAction(formData: FormData) {
       email,
       options: {
         shouldCreateUser: false,
-        emailRedirectTo: `${proto}://${host}/auth/callback?next=/app`,
+        emailRedirectTo: `${proto}://${host}/auth/callback`,
       },
     });
   }

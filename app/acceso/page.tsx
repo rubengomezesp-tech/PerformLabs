@@ -1,7 +1,7 @@
 import type { CSSProperties } from "react";
 import Link from "next/link";
-import { Mail, Sparkles } from "lucide-react";
-import { requestMemberAccessLinkAction } from "@/app/auth/actions";
+import { LogIn, Sparkles } from "lucide-react";
+import { memberSignInAction } from "@/app/auth/actions";
 import { getSelectedMemberAppBrand } from "@/lib/member-app";
 
 export const dynamic = "force-dynamic";
@@ -32,17 +32,21 @@ export default async function MemberAccessPage({ searchParams }: AccesoPageProps
         <div>
           <span className="eyebrow">Tu app</span>
           <h1>Entra a {brand.name}.</h1>
-          <p>Escribe tu email y te enviamos un enlace para entrar directo a tu app, sin contraseñas.</p>
+          <p>Entra con tu email y la contraseña que te dio tu entrenador.</p>
         </div>
         {params?.error ? <p className="formMessage danger">{params.error}</p> : null}
         {params?.success ? <p className="formMessage success">{params.success}</p> : null}
-        <form action={requestMemberAccessLinkAction} className="authForm">
+        <form action={memberSignInAction} className="authForm">
           <label>
             Email
-            <input name="email" placeholder="tu@email.com" required type="email" />
+            <input name="email" placeholder="tu@email.com" required type="email" autoComplete="email" />
+          </label>
+          <label>
+            Contraseña
+            <input name="password" required type="password" autoComplete="current-password" />
           </label>
           <button className="btn primary" type="submit">
-            Enviarme el enlace <Mail size={18} />
+            Entrar <LogIn size={18} />
           </button>
         </form>
         <p className="muted">¿Eres entrenador o staff? <Link href="/login">Entra a la consola</Link></p>
