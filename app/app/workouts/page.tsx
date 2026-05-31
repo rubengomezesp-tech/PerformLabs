@@ -363,8 +363,8 @@ export default async function WorkoutsPage() {
                               <input name="setNumber" type="hidden" value={setIndex + 1} />
                               <input name="plannedReps" type="hidden" value={exercise.reps} />
                               <strong>Serie {setIndex + 1}</strong>
-                              <label>Reps hechas<input name="actualReps" placeholder={detail.progression?.lastReps ? String(detail.progression.lastReps) : exercise.reps || "10"} type="number" min="0" /></label>
-                              <label>Peso kg<input name="weightKg" placeholder={detail.progression?.lastWeightKg ? String(detail.progression.lastWeightKg) : "0"} type="number" min="0" step="0.5" /></label>
+                              <label>Reps hechas<input name="actualReps" placeholder={detail.progression?.lastReps ? String(detail.progression.lastReps) : exercise.reps || "10"} type="number" inputMode="numeric" min="0" /></label>
+                              <label>Peso kg<input name="weightKg" placeholder={detail.progression?.lastWeightKg ? String(detail.progression.lastWeightKg) : "0"} type="number" inputMode="decimal" min="0" step="0.5" /></label>
                               <input name="rir" type="hidden" value="" />
                               <input name="rpe" type="hidden" value="" />
                               <label>Cómo fue<select name="setNotes" defaultValue="">
@@ -394,8 +394,8 @@ export default async function WorkoutsPage() {
                 })}
               </div>
               <div className="sessionSavePanel">
-                <label>Tiempo<input name="durationMinutes" placeholder="60 min" type="number" min="0" /></label>
-                <label>Sensación<input name="perceivedEffort" placeholder="1-10" type="number" min="1" max="10" /></label>
+                <label>Tiempo<input name="durationMinutes" placeholder="60 min" type="number" inputMode="numeric" min="0" /></label>
+                <label>Sensación<input name="perceivedEffort" placeholder="1-10" type="number" inputMode="numeric" min="1" max="10" /></label>
                 <label className="spanFull">Nota del entreno<textarea name="notes" rows={2} placeholder="Energía, molestias durante la sesión, cargas que se sintieron altas o bajas..." /></label>
                 <div className="sessionIssueBox">
                   <div>

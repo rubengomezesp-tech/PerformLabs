@@ -88,6 +88,7 @@ function FoodRow({
             className="foodQty"
             name="quantity"
             type="number"
+            inputMode="decimal"
             min="0.25"
             step="0.25"
             defaultValue="1"

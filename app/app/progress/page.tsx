@@ -269,10 +269,10 @@ export default async function ProgressPage({ searchParams }: ProgressPageProps) 
             </div>
             <form action={createMemberCheckinAction} className="checkinGridForm">
               <input name="workspaceId" type="hidden" value={brand.id} />
-              <label>Peso kg<input name="weightKg" placeholder="82.4" /></label>
-              <label>Grasa %<input name="bodyFatPercent" placeholder="16" /></label>
+              <label>Peso kg<input name="weightKg" inputMode="decimal" placeholder="82.4" /></label>
+              <label>Grasa %<input name="bodyFatPercent" inputMode="decimal" placeholder="16" /></label>
               {measureFields.map(([label, key, suffix]) => (
-                <label key={key}>{label} {suffix}<input name={key} placeholder="Medida" /></label>
+                <label key={key}>{label} {suffix}<input name={key} inputMode="decimal" placeholder="Medida" /></label>
               ))}
               <label>Energía
                 <select name="energy" defaultValue="normal">
@@ -295,8 +295,8 @@ export default async function ProgressPage({ searchParams }: ProgressPageProps) 
                   <option value="irregular">Irregular</option>
                 </select>
               </label>
-              <label>Entreno %<input name="trainingAdherence" placeholder="85" /></label>
-              <label>Nutrición %<input name="nutritionAdherence" placeholder="90" /></label>
+              <label>Entreno %<input name="trainingAdherence" inputMode="decimal" placeholder="85" /></label>
+              <label>Nutrición %<input name="nutritionAdherence" inputMode="decimal" placeholder="90" /></label>
               <label className="toggleRow">Fotos subidas<input name="photosAvailable" type="checkbox" /></label>
               <label className="spanFull">Sensaciones y notas
                 <textarea name="notes" rows={4} placeholder="Hambre, estrés, molestias, entrenamiento, comidas, ciclo, energía..." />
