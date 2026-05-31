@@ -13,9 +13,9 @@ export default async function CoachAnalyticsPage() {
   return (
     <>
       <Topbar
-        eyebrow="Analitica"
-        title="Lectura rapida del negocio del coach."
-        text="Actividad, adherencia, retencion, check-ins y uso de programas desde la perspectiva del entrenador."
+        eyebrow="Analítica"
+        title="Lectura rápida del negocio del coach."
+        text="Actividad, adherencia, retención, check-ins y uso de programas desde la perspectiva del entrenador."
       />
       <section className="grid">
         {dashboard.stats.map((stat) => (

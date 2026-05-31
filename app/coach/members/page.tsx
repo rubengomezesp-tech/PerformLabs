@@ -23,7 +23,7 @@ export default async function CoachMembersPage() {
       <Topbar
         eyebrow="Miembros"
         title="Clientes, acceso y seguimiento."
-        text="El entrenador ve quien esta activo, que plan tiene asignado y que necesita revision."
+        text="El entrenador ve quién está activo, qué plan tiene asignado y qué necesita revisión."
         actions={
           <Dialog
             triggerClassName="btn primary"
@@ -119,11 +119,11 @@ export default async function CoachMembersPage() {
                 <input name="currentWeek" defaultValue={String(member.activeWorkoutPlan?.currentWeek ?? 1)} min="1" max="12" type="number" inputMode="numeric" />
               </label>
               <label>
-                Proxima revision
+                Próxima revisión
                 <input name="nextReviewOn" defaultValue={member.activeWorkoutPlan?.nextReviewOn ?? ""} type="date" />
               </label>
               <label>
-                Nutricion
+                Nutrición
                 <select name="dietTemplateId" defaultValue="">
                   <option value="">Sin cambio</option>
                   {dietTemplates.map((template) => (
@@ -143,7 +143,7 @@ export default async function CoachMembersPage() {
           <EmptyState
             icon={Users}
             title="Todavia no hay miembros en esta app."
-            text="Crea el primer miembro para asignarle entrenamiento, nutricion y seguimiento."
+            text="Crea el primer miembro para asignarle entrenamiento, nutrición y seguimiento."
           />
         )}
       </section>

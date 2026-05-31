@@ -56,7 +56,7 @@ export default async function CoachNutritionPage() {
   return (
     <>
       <Topbar
-        eyebrow="Nutricion"
+        eyebrow="Nutrición"
         title="Comidas, recetas y planes."
         text="Crea recetas, móntalas en planes por día y asígnalas. La IA puede generarte recetas con macros."
         actions={
