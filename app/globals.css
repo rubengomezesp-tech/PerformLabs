@@ -11750,6 +11750,160 @@ button[aria-busy="true"] {
   color: var(--text);
 }
 
+/* ---- Descanso / Recuperación ---- */
+.recoveryHero {
+  display: flex;
+  align-items: center;
+  gap: 24px;
+  padding: 22px;
+  flex-wrap: wrap;
+}
+.recoveryHero .progressRing {
+  flex: 0 0 auto;
+}
+.recoveryHeroBody {
+  flex: 1 1 280px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.recoveryHeroBody h2 {
+  margin: 0;
+  font-size: clamp(1.3rem, 3vw, 1.7rem);
+}
+.recoveryHeroBody p {
+  margin: 0;
+  color: var(--text-muted);
+}
+.recoveryHeroEyebrow {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+.recoveryFactors {
+  margin-top: 6px;
+}
+.recoveryStale {
+  font-size: 13px;
+}
+.recoveryStale a {
+  color: var(--accent);
+}
+.recoveryHeroEmpty .btn {
+  align-self: flex-start;
+  margin-top: 8px;
+}
+.recoveryTargetRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin: 4px 0 12px;
+}
+.recoveryTipList {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 9px;
+}
+.recoveryTipList li {
+  display: flex;
+  align-items: flex-start;
+  gap: 9px;
+  font-size: 14px;
+  color: var(--text-muted);
+  line-height: 1.45;
+}
+.recoveryTipList li svg {
+  color: var(--accent);
+  flex: 0 0 auto;
+  margin-top: 2px;
+}
+.recoveryTipList li strong {
+  color: var(--text);
+}
+.recoverySigns {
+  margin-top: 14px;
+  padding-top: 14px;
+  border-top: 1px solid var(--line);
+  display: flex;
+  flex-direction: column;
+  gap: 9px;
+}
+.recoverySigns > strong {
+  font-size: 13.5px;
+}
+.recoveryMoves {
+  list-style: none;
+  margin: 4px 0 0;
+  padding: 0;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+  gap: 10px;
+}
+.recoveryMove {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 14px;
+  border-radius: 14px;
+  border: 1px solid var(--line);
+  background: var(--surface-2);
+}
+.recoveryMoveIcon {
+  flex: 0 0 auto;
+}
+.recoveryMove > div {
+  flex: 1 1 auto;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+.recoveryMove > div strong {
+  font-size: 14px;
+  color: var(--text);
+}
+.recoveryMove > div span {
+  font-size: 12.5px;
+  color: var(--text-muted);
+  line-height: 1.4;
+}
+.recoveryMoveTime {
+  flex: 0 0 auto;
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--accent);
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+.recoveryActive {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+.recoveryActive > div {
+  flex: 1 1 280px;
+}
+.recoveryActive strong {
+  display: block;
+  margin-bottom: 2px;
+}
+.recoveryActive p {
+  margin: 0;
+  color: var(--text-muted);
+}
+.recoveryActive .btn {
+  flex: 0 0 auto;
+}
+
+
 .cardioStat {
   display: flex;
   flex-direction: column;

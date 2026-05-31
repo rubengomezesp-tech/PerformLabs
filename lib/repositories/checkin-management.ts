@@ -43,6 +43,7 @@ export type ManagedCheckin = {
     chestCm?: number | null;
     hipCm?: number | null;
     energy?: string;
+    sleepQuality?: string;
     trainingAdherence?: string;
     nutritionAdherence?: string;
     notes?: string;
@@ -218,6 +219,7 @@ export async function listManagedCheckins(workspaceId?: string): Promise<Managed
       chestCm: jsonNumber(checkin.key_values, "chestCm"),
       hipCm: jsonNumber(checkin.key_values, "hipCm"),
       energy: jsonText(checkin.key_values, "energy"),
+      sleepQuality: jsonText(checkin.key_values, "sleepQuality"),
       trainingAdherence: jsonText(checkin.key_values, "trainingAdherence"),
       nutritionAdherence: jsonText(checkin.key_values, "nutritionAdherence"),
       notes: jsonText(checkin.key_values, "notes"),
