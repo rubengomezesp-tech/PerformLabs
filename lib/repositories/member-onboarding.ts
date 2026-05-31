@@ -5,6 +5,16 @@ import { createServiceSupabaseClient } from "@/lib/supabase/server";
 import { assignDietTemplateToMember, assignWorkoutTemplateToMember } from "@/lib/repositories/member-management";
 import { listManagedDietTemplates, type ManagedDietTemplate } from "@/lib/repositories/nutrition-management";
 import { listManagedWorkoutTemplates, type ManagedWorkoutTemplate } from "@/lib/repositories/training-management";
+import {
+  selectProgram,
+  normalizeGoal,
+  normalizeLevel,
+  normalizeSex as toProgramSex,
+  normalizePlace,
+  bucketMinutes,
+  type MatchTemplate,
+  type QuizAnswers,
+} from "@/lib/domain/program-matcher";
 
 export type MemberExerciseProgression = {
   /** Best set (by reps × weight) logged for this exercise in the prior 14 days. */
@@ -379,6 +389,66 @@ function findQuarterlyTemplate(templates: ManagedWorkoutTemplate[], daysPerWeek:
     ?? null;
 }
 
+/**
+ * Pick the member's program with the matching engine (lib/domain/program-matcher):
+ * builds QuizAnswers from the saved onboarding prefs, scores the tagged templates,
+ * and falls back to the legacy days-based lookup when nothing matches (or on any
+ * error), so behaviour is unchanged until the tagged matrix is populated.
+ */
+async function matchQuarterlyTemplate(
+  supabase: ReturnType<typeof createServiceSupabaseClient>,
+  memberProfileId: string,
+  daysPerWeek: number,
+  templates: ManagedWorkoutTemplate[],
+): Promise<ManagedWorkoutTemplate | null> {
+  try {
+    const sb = supabase as unknown as {
+      from: (table: string) => any;
+    };
+    const [prefs, profile, tags] = await Promise.all([
+      sb.from("member_fitness_preferences").select("location,available_equipment,session_minutes,experience_level,training_goal,days_per_week").eq("member_profile_id", memberProfileId).maybeSingle(),
+      sb.from("member_profiles").select("sex,goal").eq("id", memberProfileId).maybeSingle(),
+      templates.length
+        ? sb.from("workout_templates").select("id,goal_tag,target_sex,location,session_minutes,required_equipment").in("id", templates.map((t) => t.id))
+        : Promise.resolve({ data: [] }),
+    ]);
+    const p = prefs?.data ?? null;
+    const pr = profile?.data ?? null;
+    const quiz: QuizAnswers = {
+      sex: toProgramSex(pr?.sex),
+      goal: normalizeGoal(p?.training_goal ?? pr?.goal),
+      place: normalizePlace(p?.location),
+      daysPerWeek: Number(p?.days_per_week) || daysPerWeek,
+      sessionMinutes: bucketMinutes(p?.session_minutes),
+      experience: normalizeLevel(p?.experience_level),
+      equipment: Array.isArray(p?.available_equipment) ? p.available_equipment : [],
+    };
+    const tagById = new Map<string, any>(((tags?.data ?? []) as any[]).map((r) => [r.id, r]));
+    const matchTemplates: MatchTemplate[] = templates.map((t) => {
+      const tag = tagById.get(t.id);
+      return {
+        id: t.id,
+        status: t.status,
+        daysPerWeek: t.daysPerWeek,
+        level: t.level,
+        goalTag: tag?.goal_tag ?? null,
+        targetSex: tag?.target_sex ?? null,
+        location: tag?.location ?? null,
+        sessionMinutes: tag?.session_minutes ?? null,
+        requiredEquipment: tag?.required_equipment ?? null,
+      };
+    });
+    const match = selectProgram(quiz, matchTemplates);
+    if (match.templateId) {
+      const chosen = templates.find((t) => t.id === match.templateId);
+      if (chosen) return chosen;
+    }
+  } catch (error) {
+    console.error("Program match failed, falling back to days-based lookup", error);
+  }
+  return findQuarterlyTemplate(templates, daysPerWeek);
+}
+
 export async function assignQuarterlyWorkoutModule(input: {
   workspaceId: string;
   memberProfileId: string;
@@ -392,7 +462,7 @@ export async function assignQuarterlyWorkoutModule(input: {
   const templates = await listManagedWorkoutTemplates(input.workspaceId);
   const template = input.workoutTemplateId
     ? templates.find((item) => item.id === input.workoutTemplateId) ?? null
-    : findQuarterlyTemplate(templates, input.daysPerWeek);
+    : await matchQuarterlyTemplate(supabase, input.memberProfileId, input.daysPerWeek, templates);
 
   if (!template) {
     throw new Error(`No existe todavia el modulo de ${input.daysPerWeek} dias/semana. Crealo desde Programas antes de asignarlo.`);
