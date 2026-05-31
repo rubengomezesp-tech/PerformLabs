@@ -24,7 +24,7 @@ const FOOD_KEYWORD: Record<FoodCategory, string> = {
   drink: "drink,beverage",
   other: "food,meal",
 };
-import { getMemberNutritionVisibility } from "@/lib/repositories/nutrition-tracking";
+import { getMemberNutritionVisibility, listFoodDiaryEntries } from "@/lib/repositories/nutrition-tracking";
 import { quickAddFoodAction, toggleFoodFavoriteAction } from "./actions";
 
 export const dynamic = "force-dynamic";
@@ -104,11 +104,23 @@ export default async function MemberFoodsPage({ searchParams }: FoodsPageProps) 
   const query = (params?.q ?? "").trim();
   const date = params?.date && /^\d{4}-\d{2}-\d{2}$/.test(params.date) ? params.date : todayIso();
 
-  const [{ favorites, items, isFallback }, visibility] = await Promise.all([
+  const [{ favorites, items, isFallback }, visibility, diaryEntries] = await Promise.all([
     listMemberFoodLibrary(brand.id, query),
     getMemberNutritionVisibility(brand.id),
+    listFoodDiaryEntries(brand.id, date),
   ]);
   const hideMacros = visibility.hideMacros;
+  const loggedToday = diaryEntries.reduce(
+    (totals, entry) => {
+      totals.calories += entry.calories ?? 0;
+      totals.protein += entry.protein ?? 0;
+      totals.carbs += entry.carbs ?? 0;
+      totals.fat += entry.fat ?? 0;
+      return totals;
+    },
+    { calories: 0, protein: 0, carbs: 0, fat: 0 },
+  );
+  const isToday = date === todayIso();
 
   const byCategory = CATEGORY_ORDER.map((category) => ({
     category,
@@ -136,6 +148,23 @@ export default async function MemberFoodsPage({ searchParams }: FoodsPageProps) 
             <button className="btn sm" type="submit">Buscar</button>
           </form>
         </article>
+
+        {!hideMacros && diaryEntries.length ? (
+          <article className="card span12 ntrFoodsTotals" aria-live="polite">
+            <div className="ntrFoodsTotalsHead">
+              <NotebookPen size={16} color="var(--accent)" />
+              <strong>{isToday ? "Llevas hoy" : "Registrado ese día"}</strong>
+              <Link className="ntrFoodsTotalsLink" href={`/app/diary?date=${date}`}>Ver diario</Link>
+            </div>
+            <div className="ntrFoodsTotalsRow">
+              <span><strong>{Math.round(loggedToday.calories)}</strong><small>kcal</small></span>
+              <span><strong>{Math.round(loggedToday.protein)}<i>g</i></strong><small>Proteínas</small></span>
+              <span><strong>{Math.round(loggedToday.carbs)}<i>g</i></strong><small>Carbos</small></span>
+              <span><strong>{Math.round(loggedToday.fat)}<i>g</i></strong><small>Grasas</small></span>
+              <span><strong>{diaryEntries.length}</strong><small>entradas</small></span>
+            </div>
+          </article>
+        ) : null}
 
         {favorites.length ? (
           <article className="card span12 foodGroupCard">

@@ -1,21 +1,29 @@
 import { Apple, CheckCircle2, ChefHat, Droplets, MessageSquare, NotebookPen, Plus, Repeat, ShoppingBasket, Sparkles, Utensils } from "lucide-react";
 import Link from "next/link";
+import { MacroRings } from "@/components/macro-rings";
 import { MacroStrip } from "@/components/macro-strip";
 import { RecipeImage } from "@/components/recipe-image";
 import { Topbar } from "@/components/topbar";
 import { getSelectedMemberAppBrand } from "@/lib/member-app";
 import { Dialog } from "@/components/dialog";
-import { getMemberMealPlanForToday, getMemberNutritionVisibility, getNutritionDailySummary } from "@/lib/repositories/nutrition-tracking";
+import {
+  getMemberMealPlanForToday,
+  getMemberNutritionVisibility,
+  getNutritionDailySummary,
+  listFoodDiaryEntries,
+  sumConsumedMacros,
+} from "@/lib/repositories/nutrition-tracking";
 import { listManagedRecipes } from "@/lib/repositories/nutrition-management";
 import { saveMealLogAction, saveNutritionDayAction, swapMealAction } from "./actions";
 
 export default async function MealsPage() {
   const brand = await getSelectedMemberAppBrand();
-  const [dailySummary, assignedMealPlan, visibility, recipeOptions] = await Promise.all([
+  const [dailySummary, assignedMealPlan, visibility, recipeOptions, foodEntries] = await Promise.all([
     getNutritionDailySummary(brand.id),
     getMemberMealPlanForToday(brand.id),
     getMemberNutritionVisibility(brand.id),
     listManagedRecipes(brand.id, { includeBase: true }),
+    listFoodDiaryEntries(brand.id),
   ]);
   const mealCards = assignedMealPlan?.items.map((item) => ({
     id: item.id,
@@ -36,6 +44,20 @@ export default async function MealsPage() {
     assignedMealPlan && (assignedMealPlan.targetCalories || assignedMealPlan.targetProteinG || assignedMealPlan.targetCarbsG || assignedMealPlan.targetFatG),
   );
   const mealLogBySlot = new Map(dailySummary.mealLogs.map((log) => [log.mealSlot, log]));
+  const doneSlots = new Set(
+    dailySummary.mealLogs.filter((log) => log.status === "done").map((log) => log.mealSlot),
+  );
+  const consumed = sumConsumedMacros(
+    (assignedMealPlan?.items ?? []).map((item) => ({
+      mealSlot: item.mealSlot,
+      calories: item.calories,
+      proteinG: item.proteinG,
+      carbsG: item.carbsG,
+      fatG: item.fatG,
+    })),
+    doneSlots,
+    foodEntries,
+  );
   const nextMeal = hasApprovedMealPlan
     ? mealCards.find((meal) => mealLogBySlot.get(meal.slot)?.status !== "done") ?? mealCards[0]
     : null;
@@ -119,21 +141,38 @@ export default async function MealsPage() {
         </div>
 
         {hasApprovedMealPlan && !hideMacros && hasDailyTargets ? (
-          <article className="card span12 macroDailyCard">
+          <article className="card span12 macroDailyCard ntrTodayCard">
             <div className="sectionHeader">
               <div>
                 <Apple color="var(--gold)" size={26} />
-                <h2>Tu objetivo de hoy</h2>
-                <p>Referencia diaria de tu plan. Tu coach la ajusta cuando lo necesites.</p>
+                <h2>Tu día de hoy</h2>
+                <p>Lo que llevas consumido frente a tu objetivo. Marca comidas y añade alimentos para verlo subir.</p>
+              </div>
+              <span className="tag">{completionPercent}% del plan</span>
+            </div>
+            <div className="ntrTodayBody">
+              <MacroRings
+                rings={[
+                  { label: "Proteínas", consumed: consumed.protein, target: assignedMealPlan?.targetProteinG ?? null, color: "var(--accent)" },
+                  { label: "Grasas", consumed: consumed.fat, target: assignedMealPlan?.targetFatG ?? null, color: "#f2a007" },
+                  { label: "Carbos", consumed: consumed.carbs, target: assignedMealPlan?.targetCarbsG ?? null, color: "#22b07d" },
+                ]}
+                calories={{ consumed: consumed.calories, target: assignedMealPlan?.targetCalories ?? null }}
+              />
+              <div className="ntrWaterRing" aria-label={`Agua: ${dailySummary.waterGlasses} de ${waterTargetGlasses} vasos`}>
+                <div
+                  className="macroRingProgress ntrWaterRingProgress"
+                  style={{ ["--ring" as string]: `${Math.min(100, Math.round((dailySummary.waterGlasses / waterTargetGlasses) * 100))}%`, ["--ringColor" as string]: "#37a0f2" }}
+                >
+                  <div className="macroRingHole">
+                    <Droplets size={16} color="#37a0f2" />
+                    <strong>{dailySummary.waterGlasses}</strong>
+                    <small>/{waterTargetGlasses}</small>
+                  </div>
+                </div>
+                <small className="macroRingLabel">Agua</small>
               </div>
             </div>
-            <MacroStrip
-              variant="card"
-              proteinG={assignedMealPlan?.targetProteinG}
-              fatG={assignedMealPlan?.targetFatG}
-              carbsG={assignedMealPlan?.targetCarbsG}
-              calories={assignedMealPlan?.targetCalories}
-            />
           </article>
         ) : null}
 

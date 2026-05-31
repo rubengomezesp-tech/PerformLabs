@@ -10563,3 +10563,99 @@ button[aria-busy="true"] {
     grid-column: span 6;
   }
 }
+
+/* ===== NUTRITION AREA (agent) ===== */
+
+/* Meals "Tu día de hoy" — consumed vs target rings + water ring side by side. */
+.ntrTodayCard .ntrTodayBody {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 28px;
+}
+.ntrTodayCard .ntrTodayBody .macroRings {
+  flex: 1 1 320px;
+  min-width: 280px;
+}
+.ntrWaterRing {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 7px;
+  flex: 0 0 auto;
+}
+.ntrWaterRingProgress .macroRingHole {
+  gap: 1px;
+}
+.ntrWaterRingProgress .macroRingHole strong {
+  font-size: 18px;
+}
+
+/* Foods page — running daily totals strip. */
+.ntrFoodsTotals {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+.ntrFoodsTotalsHead {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.ntrFoodsTotalsHead strong {
+  font-size: 14px;
+  color: var(--text);
+}
+.ntrFoodsTotalsLink {
+  margin-left: auto;
+  font-size: 13px;
+  color: var(--accent);
+  text-decoration: none;
+}
+.ntrFoodsTotalsLink:hover {
+  text-decoration: underline;
+}
+.ntrFoodsTotalsRow {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+.ntrFoodsTotalsRow > span {
+  flex: 1 1 90px;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: 12px 14px;
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  background: var(--surface-2);
+}
+.ntrFoodsTotalsRow > span strong {
+  font-size: 20px;
+  color: var(--text);
+  line-height: 1.1;
+}
+.ntrFoodsTotalsRow > span strong i {
+  font-size: 12px;
+  font-style: normal;
+  color: var(--text-soft);
+  margin-left: 1px;
+}
+.ntrFoodsTotalsRow > span small {
+  font-size: 11px;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+.ntrFoodsTotalsRow > span:first-child strong {
+  color: var(--accent);
+}
+
+@media (max-width: 560px) {
+  .ntrTodayCard .ntrTodayBody {
+    gap: 18px;
+    justify-content: center;
+  }
+}
+
+/* ===== END NUTRITION AREA ===== */
