@@ -1,6 +1,7 @@
 import { redirect } from "next/navigation";
-import { getVerifiedUser } from "@/lib/auth/access-control";
+import { getConsoleSession, getVerifiedUser } from "@/lib/auth/access-control";
 import { isConsoleAuthRequired } from "@/lib/auth/auth-mode";
+import { platformRoles, roleAllowed } from "@/lib/auth/role-access";
 import { getSupabaseServiceEnv } from "@/lib/supabase/env";
 import { createServiceSupabaseClient } from "@/lib/supabase/server";
 
@@ -14,8 +15,8 @@ import { createServiceSupabaseClient } from "@/lib/supabase/server";
  *   user (`member_profiles.user_id`), NOT "the first profile in the workspace".
  *
  * `membershipActive` gates the app: only `active`/`trialing` members get in.
- * The platform owner (COACHOS_OWNER_EMAIL) is comped — full access without a
- * subscription, and can preview any brand's app.
+ * Platform admins are comped — full access without a subscription, and can
+ * preview any brand's app.
  */
 export type MemberContext = {
   mode: "open" | "authenticated";
@@ -32,6 +33,15 @@ const ACTIVE_STATUSES = new Set(["active", "trialing"]);
 function isOwnerEmail(email: string | null | undefined): boolean {
   const ownerEmail = process.env.COACHOS_OWNER_EMAIL?.trim().toLowerCase();
   return !!ownerEmail && (email ?? "").toLowerCase() === ownerEmail;
+}
+
+async function isPlatformAdminUser(userId: string, email: string | null | undefined): Promise<boolean> {
+  if (isOwnerEmail(email)) {
+    return true;
+  }
+
+  const session = await getConsoleSession();
+  return !!session && session.user.id === userId && roleAllowed(session.topRole, platformRoles);
 }
 
 async function firstProfileOfWorkspace(workspaceId: string) {
@@ -70,7 +80,7 @@ export async function getMemberContext(workspaceIdHint?: string): Promise<Member
   // Production: the member is whoever holds the verified session token.
   const user = await getVerifiedUser();
   if (!user) return null;
-  const isAdmin = isOwnerEmail(user.email);
+  const isAdmin = await isPlatformAdminUser(user.id, user.email);
 
   const { data, error } = await supabase
     .from("member_profiles")
