@@ -275,7 +275,7 @@ export async function assignWorkoutTemplateToMember(input: {
   const workout = await supabase
     .from("workout_templates")
     .select("id,name,days_per_week,duration_weeks,goal,level")
-    .eq("workspace_id", input.workspaceId)
+    .or(`workspace_id.eq.${input.workspaceId},is_base_library.eq.true`)
     .eq("id", input.workoutTemplateId)
     .maybeSingle();
 

@@ -397,23 +397,22 @@ function findQuarterlyTemplate(templates: ManagedWorkoutTemplate[], daysPerWeek:
  */
 async function matchQuarterlyTemplate(
   supabase: ReturnType<typeof createServiceSupabaseClient>,
+  workspaceId: string,
   memberProfileId: string,
   daysPerWeek: number,
-  templates: ManagedWorkoutTemplate[],
-): Promise<ManagedWorkoutTemplate | null> {
+): Promise<{ id: string; goal: string } | null> {
   try {
-    const sb = supabase as unknown as {
-      from: (table: string) => any;
-    };
-    const [prefs, profile, tags] = await Promise.all([
+    const sb = supabase as unknown as { from: (table: string) => any };
+    const [prefs, profile, tpls] = await Promise.all([
       sb.from("member_fitness_preferences").select("location,available_equipment,session_minutes,experience_level,training_goal,days_per_week").eq("member_profile_id", memberProfileId).maybeSingle(),
       sb.from("member_profiles").select("sex,goal").eq("id", memberProfileId).maybeSingle(),
-      templates.length
-        ? sb.from("workout_templates").select("id,goal_tag,target_sex,location,session_minutes,required_equipment").in("id", templates.map((t) => t.id))
-        : Promise.resolve({ data: [] }),
+      // The brand's own templates + the platform base-library matrix.
+      sb.from("workout_templates").select("id,goal,level,status,days_per_week,goal_tag,target_sex,location,session_minutes,required_equipment").or(`workspace_id.eq.${workspaceId},is_base_library.eq.true`),
     ]);
     const p = prefs?.data ?? null;
     const pr = profile?.data ?? null;
+    const rows = (tpls?.data ?? []) as any[];
+    if (!rows.length) return null;
     const quiz: QuizAnswers = {
       sex: toProgramSex(pr?.sex),
       goal: normalizeGoal(p?.training_goal ?? pr?.goal),
@@ -423,30 +422,26 @@ async function matchQuarterlyTemplate(
       experience: normalizeLevel(p?.experience_level),
       equipment: Array.isArray(p?.available_equipment) ? p.available_equipment : [],
     };
-    const tagById = new Map<string, any>(((tags?.data ?? []) as any[]).map((r) => [r.id, r]));
-    const matchTemplates: MatchTemplate[] = templates.map((t) => {
-      const tag = tagById.get(t.id);
-      return {
-        id: t.id,
-        status: t.status,
-        daysPerWeek: t.daysPerWeek,
-        level: t.level,
-        goalTag: tag?.goal_tag ?? null,
-        targetSex: tag?.target_sex ?? null,
-        location: tag?.location ?? null,
-        sessionMinutes: tag?.session_minutes ?? null,
-        requiredEquipment: tag?.required_equipment ?? null,
-      };
-    });
+    const matchTemplates: MatchTemplate[] = rows.map((t) => ({
+      id: t.id,
+      status: t.status,
+      daysPerWeek: t.days_per_week,
+      level: t.level,
+      goalTag: t.goal_tag ?? null,
+      targetSex: t.target_sex ?? null,
+      location: t.location ?? null,
+      sessionMinutes: t.session_minutes ?? null,
+      requiredEquipment: t.required_equipment ?? null,
+    }));
     const match = selectProgram(quiz, matchTemplates);
     if (match.templateId) {
-      const chosen = templates.find((t) => t.id === match.templateId);
-      if (chosen) return chosen;
+      const chosen = rows.find((t) => t.id === match.templateId);
+      if (chosen) return { id: chosen.id, goal: chosen.goal ?? "" };
     }
   } catch (error) {
     console.error("Program match failed, falling back to days-based lookup", error);
   }
-  return findQuarterlyTemplate(templates, daysPerWeek);
+  return null;
 }
 
 export async function assignQuarterlyWorkoutModule(input: {
@@ -459,12 +454,23 @@ export async function assignQuarterlyWorkoutModule(input: {
   assignedBy?: string | null;
 }) {
   const supabase = createServiceSupabaseClient();
-  const templates = await listManagedWorkoutTemplates(input.workspaceId);
-  const template = input.workoutTemplateId
-    ? templates.find((item) => item.id === input.workoutTemplateId) ?? null
-    : await matchQuarterlyTemplate(supabase, input.memberProfileId, input.daysPerWeek, templates);
+  let selected: { id: string; goal: string } | null = null;
+  if (input.workoutTemplateId) {
+    const templates = await listManagedWorkoutTemplates(input.workspaceId);
+    const t = templates.find((item) => item.id === input.workoutTemplateId);
+    selected = t ? { id: t.id, goal: t.goal } : { id: input.workoutTemplateId, goal: "" };
+  } else {
+    // Engine match against brand + base-library matrix; fall back to the legacy
+    // days-based lookup over the brand's own templates.
+    selected = await matchQuarterlyTemplate(supabase, input.workspaceId, input.memberProfileId, input.daysPerWeek);
+    if (!selected) {
+      const templates = await listManagedWorkoutTemplates(input.workspaceId);
+      const t = findQuarterlyTemplate(templates, input.daysPerWeek);
+      selected = t ? { id: t.id, goal: t.goal } : null;
+    }
+  }
 
-  if (!template) {
+  if (!selected) {
     throw new Error(`No existe todavia el modulo de ${input.daysPerWeek} dias/semana. Crealo desde Programas antes de asignarlo.`);
   }
 
@@ -481,22 +487,22 @@ export async function assignQuarterlyWorkoutModule(input: {
     throw new Error(`No se pudo revisar la asignacion actual: ${latest.error.message}`);
   }
 
-  if (latest.data?.source_template_id === template.id && latest.data.status === "active") {
-    return { templateId: template.id, assignmentCreated: false };
+  if (latest.data?.source_template_id === selected.id && latest.data.status === "active") {
+    return { templateId: selected.id, assignmentCreated: false };
   }
 
   const assignment = await assignWorkoutTemplateToMember({
     workspaceId: input.workspaceId,
     memberProfileId: input.memberProfileId,
-    workoutTemplateId: template.id,
-    assignmentGoal: input.assignmentGoal || template.goal,
+    workoutTemplateId: selected.id,
+    assignmentGoal: input.assignmentGoal || selected.goal,
     assignmentNotes: input.assignmentNotes,
     currentMonth: "1",
     currentWeek: "1",
     assignedBy: input.assignedBy,
   });
 
-  return { templateId: template.id, assignmentCreated: Boolean(assignment?.assignmentId) };
+  return { templateId: selected.id, assignmentCreated: Boolean(assignment?.assignmentId) };
 }
 
 export async function saveMemberOnboarding(input: MemberOnboardingInput) {
