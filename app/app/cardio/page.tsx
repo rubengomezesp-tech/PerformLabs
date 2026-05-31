@@ -129,6 +129,21 @@ export default async function CardioPage() {
   const stepsTarget = cardio.dailyStepsTarget ?? 8000;
   const stepsLabel = stepsTarget.toLocaleString("es-ES");
 
+  // Last 7 calendar days as an activity strip (a dot lights up when cardio was logged).
+  const localIso = (date: Date) => `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, "0")}-${String(date.getDate()).padStart(2, "0")}`;
+  const today = new Date();
+  const weekDays = Array.from({ length: 7 }, (_, index) => {
+    const date = new Date(today);
+    date.setDate(today.getDate() - (6 - index));
+    const iso = localIso(date);
+    return {
+      iso,
+      initial: date.toLocaleDateString("es-ES", { weekday: "narrow" }),
+      active: recent.some((session) => session.loggedOn === iso),
+    };
+  });
+  const weekActiveCount = weekDays.filter((day) => day.active).length;
+
   return (
     <>
       <Topbar
@@ -273,6 +288,14 @@ export default async function CardioPage() {
               <span className="cardioStatValue uiStatValue">{week.totalMinutes}</span>
               <span className="cardioStatLabel uiStatLabel">Minutos totales</span>
             </div>
+          </div>
+          <div className="cardioWeekStrip" role="img" aria-label={`${weekActiveCount} de los últimos 7 días con cardio registrado`}>
+            {weekDays.map((day) => (
+              <span key={day.iso} className={day.active ? "cardioDay is-active" : "cardioDay"}>
+                <span className="cardioDayDot" aria-hidden="true">{day.active ? <Activity size={12} /> : null}</span>
+                <span className="cardioDayLabel">{day.initial}</span>
+              </span>
+            ))}
           </div>
           {recent.length ? (
             <ul className="cardioSessionList">

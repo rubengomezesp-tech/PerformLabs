@@ -11712,6 +11712,44 @@ button[aria-busy="true"] {
   gap: 12px;
 }
 
+.cardioWeekStrip {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 6px;
+  margin-top: 12px;
+}
+.cardioDay {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 5px;
+}
+.cardioDayDot {
+  display: grid;
+  place-items: center;
+  width: 100%;
+  aspect-ratio: 1 / 1;
+  max-width: 40px;
+  border-radius: 12px;
+  border: 1px solid var(--line);
+  background: var(--surface-2);
+  color: var(--text-muted);
+}
+.cardioDay.is-active .cardioDayDot {
+  background: color-mix(in srgb, var(--accent) 18%, var(--surface-2));
+  border-color: color-mix(in srgb, var(--accent) 55%, var(--line));
+  color: var(--accent);
+}
+.cardioDayLabel {
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--text-muted);
+  text-transform: uppercase;
+}
+.cardioDay.is-active .cardioDayLabel {
+  color: var(--text);
+}
+
 .cardioStat {
   display: flex;
   flex-direction: column;
