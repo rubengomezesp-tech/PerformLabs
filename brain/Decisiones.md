@@ -7,6 +7,39 @@ updated: 2026-05-30
 
 Las decisiones clave y su _por qué_. La más reciente arriba.
 
+- **2026-05-30 · RLS de la app móvil + cierre de fugas de PII (P0)** — la app móvil
+  (Expo) usa la **anon key + RLS** (nunca service-role en cliente; la web sí usa
+  service-role y por eso se salta RLS). ~25 tablas del miembro estaban con **RLS
+  on + 0 policies = deny-all** → la móvil leía vacío. Se añadieron policies
+  espejando el patrón seguro existente (`private.is_member_profile_owner` /
+  `has_workspace_role` / `is_workspace_member`) por semántica de propiedad: miembro
+  CRUD propio (food diary, hábitos, check-ins, progreso, logs, onboarding, chat),
+  asignado-por-coach lee/staff escribe (`assigned_workout_plans`, `assigned_meal_plans`),
+  catálogos de workspace lee-miembro/escribe-staff (recetas, ingredientes, food
+  library, challenges, banners), `member_subscriptions` lee-propia/escribe-server.
+  Además se cerró el **P0**: `member_profiles` ya no filtra email/teléfono/datos de
+  salud de todos los clientes del workspace (cada miembro ve solo su ficha), y 4
+  lecturas cross-tenant (training reviews, support conversations/messages,
+  onboarding legacy) se ataron a `workspace_id`. Migraciones:
+  `member_rls_policies_for_mobile`, `fix_cross_tenant_pii_leaks`,
+  `member_rls_catalogs_and_subscriptions`. Pendiente menor: feed de comunidad en
+  móvil necesita `author_name` denormalizado o vista pública (el P0 quita la
+  lectura de perfiles ajenos). Ver [[Arquitectura]].
+
+- **2026-05-30 · Suscripción móvil = RevenueCat (fuente de verdad) + Realtime chat** —
+  el estado de suscripción lo escribe **solo** la Edge Function `revenuecat-webhook`
+  (service-role) en `member_profiles.subscription_status`; el cliente nunca lo
+  escribe, solo lo lee para el gating de UI. `app_user_id` = `member_profiles.id`
+  (`Purchases.logIn`). Webhook autenticado por bearer secret `REVENUECAT_WEBHOOK_AUTH`
+  (`verify_jwt=false`). **Apple/Google IAP obligatorio in-app** (15-30%) choca con
+  el split 25% vía Stripe Connect → decisión de negocio abierta (recalcular márgenes;
+  probable IAP en móvil + Stripe en web). Chat coach↔miembro: `coach_ai_messages`
+  en la publicación `supabase_realtime` + `replica identity full`; la RLS filtra
+  por hilo (cada uno ve solo el suyo). Presence/typing más adelante. Storage de
+  fotos: 1 bucket privado `member-progress`, path `{workspace_id}/{member_profile_id}/{checkin|meal}/...`,
+  signed URLs (nunca base64). `web.output:"single"` (SPA) para evitar `window is
+  not defined` de GoTrue en el prerender de Expo. Ver [[Infraestructura]] y [[Pagos]].
+
 - **2026-05-30 · Multi-tenant por host + acceso por membresía** — cada entrenador
   tiene su **subdominio** `marca.performlabs.app` (provisional) y, después, un
   **dominio propio que PerformLabs compra y conecta** (el coach no toca infra;

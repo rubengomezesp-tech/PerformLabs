@@ -67,18 +67,26 @@ export function AuthHashBridge() {
     }
 
     resolveTokens()
-      .then(async (tokens) => {
-        window.history.replaceState(null, "", window.location.pathname);
-        const response = await fetch("/auth/session", {
-          method: "POST",
-          headers: { "content-type": "application/json" },
-          body: JSON.stringify({ ...tokens, next: nextPath ?? undefined }),
-        });
-        const payload = await response.json().catch(() => ({}));
-        if (!response.ok) {
-          throw new Error(typeof payload.error === "string" ? payload.error : "No se pudo activar la sesión.");
-        }
-        window.location.assign(typeof payload.nextPath === "string" ? payload.nextPath : nextPath ?? "/app");
+      .then((tokens) => {
+        // Submit as a real navigation so the Set-Cookie on the 303 response is
+        // reliably applied before the browser requests the destination (a fetch
+        // response's Set-Cookie was not being carried to the next navigation).
+        const form = document.createElement("form");
+        form.method = "POST";
+        form.action = "/auth/session";
+        const addField = (name: string, value: string) => {
+          const input = document.createElement("input");
+          input.type = "hidden";
+          input.name = name;
+          input.value = value;
+          form.appendChild(input);
+        };
+        addField("accessToken", tokens.accessToken);
+        addField("refreshToken", tokens.refreshToken);
+        if (tokens.expiresIn) addField("expiresIn", String(tokens.expiresIn));
+        if (nextPath) addField("next", nextPath);
+        document.body.appendChild(form);
+        form.submit();
       })
       .catch((error: Error) => {
         setMessage(error.message || "No se pudo activar la sesión.");

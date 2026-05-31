@@ -52,30 +52,40 @@ function emailDomain(email: string) {
 }
 
 export async function POST(request: Request) {
-  const body = await request.json().catch(() => ({}));
-  const accessToken = typeof body.accessToken === "string" ? body.accessToken : "";
-  const refreshToken = typeof body.refreshToken === "string" ? body.refreshToken : "";
-  const expiresIn = typeof body.expiresIn === "number" && Number.isFinite(body.expiresIn) ? body.expiresIn : 60 * 60;
-  const explicitNext = explicitNextPath(body.next);
+  // Form-encoded POST (a real navigation) so the browser reliably applies the
+  // Set-Cookie on the redirect response before requesting the destination.
+  const form = await request.formData().catch(() => null);
+  const field = (key: string) => {
+    const value = form?.get(key);
+    return typeof value === "string" ? value : "";
+  };
+  const accessToken = field("accessToken");
+  const refreshToken = field("refreshToken");
+  const expiresInRaw = Number.parseInt(field("expiresIn"), 10);
+  const expiresIn = Number.isFinite(expiresInRaw) && expiresInRaw > 0 ? expiresInRaw : 60 * 60;
+  const explicitNext = explicitNextPath(field("next"));
+
+  const host = request.headers.get("x-forwarded-host") || request.headers.get("host") || "";
+  const proto = request.headers.get("x-forwarded-proto") || "https";
+  const origin = host ? `${proto}://${host}` : new URL(request.url).origin;
+  const redirectTo = (path: string) => NextResponse.redirect(new URL(path, origin), 303);
 
   if (!accessToken || !refreshToken) {
-    return NextResponse.json({ error: "Falta token de invitación." }, { status: 400 });
+    return redirectTo("/acceso?error=" + encodeURIComponent("No se pudo activar la sesión."));
   }
 
   const env = getSupabasePublicEnv();
   if (!env.ok) {
-    return NextResponse.json({ error: `Faltan variables públicas: ${env.missing.join(", ")}` }, { status: 500 });
+    return redirectTo("/acceso?error=" + encodeURIComponent("Configuración incompleta."));
   }
 
   const supabase = createClient<Database>(env.url, env.anonKey, {
-    auth: {
-      persistSession: false,
-    },
+    auth: { persistSession: false },
   });
   const { data, error } = await supabase.auth.getUser(accessToken);
 
   if (error || !data.user?.id) {
-    return NextResponse.json({ error: "La invitación no es válida o ha expirado." }, { status: 401 });
+    return redirectTo("/acceso?error=" + encodeURIComponent("La sesión no es válida o ha expirado."));
   }
 
   const email = data.user.email?.toLowerCase() ?? "";
@@ -85,18 +95,16 @@ export async function POST(request: Request) {
 
   await recordSecurityAuditEvent({
     actorUserId: data.user.id,
-    action: "auth.invite_session_activated",
+    action: "auth.session_activated",
     entityType: "auth",
     metadata: {
       email_domain: emailDomain(email),
       email_hash: hashSensitiveValue(email || data.user.id),
-      source: "supabase_invite_hash",
     },
   });
 
-  const host = request.headers.get("x-forwarded-host") || request.headers.get("host") || "";
   const nextPath = await destinationForUser(data.user.id, explicitNext, host);
-  const response = NextResponse.json({ ok: true, nextPath });
+  const response = redirectTo(nextPath);
   const secure = process.env.NODE_ENV === "production";
 
   response.cookies.set(authAccessCookie, accessToken, {
