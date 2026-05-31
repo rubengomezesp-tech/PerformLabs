@@ -11598,3 +11598,34 @@ button[aria-busy="true"] {
   }
 }
 /* ===== END CARDIO LOGGING ===== */
+
+/* ===== PROFILE DANGER ZONE (account deletion) ===== */
+.dangerZoneCard {
+  border-color: color-mix(in srgb, var(--danger) 45%, var(--line));
+  background: color-mix(in srgb, var(--danger) 6%, var(--surface));
+}
+.dangerZoneCard h2 { color: var(--danger); }
+.dangerZoneForm {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  gap: 14px;
+  margin-top: 6px;
+}
+.dangerZoneConfirm {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  font-size: 13px;
+  color: var(--muted);
+  flex: 1 1 220px;
+}
+.dangerZoneConfirm input {
+  width: 100%;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+.dangerZoneSubmit {
+  flex: 0 0 auto;
+}
+/* ===== END PROFILE DANGER ZONE ===== */

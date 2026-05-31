@@ -1,11 +1,13 @@
-import { Bell, CalendarClock, CheckCircle2, Eye, EyeOff, Mail, MessageSquare, Moon, Ruler, ShieldCheck, Share2, Smartphone, UserRound } from "lucide-react";
+import { AlertTriangle, Bell, CalendarClock, CheckCircle2, Eye, EyeOff, Mail, MessageSquare, Moon, Ruler, ShieldCheck, Share2, Smartphone, Trash2, UserRound } from "lucide-react";
 import { ReferralCard } from "@/components/referral-card";
 import { Topbar } from "@/components/topbar";
 import { getSelectedMemberAppBrand } from "@/lib/member-app";
 import { getMemberNutritionVisibility } from "@/lib/repositories/nutrition-tracking";
-import { setMemberMacroVisibilityAction } from "./actions";
+import { deleteMemberAccountAction, setMemberMacroVisibilityAction } from "./actions";
 
-export default async function ProfilePage() {
+export default async function ProfilePage({ searchParams }: { searchParams?: Promise<{ error?: string }> }) {
+  const params = await searchParams;
+  const error = typeof params?.error === "string" ? params.error.trim() : "";
   const brand = await getSelectedMemberAppBrand();
   const visibility = await getMemberNutritionVisibility(brand.id);
 
@@ -16,6 +18,15 @@ export default async function ProfilePage() {
         title="Datos, preferencias y privacidad."
         text={`Tu cuenta dentro de ${brand.name}: información básica, preferencias del plan y ajustes de comunicación.`}
       />
+      {error ? (
+        <div className="onboardingNotice" role="alert">
+          <AlertTriangle size={18} />
+          <div>
+            <strong>No se pudo completar la acción.</strong>
+            <span>{error}</span>
+          </div>
+        </div>
+      ) : null}
       <section className="grid">
         <article className="card span4">
           <UserRound color="var(--gold)" />
@@ -97,7 +108,31 @@ export default async function ProfilePage() {
         <article className="card span12">
           <ShieldCheck color="var(--gold)" />
           <h2>Privacidad y seguridad</h2>
-          <p>El siguiente bloque incluirá exportación de datos, baja de cuenta, consentimiento legal y preferencias avanzadas por marca.</p>
+          <p>Tus datos son tuyos. Aquí puedes dar de baja tu cuenta de forma permanente. La exportación de datos y el consentimiento legal avanzado llegarán pronto.</p>
+        </article>
+
+        <article className="card span12 dangerZoneCard">
+          <div className="sectionHeader">
+            <div>
+              <Trash2 color="var(--danger, #ef4444)" />
+              <h2>Eliminar mi cuenta</h2>
+              <p>
+                Borra de forma <strong>permanente</strong> tu cuenta y todos tus datos en {brand.name}: plan de
+                entreno y nutrición, progreso, hábitos, check-ins, diario, mensajes y preferencias. Esta acción
+                <strong> no se puede deshacer</strong> y tendrás que volver a empezar si regresas.
+              </p>
+            </div>
+          </div>
+          <form action={deleteMemberAccountAction} className="dangerZoneForm">
+            <input name="workspaceId" type="hidden" value={brand.id} />
+            <label className="dangerZoneConfirm">
+              Para confirmar, escribe <strong>ELIMINAR</strong>
+              <input name="confirm" autoComplete="off" placeholder="ELIMINAR" aria-label="Escribe ELIMINAR para confirmar" />
+            </label>
+            <button className="btn danger dangerZoneSubmit" type="submit">
+              <Trash2 size={16} /> Eliminar mi cuenta para siempre
+            </button>
+          </form>
         </article>
       </section>
     </>
