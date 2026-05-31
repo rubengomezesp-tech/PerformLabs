@@ -16,6 +16,14 @@ import {
   type MatchTemplate,
   type QuizAnswers,
 } from "@/lib/domain/program-matcher";
+import {
+  selectDietTemplate,
+  normalizeGoal as normalizeDietGoal,
+  normalizeDietStyle,
+  bucketMeals,
+  type DietQuizAnswers,
+  type DietMatchTemplate,
+} from "@/lib/domain/diet-matcher";
 
 export type MemberExerciseProgression = {
   /** Best set (by reps × weight) logged for this exercise in the prior 14 days. */
@@ -291,6 +299,48 @@ async function buildOnboardingRecommendation(input: {
   };
 }
 
+/**
+ * Diet sibling of matchQuarterlyTemplate: builds DietQuizAnswers from the saved diet
+ * preferences + the same canonical goal as the chosen program, scores the tagged diet
+ * templates (brand + base-library matrix), and returns the matched id. Style/allergies
+ * are hard exclusions. Returns null → caller falls back to the legacy lookup.
+ */
+async function matchDietTemplate(
+  supabase: ReturnType<typeof createServiceSupabaseClient>,
+  workspaceId: string,
+  memberProfileId: string,
+  goal: string,
+): Promise<string | null> {
+  try {
+    const sb = supabase as unknown as { from: (table: string) => any };
+    const [prefs, tpls] = await Promise.all([
+      sb.from("member_diet_preferences").select("diet_style,allergies,meals_per_day").eq("member_profile_id", memberProfileId).maybeSingle(),
+      sb.from("diet_templates").select("id,status,goal_tag,diet_style,meals_per_day,tags").or(`workspace_id.eq.${workspaceId},is_base_library.eq.true`),
+    ]);
+    const p = prefs?.data ?? null;
+    const rows = (tpls?.data ?? []) as any[];
+    if (!rows.length) return null;
+    const quiz: DietQuizAnswers = {
+      goal: normalizeDietGoal(goal),
+      dietStyle: normalizeDietStyle(p?.diet_style),
+      mealsPerDay: bucketMeals(p?.meals_per_day),
+      allergies: Array.isArray(p?.allergies) ? p.allergies : [],
+    };
+    const matchTemplates: DietMatchTemplate[] = rows.map((t) => ({
+      id: t.id,
+      status: t.status,
+      goalTag: t.goal_tag ?? null,
+      dietStyle: t.diet_style ?? null,
+      mealsPerDay: t.meals_per_day ?? null,
+      tags: Array.isArray(t.tags) ? t.tags : [],
+    }));
+    return selectDietTemplate(quiz, matchTemplates).templateId ?? null;
+  } catch (error) {
+    console.error("Diet match failed, falling back to legacy lookup", error);
+    return null;
+  }
+}
+
 async function assignRecommendedDietPlan(input: {
   workspaceId: string;
   memberProfileId: string;
@@ -300,26 +350,33 @@ async function assignRecommendedDietPlan(input: {
   dietTemplateId?: string;
   assignedBy?: string | null;
 }) {
-  const templates = await listManagedDietTemplates(input.workspaceId);
-  const template = input.dietTemplateId
-    ? templates.find((item) => item.id === input.dietTemplateId) ?? null
-    : findRecommendedDietTemplate(templates, input.goal);
+  const supabase = createServiceSupabaseClient();
+  let templateId: string | null = null;
+  if (input.dietTemplateId) {
+    templateId = input.dietTemplateId;
+  } else {
+    templateId = await matchDietTemplate(supabase, input.workspaceId, input.memberProfileId, input.goal);
+    if (!templateId) {
+      const templates = await listManagedDietTemplates(input.workspaceId);
+      templateId = findRecommendedDietTemplate(templates, input.goal)?.id ?? null;
+    }
+  }
 
-  if (!template) {
+  if (!templateId) {
     return { dietTemplateId: null, mealAssignmentCreated: false };
   }
 
   const assignment = await assignDietTemplateToMember({
     workspaceId: input.workspaceId,
     memberProfileId: input.memberProfileId,
-    dietTemplateId: template.id,
+    dietTemplateId: templateId,
     mealsPerDay: String(input.mealsPerDay),
     hideMacros: input.hideMacros,
     assignedBy: input.assignedBy,
   });
 
   return {
-    dietTemplateId: template.id,
+    dietTemplateId: templateId,
     mealAssignmentCreated: Boolean(assignment?.assignedMealPlanId),
   };
 }

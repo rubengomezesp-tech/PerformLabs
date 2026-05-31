@@ -515,7 +515,7 @@ export async function assignDietTemplateToMember(input: {
   const diet = await supabase
     .from("diet_templates")
     .select("id,name,goal,protein_ratio,fat_ratio")
-    .eq("workspace_id", input.workspaceId)
+    .or(`workspace_id.eq.${input.workspaceId},is_base_library.eq.true`)
     .eq("id", input.dietTemplateId)
     .maybeSingle();
 
