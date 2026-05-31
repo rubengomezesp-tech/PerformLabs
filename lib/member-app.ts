@@ -98,19 +98,7 @@ export const getSelectedMemberAppBrand = cache(async (): Promise<WorkspaceBrand>
   // let getWorkspaceBrand pick the first real workspace, so brand.id is always a
   // real workspace the member app can write against.
   const reference = isTenantHost(host) ? host : (workspaceId || "");
-  const brand = await getWorkspaceBrand(reference);
-  // Diagnostic: a member page should never end up with the synthetic fallback
-  // brand (its zero-UUID id breaks every member write). Log the exact inputs so
-  // the real cause is visible instead of presenting as an empty/500 page.
-  if (brand.id === "00000000-0000-0000-0000-000000000000") {
-    console.error("getSelectedMemberAppBrand: resolved to FALLBACK brand", {
-      host,
-      isTenant: isTenantHost(host),
-      cookieWorkspaceId: workspaceId ?? null,
-      reference,
-    });
-  }
-  return brand;
+  return getWorkspaceBrand(reference);
 });
 
 export async function getSelectedMemberAppShell(): Promise<{
