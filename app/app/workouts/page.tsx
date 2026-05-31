@@ -1,4 +1,4 @@
-import { CalendarClock, CheckCircle2, ChevronRight, Dumbbell, Play, Repeat2, Timer, Video } from "lucide-react";
+import { CalendarClock, CheckCircle2, ChevronRight, Dumbbell, Play, Repeat2, Target, Timer, TrendingUp, Video, Wrench } from "lucide-react";
 import Link from "next/link";
 import { Dialog } from "@/components/dialog";
 import { Topbar } from "@/components/topbar";
@@ -44,6 +44,44 @@ function publicTemplateName(template?: ManagedWorkoutTemplate | null) {
 
 function sourceExerciseId(exercise: WorkoutExerciseView) {
   return "sourceTemplateExerciseId" in exercise ? exercise.sourceTemplateExerciseId ?? "" : exercise.id;
+}
+
+function isAssignedExercise(exercise: WorkoutExerciseView): exercise is MemberAssignedWorkoutExercise {
+  return "progression" in exercise;
+}
+
+const DIFFICULTY_LABELS: Record<string, string> = {
+  beginner: "Principiante",
+  intermediate: "Intermedio",
+  advanced: "Avanzado",
+};
+
+function difficultyLabel(value: string) {
+  return DIFFICULTY_LABELS[value.toLowerCase()] ?? value;
+}
+
+/** First sentence of a (sometimes long) base-library instruction, as a cue. */
+function techniqueCue(instructions: string) {
+  const clean = instructions.replace(/\s+/g, " ").trim();
+  if (!clean) return "";
+  const firstStop = clean.search(/[.!?]\s/);
+  const cue = firstStop > 0 ? clean.slice(0, firstStop + 1) : clean;
+  return cue.length > 160 ? `${cue.slice(0, 157).trimEnd()}…` : cue;
+}
+
+/** Coach-prescribed images + base-library detail used in the exercise card. */
+function exerciseDetail(exercise: WorkoutExerciseView) {
+  if (!isAssignedExercise(exercise)) {
+    return { imageUrl: "", muscleGroups: [] as string[], equipment: [] as string[], difficulty: "", cue: "", progression: null as MemberAssignedWorkoutExercise["progression"] };
+  }
+  return {
+    imageUrl: exercise.imageUrl || exercise.thumbnailUrl,
+    muscleGroups: exercise.muscleGroups,
+    equipment: exercise.equipment,
+    difficulty: exercise.difficulty,
+    cue: techniqueCue(exercise.instructions),
+    progression: exercise.progression,
+  };
 }
 
 function estimatedMinutesFor(day: WorkoutDayView | null) {
@@ -119,9 +157,9 @@ export default async function WorkoutsPage() {
           </div>
           <div className="memberHeroSignal">
             <span className="tag">{activeDay ? "Tu avance" : "Revisión del coach"}</span>
-            <strong>{activeDay ? `Semana ${activeWeekNumber}` : "Plan pendiente"}</strong>
-            <p>{activeDay ? "Vas avanzando en tu plan. Guarda cada entrenamiento para ver mejoras reales." : "Cuando el coach lo publique, aquí aparecerá exactamente qué entrenar."}</p>
-            <div className="workoutProgressTrack" aria-label={activeDay ? `Semana ${activeWeekNumber}` : "Plan pendiente"}>
+            <strong>{activeDay ? `Semana ${activeWeekNumber} de 12` : "Plan pendiente"}</strong>
+            <p>{activeDay ? `Día ${activeDay.dayNumber} de la semana · ${monthLabels[monthForWeek(activeWeekNumber)].title.split("·")[1]?.trim() ?? "en progreso"}. Guarda cada entrenamiento para ver mejoras reales.` : "Cuando el coach lo publique, aquí aparecerá exactamente qué entrenar."}</p>
+            <div className="workoutProgressTrack" aria-label={activeDay ? `Semana ${activeWeekNumber} de 12` : "Plan pendiente"}>
               <span style={{ width: `${activeDay ? weekProgressPercent : 18}%` }} />
             </div>
           </div>
@@ -258,6 +296,8 @@ export default async function WorkoutsPage() {
               <div className="sessionExerciseList">
                 {activeDay.exercises.map((exercise, index) => {
                   const plannedSets = Math.max(1, Math.min(exercise.sets ?? 3, 6));
+                  const detail = exerciseDetail(exercise);
+                  const cover = detail.imageUrl || exercise.thumbnailUrl;
 
                   return (
                     <details className={index === 0 ? "sessionExerciseAccordion isCurrentExercise" : "sessionExerciseAccordion"} key={exercise.id} open={index === 0}>
@@ -269,9 +309,9 @@ export default async function WorkoutsPage() {
                         <b>{exercise.sets ?? "-"}x{exercise.reps || "-"}</b>
                       </summary>
                       <div className="sessionExercise">
-                        <div className="sessionExerciseMedia">
-                          {exercise.thumbnailUrl ? (
-                            <img alt="" loading="lazy" src={exercise.thumbnailUrl} />
+                        <div className="sessionExerciseMedia trnExerciseMedia">
+                          {cover ? (
+                            <img alt={exercise.exerciseName} loading="lazy" src={cover} />
                           ) : (
                             <Video size={30} />
                           )}
@@ -282,11 +322,31 @@ export default async function WorkoutsPage() {
                       <div className="sessionExerciseBody">
                         <span className="eyebrow">Ejercicio {index + 1}</span>
                         <h3>{exercise.exerciseName}</h3>
+                        {detail.muscleGroups.length || detail.equipment.length || detail.difficulty ? (
+                          <div className="trnExerciseTags">
+                            {detail.muscleGroups.slice(0, 3).map((muscle) => (
+                              <span className="trnTag muscle" key={`m-${muscle}`}><Target size={12} /> {muscle}</span>
+                            ))}
+                            {detail.equipment.slice(0, 2).map((item) => (
+                              <span className="trnTag" key={`e-${item}`}><Wrench size={12} /> {item}</span>
+                            ))}
+                            {detail.difficulty ? <span className="trnTag level">{difficultyLabel(detail.difficulty)}</span> : null}
+                          </div>
+                        ) : null}
+                        {detail.cue ? (
+                          <p className="trnExerciseCue"><strong>Técnica:</strong> {detail.cue}</p>
+                        ) : null}
                         <div className="sessionPrescription">
                           <span><strong>{exercise.sets ?? "-"}</strong>Series</span>
                           <span><strong>{exercise.reps || "-"}</strong>Objetivo</span>
                           <span><strong>{exercise.restSeconds ?? "-"}</strong>Seg descanso</span>
+                          {exercise.targetRir ? <span><strong>{exercise.targetRir}</strong>RIR</span> : null}
                         </div>
+                        {detail.progression?.lastWeightKg ? (
+                          <p className="trnProgressionHint">
+                            <TrendingUp size={14} /> La última vez: <strong>{detail.progression.lastWeightKg} kg × {detail.progression.lastReps} reps</strong>. Intenta igualar o superar.
+                          </p>
+                        ) : null}
                         <div className="setLogGrid">
                           {Array.from({ length: plannedSets }).map((_, setIndex) => (
                             <div className="setLogRow" key={`${exercise.id}-${setIndex}`}>
@@ -295,8 +355,8 @@ export default async function WorkoutsPage() {
                               <input name="setNumber" type="hidden" value={setIndex + 1} />
                               <input name="plannedReps" type="hidden" value={exercise.reps} />
                               <strong>Serie {setIndex + 1}</strong>
-                              <label>Reps hechas<input name="actualReps" placeholder={exercise.reps || "10"} type="number" min="0" /></label>
-                              <label>Peso kg<input name="weightKg" placeholder="0" type="number" min="0" step="0.5" /></label>
+                              <label>Reps hechas<input name="actualReps" placeholder={detail.progression?.lastReps ? String(detail.progression.lastReps) : exercise.reps || "10"} type="number" min="0" /></label>
+                              <label>Peso kg<input name="weightKg" placeholder={detail.progression?.lastWeightKg ? String(detail.progression.lastWeightKg) : "0"} type="number" min="0" step="0.5" /></label>
                               <input name="rir" type="hidden" value="" />
                               <input name="rpe" type="hidden" value="" />
                               <label>Cómo fue<select name="setNotes" defaultValue="">

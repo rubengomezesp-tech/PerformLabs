@@ -10647,3 +10647,954 @@ button[aria-busy="true"] {
     grid-column: span 6;
   }
 }
+
+/* ===== TRAINING AREA (agent) ===== */
+
+/* --- Member workouts: exercise detail card --- */
+.trnExerciseMedia img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+.trnExerciseTags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin: 4px 0 2px;
+}
+.trnTag {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 4px 9px;
+  border-radius: var(--radius-pill);
+  border: 1px solid var(--line);
+  background: var(--surface-2);
+  color: var(--text-soft);
+  font-size: 12px;
+  font-weight: 500;
+  line-height: 1;
+}
+.trnTag svg {
+  opacity: 0.8;
+}
+.trnTag.muscle {
+  border-color: color-mix(in srgb, var(--accent) 40%, var(--line));
+  background: color-mix(in srgb, var(--accent) 12%, var(--surface-2));
+  color: var(--text);
+}
+.trnTag.level {
+  text-transform: capitalize;
+  border-color: var(--border-strong);
+}
+.trnExerciseCue {
+  margin: 6px 0 2px;
+  padding: 9px 12px;
+  border-left: 2px solid var(--accent);
+  border-radius: 0 var(--radius) var(--radius) 0;
+  background: var(--surface-2);
+  color: var(--text-soft);
+  font-size: 13px;
+  line-height: 1.45;
+}
+.trnExerciseCue strong {
+  color: var(--text);
+}
+.trnProgressionHint {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  margin: 8px 0 2px;
+  padding: 8px 12px;
+  border-radius: var(--radius);
+  background: color-mix(in srgb, var(--accent) 10%, var(--surface-2));
+  border: 1px solid color-mix(in srgb, var(--accent) 28%, var(--line));
+  color: var(--text-soft);
+  font-size: 13px;
+}
+.trnProgressionHint svg {
+  color: var(--accent);
+  flex-shrink: 0;
+}
+.trnProgressionHint strong {
+  color: var(--text);
+}
+
+/* --- Member cardio page --- */
+.trnCardioHero {
+  display: grid;
+  grid-template-columns: 1.6fr 1fr;
+  gap: 22px;
+  align-items: center;
+  padding: 26px 28px;
+  border-radius: var(--radius-lg);
+  border: 1px solid var(--border-strong);
+  background:
+    radial-gradient(120% 120% at 100% 0%, color-mix(in srgb, var(--accent) 14%, transparent), transparent 60%),
+    var(--surface-2);
+}
+.trnCardioHero h2 {
+  margin: 6px 0 8px;
+  font-size: 24px;
+  line-height: 1.15;
+}
+.trnCardioHero p {
+  margin: 0;
+  color: var(--muted);
+  max-width: 52ch;
+}
+.trnCardioHeroMeta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 16px;
+  margin-top: 16px;
+}
+.trnCardioHeroMeta span {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  color: var(--text-soft);
+  font-size: 13.5px;
+  font-weight: 500;
+}
+.trnCardioHeroMeta svg {
+  color: var(--accent);
+}
+.trnCardioStepsCard {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 2px;
+  padding: 20px;
+  border-radius: var(--radius);
+  border: 1px solid var(--line);
+  background: var(--surface);
+}
+.trnCardioStepsCard svg {
+  color: var(--accent);
+  margin-bottom: 4px;
+}
+.trnCardioStepsCard strong {
+  font-size: 30px;
+  line-height: 1;
+  letter-spacing: -0.02em;
+}
+.trnCardioStepsCard small {
+  color: var(--text-soft);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  font-size: 11px;
+  font-weight: 600;
+}
+.trnCardioStepsCard p {
+  margin: 10px 0 0;
+  color: var(--muted);
+  font-size: 13px;
+  line-height: 1.45;
+}
+.trnCardioCard {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+.trnCardioCard.recommended {
+  border-color: var(--accent);
+  box-shadow: inset 0 0 0 1px var(--accent);
+}
+.trnCardioCardHead {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+.trnCardioCardHead > div {
+  display: flex;
+  flex-direction: column;
+  margin-right: auto;
+}
+.trnCardioCardHead strong {
+  font-size: 18px;
+}
+.trnCardioCardHead small {
+  color: var(--muted);
+  font-size: 13px;
+}
+.trnCardioIcon {
+  display: grid;
+  place-items: center;
+  width: 42px;
+  height: 42px;
+  border-radius: var(--radius);
+  background: color-mix(in srgb, var(--accent) 16%, var(--surface-2));
+  color: var(--accent);
+  flex-shrink: 0;
+}
+.trnCardioStats {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+.trnCardioStats span {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 5px 10px;
+  border-radius: var(--radius-pill);
+  background: var(--surface-2);
+  border: 1px solid var(--line);
+  color: var(--text-soft);
+  font-size: 12.5px;
+  font-weight: 500;
+}
+.trnCardioBestFor {
+  margin: 0;
+  color: var(--text-soft);
+  font-size: 14px;
+}
+.trnCardioStructure {
+  list-style: none;
+  counter-reset: cardio-step;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.trnCardioStructure li {
+  counter-increment: cardio-step;
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: 10px 12px 10px 42px;
+  border-radius: var(--radius);
+  background: var(--surface-2);
+  border: 1px solid var(--line);
+}
+.trnCardioStructure li::before {
+  content: counter(cardio-step);
+  position: absolute;
+  left: 12px;
+  top: 10px;
+  display: grid;
+  place-items: center;
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  background: color-mix(in srgb, var(--accent) 18%, var(--surface-3));
+  color: var(--accent);
+  font-size: 12px;
+  font-weight: 700;
+}
+.trnCardioStructure strong {
+  font-size: 13.5px;
+}
+.trnCardioStructure span {
+  color: var(--muted);
+  font-size: 13px;
+  line-height: 1.4;
+}
+.trnCardioCues {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.trnCardioCues li {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  color: var(--text-soft);
+  font-size: 13px;
+  line-height: 1.4;
+}
+.trnCardioCues svg {
+  color: var(--accent);
+  margin-top: 2px;
+  flex-shrink: 0;
+}
+.trnCardioNote {
+  display: flex;
+  align-items: flex-start;
+  gap: 16px;
+}
+.trnCardioNote > svg {
+  flex-shrink: 0;
+  margin-top: 2px;
+}
+.trnCardioNote strong {
+  display: block;
+  margin-bottom: 4px;
+  font-size: 16px;
+}
+.trnCardioNote p {
+  margin: 0;
+  color: var(--muted);
+  max-width: 70ch;
+}
+
+@media (max-width: 720px) {
+  .trnCardioHero {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* ===== END TRAINING AREA ===== */
+/* ===== NUTRITION AREA (agent) ===== */
+
+/* Meals "Tu día de hoy" — consumed vs target rings + water ring side by side. */
+.ntrTodayCard .ntrTodayBody {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 28px;
+}
+.ntrTodayCard .ntrTodayBody .macroRings {
+  flex: 1 1 320px;
+  min-width: 280px;
+}
+.ntrWaterRing {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 7px;
+  flex: 0 0 auto;
+}
+.ntrWaterRingProgress .macroRingHole {
+  gap: 1px;
+}
+.ntrWaterRingProgress .macroRingHole strong {
+  font-size: 18px;
+}
+
+/* Foods page — running daily totals strip. */
+.ntrFoodsTotals {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+.ntrFoodsTotalsHead {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.ntrFoodsTotalsHead strong {
+  font-size: 14px;
+  color: var(--text);
+}
+.ntrFoodsTotalsLink {
+  margin-left: auto;
+  font-size: 13px;
+  color: var(--accent);
+  text-decoration: none;
+}
+.ntrFoodsTotalsLink:hover {
+  text-decoration: underline;
+}
+.ntrFoodsTotalsRow {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+.ntrFoodsTotalsRow > span {
+  flex: 1 1 90px;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: 12px 14px;
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  background: var(--surface-2);
+}
+.ntrFoodsTotalsRow > span strong {
+  font-size: 20px;
+  color: var(--text);
+  line-height: 1.1;
+}
+.ntrFoodsTotalsRow > span strong i {
+  font-size: 12px;
+  font-style: normal;
+  color: var(--text-soft);
+  margin-left: 1px;
+}
+.ntrFoodsTotalsRow > span small {
+  font-size: 11px;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+.ntrFoodsTotalsRow > span:first-child strong {
+  color: var(--accent);
+}
+
+/* Supplements summary — adherence progress bar under the count. */
+.ntrSuppSummary {
+  align-items: flex-start;
+}
+.ntrSuppSummaryBody {
+  flex: 1;
+}
+.ntrSuppProgress {
+  margin-top: 10px;
+  height: 8px;
+  border-radius: var(--radius-pill);
+  background: var(--surface-3);
+  overflow: hidden;
+}
+.ntrSuppProgress > span {
+  display: block;
+  height: 100%;
+  border-radius: inherit;
+  background: linear-gradient(90deg, var(--accent), var(--accent-strong));
+  transition: width 0.3s ease;
+}
+
+@media (max-width: 560px) {
+  .ntrTodayCard .ntrTodayBody {
+    gap: 18px;
+    justify-content: center;
+  }
+}
+
+/* ===== END NUTRITION AREA ===== */
+/* ===== COACH PROGRAMS (agent) ===== */
+
+/* --- Template status: a clear, color-coded badge per lifecycle state --- */
+.coachProgramStatusControls {
+  align-items: center;
+}
+.coachProgramStatusBadge {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  padding: 5px 11px 5px 9px;
+  border-radius: var(--radius-pill);
+  border: 1px solid var(--border-strong);
+  background: var(--surface-2);
+  color: var(--text-muted);
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.01em;
+  white-space: nowrap;
+}
+.coachProgramStatusDot {
+  width: 8px;
+  height: 8px;
+  border-radius: 999px;
+  background: currentColor;
+  flex: none;
+}
+.coachProgramStatusBadge.is-active {
+  color: var(--success);
+  border-color: color-mix(in srgb, var(--success) 40%, transparent);
+  background: color-mix(in srgb, var(--success) 12%, transparent);
+}
+.coachProgramStatusBadge.is-draft {
+  color: var(--warning);
+  border-color: color-mix(in srgb, var(--warning) 38%, transparent);
+  background: color-mix(in srgb, var(--warning) 10%, transparent);
+}
+.coachProgramStatusBadge.is-archived {
+  color: var(--text-soft);
+  border-color: var(--border);
+  background: var(--surface-2);
+}
+
+/* --- Day card: stronger header with day number chip + live exercise count --- */
+.coachDayItem {
+  background: color-mix(in srgb, var(--bg) 62%, #0b0e14);
+  border-color: var(--border-strong);
+}
+.coachDayHead {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 9px;
+}
+.coachDayBadge {
+  display: inline-flex;
+  align-items: center;
+  padding: 3px 9px;
+  border-radius: var(--radius-pill);
+  background: color-mix(in srgb, var(--accent) 16%, transparent);
+  border: 1px solid color-mix(in srgb, var(--accent) 38%, transparent);
+  color: color-mix(in srgb, var(--accent) 90%, #fff);
+  font-size: 11.5px;
+  font-weight: 800;
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+  flex: none;
+}
+.coachDayTitle {
+  font-size: 15px;
+  line-height: 1.2;
+}
+.coachDayCount {
+  margin-left: auto;
+  font-size: 11.5px;
+  font-weight: 600;
+  color: var(--text-soft);
+  white-space: nowrap;
+}
+.coachDayNotes {
+  margin: 7px 0 0;
+  font-size: 12.5px;
+  line-height: 1.45;
+}
+.coachDayEmpty {
+  margin: 10px 0 0;
+  padding: 11px 12px;
+  border: 1px dashed var(--border-strong);
+  border-radius: var(--radius);
+  background: var(--surface-2);
+  font-size: 12.5px;
+}
+
+/* --- Exercise rows: legible, scannable prescription --- */
+.coachExerciseList {
+  display: grid;
+  gap: 8px;
+}
+.coachExerciseRow {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: start;
+  gap: 12px;
+  padding: 11px 12px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--surface-2);
+  transition: border-color var(--dur-fast) var(--ease);
+}
+.coachExerciseRow:hover {
+  border-color: color-mix(in srgb, var(--accent) 30%, var(--border));
+}
+.coachExerciseInfo {
+  min-width: 0;
+  display: grid;
+  gap: 7px;
+}
+.coachExerciseName {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 14px;
+  line-height: 1.25;
+  overflow-wrap: anywhere;
+}
+.coachExerciseIndex {
+  display: inline-grid;
+  place-items: center;
+  width: 20px;
+  height: 20px;
+  flex: none;
+  border-radius: 999px;
+  background: var(--surface-3);
+  border: 1px solid var(--border-strong);
+  color: var(--text-muted);
+  font-size: 11px;
+  font-weight: 700;
+}
+.coachPrescription {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+.coachRx {
+  display: inline-flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 1px;
+  padding: 4px 9px;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--border);
+  background: color-mix(in srgb, var(--bg) 40%, #11151d);
+  color: var(--text);
+  font-size: 13px;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  line-height: 1.1;
+}
+.coachRx small {
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--text-soft);
+  margin: 0 1px;
+}
+.coachRx em {
+  font-style: normal;
+  font-size: 9.5px;
+  font-weight: 700;
+  letter-spacing: 0.03em;
+  text-transform: uppercase;
+  color: var(--text-soft);
+}
+.coachRxPrimary {
+  border-color: color-mix(in srgb, var(--accent) 34%, transparent);
+  background: color-mix(in srgb, var(--accent) 12%, transparent);
+}
+.coachRxPrimary em {
+  color: color-mix(in srgb, var(--accent) 78%, var(--text-muted));
+}
+.coachRxTechnique {
+  align-self: center;
+  padding: 4px 10px;
+  border-radius: var(--radius-pill);
+  border: 1px solid color-mix(in srgb, var(--warning) 40%, transparent);
+  background: color-mix(in srgb, var(--warning) 12%, transparent);
+  color: var(--warning);
+  font-size: 11px;
+  font-weight: 700;
+  white-space: nowrap;
+}
+.coachExerciseNote {
+  margin: 0;
+  font-size: 12px;
+  line-height: 1.45;
+  color: var(--text-muted);
+}
+.coachExerciseActions {
+  flex-direction: column;
+  align-items: stretch;
+  gap: 6px;
+}
+
+/* --- Destructive affordances: delete exercise + delete day --- */
+.coachExerciseDelete,
+.coachDeleteDayTrigger {
+  color: var(--danger);
+  border-color: color-mix(in srgb, var(--danger) 30%, transparent);
+}
+.coachExerciseDelete:hover,
+.coachDeleteDayTrigger:hover {
+  color: var(--danger);
+  border-color: color-mix(in srgb, var(--danger) 60%, transparent);
+  background: color-mix(in srgb, var(--danger) 12%, transparent);
+}
+.coachDayActions {
+  border-top: 1px solid var(--border);
+  padding-top: 12px;
+}
+
+/* --- Empty state for the routines list --- */
+.coachProgramEmptyInline {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 16px;
+  border: 1px dashed var(--border-strong);
+  border-radius: var(--radius-lg);
+  background: var(--surface-2);
+}
+.coachProgramEmptyInline strong {
+  display: block;
+  font-size: 14px;
+}
+.coachProgramEmptyInline p {
+  margin: 4px 0 0;
+  font-size: 13px;
+  line-height: 1.45;
+}
+
+@media (max-width: 560px) {
+  .coachExerciseRow {
+    grid-template-columns: 1fr;
+  }
+  .coachExerciseActions {
+    flex-direction: row;
+  }
+}
+/* ===== END COACH PROGRAMS ===== */
+/* ===== NUTRITION CLOSURE (agent) ===== */
+
+/* Water quick-log on the meals water ring. The +1 button and hint sit under the
+   existing mini progress bar, keeping the card compact. */
+.ntrWaterCard {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.ntrWaterLog {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  margin-top: 2px;
+}
+.ntrWaterBtn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  white-space: nowrap;
+}
+.ntrWaterHint {
+  font-size: 0.78rem;
+  color: var(--muted);
+}
+
+/* Recipe detail: per-serving vs per-100g macro toggle. */
+.ntrMacroToggleWrap {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.ntrMacroToggle {
+  display: inline-flex;
+  align-self: flex-start;
+  gap: 4px;
+  padding: 4px;
+  border: 1px solid var(--line);
+  border-radius: var(--radius-pill, 999px);
+  background: var(--surface-2);
+}
+.ntrMacroToggleBtn {
+  appearance: none;
+  border: 0;
+  cursor: pointer;
+  padding: 6px 14px;
+  border-radius: 999px;
+  font: inherit;
+  font-size: 0.82rem;
+  font-weight: 600;
+  color: var(--muted);
+  background: transparent;
+  transition: background 0.15s ease, color 0.15s ease;
+}
+.ntrMacroToggleBtn:hover {
+  color: var(--text);
+}
+.ntrMacroToggleBtn.active {
+  color: var(--accent-contrast, #04121f);
+  background: var(--accent);
+}
+.ntrMacroToggleBtn:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+.ntrMacroToggleNote {
+  color: var(--muted);
+  font-size: 0.78rem;
+}
+
+/* Recipe detail: "Registrar en mi diario" action under the macros. */
+.ntrRecipeLogForm {
+  margin-top: 4px;
+}
+.ntrRecipeLogForm .btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+
+/* ===== END NUTRITION CLOSURE ===== */
+/* ===== CARDIO LOGGING (agent) ===== */
+.cardioLogCard,
+.cardioRecentCard {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.cardioCardHead {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+}
+
+.cardioCardHead h2 {
+  margin: 0;
+}
+
+.cardioCardHead p {
+  margin: 2px 0 0;
+  color: var(--muted);
+  font-size: 0.88rem;
+}
+
+.cardioCardIcon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  flex: 0 0 auto;
+  border-radius: var(--radius);
+  border: 1px solid var(--line);
+  background: var(--surface-2);
+  color: var(--gold);
+}
+
+.cardioForm {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.cardioFieldRow {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+}
+
+.cardioField {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  font-size: 0.82rem;
+  color: var(--muted);
+}
+
+.cardioField > span {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.cardioField input,
+.cardioField select,
+.cardioField textarea {
+  width: 100%;
+  padding: 10px 12px;
+  border-radius: var(--radius);
+  border: 1px solid var(--line);
+  background: var(--surface-2);
+  color: var(--text);
+}
+
+.cardioField textarea {
+  resize: vertical;
+  min-height: 56px;
+}
+
+.cardioField input:focus,
+.cardioField select:focus,
+.cardioField textarea:focus {
+  outline: none;
+  border-color: var(--gold);
+}
+
+.cardioSubmit {
+  margin-top: 4px;
+  align-self: flex-start;
+}
+
+.cardioWeekSummary {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+}
+
+.cardioStat {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: 12px 14px;
+  border-radius: var(--radius);
+  border: 1px solid var(--line);
+  background: var(--surface-2);
+}
+
+.cardioStatValue {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: var(--gold);
+  line-height: 1.1;
+}
+
+.cardioStatLabel {
+  font-size: 0.78rem;
+  color: var(--muted);
+}
+
+.cardioSessionList {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.cardioSessionRow {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 12px;
+  border-radius: var(--radius);
+  border: 1px solid var(--line);
+  background: var(--surface-2);
+}
+
+.cardioSessionIcon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 30px;
+  height: 30px;
+  flex: 0 0 auto;
+  border-radius: var(--radius-pill);
+  background: var(--surface-3);
+  color: var(--gold);
+}
+
+.cardioSessionBody {
+  flex: 1;
+  min-width: 0;
+}
+
+.cardioSessionTop {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.cardioSessionTop strong {
+  color: var(--text);
+}
+
+.cardioSessionDate {
+  margin-left: auto;
+  font-size: 0.78rem;
+  color: var(--muted);
+  text-transform: capitalize;
+}
+
+.cardioTag {
+  font-size: 0.72rem;
+  padding: 2px 8px;
+  border-radius: var(--radius-pill);
+  border: 1px solid var(--line);
+  color: var(--gold);
+}
+
+.cardioSessionMeta {
+  margin: 4px 0 0;
+  font-size: 0.84rem;
+  color: var(--muted);
+}
+
+.cardioSessionNotes {
+  margin: 4px 0 0;
+  font-size: 0.82rem;
+  color: var(--text-soft);
+}
+
+.cardioEmpty {
+  margin: 0;
+  padding: 16px;
+  border-radius: var(--radius);
+  border: 1px dashed var(--line);
+  color: var(--muted);
+  font-size: 0.88rem;
+  text-align: center;
+}
+
+@media (max-width: 520px) {
+  .cardioFieldRow,
+  .cardioWeekSummary {
+    grid-template-columns: 1fr;
+  }
+}
+/* ===== END CARDIO LOGGING ===== */

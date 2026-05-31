@@ -1,11 +1,13 @@
-import { ChevronLeft, Utensils } from "lucide-react";
+import { ChevronLeft, NotebookPen, Utensils } from "lucide-react";
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { MacroStrip } from "@/components/macro-strip";
 import { RecipeImage } from "@/components/recipe-image";
+import { cloudinaryFetch } from "@/lib/cloudinary";
 import { getSelectedMemberAppBrand } from "@/lib/member-app";
 import { listManagedRecipes } from "@/lib/repositories/nutrition-management";
 import { getMemberNutritionVisibility } from "@/lib/repositories/nutrition-tracking";
+import { logRecipeToDiaryAction } from "./actions";
+import { RecipeMacroToggle } from "./recipe-macro-toggle";
 
 export const dynamic = "force-dynamic";
 
@@ -29,6 +31,13 @@ export default async function MemberRecipeDetailPage({ params }: RecipeDetailPag
     .map((step) => step.trim())
     .filter(Boolean);
 
+  const totalGrams = recipe.ingredients.reduce((sum, ingredient) => sum + (ingredient.grams || 0), 0);
+  // Serve a curated recipe photo through Cloudinary fetch (f_auto/q_auto, CDN,
+  // zero storage). Fallback photos resolve inside RecipeImage untouched.
+  const heroImageUrl = recipe.imageUrl
+    ? cloudinaryFetch(recipe.imageUrl, { width: 960, height: 660 })
+    : recipe.imageUrl;
+
   return (
     <section className="grid recipeDetail">
       <div className="span12 recipeDetailBack">
@@ -42,20 +51,31 @@ export default async function MemberRecipeDetailPage({ params }: RecipeDetailPag
           id={recipe.id}
           name={recipe.name}
           mealSlot={recipe.mealSlot}
-          imageUrl={recipe.imageUrl}
+          imageUrl={heroImageUrl}
         />
         <div className="recipeDetailHeading">
           {recipe.mealSlot ? <span className="eyebrow">{recipe.mealSlot}</span> : null}
           <h1>{recipe.name}</h1>
           {recipe.tags.length ? <p className="recipeTags">{recipe.tags.join(" · ")}</p> : null}
-          <MacroStrip
-            variant="card"
-            proteinG={recipe.protein}
-            fatG={recipe.fat}
-            carbsG={recipe.carbs}
+          <RecipeMacroToggle
+            protein={recipe.protein}
+            fat={recipe.fat}
+            carbs={recipe.carbs}
             calories={recipe.calories}
+            totalGrams={totalGrams}
             hidden={visibility.hideMacros}
           />
+          <form action={logRecipeToDiaryAction} className="ntrRecipeLogForm">
+            <input name="workspaceId" type="hidden" value={brand.id} />
+            <input name="name" type="hidden" value={recipe.name} />
+            <input name="protein" type="hidden" value={recipe.protein} />
+            <input name="fat" type="hidden" value={recipe.fat} />
+            <input name="carbs" type="hidden" value={recipe.carbs} />
+            <input name="calories" type="hidden" value={recipe.calories} />
+            <button className="btn primary" type="submit">
+              <NotebookPen size={16} /> Registrar en mi diario
+            </button>
+          </form>
         </div>
       </article>
 

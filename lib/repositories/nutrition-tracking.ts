@@ -170,6 +170,57 @@ export type FoodDiaryEntry = {
   calories: number | null;
 };
 
+export type ConsumedMacros = {
+  calories: number;
+  protein: number;
+  carbs: number;
+  fat: number;
+};
+
+/**
+ * Single source of truth for "what has the member actually eaten today".
+ *
+ * Sums the macros of (a) plan items whose meal slot is marked done and
+ * (b) free-form food diary entries (Smart Add / photo / manual). Kept as a pure
+ * function so the meals page, the diary and any future surface all agree to the
+ * gram — feed it the day's plan items, the set of done slots, and the diary rows.
+ *
+ * @param planItems  The day's assigned meal items (with per-meal macros).
+ * @param doneSlots  Meal slots the member has completed today (e.g. from meal logs).
+ * @param diaryEntries  Free-form diary entries logged outside the plan.
+ */
+export function sumConsumedMacros(
+  planItems: Array<{
+    mealSlot: string;
+    calories: number | null;
+    proteinG: number | null;
+    carbsG: number | null;
+    fatG: number | null;
+  }>,
+  doneSlots: Iterable<string>,
+  diaryEntries: Array<Pick<FoodDiaryEntry, "calories" | "protein" | "carbs" | "fat">>,
+): ConsumedMacros {
+  const done = doneSlots instanceof Set ? doneSlots : new Set(doneSlots);
+  const totals: ConsumedMacros = { calories: 0, protein: 0, carbs: 0, fat: 0 };
+
+  for (const item of planItems) {
+    if (!done.has(item.mealSlot)) continue;
+    totals.calories += item.calories ?? 0;
+    totals.protein += item.proteinG ?? 0;
+    totals.carbs += item.carbsG ?? 0;
+    totals.fat += item.fatG ?? 0;
+  }
+
+  for (const entry of diaryEntries) {
+    totals.calories += entry.calories ?? 0;
+    totals.protein += entry.protein ?? 0;
+    totals.carbs += entry.carbs ?? 0;
+    totals.fat += entry.fat ?? 0;
+  }
+
+  return totals;
+}
+
 /** Free-form food diary entries (Smart Add / manual) for a given day. */
 export async function listFoodDiaryEntries(workspaceId?: string, dateInput?: string): Promise<FoodDiaryEntry[]> {
   const env = getSupabaseServiceEnv();
@@ -467,6 +518,53 @@ export async function upsertMealLog(input: MealLogInput) {
     if (event.error) {
       console.error("Unable to log meal activity", event.error.message);
     }
+  }
+}
+
+/**
+ * Quick-log a single glass of water for today against the member's daily
+ * nutrition log. Reads the current count and upserts +1 (clamped 0..20), without
+ * touching hunger/energy/notes. Mirrors the consumed-water store used by the
+ * meals water ring and the daily summary.
+ */
+export async function logWaterGlass(workspaceId: string, delta = 1) {
+  if (!isUuid(workspaceId)) {
+    throw new Error("No se pudo identificar la app del cliente.");
+  }
+
+  const supabase = createServiceSupabaseClient();
+  const memberProfileId = await getDefaultMemberProfileId(workspaceId);
+  if (!memberProfileId) {
+    throw new Error("Todavía no hay perfil de cliente.");
+  }
+
+  const date = todayIso();
+  const { data: existing } = await (supabase as any)
+    .from("member_nutrition_daily_logs")
+    .select("water_glasses")
+    .eq("workspace_id", workspaceId)
+    .eq("member_profile_id", memberProfileId)
+    .eq("logged_on", date)
+    .maybeSingle();
+
+  const current = typeof existing?.water_glasses === "number" ? existing.water_glasses : 0;
+  const next = clampInteger(current + delta, 0, 20) ?? 0;
+
+  const { error } = await (supabase as any)
+    .from("member_nutrition_daily_logs")
+    .upsert(
+      {
+        workspace_id: workspaceId,
+        member_profile_id: memberProfileId,
+        logged_on: date,
+        water_glasses: next,
+        updated_at: new Date().toISOString(),
+      },
+      { onConflict: "workspace_id,member_profile_id,logged_on" },
+    );
+
+  if (error) {
+    throw new Error(`No se pudo registrar el agua: ${error.message}`);
   }
 }
 

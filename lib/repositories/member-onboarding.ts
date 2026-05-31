@@ -1,10 +1,18 @@
 import { getMemberContext } from "@/lib/auth/member-access";
-import { exerciseCardImage } from "@/lib/cloudinary";
+import { cloudinaryFetch, exerciseCardImage } from "@/lib/cloudinary";
 import { getSupabaseServiceEnv } from "@/lib/supabase/env";
 import { createServiceSupabaseClient } from "@/lib/supabase/server";
 import { assignDietTemplateToMember, assignWorkoutTemplateToMember } from "@/lib/repositories/member-management";
 import { listManagedDietTemplates, type ManagedDietTemplate } from "@/lib/repositories/nutrition-management";
 import { listManagedWorkoutTemplates, type ManagedWorkoutTemplate } from "@/lib/repositories/training-management";
+
+export type MemberExerciseProgression = {
+  /** Best set (by reps × weight) logged for this exercise in the prior 14 days. */
+  lastWeightKg: number | null;
+  lastReps: number | null;
+  /** ISO date (YYYY-MM-DD) of that last logged set. */
+  lastLoggedOn: string | null;
+};
 
 export type MemberAssignedWorkoutExercise = {
   id: string;
@@ -13,6 +21,11 @@ export type MemberAssignedWorkoutExercise = {
   exerciseName: string;
   videoUrl: string;
   thumbnailUrl: string;
+  imageUrl: string;
+  muscleGroups: string[];
+  equipment: string[];
+  difficulty: string;
+  instructions: string;
   sets: number | null;
   reps: string;
   tempo: string;
@@ -20,6 +33,7 @@ export type MemberAssignedWorkoutExercise = {
   targetRir: string;
   notes: string;
   sortOrder: number;
+  progression: MemberExerciseProgression | null;
 };
 
 export type MemberAssignedWorkoutDay = {
@@ -93,6 +107,18 @@ export type MemberTrainingContext = {
   activeTemplate: ManagedWorkoutTemplate | null;
   assignedDays: MemberAssignedWorkoutDay[];
   activeAssignedDay: MemberAssignedWorkoutDay | null;
+};
+
+export type MemberCardioContext = {
+  hasProfile: boolean;
+  /** Member's declared cardio preference (free text, e.g. "HIIT", "caminar"). */
+  preference: string;
+  /** Normalized preferred modality, used to highlight the matching protocol. */
+  preferredModality: "hiit" | "liss" | null;
+  dailyStepsTarget: number | null;
+  goal: string;
+  /** Cardio sessions per week suggested from the training goal. */
+  weeklySessions: number;
 };
 
 export type CoachBriefingReviewInput = {
@@ -843,6 +869,125 @@ export async function applyOnboardingPlanRecommendation(input: ApplyCoachBriefin
   return { ...workoutAssignment, ...mealAssignment };
 }
 
+/**
+ * Best recent set (by reps × weight) per exercise from the member's set logs in
+ * the prior 14 days. Powers the "vs. last week" progression hint on the plan.
+ */
+async function getRecentBestSetByExercise(
+  supabase: ReturnType<typeof createServiceSupabaseClient>,
+  input: { workspaceId: string; memberProfileId: string; exerciseIds: string[] },
+): Promise<Map<string, MemberExerciseProgression>> {
+  const result = new Map<string, MemberExerciseProgression>();
+  if (!input.exerciseIds.length) return result;
+
+  const fromDate = new Date();
+  fromDate.setDate(fromDate.getDate() - 14);
+
+  const sessions = await (supabase as any)
+    .from("workout_session_logs")
+    .select("id,session_date")
+    .eq("workspace_id", input.workspaceId)
+    .eq("member_profile_id", input.memberProfileId)
+    .gte("session_date", fromDate.toISOString().slice(0, 10))
+    .order("session_date", { ascending: false })
+    .limit(40);
+
+  const sessionRows: Array<{ id: string; session_date: string }> = sessions.data ?? [];
+  if (sessions.error || !sessionRows.length) return result;
+
+  const dateBySession = new Map(sessionRows.map((row) => [row.id, row.session_date]));
+  const sets = await (supabase as any)
+    .from("workout_set_logs")
+    .select("session_log_id,exercise_id,actual_reps,weight_kg")
+    .in("session_log_id", sessionRows.map((row) => row.id))
+    .in("exercise_id", input.exerciseIds);
+
+  if (sets.error) return result;
+
+  for (const set of sets.data ?? []) {
+    const exerciseId: string | null = set.exercise_id;
+    if (!exerciseId) continue;
+    const reps = typeof set.actual_reps === "number" ? set.actual_reps : Number(set.actual_reps);
+    const weight = Number(set.weight_kg);
+    if (!Number.isFinite(reps) || !Number.isFinite(weight) || reps <= 0 || weight <= 0) continue;
+
+    const current = result.get(exerciseId);
+    const score = reps * weight;
+    const currentScore = current ? (current.lastReps ?? 0) * (current.lastWeightKg ?? 0) : -1;
+    if (score > currentScore) {
+      result.set(exerciseId, {
+        lastWeightKg: weight,
+        lastReps: reps,
+        lastLoggedOn: dateBySession.get(set.session_log_id) ?? null,
+      });
+    }
+  }
+
+  return result;
+}
+
+function normalizeCardioModality(preference: string): "hiit" | "liss" | null {
+  const value = preference.toLowerCase();
+  if (/hiit|intervalo|interval|sprint|tabata/.test(value)) return "hiit";
+  if (/liss|caminar|walk|paseo|suave|steady|bici|eliptica|elíptica|low/.test(value)) return "liss";
+  return null;
+}
+
+function cardioSessionsForGoal(goal: string): number {
+  const value = goal.toLowerCase();
+  if (/defin|perdida|pérdida|loss|grasa|fat/.test(value)) return 4;
+  if (/volumen|masa|gain/.test(value)) return 2;
+  return 3;
+}
+
+/**
+ * Cardio context for the member's /app/cardio view: their declared preference,
+ * steps target and a goal-derived weekly cadence. Read-only, member-scoped.
+ */
+export async function getMemberCardioContext(workspaceId?: string): Promise<MemberCardioContext> {
+  const empty: MemberCardioContext = {
+    hasProfile: false,
+    preference: "",
+    preferredModality: null,
+    dailyStepsTarget: null,
+    goal: "",
+    weeklySessions: 3,
+  };
+
+  const env = getSupabaseServiceEnv();
+  if (!env.ok || !workspaceId) return empty;
+
+  const member = await getDefaultMemberProfile(workspaceId);
+  if (!member) return empty;
+
+  const supabase = createServiceSupabaseClient();
+  const [preferences, profile] = await Promise.all([
+    supabase
+      .from("member_fitness_preferences")
+      .select("cardio_preference,daily_steps_target,training_goal")
+      .eq("member_profile_id", member.id)
+      .maybeSingle(),
+    supabase
+      .from("member_profiles")
+      .select("goal")
+      .eq("id", member.id)
+      .eq("workspace_id", workspaceId)
+      .maybeSingle(),
+  ]);
+
+  const preference = (preferences.data?.cardio_preference ?? "").trim();
+  const goal = (preferences.data?.training_goal || profile.data?.goal || "").trim();
+
+  return {
+    hasProfile: true,
+    preference,
+    preferredModality: normalizeCardioModality(preference),
+    dailyStepsTarget: preferences.data?.daily_steps_target ?? null,
+    goal,
+    weeklySessions: cardioSessionsForGoal(goal),
+  };
+}
+
 export async function getMemberTrainingContext(workspaceId?: string): Promise<MemberTrainingContext> {
   const empty: MemberTrainingContext = {
     memberProfileId: null,
@@ -912,40 +1057,69 @@ export async function getMemberTrainingContext(workspaceId?: string): Promise<Me
       console.error("Unable to load assigned workout exercises", exercisesResult.error.message);
     }
 
-    // Base library photo (e.g. Free Exercise DB) for assigned exercises that have
-    // no coach video, so the member's published plan still shows a real image —
+    // Base library metadata (e.g. Free Exercise DB) for assigned exercises:
+    // a real photo + muscle groups, equipment, difficulty and a technique cue —
+    // so the member's published plan shows a rich exercise detail. Images are
     // served optimized through Cloudinary, mirroring the template path.
-    const baseImageByExercise = new Map<string, string>();
+    type BaseExerciseDetail = {
+      thumbnailUrl: string;
+      imageUrl: string;
+      muscleGroups: string[];
+      equipment: string[];
+      difficulty: string;
+      instructions: string;
+    };
+    const baseDetailByExercise = new Map<string, BaseExerciseDetail>();
     const baseExerciseIds = [...new Set((exercisesResult.data ?? [])
       .map((exercise) => exercise.exercise_id)
       .filter((value): value is string => Boolean(value)))];
     if (baseExerciseIds.length) {
       const baseImagesResult = await supabase
         .from("exercises")
-        .select("id,image_urls")
+        .select("id,image_urls,muscle_groups,equipment,difficulty,instructions")
         .in("id", baseExerciseIds);
       if (baseImagesResult.error) {
-        console.error("Unable to load assigned exercise images", baseImagesResult.error.message);
+        console.error("Unable to load assigned exercise detail", baseImagesResult.error.message);
       }
       for (const row of baseImagesResult.data ?? []) {
         const urls = Array.isArray(row.image_urls)
           ? row.image_urls.filter((url): url is string => typeof url === "string" && url.trim().length > 0)
           : [];
-        const optimized = exerciseCardImage(urls);
-        if (optimized) baseImageByExercise.set(row.id, optimized);
+        baseDetailByExercise.set(row.id, {
+          thumbnailUrl: exerciseCardImage(urls),
+          imageUrl: urls[0] ? cloudinaryFetch(urls[0], { width: 960, height: 640 }) : "",
+          muscleGroups: Array.isArray(row.muscle_groups) ? row.muscle_groups.filter(Boolean) : [],
+          equipment: Array.isArray(row.equipment) ? row.equipment.filter(Boolean) : [],
+          difficulty: typeof row.difficulty === "string" ? row.difficulty : "",
+          instructions: typeof row.instructions === "string" ? row.instructions : "",
+        });
       }
     }
+
+    // Progression: the member's best recent set per exercise (prior 14 days), so
+    // the plan can show "last week you did Xkg × Y" next to today's prescription.
+    const progressionByExercise = await getRecentBestSetByExercise(supabase, {
+      workspaceId,
+      memberProfileId: member.id,
+      exerciseIds: baseExerciseIds,
+    });
 
     const exercisesByDay = new Map<string, MemberAssignedWorkoutExercise[]>();
     for (const exercise of exercisesResult.data ?? []) {
       const list = exercisesByDay.get(exercise.assigned_workout_day_id) ?? [];
+      const detail = baseDetailByExercise.get(exercise.exercise_id ?? "");
       list.push({
         id: exercise.id,
         sourceTemplateExerciseId: exercise.source_template_exercise_id,
         exerciseId: exercise.exercise_id ?? "",
         exerciseName: exercise.title,
         videoUrl: exercise.video_url ?? "",
-        thumbnailUrl: baseImageByExercise.get(exercise.exercise_id ?? "") ?? "",
+        thumbnailUrl: detail?.thumbnailUrl ?? "",
+        imageUrl: detail?.imageUrl ?? "",
+        muscleGroups: detail?.muscleGroups ?? [],
+        equipment: detail?.equipment ?? [],
+        difficulty: detail?.difficulty ?? "",
+        instructions: detail?.instructions ?? "",
         sets: exercise.sets,
         reps: exercise.reps ?? "",
         tempo: exercise.tempo ?? "",
@@ -953,6 +1127,7 @@ export async function getMemberTrainingContext(workspaceId?: string): Promise<Me
         targetRir: exercise.target_rir ?? "",
         notes: exercise.notes ?? "",
         sortOrder: exercise.sort_order,
+        progression: progressionByExercise.get(exercise.exercise_id ?? "") ?? null,
       });
       exercisesByDay.set(exercise.assigned_workout_day_id, list);
     }

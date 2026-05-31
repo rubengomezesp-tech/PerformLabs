@@ -7,6 +7,25 @@ updated: 2026-05-30
 
 Las decisiones clave y su _por qué_. La más reciente arriba.
 
+- **2026-05-31 · Overhaul de Entrenamiento + Nutrición (3 agentes en paralelo) +
+  demo rica + hardening** — overhaul funcional+UI hecho con 3 subagentes en
+  worktrees aislados (Entreno / Nutrición / Demo+seguridad) e integrado por merge
+  (único conflicto: el bloque añadido en `globals.css`, resuelto conservando ambos
+  con prefijos `.trn*` y `.ntr*`). Entreno: detalle de ejercicio con imagen
+  Cloudinary, progresión vs. semana previa (mejor serie 14 días), posición
+  semana/día, y página de **cardio real** (HIIT/LISS). Nutrición: anillos
+  consumido-vs-objetivo + agua en `meals`, totales del día en `foods`, adherencia
+  en `supplements` (respetando `hide_macros`). Sin migraciones de schema (los
+  campos ya existían). **Demo rica** aplicada a prod (consentida): plan de entreno
+  4 días/23 ejercicios (slugs de la librería base) + comidas de hoy para Alex Demo,
+  en `scripts/seed-demo-content.sql` idempotente. **Seguridad**: `REVOKE EXECUTE`
+  de `exercise_library_facets` a anon/authenticated/public (advisors 0028/0029
+  cerrados); migración `20260531000000_revoke_exercise_library_facets.sql`. Pendiente
+  del fundador: toggle de leaked-password protection en el dashboard. Regla de
+  orquestación: agentes que editan ficheros solapados → worktree + merge; el SQL de
+  prod lo aplica y verifica el hilo principal (revisión humana antes de tocar prod).
+  Ver [[Features]] y [[Arquitectura]].
+
 - **2026-05-30 · La marca del miembro nunca resuelve al `fallbackBrand()` falso en
   hosts no-tenant** — flujo completo login→/app→onboarding→guardado cerrado tras una
   cadena de 3 causas: (1) el comp-preview clonaba "el primer perfil" y todas las

@@ -6,7 +6,7 @@ import { PhotoMealAdd } from "@/components/photo-meal-add";
 import { Topbar } from "@/components/topbar";
 import { getSelectedMemberAppBrand } from "@/lib/member-app";
 import { saveMealLogAction } from "@/app/app/meals/actions";
-import { getMemberMealPlanForToday, getMemberNutritionVisibility, getNutritionDailySummary, listFoodDiaryEntries } from "@/lib/repositories/nutrition-tracking";
+import { getMemberMealPlanForToday, getMemberNutritionVisibility, getNutritionDailySummary, listFoodDiaryEntries, sumConsumedMacros } from "@/lib/repositories/nutrition-tracking";
 import { deleteFoodEntryAction, smartAddMealAction } from "./actions";
 
 export const dynamic = "force-dynamic";
@@ -41,24 +41,10 @@ export default async function MemberDiaryPage({ searchParams }: DiaryPageProps) 
   const logBySlot = new Map(summary.mealLogs.map((log) => [log.mealSlot, log]));
   const items = plan?.items ?? [];
 
-  const consumed = items.reduce(
-    (totals, item) => {
-      if (logBySlot.get(item.mealSlot)?.status !== "done") return totals;
-      totals.calories += item.calories ?? 0;
-      totals.protein += item.proteinG ?? 0;
-      totals.carbs += item.carbsG ?? 0;
-      totals.fat += item.fatG ?? 0;
-      return totals;
-    },
-    { calories: 0, protein: 0, carbs: 0, fat: 0 },
+  const doneSlots = new Set(
+    summary.mealLogs.filter((log) => log.status === "done").map((log) => log.mealSlot),
   );
-
-  for (const entry of foodEntries) {
-    consumed.calories += entry.calories ?? 0;
-    consumed.protein += entry.protein ?? 0;
-    consumed.carbs += entry.carbs ?? 0;
-    consumed.fat += entry.fat ?? 0;
-  }
+  const consumed = sumConsumedMacros(items, doneSlots, foodEntries);
 
   const days = Array.from({ length: 7 }, (_, index) => {
     const date = new Date(today);

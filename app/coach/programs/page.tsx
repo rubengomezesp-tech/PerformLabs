@@ -334,14 +334,17 @@ export default async function CoachProgramsPage({ searchParams }: CoachProgramsP
                 <h2>{template.name}</h2>
                 <p>Plan {template.daysPerWeek} días/semana · {template.goal || "objetivo libre"}</p>
               </div>
-              <div className="statusControls">
-                <span className="tag">{statusLabels[template.status] ?? template.status}</span>
+              <div className="statusControls coachProgramStatusControls">
+                <span className={`coachProgramStatusBadge is-${template.status}`}>
+                  <span className="coachProgramStatusDot" aria-hidden="true" />
+                  {statusLabels[template.status] ?? template.status}
+                </span>
                 {template.status !== "active" ? (
                   <form action={setCoachWorkoutTemplateStatusAction}>
                     <input name="workspaceId" type="hidden" value={brand.id} />
                     <input name="templateId" type="hidden" value={template.id} />
                     <input name="status" type="hidden" value="active" />
-                    <button className="btn sm" type="submit">Publicar</button>
+                    <button className="btn primary sm" type="submit">Publicar</button>
                   </form>
                 ) : (
                   <form action={setCoachWorkoutTemplateStatusAction}>
@@ -389,19 +392,51 @@ export default async function CoachProgramsPage({ searchParams }: CoachProgramsP
                         <b>{weekGroup.days.reduce((total, day) => total + day.exercises.length, 0)} ejercicios</b>
                       </summary>
                       {weekGroup.days.map((day) => (
-                        <article className="taskItem workoutDayItem" key={day.id}>
+                        <article className="taskItem workoutDayItem coachDayItem" key={day.id}>
                           <div>
-                            <strong>Día {day.dayNumber} · {day.title}</strong>
-                            {day.notes ? <p className="muted">{day.notes}</p> : null}
+                            <div className="coachDayHead">
+                              <span className="coachDayBadge">Día {day.dayNumber}</span>
+                              <strong className="coachDayTitle">{day.title}</strong>
+                              <span className="coachDayCount">{day.exercises.length} ejercicio{day.exercises.length === 1 ? "" : "s"}</span>
+                            </div>
+                            {day.notes ? <p className="muted coachDayNotes">{day.notes}</p> : null}
                             {day.exercises.length ? (
-                              <ul className="list workoutExerciseList">
-                                {day.exercises.map((exercise) => (
-                                  <li className="row" key={exercise.id}>
-                                    <div>
-                                      <strong>{exercise.exerciseName}</strong>
-                                      <p>{exercise.sets ?? "-"}x{exercise.reps || "?"} · {exercise.restSeconds ?? "-"}s{exercise.tempo ? ` · tempo ${exercise.tempo}` : ""}{exercise.targetRir ? ` · RIR ${exercise.targetRir}` : ""}{exercise.intensityTechnique ? ` · ${exercise.intensityTechnique}` : ""}</p>
+                              <ul className="list workoutExerciseList coachExerciseList">
+                                {day.exercises.map((exercise, exerciseIndex) => (
+                                  <li className="row coachExerciseRow" key={exercise.id}>
+                                    <div className="coachExerciseInfo">
+                                      <strong className="coachExerciseName">
+                                        <span className="coachExerciseIndex" aria-hidden="true">{exerciseIndex + 1}</span>
+                                        {exercise.exerciseName}
+                                      </strong>
+                                      <div className="coachPrescription">
+                                        <span className="coachRx coachRxPrimary" title="Series por repeticiones">
+                                          {exercise.sets ?? "—"}<small>×</small>{exercise.reps || "?"}
+                                          <em>series × reps</em>
+                                        </span>
+                                        <span className="coachRx" title="Descanso entre series">
+                                          {exercise.restSeconds != null ? `${exercise.restSeconds}s` : "—"}
+                                          <em>descanso</em>
+                                        </span>
+                                        {exercise.tempo ? (
+                                          <span className="coachRx" title="Tempo">
+                                            {exercise.tempo}
+                                            <em>tempo</em>
+                                          </span>
+                                        ) : null}
+                                        {exercise.targetRir ? (
+                                          <span className="coachRx" title="Repeticiones en reserva">
+                                            {exercise.targetRir}
+                                            <em>RIR</em>
+                                          </span>
+                                        ) : null}
+                                        {exercise.intensityTechnique ? (
+                                          <span className="coachRxTechnique" title="Técnica avanzada">{exercise.intensityTechnique}</span>
+                                        ) : null}
+                                      </div>
+                                      {exercise.notes ? <p className="coachExerciseNote">{exercise.notes}</p> : null}
                                     </div>
-                                    <div className="statusControls">
+                                    <div className="statusControls coachExerciseActions">
                                     <Dialog
                                       triggerClassName="btn ghost sm"
                                       trigger={<>Editar</>}
@@ -436,17 +471,17 @@ export default async function CoachProgramsPage({ searchParams }: CoachProgramsP
                                     <form action={deleteCoachWorkoutExerciseAction}>
                                       <input name="workspaceId" type="hidden" value={brand.id} />
                                       <input name="templateExerciseId" type="hidden" value={exercise.id} />
-                                      <button className="btn ghost sm" type="submit" title="Quitar ejercicio" aria-label="Quitar ejercicio"><Trash2 size={15} /></button>
+                                      <button className="btn ghost sm coachExerciseDelete" type="submit" title={`Quitar ${exercise.exerciseName}`} aria-label={`Quitar ${exercise.exerciseName}`}><Trash2 size={15} /></button>
                                     </form>
                                     </div>
                                   </li>
                                 ))}
                               </ul>
                             ) : (
-                              <p className="muted">Todavia no hay ejercicios en este dia.</p>
+                              <p className="muted coachDayEmpty">Todavía no hay ejercicios en este día. Añade el primero abajo.</p>
                             )}
 
-                            <div className="statusControls" style={{ marginTop: 10 }}>
+                            <div className="statusControls coachDayActions" style={{ marginTop: 10 }}>
                             <Dialog
                               triggerClassName="btn sm"
                               trigger={<>Añadir ejercicio <Plus size={15} /></>}
@@ -485,7 +520,7 @@ export default async function CoachProgramsPage({ searchParams }: CoachProgramsP
                               </form>
                             </Dialog>
                             <Dialog
-                              triggerClassName="btn ghost sm"
+                              triggerClassName="btn ghost sm coachDeleteDayTrigger"
                               trigger={<><Trash2 size={15} /> Eliminar día</>}
                               title={`Eliminar Día ${day.dayNumber}`}
                               description="Se elimina el día y todos sus ejercicios. No se puede deshacer."
@@ -532,7 +567,13 @@ export default async function CoachProgramsPage({ searchParams }: CoachProgramsP
                   );
                 })}
                 {!templates.length ? (
-                  <p className="muted coachProgramEmpty">Todavía no hay rutinas. Usa “Generar 12 semanas” o una plantilla base de arriba.</p>
+                  <div className="coachProgramEmpty coachProgramEmptyInline">
+                    <Dumbbell color="var(--accent)" size={22} />
+                    <div>
+                      <strong>Aún no hay rutinas en esta app.</strong>
+                      <p className="muted">Usa “Generar 12 semanas” arriba para una base periodizada con ejercicios, o elige una plantilla base.</p>
+                    </div>
+                  </div>
                 ) : null}
               </div>
         </div>
