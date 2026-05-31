@@ -104,7 +104,8 @@ export const nutritionTargetSchema = z.object({
   activityLevel: z.enum(["sedentary", "light", "moderate", "active", "athlete"]),
   goal: z.enum(["fat_loss", "maintenance", "lean_gain", "gain"]),
   proteinPerKg: z.number().min(1.2).max(3).optional(),
-  fatRatio: z.number().min(0.15).max(0.4).optional(),
+  // Hasta 0.8 para que las plantillas keto (fat_ratio ~0.70) validen; el resto ~0.25.
+  fatRatio: z.number().min(0.15).max(0.8).optional(),
   mealsPerDay: z.number().int().min(3).max(5).optional(),
   trainingDaysPerWeek: z.number().int().min(0).max(7).optional(),
 });

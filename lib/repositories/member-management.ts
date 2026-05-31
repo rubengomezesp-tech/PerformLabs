@@ -539,7 +539,7 @@ export async function assignDietTemplateToMember(input: {
         activityLevel: normalizeActivityLevel(Number(member.data.activity_level)),
         goal: normalizeNutritionGoal(diet.data.goal ?? member.data.goal),
         proteinPerKg: diet.data.protein_ratio ? Math.max(1.2, Math.min(3, Number(diet.data.protein_ratio) * 10)) : undefined,
-        fatRatio: diet.data.fat_ratio ? Number(diet.data.fat_ratio) : undefined,
+        fatRatio: diet.data.fat_ratio ? Math.max(0.15, Math.min(0.8, Number(diet.data.fat_ratio))) : undefined,
         mealsPerDay,
         trainingDaysPerWeek: preferences.data?.days_per_week ?? 4,
       })
