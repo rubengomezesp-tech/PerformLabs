@@ -12398,3 +12398,309 @@ button[aria-busy="true"] {
   padding-inline: 16px;
 }
 /* ===== END MEMBER CHAT ===== */
+
+/* ===== UI UPLIFT A (agent) =====
+   Cluster A: Panel/dashboard, Entreno (workouts), Cardio.
+   "Ethereal Glass to the max" — composes onto the shared foundation
+   utilities (.uiGlass/.uiSheen/.uiIconChip/.uiStat/.uiMeta/.uiFadeUp).
+   All selectors namespaced to classes this cluster owns; appended last so
+   it wins source-order over the older per-page rules it elevates. */
+
+/* --- shared inline icon-chip sizes (foundation chip is 38px; these are the
+   smaller inline variants used in rows/headers across the cluster) --- */
+.dashCardHeading .uiIconChip,
+.workoutStatusTop .uiIconChip,
+.cardioCardIcon.uiIconChip,
+.trnCardioIcon.uiIconChip {
+  width: 34px;
+  height: 34px;
+  border-radius: 10px;
+}
+.panelHabitChip,
+.cardioSessionIcon.uiIconChip {
+  width: 30px;
+  height: 30px;
+  border-radius: 9px;
+}
+
+/* ---------- DASHBOARD ---------- */
+.dashHero {
+  position: relative;
+  display: grid;
+  gap: clamp(18px, 3vw, 26px);
+  padding: clamp(20px, 3vw, 30px);
+}
+.dashHeroTop {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 14px;
+}
+.dashHeroHeading {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+.dashHeroChip {
+  width: 44px;
+  height: 44px;
+  border-radius: 13px;
+  background: color-mix(in srgb, var(--accent) 20%, transparent);
+}
+.dashHeroHeading h2 {
+  margin: 4px 0 0;
+  font-size: clamp(24px, 3.4vw, 34px);
+  line-height: 1.05;
+  letter-spacing: -0.01em;
+}
+.dashHeroProgress {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  align-items: center;
+  gap: clamp(16px, 4vw, 36px);
+}
+.dashHero .dashPct {
+  font-size: 0.55em;
+  color: var(--text-muted);
+  margin-left: 2px;
+}
+.dashHeroBar {
+  display: grid;
+  gap: 10px;
+}
+.dashHeroBar .progressTrack {
+  height: 12px;
+  background: rgba(255, 255, 255, 0.07);
+}
+.dashHeroBar .progressTrack span {
+  background: linear-gradient(90deg, var(--accent-strong), var(--accent));
+  box-shadow: 0 0 16px -2px color-mix(in srgb, var(--accent) 75%, transparent);
+  transition: width 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+}
+.dashHero .miRecorridoMeta {
+  margin: 0;
+}
+
+.dashCardHeading {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+.dashCardHeading h2 {
+  margin: 0;
+}
+.dashCardHeading p {
+  margin: 2px 0 0;
+}
+
+.panelHabitRow {
+  transition: border-color 0.18s ease, background 0.18s ease;
+}
+.panelHabitRow.is-active {
+  border-color: color-mix(in srgb, var(--accent) 32%, var(--line));
+  background: color-mix(in srgb, var(--accent) 7%, transparent);
+}
+
+.panelCheckinChip {
+  width: 40px;
+  height: 40px;
+  border-radius: 12px;
+  background: color-mix(in srgb, var(--accent) 22%, transparent);
+  transition: transform 0.18s ease, background 0.18s ease;
+}
+.panelCheckinCard:hover .panelCheckinChip {
+  transform: translateX(3px);
+  background: var(--accent);
+  color: var(--accent-contrast);
+}
+
+/* Today list — layered rows with accent chips + arrow drift */
+.memberActionText {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+.memberAction .memberActionArrow {
+  color: var(--text-soft);
+  transition: transform 0.18s ease, color 0.18s ease;
+}
+.memberAction:hover .memberActionArrow {
+  transform: translateX(3px);
+  color: var(--accent);
+}
+.memberAction:hover .memberActionIcon {
+  background: var(--accent);
+  color: var(--accent-contrast);
+}
+
+/* Program card — branded gradient art instead of empty box */
+.memberProgramCard {
+  display: grid;
+  grid-template-columns: 64px minmax(0, 1fr);
+  gap: 16px;
+  align-items: start;
+}
+.memberProgramArt {
+  display: grid;
+  place-items: center;
+  width: 64px;
+  height: 64px;
+  border-radius: 14px;
+  color: var(--accent);
+  border: 1px solid color-mix(in srgb, var(--accent) 30%, transparent);
+  background:
+    radial-gradient(120% 120% at 20% 10%, color-mix(in srgb, var(--accent) 28%, transparent), transparent 60%),
+    linear-gradient(160deg, color-mix(in srgb, var(--accent) 14%, var(--surface-2)), var(--surface));
+}
+.memberProgramBody {
+  display: grid;
+  gap: 8px;
+  min-width: 0;
+}
+.memberProgramBody h2 {
+  margin: 4px 0 0;
+}
+
+/* ---------- WORKOUTS ---------- */
+/* Re-skin the hero as true frosted glass (uiGlass loses source-order to the
+   older .workoutAppHero background, so re-assert it here). */
+.workoutAppHero.uiGlass {
+  border: 1px solid rgba(255, 255, 255, 0.09);
+  background:
+    radial-gradient(140% 120% at 100% 0%, color-mix(in srgb, var(--accent) 14%, transparent), transparent 60%),
+    linear-gradient(165deg, color-mix(in srgb, var(--surface-2) 82%, transparent), color-mix(in srgb, var(--surface) 72%, transparent));
+}
+.workoutHeroEyebrow,
+.trnCardioHeroEyebrow {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+}
+.workoutHeroChip,
+.trnCardioHeroChip {
+  width: 34px;
+  height: 34px;
+  border-radius: 10px;
+}
+/* uiMeta hero pills keep the framed look but softer */
+.workoutAppHero .workoutHeroMeta.uiMeta span,
+.trnCardioHero .trnCardioHeroMeta.uiMeta span {
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 9px;
+  background: rgba(255, 255, 255, 0.05);
+  color: var(--text-muted);
+  padding: 7px 11px;
+  font-size: 13px;
+  font-weight: 600;
+}
+
+/* Status cards — stat-led header */
+.workoutStatusTop {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+.workoutStatusCard .workoutStatUnit {
+  font-size: 0.46em;
+  font-weight: 600;
+  color: var(--text-muted);
+  letter-spacing: 0;
+}
+
+/* Week-plan empty cover — branded gradient, never a naked box */
+.workoutDayCoverEmpty {
+  color: var(--accent);
+  border: 1px solid color-mix(in srgb, var(--accent) 26%, transparent);
+  background:
+    radial-gradient(120% 120% at 25% 15%, color-mix(in srgb, var(--accent) 30%, transparent), transparent 62%),
+    linear-gradient(160deg, color-mix(in srgb, var(--accent) 14%, var(--surface-2)), var(--surface));
+}
+
+/* Exercise media empty state — branded, not a flat video glyph box */
+.sessionExerciseMediaEmpty {
+  display: grid;
+  place-items: center;
+  color: var(--accent);
+  background:
+    radial-gradient(130% 130% at 30% 10%, color-mix(in srgb, var(--accent) 26%, transparent), transparent 60%),
+    linear-gradient(165deg, color-mix(in srgb, var(--accent) 12%, var(--surface-2)), var(--surface));
+}
+
+/* Progression hint — make the "last time" cue feel like a coach prompt */
+.trnProgressionHint {
+  border-radius: 10px;
+  border: 1px solid color-mix(in srgb, var(--accent) 30%, transparent);
+  background: color-mix(in srgb, var(--accent) 9%, transparent);
+  padding: 9px 12px;
+}
+
+/* ---------- CARDIO ---------- */
+.trnCardioHero.uiGlass {
+  border: 1px solid rgba(255, 255, 255, 0.09);
+  background:
+    radial-gradient(140% 120% at 100% 0%, color-mix(in srgb, var(--accent) 14%, transparent), transparent 60%),
+    linear-gradient(165deg, color-mix(in srgb, var(--surface-2) 82%, transparent), color-mix(in srgb, var(--surface) 72%, transparent));
+}
+/* Steps/NEAT card — restructured to chip + stat */
+.trnCardioStepsCard {
+  display: grid;
+  gap: 12px;
+  align-content: start;
+}
+.trnCardioStepsChip {
+  width: 44px;
+  height: 44px;
+  border-radius: 13px;
+}
+.trnCardioStepsStat .uiStatValue {
+  font-size: clamp(28px, 3.4vw, 38px);
+}
+
+/* Recommended protocol gets the accent selected treatment via .selected
+   (so its .uiIconChip fills). Add a soft glow + border. */
+.trnCardioCard.recommended {
+  border-color: color-mix(in srgb, var(--accent) 40%, var(--border));
+  box-shadow: var(--shadow), 0 0 34px -16px color-mix(in srgb, var(--accent) 70%, transparent);
+}
+
+/* Cardio "how to fit it" note — accent card layout */
+.trnCardioNote {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  gap: 14px;
+  align-items: start;
+}
+.trnCardioNoteChip {
+  width: 42px;
+  height: 42px;
+  border-radius: 12px;
+}
+
+@media (max-width: 720px) {
+  .dashHeroProgress {
+    grid-template-columns: 1fr;
+    gap: 14px;
+  }
+  .memberProgramCard {
+    grid-template-columns: 52px minmax(0, 1fr);
+  }
+  .memberProgramArt {
+    width: 52px;
+    height: 52px;
+  }
+}
+
+/* Respect reduced-motion: kill the hover drifts + the progress-bar tween for
+   users who opt out (the entrance fade is already guarded in .uiFadeUp). */
+@media (prefers-reduced-motion: reduce) {
+  .panelCheckinCard:hover .panelCheckinChip,
+  .memberAction:hover .memberActionArrow,
+  .memberAction:hover .memberActionIcon {
+    transform: none;
+  }
+  .dashHeroBar .progressTrack span {
+    transition: none;
+  }
+}
+/* ===== END UI UPLIFT A ===== */

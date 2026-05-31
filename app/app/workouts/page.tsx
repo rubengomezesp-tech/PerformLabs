@@ -6,6 +6,7 @@ import { getSelectedMemberAppBrand } from "@/lib/member-app";
 import { getMemberTrainingContext, type MemberAssignedWorkoutDay, type MemberAssignedWorkoutExercise } from "@/lib/repositories/member-onboarding";
 import { listManagedExercises, type ManagedWorkoutTemplate } from "@/lib/repositories/training-management";
 import { getWorkoutPerformanceSummary } from "@/lib/repositories/workout-performance";
+import { cloudinaryFetch } from "@/lib/cloudinary";
 import { requestWorkoutIssueAction, saveWorkoutSessionAction, swapWorkoutExerciseAction } from "./actions";
 
 type WorkoutTemplateDay = ManagedWorkoutTemplate["days"][number];
@@ -131,12 +132,12 @@ export default async function WorkoutsPage() {
         text="Sigue los ejercicios, apunta lo que haces y guarda la sesión para ver tu progreso."
       />
       <section className="grid">
-        <article className="span12 workoutAppHero">
+        <article className="span12 workoutAppHero uiGlass uiSheen uiFadeUp" style={{ ['--i' as string]: 0 }}>
           <div>
-            <span className="eyebrow">Hoy toca</span>
+            <span className="workoutHeroEyebrow"><span className="uiIconChip workoutHeroChip"><Dumbbell size={18} /></span> <span className="eyebrow">Hoy toca</span></span>
             <h2>{activeDay?.title ?? "Plan en revisión"}</h2>
             <p>{activeDay ? "Completa la rutina y apunta reps y kilos. Si algo te impide hacerla, avisa con un motivo concreto." : "Tu coach está revisando tu briefing antes de activar tu primera rutina."}</p>
-            <div className="workoutHeroMeta">
+            <div className="workoutHeroMeta uiMeta">
               <span><Dumbbell size={16} /> {activeDay ? `${sessionExercises} ejercicios` : "Pendiente de activar"}</span>
               <span><Video size={16} /> {activeDay ? totalSessionVideos ? `${totalSessionVideos} vídeos` : "Sin vídeos" : "Vídeos después"}</span>
               <span><Timer size={16} /> {activeDay ? `${estimatedMinutes} min aprox.` : "Revisión coach"}</span>
@@ -166,13 +167,13 @@ export default async function WorkoutsPage() {
         </article>
 
         <div className="span12 workoutMenuGrid">
-          <article className="card workoutStatusCard">
-            <div>
-              <span>
-                <small>Esta semana</small>
-                Entrenos completados
-              </span>
-              <strong>{activeDay ? `${performance.sessionsThisWeek}/${weeklyGoal}` : "Pendiente"}</strong>
+          <article className="card workoutStatusCard uiSheen uiFadeUp" style={{ ['--i' as string]: 1 }}>
+            <div className="workoutStatusTop">
+              <span className="uiIconChip"><CalendarClock size={17} /></span>
+              <div className="uiStat">
+                <span className="uiStatLabel">Esta semana</span>
+                <span className="uiStatValue">{activeDay ? `${performance.sessionsThisWeek}/${weeklyGoal}` : "—"}</span>
+              </div>
             </div>
             <div className="workoutMetrics">
               <span>Sesiones<strong>{performance.sessionsThisWeek}</strong></span>
@@ -180,24 +181,24 @@ export default async function WorkoutsPage() {
             </div>
           </article>
 
-          <article className="card workoutStatusCard">
-            <div>
-              <span>
-                <small>Mejor marca</small>
-                Último registro
-              </span>
-              <strong>{performance.bestSet ? `${performance.bestSet.weightKg} kg` : "Pendiente"}</strong>
+          <article className="card workoutStatusCard uiSheen uiFadeUp" style={{ ['--i' as string]: 2 }}>
+            <div className="workoutStatusTop">
+              <span className="uiIconChip"><TrendingUp size={17} /></span>
+              <div className="uiStat">
+                <span className="uiStatLabel">Mejor marca</span>
+                <span className="uiStatValue">{performance.bestSet ? `${performance.bestSet.weightKg} kg` : "—"}</span>
+              </div>
             </div>
             <p>{performance.bestSet ? `${performance.bestSet.reps} reps registradas en tu mejor set.` : "Cuando guardes tus entrenos, aquí verás tus mejores marcas."}</p>
           </article>
 
-          <article className="card workoutStatusCard">
-            <div>
-              <span>
-                <small>Objetivo de hoy</small>
-                Completar y guardar
-              </span>
-              <strong>{activeDay ? `${sessionExercises} ejercicios` : "Coach revisa"}</strong>
+          <article className="card workoutStatusCard uiSheen uiFadeUp" style={{ ['--i' as string]: 3 }}>
+            <div className="workoutStatusTop">
+              <span className="uiIconChip"><Target size={17} /></span>
+              <div className="uiStat">
+                <span className="uiStatLabel">Objetivo de hoy</span>
+                <span className="uiStatValue">{activeDay ? `${sessionExercises}` : "—"}<span className="workoutStatUnit">{activeDay ? " ejercicios" : ""}</span></span>
+              </div>
             </div>
             <p>{activeDay ? "Haz cada ejercicio con buena técnica. Si hay dolor, falta de material o una limitación real, avisa al coach." : "Tu plan no se publica hasta que el entrenador lo aprueba."}</p>
           </article>
@@ -213,12 +214,13 @@ export default async function WorkoutsPage() {
             </div>
             <div className="workoutDayCards">
               {planDays.map((day, index) => {
-                const cover = day.exercises.find((exercise) => exercise.thumbnailUrl)?.thumbnailUrl;
+                const rawCover = day.exercises.find((exercise) => exercise.thumbnailUrl)?.thumbnailUrl;
+                const cover = rawCover ? cloudinaryFetch(rawCover, { width: 160, height: 160 }) : "";
                 return (
                   <a className="workoutDayCard" href="#sesion-activa" key={`${day.title}-${index}`}>
                     <span
-                      className="workoutDayCover"
-                      style={cover ? { backgroundImage: `url(${cover})` } : { background: `linear-gradient(135deg, ${brand.accentColor}, #11131a)` }}
+                      className={cover ? "workoutDayCover" : "workoutDayCover workoutDayCoverEmpty"}
+                      style={cover ? { backgroundImage: `url(${cover})` } : undefined}
                     >
                       {cover ? null : <Dumbbell size={22} />}
                     </span>
@@ -297,7 +299,8 @@ export default async function WorkoutsPage() {
                 {activeDay.exercises.map((exercise, index) => {
                   const plannedSets = Math.max(1, Math.min(exercise.sets ?? 3, 6));
                   const detail = exerciseDetail(exercise);
-                  const cover = detail.imageUrl || exercise.thumbnailUrl;
+                  const rawCover = detail.imageUrl || exercise.thumbnailUrl;
+                  const cover = rawCover ? cloudinaryFetch(rawCover, { width: 280, height: 280 }) : "";
 
                   return (
                     <details className={index === 0 ? "sessionExerciseAccordion isCurrentExercise" : "sessionExerciseAccordion"} key={exercise.id} open={index === 0}>
@@ -309,11 +312,11 @@ export default async function WorkoutsPage() {
                         <b>{exercise.sets ?? "-"}x{exercise.reps || "-"}</b>
                       </summary>
                       <div className="sessionExercise">
-                        <div className="sessionExerciseMedia trnExerciseMedia">
+                        <div className={cover ? "sessionExerciseMedia trnExerciseMedia" : "sessionExerciseMedia trnExerciseMedia sessionExerciseMediaEmpty"}>
                           {cover ? (
                             <img alt={exercise.exerciseName} loading="lazy" src={cover} />
                           ) : (
-                            <Video size={30} />
+                            <Dumbbell size={28} aria-hidden />
                           )}
                           <span className={exercise.videoUrl ? "videoBadge ready" : "videoBadge"}>
                             {exercise.videoUrl ? "Vídeo listo" : "Vídeo pendiente"}
