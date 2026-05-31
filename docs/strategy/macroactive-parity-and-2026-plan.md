@@ -36,7 +36,7 @@ Supabase para estado de suscripción/entitlements (ya tenemos `entitlements`).
 | My Journey (fotos de progreso) | 🟡 `/app/progress` | Falta photo-journey dedicado |
 | Trackers: habit / step / period | ⛔ | Retención alta; habit tracker primero |
 | Workout Log (sets/reps/metrics por miembro) | 🟡 | Tabla `workout_performance_logs` existe; falta UI |
-| Billing info / account delete (GDPR) | ⛔ | |
+| Billing info | ⛔ | (account delete: ✅ ver abajo) | |
 
 **2026:** rings Whoop-style (ya iniciado), readiness/streaks, recap semanal,
 habit tracker con Supabase Realtime, step tracker vía Health Connect en build nativo.
@@ -96,7 +96,7 @@ OpenFoodFacts en vez de base de pago, swaps con IA.
 | Visibilidad calorías/macros (global de marca) | ⛔ | Settings → Visibility |
 | Master password / coach roles | 🟡 | Roles existen |
 | File manager (PDF) | 🟡 | |
-| Account delete (GDPR) | ⛔ | |
+| Account delete (GDPR) | ✅ | `/app/profile` → Eliminar cuenta (cascade + auth user) | |
 
 ## Roadmap priorizado (lo que iremos cerrando)
 
