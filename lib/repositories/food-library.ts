@@ -28,6 +28,8 @@ export type FoodItem = {
   imageUrl?: string;
   /** True when the row is a built-in starter food (not yet a real DB row). */
   isStarter: boolean;
+  /** True when the row is a platform-shared base-library food (workspace_id null). */
+  isBase: boolean;
 };
 
 export type MemberFoodItem = FoodItem & { favorite: boolean };
@@ -56,7 +58,7 @@ export const CATEGORY_ORDER: FoodCategory[] = [
   "other",
 ];
 
-type StarterFood = Omit<FoodItem, "id" | "isStarter">;
+type StarterFood = Omit<FoodItem, "id" | "isStarter" | "isBase" | "imageUrl">;
 
 // A clean, common starter database (per the labeled serving). White-label
 // workspaces ship with this so members can log from day one; the coach can
@@ -111,7 +113,7 @@ function starterFoodImage(name: string): string {
 }
 
 function starterItems(): FoodItem[] {
-  return STARTER_FOODS.map((food, index) => ({ ...food, id: starterId(index), imageUrl: starterFoodImage(food.name), isStarter: true }));
+  return STARTER_FOODS.map((food, index) => ({ ...food, id: starterId(index), imageUrl: starterFoodImage(food.name), isStarter: true, isBase: false }));
 }
 
 function isUuid(value?: string | null): value is string {
@@ -151,29 +153,43 @@ function mapRow(row: any): FoodItem {
     calories: Number(row.calories ?? 0),
     imageUrl: row.image_url ?? "",
     isStarter: false,
+    // Platform-shared rows have no workspace_id (or carry the flag); coaches can't
+    // delete them, every brand inherits them.
+    isBase: row.workspace_id == null || row.is_base_library === true,
   };
 }
 
 /**
- * The effective food library: the workspace's own rows, or the built-in starter
- * database when the workspace hasn't created any yet (so members always have
- * something to log). Optional `query` filters by name/brand.
+ * The effective food library: the platform-shared base library (workspace_id null,
+ * is_base_library true) merged with the workspace's own rows. Mirrors the
+ * white-label read in training-management.ts / nutrition-management.ts
+ * (`.or(workspace_id.eq.X,workspace_id.is.null)`), so every brand inherits the
+ * imported generic food database. Falls back to the built-in starter foods only
+ * when nothing is in the DB yet (so members always have something to log).
+ * Optional `query` filters by name/brand.
  */
 export async function listFoodLibrary(workspaceId?: string, query = ""): Promise<FoodItem[]> {
   const trimmed = query.trim();
   const env = getSupabaseServiceEnv();
-  if (!env.ok || !isUuid(workspaceId)) {
+  if (!env.ok) {
     return starterItems().filter((food) => matchesQuery(food, trimmed));
   }
 
   const supabase = createServiceSupabaseClient();
-  const { data, error } = await (supabase as any)
+  let select = (supabase as any)
     .from("food_library_items")
-    .select("id,name,brand,serving_label,category,protein_g,fat_g,carbs_g,calories,image_url,sort_order")
-    .eq("workspace_id", workspaceId)
+    .select("id,name,brand,serving_label,category,protein_g,fat_g,carbs_g,calories,image_url,sort_order,workspace_id,is_base_library");
+
+  // With a real workspace: its rows + the shared base library. Without one (e.g. a
+  // public/landing context): just the base library.
+  select = isUuid(workspaceId)
+    ? select.or(`workspace_id.eq.${workspaceId},workspace_id.is.null`)
+    : select.is("workspace_id", null);
+
+  const { data, error } = await select
     .order("sort_order", { ascending: true })
     .order("name", { ascending: true })
-    .limit(400);
+    .limit(2000);
 
   if (error || !data?.length) {
     if (error) console.error("Unable to load food library", error.message);
@@ -314,15 +330,17 @@ async function resolveFood(workspaceId: string, foodId: string): Promise<FoodIte
   if (foodId.startsWith("starter-")) {
     const index = Number(foodId.slice("starter-".length));
     const food = STARTER_FOODS[index];
-    return food ? { ...food, id: foodId, isStarter: true } : null;
+    return food ? { ...food, id: foodId, isStarter: true, isBase: false } : null;
   }
   if (!isUuid(foodId)) return null;
   const supabase = createServiceSupabaseClient();
+  // A food can be the workspace's own row OR a shared base-library row
+  // (workspace_id null), so quick-add resolves both.
   const { data } = await (supabase as any)
     .from("food_library_items")
-    .select("id,name,brand,serving_label,category,protein_g,fat_g,carbs_g,calories,image_url")
-    .eq("workspace_id", workspaceId)
+    .select("id,name,brand,serving_label,category,protein_g,fat_g,carbs_g,calories,image_url,workspace_id,is_base_library")
     .eq("id", foodId)
+    .or(`workspace_id.eq.${workspaceId},workspace_id.is.null`)
     .maybeSingle();
   return data ? mapRow(data) : null;
 }

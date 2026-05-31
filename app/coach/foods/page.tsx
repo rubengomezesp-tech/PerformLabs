@@ -99,7 +99,11 @@ export default async function CoachFoodsPage() {
                         <span className="catalogChip">{food.fat} G</span>
                       </div>
                     </div>
-                    {food.isStarter ? null : (
+                    {food.isStarter || food.isBase ? (
+                      // Base-library foods are shared by the platform; coaches can
+                      // hide/duplicate but not delete them from their own library.
+                      food.isBase ? <span className="catalogChip" title="Alimento base de la plataforma">Base</span> : null
+                    ) : (
                       <form action={deleteFoodItemAction}>
                         <input name="workspaceId" type="hidden" value={brand.id} />
                         <input name="foodId" type="hidden" value={food.id} />
