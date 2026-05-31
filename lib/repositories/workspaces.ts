@@ -1,3 +1,4 @@
+import { cache } from "react";
 import { childApps } from "@/lib/data";
 import { tenant } from "@/lib/data";
 import { appSettingDefinitions, defaultMemberAppPages } from "@/lib/domain/platform-logic";
@@ -525,7 +526,7 @@ export async function updateWorkspaceBranding(workspaceId: string, fields: Works
   }
 }
 
-export async function getWorkspaceBrand(workspaceReference?: string): Promise<WorkspaceBrand> {
+export const getWorkspaceBrand = cache(async (workspaceReference?: string): Promise<WorkspaceBrand> => {
   const env = getSupabaseServiceEnv();
 
   const reference = normalizeWorkspaceReference(workspaceReference);
@@ -573,9 +574,24 @@ export async function getWorkspaceBrand(workspaceReference?: string): Promise<Wo
     filters.unshift(`id.eq.${reference}`);
   }
 
-  const result = await query.or(filters.join(",")).limit(1).maybeSingle();
+  const runLookup = () =>
+    supabase
+      .from("workspaces")
+      .select("id,name,slug,app_name,custom_domain,public_domain,member_domain,fallback_subdomain,support_email,is_active,accent_color,created_at")
+      .or(filters.join(","))
+      .limit(1)
+      .maybeSingle();
+
+  let result = await runLookup();
+  if (result.error || !result.data) {
+    // A transient pool/timeout hiccup can yield a spurious miss. Retry once
+    // before the synthetic fallback brand — whose zero-UUID id would otherwise
+    // break member-app writes (isUuid) on a perfectly valid tenant host.
+    result = await runLookup();
+  }
 
   if (result.error || !result.data) {
+    console.error("getWorkspaceBrand: fell back to default brand", { reference, error: result.error?.message });
     return fallbackBrand();
   }
 
@@ -594,7 +610,7 @@ export async function getWorkspaceBrand(workspaceReference?: string): Promise<Wo
     accentColor: workspace.accent_color,
     isActive: workspace.is_active,
   };
-}
+});
 
 export async function updateWorkspace(input: WorkspaceInput) {
   if (!input.id) {
