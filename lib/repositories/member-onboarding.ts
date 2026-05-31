@@ -22,6 +22,8 @@ export type MemberAssignedWorkoutExercise = {
   videoUrl: string;
   thumbnailUrl: string;
   imageUrl: string;
+  /** Ordered demo frames (start→end) for the animated preview when no real video. */
+  frames: string[];
   muscleGroups: string[];
   equipment: string[];
   difficulty: string;
@@ -1064,6 +1066,7 @@ export async function getMemberTrainingContext(workspaceId?: string): Promise<Me
     type BaseExerciseDetail = {
       thumbnailUrl: string;
       imageUrl: string;
+      frames: string[];
       muscleGroups: string[];
       equipment: string[];
       difficulty: string;
@@ -1088,6 +1091,7 @@ export async function getMemberTrainingContext(workspaceId?: string): Promise<Me
         baseDetailByExercise.set(row.id, {
           thumbnailUrl: exerciseCardImage(urls),
           imageUrl: urls[0] ? cloudinaryFetch(urls[0], { width: 960, height: 640 }) : "",
+          frames: urls.slice(0, 4).map((url) => cloudinaryFetch(url, { width: 960, height: 640 })),
           muscleGroups: Array.isArray(row.muscle_groups) ? row.muscle_groups.filter(Boolean) : [],
           equipment: Array.isArray(row.equipment) ? row.equipment.filter(Boolean) : [],
           difficulty: typeof row.difficulty === "string" ? row.difficulty : "",
@@ -1116,6 +1120,7 @@ export async function getMemberTrainingContext(workspaceId?: string): Promise<Me
         videoUrl: exercise.video_url ?? "",
         thumbnailUrl: detail?.thumbnailUrl ?? "",
         imageUrl: detail?.imageUrl ?? "",
+        frames: detail?.frames ?? [],
         muscleGroups: detail?.muscleGroups ?? [],
         equipment: detail?.equipment ?? [],
         difficulty: detail?.difficulty ?? "",

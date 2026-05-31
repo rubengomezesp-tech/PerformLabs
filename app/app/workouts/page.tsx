@@ -1,6 +1,7 @@
 import { CalendarClock, CheckCircle2, ChevronRight, Dumbbell, Play, Repeat2, Target, Timer, TrendingUp, Video, Wrench } from "lucide-react";
 import Link from "next/link";
 import { Dialog } from "@/components/dialog";
+import { ExercisePreview } from "@/components/exercise-preview";
 import { Topbar } from "@/components/topbar";
 import { getSelectedMemberAppBrand } from "@/lib/member-app";
 import { getMemberTrainingContext, type MemberAssignedWorkoutDay, type MemberAssignedWorkoutExercise } from "@/lib/repositories/member-onboarding";
@@ -73,10 +74,11 @@ function techniqueCue(instructions: string) {
 /** Coach-prescribed images + base-library detail used in the exercise card. */
 function exerciseDetail(exercise: WorkoutExerciseView) {
   if (!isAssignedExercise(exercise)) {
-    return { imageUrl: "", muscleGroups: [] as string[], equipment: [] as string[], difficulty: "", cue: "", progression: null as MemberAssignedWorkoutExercise["progression"] };
+    return { imageUrl: "", frames: [] as string[], muscleGroups: [] as string[], equipment: [] as string[], difficulty: "", cue: "", progression: null as MemberAssignedWorkoutExercise["progression"] };
   }
   return {
     imageUrl: exercise.imageUrl || exercise.thumbnailUrl,
+    frames: exercise.frames,
     muscleGroups: exercise.muscleGroups,
     equipment: exercise.equipment,
     difficulty: exercise.difficulty,
@@ -301,6 +303,7 @@ export default async function WorkoutsPage() {
                   const detail = exerciseDetail(exercise);
                   const rawCover = detail.imageUrl || exercise.thumbnailUrl;
                   const cover = rawCover ? cloudinaryFetch(rawCover, { width: 280, height: 280 }) : "";
+                  const previewFrames = detail.frames.map((frame) => cloudinaryFetch(frame, { width: 560, height: 560 }));
 
                   return (
                     <details className={index === 0 ? "sessionExerciseAccordion isCurrentExercise" : "sessionExerciseAccordion"} key={exercise.id} open={index === 0}>
@@ -312,8 +315,10 @@ export default async function WorkoutsPage() {
                         <b>{exercise.sets ?? "-"}x{exercise.reps || "-"}</b>
                       </summary>
                       <div className="sessionExercise">
-                        <div className={cover ? "sessionExerciseMedia trnExerciseMedia" : "sessionExerciseMedia trnExerciseMedia sessionExerciseMediaEmpty"}>
-                          {cover ? (
+                        <div className={cover || previewFrames.length ? "sessionExerciseMedia trnExerciseMedia" : "sessionExerciseMedia trnExerciseMedia sessionExerciseMediaEmpty"}>
+                          {previewFrames.length > 1 ? (
+                            <ExercisePreview frames={previewFrames} name={exercise.exerciseName} />
+                          ) : cover ? (
                             <img alt={exercise.exerciseName} loading="lazy" src={cover} />
                           ) : (
                             <Dumbbell size={28} aria-hidden />

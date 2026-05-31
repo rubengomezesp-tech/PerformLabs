@@ -13232,3 +13232,50 @@ button[aria-busy="true"] {
   .guideCard:hover { transform: none; }
 }
 /* ===== END UI UPLIFT C ===== */
+
+/* ===== Exercise demo preview (platform-default animated frames) ===== */
+.exercisePreview {
+  position: relative;
+  display: block;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  background: var(--surface-3);
+}
+.exercisePreviewFrame {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  opacity: 0;
+  transition: opacity 0.55s var(--ease);
+}
+.exercisePreviewFrame.is-current {
+  opacity: 1;
+}
+.exercisePreviewBadge {
+  position: absolute;
+  left: 10px;
+  bottom: 10px;
+  z-index: 2;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 4px 9px;
+  border-radius: var(--radius-pill);
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  background: color-mix(in srgb, var(--bg) 60%, transparent);
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
+  color: var(--text);
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+}
+@media (prefers-reduced-motion: reduce) {
+  .exercisePreviewFrame {
+    transition: none;
+  }
+}
+/* ===== END Exercise demo preview ===== */
