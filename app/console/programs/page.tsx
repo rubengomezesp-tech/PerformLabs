@@ -161,7 +161,7 @@ export default async function ProgramsPage({ searchParams }: ProgramsPageProps) 
               </label>
               <label>
                 Días/semana
-                <input name="daysPerWeek" defaultValue="3" min="1" max="7" type="number" />
+                <input name="daysPerWeek" defaultValue="3" min="1" max="7" type="number" inputMode="numeric" />
               </label>
               <div className="formActions">
                 <button className="btn primary" type="submit">
@@ -217,7 +217,7 @@ export default async function ProgramsPage({ searchParams }: ProgramsPageProps) 
                       </label>
                       <label>
                         Series
-                        <input name="sets" defaultValue="3" type="number" />
+                        <input name="sets" defaultValue="3" type="number" inputMode="numeric" />
                       </label>
                       <label>
                         Reps
@@ -225,7 +225,7 @@ export default async function ProgramsPage({ searchParams }: ProgramsPageProps) 
                       </label>
                       <label>
                         Descanso
-                        <input name="restSeconds" defaultValue="90" type="number" />
+                        <input name="restSeconds" defaultValue="90" type="number" inputMode="numeric" />
                       </label>
                       <label className="spanFull">
                         Notas
@@ -242,11 +242,11 @@ export default async function ProgramsPage({ searchParams }: ProgramsPageProps) 
               <input name="templateId" type="hidden" value={template.id} />
               <label>
                 Semana
-                <input name="weekNumber" defaultValue="1" min="1" type="number" />
+                <input name="weekNumber" defaultValue="1" min="1" type="number" inputMode="numeric" />
               </label>
               <label>
                 Día
-                <input name="dayNumber" defaultValue={String(template.days.length + 1)} min="1" type="number" />
+                <input name="dayNumber" defaultValue={String(template.days.length + 1)} min="1" type="number" inputMode="numeric" />
               </label>
               <label>
                 Título

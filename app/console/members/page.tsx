@@ -71,7 +71,7 @@ export default async function MembersPage({ searchParams }: MembersPageProps) {
               </label>
               <label>
                 Altura cm
-                <input name="heightCm" placeholder="178" type="number" />
+                <input name="heightCm" placeholder="178" type="number" inputMode="decimal" />
               </label>
               <label>
                 Peso inicial kg

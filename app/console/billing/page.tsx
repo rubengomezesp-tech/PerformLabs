@@ -109,7 +109,7 @@ export default async function BillingPage({ searchParams }: BillingPageProps) {
                 </label>
                 <label>
                   Trial días
-                  <input name="trialDays" defaultValue="0" min="0" type="number" />
+                  <input name="trialDays" defaultValue="0" min="0" type="number" inputMode="numeric" />
                 </label>
                 <button className="btn primary" type="submit">Crear plan <CreditCard size={18} /></button>
               </form>
