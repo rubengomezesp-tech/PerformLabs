@@ -1,3 +1,4 @@
+import { cache } from "react";
 import { cookies, headers } from "next/headers";
 import {
   Activity,
@@ -80,7 +81,12 @@ function toNavItem(page: MemberAppPage): MemberNavItem {
   };
 }
 
-export async function getSelectedMemberAppBrand(): Promise<WorkspaceBrand> {
+// Memoized per request (React cache): the layout (metadata, viewport, shell,
+// requireMemberContext) and the page each resolve the brand, and under DB pool
+// pressure an un-deduped extra lookup could transiently fail and yield the
+// zero-UUID fallback brand — which then breaks member writes (isUuid). cache()
+// collapses all calls in a request into one resolution, so every caller agrees.
+export const getSelectedMemberAppBrand = cache(async (): Promise<WorkspaceBrand> => {
   const workspaceId = await getSelectedWorkspaceId();
   const host = await getRequestHost();
 
@@ -93,7 +99,7 @@ export async function getSelectedMemberAppBrand(): Promise<WorkspaceBrand> {
   // real workspace the member app can write against.
   const reference = isTenantHost(host) ? host : (workspaceId || "");
   return getWorkspaceBrand(reference);
-}
+});
 
 export async function getSelectedMemberAppShell(): Promise<{
   brand: WorkspaceBrand;
