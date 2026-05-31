@@ -1,11 +1,31 @@
 ---
 tags: [decisiones, log]
-updated: 2026-05-30
+updated: 2026-05-31
 ---
 
 # Decisiones (registro)
 
 Las decisiones clave y su _por qué_. La más reciente arriba.
+
+- **2026-05-31 · El uplift de UI/UX (Ethereal Glass) llegó a producción tras
+  arreglar un build roto por un comentario CSS** — el merge de la PR #71 (uplift de
+  toda la member app) **falló el build en Vercel** (commit `b09db99`, `ERROR`), así
+  que producción siguió sirviendo `59a3fe2` (solo la base de utilidades) y los
+  screenshots mostraban el dashboard viejo aunque el markup estaba en `main`. Causa
+  raíz: los comentarios cabecera de los bloques **UI UPLIFT B y C** en `globals.css`
+  describían los globs de clase como `.uiStat*/.uiFadeUp` y `.ntr*/.meal*/.recipe*`.
+  En CSS **no hay escape dentro de comentarios**: el primer `*/` cierra el bloque, así
+  que cada `*/` cerraba el comentario a media frase y el resto se parseaba como CSS →
+  `Unexpected token CloseParenthesis` en `globals.css:12929` (Turbopack). **Lección:
+  `tsc --noEmit` no parsea CSS**, por eso el typecheck local pasaba mientras
+  `next build` fallaba — el gate real es un `next build` completo, no solo typecheck.
+  Reescritos ambos comentarios sin `*/`, build local verde, push a `main` (`9c4377d`),
+  deploy `READY`, y verificado en vivo como Alex: Panel (hero glass `.uiGlass` con
+  `.uiStat` 8% + `.uiIconChip`), Comida (hero "Siguiente comida" + chips + Imprimir/
+  Diario/Recetas, plan carga OK) y Perfil (3 tarjetas `.uiFadeUp` con datos reales).
+  Nota de verificación: el "hueco" inicial en Perfil era la animación de entrada
+  escalonada (`.uiFadeUp` con stagger `--i`) capturada a medias; `opacity:1` confirmado
+  por DOM. Ver [[Features]].
 
 - **2026-05-31 · Chat 1:1, nutrición premium, perfil real y borrado GDPR (3 agentes)**
   — cerrados varios gaps de los informes, verificados E2E en producción como Alex:
