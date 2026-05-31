@@ -1,7 +1,7 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
-import { upsertDailyNutritionLog, upsertMealLog, type MealLogStatus } from "@/lib/repositories/nutrition-tracking";
+import { logWaterGlass, upsertDailyNutritionLog, upsertMealLog, type MealLogStatus } from "@/lib/repositories/nutrition-tracking";
 import { swapAssignedMealItem } from "@/lib/repositories/nutrition-management";
 
 function readText(formData: FormData, key: string) {
@@ -47,6 +47,14 @@ export async function swapMealAction(formData: FormData) {
 
   revalidatePath("/app/meals");
   revalidatePath("/app/diary");
+}
+
+export async function logWaterGlassAction(formData: FormData) {
+  await logWaterGlass(readText(formData, "workspaceId"), 1);
+
+  revalidatePath("/app/meals");
+  revalidatePath("/app/diary");
+  revalidatePath("/app/progress");
 }
 
 export async function saveNutritionDayAction(formData: FormData) {

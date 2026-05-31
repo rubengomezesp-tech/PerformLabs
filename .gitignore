@@ -18,3 +18,7 @@ skills-lock.json
 .DS_Store
 *.log
 *.tsbuildinfo
+
+# local agent worktrees & scratch
+.claude/worktrees/
+handoff.md

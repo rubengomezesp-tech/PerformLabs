@@ -14,7 +14,7 @@ import {
   sumConsumedMacros,
 } from "@/lib/repositories/nutrition-tracking";
 import { listManagedRecipes } from "@/lib/repositories/nutrition-management";
-import { saveMealLogAction, saveNutritionDayAction, swapMealAction } from "./actions";
+import { logWaterGlassAction, saveMealLogAction, saveNutritionDayAction, swapMealAction } from "./actions";
 
 export default async function MealsPage() {
   const brand = await getSelectedMemberAppBrand();
@@ -124,12 +124,19 @@ export default async function MealsPage() {
             </div>
             <p>{hasApprovedMealPlan ? "Marca cada comida cuando la hagas para llevar el día controlado." : "Cuando el coach publique el plan verás tus comidas aquí."}</p>
           </article>
-          <article className="card mealStatusCard">
+          <article className="card mealStatusCard ntrWaterCard">
             <div>
               <span><small>Hidratación</small>Agua del día</span>
               <strong>{dailySummary.waterGlasses}/{waterTargetGlasses}</strong>
             </div>
             <div className="mealMiniProgress"><span style={{ width: `${Math.max(6, waterPercent)}%` }} /></div>
+            <form action={logWaterGlassAction} className="ntrWaterLog">
+              <input name="workspaceId" type="hidden" value={brand.id} />
+              <button className="btn sm ntrWaterBtn" type="submit" aria-label="Registrar un vaso de agua">
+                <Droplets size={15} /> +1 vaso
+              </button>
+              <span className="ntrWaterHint">{waterPercent}% de tu objetivo</span>
+            </form>
           </article>
           <article className="card mealStatusCard">
             <div>

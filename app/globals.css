@@ -11306,3 +11306,85 @@ button[aria-busy="true"] {
   }
 }
 /* ===== END COACH PROGRAMS ===== */
+/* ===== NUTRITION CLOSURE (agent) ===== */
+
+/* Water quick-log on the meals water ring. The +1 button and hint sit under the
+   existing mini progress bar, keeping the card compact. */
+.ntrWaterCard {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.ntrWaterLog {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  margin-top: 2px;
+}
+.ntrWaterBtn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  white-space: nowrap;
+}
+.ntrWaterHint {
+  font-size: 0.78rem;
+  color: var(--muted);
+}
+
+/* Recipe detail: per-serving vs per-100g macro toggle. */
+.ntrMacroToggleWrap {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.ntrMacroToggle {
+  display: inline-flex;
+  align-self: flex-start;
+  gap: 4px;
+  padding: 4px;
+  border: 1px solid var(--line);
+  border-radius: var(--radius-pill, 999px);
+  background: var(--surface-2);
+}
+.ntrMacroToggleBtn {
+  appearance: none;
+  border: 0;
+  cursor: pointer;
+  padding: 6px 14px;
+  border-radius: 999px;
+  font: inherit;
+  font-size: 0.82rem;
+  font-weight: 600;
+  color: var(--muted);
+  background: transparent;
+  transition: background 0.15s ease, color 0.15s ease;
+}
+.ntrMacroToggleBtn:hover {
+  color: var(--text);
+}
+.ntrMacroToggleBtn.active {
+  color: var(--accent-contrast, #04121f);
+  background: var(--accent);
+}
+.ntrMacroToggleBtn:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+.ntrMacroToggleNote {
+  color: var(--muted);
+  font-size: 0.78rem;
+}
+
+/* Recipe detail: "Registrar en mi diario" action under the macros. */
+.ntrRecipeLogForm {
+  margin-top: 4px;
+}
+.ntrRecipeLogForm .btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+
+/* ===== END NUTRITION CLOSURE ===== */
