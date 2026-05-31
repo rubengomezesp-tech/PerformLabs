@@ -42,7 +42,7 @@ export default async function MemberRecipesPage({ searchParams }: RecipesPagePro
         actions={<Link className="btn" href="/app/meals"><Utensils size={16} /> Mi plan</Link>}
       />
       <section className="grid">
-        <article className="card span12">
+        <article className="card span12 uiGlass uiSheen ntrbRecipeFilters">
           <form action="/app/recipes" className="recipeFilters" method="get">
             <label>
               Buscar
@@ -66,8 +66,8 @@ export default async function MemberRecipesPage({ searchParams }: RecipesPagePro
 
         {recipes.length ? (
           <div className="span12 recipeGrid">
-            {recipes.map((recipe) => (
-              <Link className="recipeCard" href={`/app/recipes/${recipe.id}`} key={recipe.id}>
+            {recipes.map((recipe, index) => (
+              <Link className="recipeCard uiSheen ntrbRecipeCard uiFadeUp" style={{ ["--i" as string]: index % 8 }} href={`/app/recipes/${recipe.id}`} key={recipe.id}>
                 <RecipeImage
                   className="recipeMedia"
                   id={recipe.id}
@@ -75,7 +75,7 @@ export default async function MemberRecipesPage({ searchParams }: RecipesPagePro
                   mealSlot={recipe.mealSlot}
                   imageUrl={recipe.imageUrl}
                 >
-                  {recipe.mealSlot ? <span className="recipeSlot">{recipe.mealSlot}</span> : null}
+                  {recipe.mealSlot ? <span className="recipeSlot ntrbRecipeSlot">{recipe.mealSlot}</span> : null}
                 </RecipeImage>
                 <div className="recipeBody">
                   <h3>{recipe.name}</h3>

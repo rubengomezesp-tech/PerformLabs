@@ -12398,3 +12398,774 @@ button[aria-busy="true"] {
   padding-inline: 16px;
 }
 /* ===== END MEMBER CHAT ===== */
+
+
+/* ===== UI UPLIFT A (agent) =====
+   Cluster A: Panel/dashboard, Entreno (workouts), Cardio.
+   "Ethereal Glass to the max" — composes onto the shared foundation
+   utilities (.uiGlass/.uiSheen/.uiIconChip/.uiStat/.uiMeta/.uiFadeUp).
+   All selectors namespaced to classes this cluster owns; appended last so
+   it wins source-order over the older per-page rules it elevates. */
+
+/* --- shared inline icon-chip sizes (foundation chip is 38px; these are the
+   smaller inline variants used in rows/headers across the cluster) --- */
+.dashCardHeading .uiIconChip,
+.workoutStatusTop .uiIconChip,
+.cardioCardIcon.uiIconChip,
+.trnCardioIcon.uiIconChip {
+  width: 34px;
+  height: 34px;
+  border-radius: 10px;
+}
+.panelHabitChip,
+.cardioSessionIcon.uiIconChip {
+  width: 30px;
+  height: 30px;
+  border-radius: 9px;
+}
+
+/* ---------- DASHBOARD ---------- */
+.dashHero {
+  position: relative;
+  display: grid;
+  gap: clamp(18px, 3vw, 26px);
+  padding: clamp(20px, 3vw, 30px);
+}
+.dashHeroTop {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 14px;
+}
+.dashHeroHeading {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+.dashHeroChip {
+  width: 44px;
+  height: 44px;
+  border-radius: 13px;
+  background: color-mix(in srgb, var(--accent) 20%, transparent);
+}
+.dashHeroHeading h2 {
+  margin: 4px 0 0;
+  font-size: clamp(24px, 3.4vw, 34px);
+  line-height: 1.05;
+  letter-spacing: -0.01em;
+}
+.dashHeroProgress {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  align-items: center;
+  gap: clamp(16px, 4vw, 36px);
+}
+.dashHero .dashPct {
+  font-size: 0.55em;
+  color: var(--text-muted);
+  margin-left: 2px;
+}
+.dashHeroBar {
+  display: grid;
+  gap: 10px;
+}
+.dashHeroBar .progressTrack {
+  height: 12px;
+  background: rgba(255, 255, 255, 0.07);
+}
+.dashHeroBar .progressTrack span {
+  background: linear-gradient(90deg, var(--accent-strong), var(--accent));
+  box-shadow: 0 0 16px -2px color-mix(in srgb, var(--accent) 75%, transparent);
+  transition: width 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+}
+.dashHero .miRecorridoMeta {
+  margin: 0;
+}
+
+.dashCardHeading {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+.dashCardHeading h2 {
+  margin: 0;
+}
+.dashCardHeading p {
+  margin: 2px 0 0;
+}
+
+.panelHabitRow {
+  transition: border-color 0.18s ease, background 0.18s ease;
+}
+.panelHabitRow.is-active {
+  border-color: color-mix(in srgb, var(--accent) 32%, var(--line));
+  background: color-mix(in srgb, var(--accent) 7%, transparent);
+}
+
+.panelCheckinChip {
+  width: 40px;
+  height: 40px;
+  border-radius: 12px;
+  background: color-mix(in srgb, var(--accent) 22%, transparent);
+  transition: transform 0.18s ease, background 0.18s ease;
+}
+.panelCheckinCard:hover .panelCheckinChip {
+  transform: translateX(3px);
+  background: var(--accent);
+  color: var(--accent-contrast);
+}
+
+/* Today list — layered rows with accent chips + arrow drift */
+.memberActionText {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+.memberAction .memberActionArrow {
+  color: var(--text-soft);
+  transition: transform 0.18s ease, color 0.18s ease;
+}
+.memberAction:hover .memberActionArrow {
+  transform: translateX(3px);
+  color: var(--accent);
+}
+.memberAction:hover .memberActionIcon {
+  background: var(--accent);
+  color: var(--accent-contrast);
+}
+
+/* Program card — branded gradient art instead of empty box */
+.memberProgramCard {
+  display: grid;
+  grid-template-columns: 64px minmax(0, 1fr);
+  gap: 16px;
+  align-items: start;
+}
+.memberProgramArt {
+  display: grid;
+  place-items: center;
+  width: 64px;
+  height: 64px;
+  border-radius: 14px;
+  color: var(--accent);
+  border: 1px solid color-mix(in srgb, var(--accent) 30%, transparent);
+  background:
+    radial-gradient(120% 120% at 20% 10%, color-mix(in srgb, var(--accent) 28%, transparent), transparent 60%),
+    linear-gradient(160deg, color-mix(in srgb, var(--accent) 14%, var(--surface-2)), var(--surface));
+}
+.memberProgramBody {
+  display: grid;
+  gap: 8px;
+  min-width: 0;
+}
+.memberProgramBody h2 {
+  margin: 4px 0 0;
+}
+
+/* ---------- WORKOUTS ---------- */
+/* Re-skin the hero as true frosted glass (uiGlass loses source-order to the
+   older .workoutAppHero background, so re-assert it here). */
+.workoutAppHero.uiGlass {
+  border: 1px solid rgba(255, 255, 255, 0.09);
+  background:
+    radial-gradient(140% 120% at 100% 0%, color-mix(in srgb, var(--accent) 14%, transparent), transparent 60%),
+    linear-gradient(165deg, color-mix(in srgb, var(--surface-2) 82%, transparent), color-mix(in srgb, var(--surface) 72%, transparent));
+}
+.workoutHeroEyebrow,
+.trnCardioHeroEyebrow {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+}
+.workoutHeroChip,
+.trnCardioHeroChip {
+  width: 34px;
+  height: 34px;
+  border-radius: 10px;
+}
+/* uiMeta hero pills keep the framed look but softer */
+.workoutAppHero .workoutHeroMeta.uiMeta span,
+.trnCardioHero .trnCardioHeroMeta.uiMeta span {
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 9px;
+  background: rgba(255, 255, 255, 0.05);
+  color: var(--text-muted);
+  padding: 7px 11px;
+  font-size: 13px;
+  font-weight: 600;
+}
+
+/* Status cards — stat-led header */
+.workoutStatusTop {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+.workoutStatusCard .workoutStatUnit {
+  font-size: 0.46em;
+  font-weight: 600;
+  color: var(--text-muted);
+  letter-spacing: 0;
+}
+
+/* Week-plan empty cover — branded gradient, never a naked box */
+.workoutDayCoverEmpty {
+  color: var(--accent);
+  border: 1px solid color-mix(in srgb, var(--accent) 26%, transparent);
+  background:
+    radial-gradient(120% 120% at 25% 15%, color-mix(in srgb, var(--accent) 30%, transparent), transparent 62%),
+    linear-gradient(160deg, color-mix(in srgb, var(--accent) 14%, var(--surface-2)), var(--surface));
+}
+
+/* Exercise media empty state — branded, not a flat video glyph box */
+.sessionExerciseMediaEmpty {
+  display: grid;
+  place-items: center;
+  color: var(--accent);
+  background:
+    radial-gradient(130% 130% at 30% 10%, color-mix(in srgb, var(--accent) 26%, transparent), transparent 60%),
+    linear-gradient(165deg, color-mix(in srgb, var(--accent) 12%, var(--surface-2)), var(--surface));
+}
+
+/* Progression hint — make the "last time" cue feel like a coach prompt */
+.trnProgressionHint {
+  border-radius: 10px;
+  border: 1px solid color-mix(in srgb, var(--accent) 30%, transparent);
+  background: color-mix(in srgb, var(--accent) 9%, transparent);
+  padding: 9px 12px;
+}
+
+/* ---------- CARDIO ---------- */
+.trnCardioHero.uiGlass {
+  border: 1px solid rgba(255, 255, 255, 0.09);
+  background:
+    radial-gradient(140% 120% at 100% 0%, color-mix(in srgb, var(--accent) 14%, transparent), transparent 60%),
+    linear-gradient(165deg, color-mix(in srgb, var(--surface-2) 82%, transparent), color-mix(in srgb, var(--surface) 72%, transparent));
+}
+/* Steps/NEAT card — restructured to chip + stat */
+.trnCardioStepsCard {
+  display: grid;
+  gap: 12px;
+  align-content: start;
+}
+.trnCardioStepsChip {
+  width: 44px;
+  height: 44px;
+  border-radius: 13px;
+}
+.trnCardioStepsStat .uiStatValue {
+  font-size: clamp(28px, 3.4vw, 38px);
+}
+
+/* Recommended protocol gets the accent selected treatment via .selected
+   (so its .uiIconChip fills). Add a soft glow + border. */
+.trnCardioCard.recommended {
+  border-color: color-mix(in srgb, var(--accent) 40%, var(--border));
+  box-shadow: var(--shadow), 0 0 34px -16px color-mix(in srgb, var(--accent) 70%, transparent);
+}
+
+/* Cardio "how to fit it" note — accent card layout */
+.trnCardioNote {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  gap: 14px;
+  align-items: start;
+}
+.trnCardioNoteChip {
+  width: 42px;
+  height: 42px;
+  border-radius: 12px;
+}
+
+@media (max-width: 720px) {
+  .dashHeroProgress {
+    grid-template-columns: 1fr;
+    gap: 14px;
+  }
+  .memberProgramCard {
+    grid-template-columns: 52px minmax(0, 1fr);
+  }
+  .memberProgramArt {
+    width: 52px;
+    height: 52px;
+  }
+}
+
+/* Respect reduced-motion: kill the hover drifts + the progress-bar tween for
+   users who opt out (the entrance fade is already guarded in .uiFadeUp). */
+@media (prefers-reduced-motion: reduce) {
+  .panelCheckinCard:hover .panelCheckinChip,
+  .memberAction:hover .memberActionArrow,
+  .memberAction:hover .memberActionIcon {
+    transform: none;
+  }
+  .dashHeroBar .progressTrack span {
+    transition: none;
+  }
+}
+/* ===== END UI UPLIFT A ===== */
+
+/* ===== UI UPLIFT B (agent) =====
+   Nutrición cluster — Comida, Alimentos, Diario, Recetas, Suplementos.
+   "Ethereal Glass to the max": depth, frosted heroes, accent icon chips,
+   tactile cards. All namespaced .ntrb* so it composes on the existing
+   .ntr*/.meal*/.recipe* surfaces without clobbering them. */
+
+/* --- Premium image placeholder: lift the recipe/food fallback so a missing
+   photo reads as an intentional branded tile, never a naked empty box. --- */
+.recipeImageFallback {
+  background:
+    radial-gradient(120% 120% at 18% 12%, color-mix(in srgb, var(--accent) 30%, transparent), transparent 58%),
+    radial-gradient(140% 140% at 100% 100%, color-mix(in srgb, var(--accent) 14%, transparent), transparent 60%),
+    linear-gradient(150deg, color-mix(in srgb, var(--accent) 18%, var(--surface-3)), var(--surface-2));
+}
+.recipeImageFallback::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background-image: radial-gradient(rgba(255, 255, 255, 0.05) 1px, transparent 1px);
+  background-size: 14px 14px;
+  opacity: 0.5;
+  pointer-events: none;
+  mask-image: linear-gradient(160deg, #000, transparent 75%);
+  -webkit-mask-image: linear-gradient(160deg, #000, transparent 75%);
+}
+.recipeImageFrame { isolation: isolate; }
+
+/* Shared accent section chip used in card headers across the cluster. */
+.ntrbSectionChip { width: 34px; height: 34px; border-radius: 10px; }
+.ntrbStatChip { width: 30px; height: 30px; border-radius: 9px; }
+
+/* ============ MEALS ============ */
+.ntrbHero { border-color: rgba(255, 255, 255, 0.1); }
+.ntrbHeroMeta { margin-top: 18px; }
+.ntrbHeroMeta.uiMeta > span {
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.05);
+  color: var(--text-soft);
+  padding: 7px 13px;
+  font-size: 12.5px;
+  font-weight: 600;
+}
+.ntrbHeroMeta.uiMeta > span svg { color: var(--accent); }
+
+/* Status cards: stat-forward, chip in the corner. */
+.ntrbStatCard.mealStatusCard { position: relative; gap: 12px; }
+.ntrbStatCard.mealStatusCard > div:first-child { align-items: center; }
+.ntrbStatCard .ntrbStatValue {
+  border: 0;
+  padding: 0;
+  color: var(--text);
+}
+.ntrbStatCard .ntrbStatValue i {
+  font-style: normal;
+  font-size: 0.56em;
+  font-weight: 600;
+  color: var(--text-soft);
+  margin-left: 1px;
+}
+
+/* Meal card: tactile, framed media, accent next-meal flag. */
+.ntrbMealCard.mealAppCard {
+  position: relative;
+  transition: transform var(--dur-fast) var(--ease), border-color var(--dur-fast) var(--ease), box-shadow var(--dur-fast) var(--ease);
+}
+.ntrbMealCard.mealAppCard:hover {
+  transform: translateY(-3px);
+  border-color: color-mix(in srgb, var(--accent) 46%, var(--border));
+  box-shadow: var(--shadow-lg), 0 0 34px -18px color-mix(in srgb, var(--accent) 80%, transparent);
+}
+.ntrbMealDone.mealAppCard { opacity: 0.92; }
+.ntrbMealMedia.mealAppCardMedia {
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.06);
+}
+.ntrbMealTop { align-items: center; }
+.ntrbMealChip { width: 34px; height: 34px; }
+.ntrbMealIndex {
+  font-variant-numeric: tabular-nums;
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  color: var(--text-soft);
+}
+.ntrbMealSlot {
+  color: var(--accent) !important;
+  letter-spacing: 0.06em;
+}
+.ntrbNextFlag {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  z-index: 2;
+  padding: 4px 10px;
+  border-radius: 999px;
+  background: var(--accent);
+  color: var(--accent-contrast);
+  font-size: 10.5px;
+  font-weight: 800;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  box-shadow: 0 4px 14px -6px color-mix(in srgb, var(--accent) 90%, transparent);
+}
+.ntrbMealChips span {
+  border-radius: 999px;
+}
+
+/* ============ FOODS ============ */
+.ntrbSearchCard.foodSearchCard { padding: 14px; }
+.ntrbSearchCard .foodSearch input {
+  background: rgba(255, 255, 255, 0.04);
+}
+.ntrbSearchCard .foodSearchIcon { color: var(--accent); }
+.ntrbFavCard.foodGroupCard {
+  border-color: color-mix(in srgb, var(--accent) 22%, var(--border));
+}
+/* Lift the totals strip values to the shared stat scale. */
+.ntrFoodsTotals.uiAccentCard .ntrFoodsTotalsRow > span strong { color: var(--text); }
+.ntrFoodsTotals.uiAccentCard .ntrFoodsTotalsRow > span:first-child strong { color: var(--accent); }
+.ntrFoodsTotalsHead .ntrbStatChip { margin-right: 2px; }
+
+/* ============ DIARY ============ */
+.ntrbDiaryStats.diaryStats {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px 26px;
+  align-items: center;
+}
+.ntrbDiaryStat {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+}
+.ntrbDiaryStat .uiStatValue { font-size: clamp(20px, 2.4vw, 26px); }
+.ntrbDiaryEntry.diaryEntry {
+  transition: transform var(--dur-fast) var(--ease), border-color var(--dur-fast) var(--ease);
+}
+.ntrbDiaryEntry.diaryEntry:hover {
+  transform: translateY(-2px);
+  border-color: color-mix(in srgb, var(--accent) 38%, var(--border));
+}
+.ntrbDiaryEntry.diaryEntry.done { border-color: color-mix(in srgb, var(--accent) 30%, var(--border)); }
+
+/* ============ RECIPES ============ */
+.ntrbRecipeFilters.uiGlass { padding: 16px; }
+.ntrbRecipeCard.recipeCard {
+  position: relative;
+  border-radius: var(--radius-lg);
+  transition: transform var(--dur-fast) var(--ease), border-color var(--dur-fast) var(--ease), box-shadow var(--dur-fast) var(--ease);
+}
+.ntrbRecipeCard.recipeCard:hover {
+  transform: translateY(-3px);
+  border-color: color-mix(in srgb, var(--accent) 48%, var(--border));
+  box-shadow: var(--shadow-lg), 0 0 30px -18px color-mix(in srgb, var(--accent) 80%, transparent);
+}
+.ntrbRecipeCard .recipeMedia img {
+  transition: transform 0.45s var(--ease);
+}
+.ntrbRecipeCard:hover .recipeMedia img { transform: scale(1.045); }
+.ntrbRecipeSlot.recipeSlot {
+  background: color-mix(in srgb, var(--accent) 80%, rgba(8, 9, 9, 0.7));
+  color: var(--accent-contrast);
+  font-weight: 700;
+}
+.ntrbRecipeHero.recipeDetailHero { border-color: rgba(255, 255, 255, 0.1); }
+.ntrbRecipeEyebrow { color: var(--accent); }
+.ntrbRecipeSubhead {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+/* ============ SUPPLEMENTS ============ */
+.ntrbSuppSummary.suppSummary {
+  align-items: center;
+  gap: 16px;
+}
+.ntrbSuppChip { width: 46px; height: 46px; border-radius: 13px; }
+.ntrbSuppSummary .ntrSuppSummaryBody { flex: 1; min-width: 0; }
+.ntrbSuppStat {
+  text-align: right;
+  flex: 0 0 auto;
+}
+.ntrbSuppStat .uiStatValue i {
+  font-style: normal;
+  font-size: 0.5em;
+  font-weight: 600;
+  color: var(--text-soft);
+}
+.ntrbSuppGroup.suppGroup {
+  transition: border-color var(--dur-fast) var(--ease);
+}
+.ntrbSuppGroup.suppGroup:hover { border-color: color-mix(in srgb, var(--accent) 26%, var(--border)); }
+
+@media (max-width: 720px) {
+  .ntrbSuppSummary.suppSummary { flex-wrap: wrap; }
+  .ntrbSuppStat { text-align: left; }
+  .ntrbDiaryStats.diaryStats { gap: 12px 18px; }
+}
+
+/* Reduced-motion: drop hover transforms/zoom so nothing moves unexpectedly. */
+@media (prefers-reduced-motion: reduce) {
+  .ntrbMealCard.mealAppCard,
+  .ntrbRecipeCard.recipeCard,
+  .ntrbDiaryEntry.diaryEntry,
+  .ntrbRecipeCard .recipeMedia img {
+    transition: none;
+  }
+  .ntrbMealCard.mealAppCard:hover,
+  .ntrbRecipeCard.recipeCard:hover,
+  .ntrbDiaryEntry.diaryEntry:hover {
+    transform: none;
+  }
+  .ntrbRecipeCard:hover .recipeMedia img { transform: none; }
+}
+/* ===== END UI UPLIFT B ===== */
+
+/* ===== UI UPLIFT C (agent) =====
+   Cluster C elevation: Progreso, Hábitos, Comunidad, Retos, Soporte, Coach IA,
+   Guías, Perfil, Ciclo. Builds on the Ethereal-Glass foundation utilities
+   (.uiGlass/.uiSheen/.uiIconChip/.uiStat*/.uiFadeUp). Visual only — namespaced
+   to avoid collisions, refines existing .chat*/.profile*/.dangerZone*/.cycle*. */
+
+/* ---- Progreso — metric cards as Whoop-style stats ---- */
+.progressMetricCard {
+  position: relative;
+  gap: 10px;
+  overflow: hidden;
+}
+.progressMetricHead {
+  display: inline-flex;
+  align-items: center;
+  gap: 9px;
+}
+/* Compact icon-chip when nested in an eyebrow / metric head (smaller text scale). */
+.progressMetricHead .uiIconChip,
+.eyebrow .uiIconChip {
+  width: 30px;
+  height: 30px;
+  border-radius: 9px;
+}
+.eyebrow .uiIconChip { vertical-align: middle; }
+.progressMetricCard .uiStatValue {
+  font-size: clamp(28px, 3.4vw, 36px);
+}
+.progressMetricCard:hover {
+  border-color: color-mix(in srgb, var(--accent) 38%, var(--border));
+}
+.progressInlineEmpty {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 18px;
+  border-radius: 14px;
+  border: 1px dashed color-mix(in srgb, var(--accent) 30%, var(--border));
+  background: color-mix(in srgb, var(--accent) 4%, transparent);
+}
+.progressInlineEmpty p { margin: 0; color: var(--text-muted); font-size: 14px; }
+
+/* Progreso — "Mi evolución en fotos" tasteful angle placeholders */
+.progressPhotosCard { display: flex; flex-direction: column; gap: 16px; }
+.progressPhotoSlots {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 14px;
+}
+.progressPhotoSlot {
+  display: flex;
+  flex-direction: column;
+  gap: 9px;
+  margin: 0;
+}
+.progressPhotoFrame {
+  display: grid;
+  place-items: center;
+  aspect-ratio: 3 / 4;
+  border-radius: 16px;
+  border: 1px solid color-mix(in srgb, var(--accent) 18%, var(--border));
+  background:
+    radial-gradient(120% 90% at 50% 0%, color-mix(in srgb, var(--accent) 16%, transparent), transparent 60%),
+    linear-gradient(165deg, color-mix(in srgb, var(--surface-2) 92%, transparent), color-mix(in srgb, var(--surface) 88%, transparent));
+  color: color-mix(in srgb, var(--accent) 70%, var(--text-muted));
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.06);
+}
+.progressPhotoSlot figcaption {
+  font-size: 12.5px;
+  font-weight: 600;
+  letter-spacing: 0.03em;
+  color: var(--text-muted);
+  text-align: center;
+}
+@media (max-width: 640px) {
+  .progressPhotoSlots { grid-template-columns: 1fr 1fr; }
+}
+
+/* ---- Hábitos — streak flame + glass hero ---- */
+.habitStreakFlame {
+  display: inline-grid;
+  place-items: center;
+  width: 52px;
+  height: 52px;
+  border-radius: 16px;
+  background: color-mix(in srgb, var(--accent) 16%, transparent);
+  box-shadow: 0 0 30px -12px color-mix(in srgb, var(--accent) 75%, transparent);
+}
+.habitEmptyCard { align-items: flex-start; }
+
+/* ---- Comunidad — composer with avatar, post hover ---- */
+.communityComposerRow {
+  display: flex;
+  gap: 12px;
+  align-items: flex-start;
+}
+.communityComposerRow textarea { flex: 1; }
+.communityAvatarMe {
+  background: linear-gradient(160deg, color-mix(in srgb, var(--accent) 26%, var(--surface)), color-mix(in srgb, var(--accent) 12%, var(--surface)));
+  margin-top: 2px;
+}
+.communityPost {
+  transition: border-color var(--dur-fast, 0.18s) var(--ease, ease), transform var(--dur-fast, 0.18s) var(--ease, ease);
+}
+.communityPost:hover {
+  border-color: color-mix(in srgb, var(--accent) 30%, var(--border));
+}
+.communityLike {
+  transition: color var(--dur-fast, 0.18s) var(--ease, ease), border-color var(--dur-fast, 0.18s) var(--ease, ease), background var(--dur-fast, 0.18s) var(--ease, ease);
+}
+.communityLike:hover {
+  border-color: color-mix(in srgb, #e5484d 40%, var(--border));
+  color: #e5484d;
+}
+.communityLike.liked:active { transform: scale(0.94); }
+
+/* ---- Soporte — chat header identity + thread polish ---- */
+.chatHeader { align-items: center; }
+.chatHeaderId { display: flex; align-items: center; gap: 12px; min-width: 0; }
+.chatHeaderId h2 { margin: 0; }
+.chatHeaderId p { margin: 2px 0 0; }
+.chatHeaderAvatar {
+  display: grid;
+  place-items: center;
+  width: 44px;
+  height: 44px;
+  border-radius: 14px;
+  flex-shrink: 0;
+  background: linear-gradient(160deg, var(--accent), color-mix(in srgb, var(--accent) 70%, #000));
+  color: var(--accent-contrast, #fff);
+  font-weight: 700;
+  font-size: 17px;
+  box-shadow: 0 0 26px -10px color-mix(in srgb, var(--accent) 80%, transparent);
+}
+.supportThread {
+  transition: border-color var(--dur-fast, 0.18s) var(--ease, ease);
+}
+.supportThread:hover {
+  border-color: color-mix(in srgb, var(--accent) 30%, var(--border));
+}
+.supportThreadStatus {
+  flex: 0 0 auto;
+  text-transform: capitalize;
+  font-size: 12.5px;
+  color: var(--text-muted);
+}
+.supportThreadEmpty {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 18px;
+  border-radius: 14px;
+  border: 1px dashed color-mix(in srgb, var(--accent) 28%, var(--border));
+  background: color-mix(in srgb, var(--accent) 4%, transparent);
+}
+.supportThreadEmpty p { margin: 0; }
+
+/* ---- Coach IA — gated "Próximamente" state ---- */
+.coachAiGate { justify-items: start; gap: 14px; }
+.coachAiGateChip {
+  width: 56px;
+  height: 56px;
+  border-radius: 18px;
+  background: color-mix(in srgb, var(--accent) 16%, transparent);
+  box-shadow: 0 0 36px -14px color-mix(in srgb, var(--accent) 80%, transparent);
+}
+.coachAiGate strong { font-size: 18px; color: var(--text); }
+.coachAiGateList {
+  list-style: none;
+  margin: 4px 0 0;
+  padding: 0;
+  display: grid;
+  gap: 9px;
+}
+.coachAiGateList li {
+  display: inline-flex;
+  align-items: center;
+  gap: 9px;
+  color: var(--text-muted);
+  font-size: 14px;
+}
+.coachAiGateList svg { color: var(--accent); flex-shrink: 0; }
+
+/* ---- Guías — icon-chip cards ---- */
+.guideCard {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  overflow: hidden;
+  transition: border-color var(--dur-fast, 0.18s) var(--ease, ease), transform var(--dur-fast, 0.18s) var(--ease, ease);
+}
+.guideCard h3 { margin: 2px 0 0; }
+.guideCard p { color: var(--text-muted); margin: 0; flex: 1; }
+.guideCard .tag { align-self: flex-start; }
+.guideCard:hover {
+  border-color: color-mix(in srgb, var(--accent) 38%, var(--border));
+  transform: translateY(-2px);
+}
+
+/* ---- Perfil — info cards + danger chip ---- */
+.profileInfoCard {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  overflow: hidden;
+}
+.profileInfoCard h2 { margin: 0; }
+.dangerZoneChip {
+  display: inline-grid;
+  place-items: center;
+  width: 44px;
+  height: 44px;
+  border-radius: 13px;
+  background: color-mix(in srgb, var(--danger) 16%, transparent);
+  border: 1px solid color-mix(in srgb, var(--danger) 32%, transparent);
+  color: var(--danger, #ef4444);
+}
+.dangerZoneCard {
+  box-shadow: var(--shadow), 0 0 40px -22px color-mix(in srgb, var(--danger) 60%, transparent);
+}
+.dangerZoneSubmit:hover {
+  box-shadow: 0 0 24px -8px color-mix(in srgb, var(--danger) 70%, transparent);
+}
+
+/* ---- Ciclo — frosted hero gets inset padding + radius now it's .uiGlass ---- */
+.cycleHero {
+  padding: 18px;
+  border-radius: var(--radius-lg, 16px);
+}
+.cycleHero .cycleHeroStat {
+  background: color-mix(in srgb, var(--surface-2) 55%, transparent);
+}
+.cycleHeroPredict {
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--accent) 30%, transparent), 0 0 34px -18px color-mix(in srgb, var(--accent) 80%, transparent);
+}
+.cycleHistoryRow {
+  transition: border-color var(--dur-fast, 0.18s) var(--ease, ease);
+}
+
+/* Reduced-motion: kill hover lifts */
+@media (prefers-reduced-motion: reduce) {
+  .guideCard:hover { transform: none; }
+}
+/* ===== END UI UPLIFT C ===== */

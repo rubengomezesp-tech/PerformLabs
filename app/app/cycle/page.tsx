@@ -44,7 +44,7 @@ export default async function MemberCyclePage() {
       />
 
       <section className="grid">
-        <article className="span12 cycleHero">
+        <article className="span12 cycleHero uiGlass uiSheen">
           <div className="cycleHeroStat">
             <span className="eyebrow">Última regla</span>
             <strong>{overview.lastPeriodStart ? formatDate(overview.lastPeriodStart) : "Sin registro"}</strong>
@@ -62,7 +62,7 @@ export default async function MemberCyclePage() {
           </div>
         </article>
 
-        <article className="card span5 cycleLogCard">
+        <article className="card span5 cycleLogCard uiFadeUp" style={{ ["--i" as string]: 0 }}>
           <div className="sectionHeader">
             <div>
               <CalendarHeart color="var(--gold)" size={26} />
@@ -104,7 +104,7 @@ export default async function MemberCyclePage() {
           </form>
         </article>
 
-        <article className="card span7 cycleHistoryCard">
+        <article className="card span7 cycleHistoryCard uiFadeUp" style={{ ["--i" as string]: 1 }}>
           <div className="sectionHeader">
             <div>
               <CalendarRange color="var(--gold)" size={26} />

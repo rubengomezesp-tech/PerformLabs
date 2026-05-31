@@ -36,10 +36,10 @@ export default async function MemberChallengesPage() {
       />
       <section className="grid">
         {challenges.length ? (
-          challenges.map((c) => {
+          challenges.map((c, idx) => {
             const pct = Math.min(100, Math.round((c.myCount / Math.max(1, c.goal)) * 100));
             return (
-              <article className="card span6 challengeCard" key={c.id}>
+              <article className="card span6 challengeCard uiSheen uiFadeUp" style={{ ["--i" as string]: idx }} key={c.id}>
                 <div className="challengeHead">
                   <span className="challengeTrophy"><Trophy size={18} /></span>
                   <div>
@@ -82,8 +82,8 @@ export default async function MemberChallengesPage() {
             );
           })
         ) : (
-          <article className="card span12 inlineEmpty">
-            <Trophy color="var(--accent)" />
+          <article className="card span12 inlineEmpty uiGlass">
+            <span className="uiIconChip" style={{ width: 52, height: 52, borderRadius: 16 }}><Trophy size={24} /></span>
             <strong>Aún no hay retos activos.</strong>
             <p>Cuando tu coach lance un reto, aquí podrás unirte y ver la clasificación en directo.</p>
           </article>

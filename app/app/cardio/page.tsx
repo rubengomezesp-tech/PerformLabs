@@ -49,7 +49,7 @@ function SessionRow({ session }: { session: CardioSession }) {
   if (session.avgHr) meta.push(`${session.avgHr} ppm`);
   return (
     <li className="cardioSessionRow">
-      <span className="cardioSessionIcon" aria-hidden>{modalityIcon(session.modality)}</span>
+      <span className="cardioSessionIcon uiIconChip" aria-hidden>{modalityIcon(session.modality)}</span>
       <div className="cardioSessionBody">
         <div className="cardioSessionTop">
           <strong>{MODALITY_LABELS[session.modality] ?? session.modality}</strong>
@@ -137,13 +137,13 @@ export default async function CardioPage() {
         text="Elige el tipo de cardio según tu día y tu objetivo. Aquí tienes cómo estructurarlo y a qué intensidad ir."
       />
       <section className="grid">
-        <article className="span12 trnCardioHero">
+        <article className="span12 trnCardioHero uiGlass uiSheen uiFadeUp" style={{ ['--i' as string]: 0 }}>
           <div>
-            <span className="eyebrow">Tu pauta</span>
+            <span className="trnCardioHeroEyebrow"><span className="uiIconChip trnCardioHeroChip"><HeartPulse size={18} /></span> <span className="eyebrow">Tu pauta</span></span>
             <h2>
               {recommended
-                ? `${recommended.name} es tu cardio recomendado`
-                : "Combina HIIT y LISS según tu semana"}
+                ? <>{recommended.name} es tu <span className="accentText">cardio recomendado</span></>
+                : <>Combina <span className="accentText">HIIT y LISS</span> según tu semana</>}
             </h2>
             <p>
               {cardio.goal
@@ -151,32 +151,34 @@ export default async function CardioPage() {
                 : `Apunta a unas ${cardio.weeklySessions} sesiones de cardio por semana, combinando intensidades.`}
               {cardio.preference ? ` Indicaste que prefieres: ${cardio.preference}.` : ""}
             </p>
-            <div className="trnCardioHeroMeta">
+            <div className="trnCardioHeroMeta uiMeta">
               <span><Repeat size={16} /> {cardio.weeklySessions} sesiones/semana</span>
               <span><Footprints size={16} /> {stepsLabel} pasos/día</span>
               <span><Gauge size={16} /> {recommended ? recommended.intensityLabel : "Mixta"}</span>
             </div>
           </div>
           <div className="trnCardioStepsCard">
-            <Footprints size={22} />
-            <strong>{stepsLabel}</strong>
-            <small>pasos al día</small>
+            <span className="uiIconChip is-active trnCardioStepsChip"><Footprints size={20} /></span>
+            <div className="uiStat trnCardioStepsStat">
+              <span className="uiStatValue">{stepsLabel}</span>
+              <span className="uiStatLabel">pasos al día · NEAT</span>
+            </div>
             <p>El NEAT (movimiento diario) suma tanto como una sesión de cardio. Camina cada día.</p>
           </div>
         </article>
 
-        {PROTOCOLS.map((protocol) => {
+        {PROTOCOLS.map((protocol, pi) => {
           const Icon = protocol.icon;
           const isRecommended = recommended?.key === protocol.key;
           return (
-            <article className={isRecommended ? "card span6 trnCardioCard recommended" : "card span6 trnCardioCard"} key={protocol.key}>
+            <article className={`card span6 trnCardioCard uiSheen uiFadeUp${isRecommended ? " recommended selected" : ""}`} key={protocol.key} style={{ ['--i' as string]: pi + 1 }}>
               <div className="trnCardioCardHead">
-                <span className="trnCardioIcon"><Icon size={20} /></span>
+                <span className="trnCardioIcon uiIconChip"><Icon size={20} /></span>
                 <div>
                   <strong>{protocol.name}</strong>
                   <small>{protocol.tagline}</small>
                 </div>
-                {isRecommended ? <span className="tag">Tu preferido</span> : null}
+                {isRecommended ? <span className="tag success">Tu preferido</span> : null}
               </div>
               <div className="trnCardioStats">
                 <span><Timer size={14} /> {protocol.durationLabel}</span>
@@ -200,9 +202,9 @@ export default async function CardioPage() {
           );
         })}
 
-        <article className="card span6 cardioLogCard">
+        <article className="card span6 cardioLogCard uiSheen uiFadeUp" style={{ ['--i' as string]: 3 }}>
           <header className="cardioCardHead">
-            <span className="cardioCardIcon" aria-hidden><Plus size={18} /></span>
+            <span className="cardioCardIcon uiIconChip" aria-hidden><Plus size={18} /></span>
             <div>
               <h2>Registrar sesión</h2>
               <p>Apunta tu cardio de hoy. Solo el tipo es obligatorio.</p>
@@ -254,22 +256,22 @@ export default async function CardioPage() {
           </form>
         </article>
 
-        <article className="card span6 cardioRecentCard">
+        <article className="card span6 cardioRecentCard uiSheen uiFadeUp" style={{ ['--i' as string]: 4 }}>
           <header className="cardioCardHead">
-            <span className="cardioCardIcon" aria-hidden><Timer size={18} /></span>
+            <span className="cardioCardIcon uiIconChip" aria-hidden><Timer size={18} /></span>
             <div>
               <h2>Tus últimas sesiones</h2>
               <p>Resumen de los últimos 7 días.</p>
             </div>
           </header>
           <div className="cardioWeekSummary" role="group" aria-label="Resumen semanal">
-            <div className="cardioStat">
-              <span className="cardioStatValue">{week.sessions}</span>
-              <span className="cardioStatLabel">Sesiones (7 días)</span>
+            <div className="cardioStat uiStat">
+              <span className="cardioStatValue uiStatValue">{week.sessions}</span>
+              <span className="cardioStatLabel uiStatLabel">Sesiones (7 días)</span>
             </div>
-            <div className="cardioStat">
-              <span className="cardioStatValue">{week.totalMinutes}</span>
-              <span className="cardioStatLabel">Minutos totales</span>
+            <div className="cardioStat uiStat">
+              <span className="cardioStatValue uiStatValue">{week.totalMinutes}</span>
+              <span className="cardioStatLabel uiStatLabel">Minutos totales</span>
             </div>
           </div>
           {recent.length ? (
@@ -281,8 +283,8 @@ export default async function CardioPage() {
           )}
         </article>
 
-        <article className="card span12 trnCardioNote">
-          <HeartPulse color="var(--accent)" />
+        <article className="card span12 trnCardioNote uiAccentCard uiSheen uiFadeUp" style={{ ['--i' as string]: 5 }}>
+          <span className="uiIconChip trnCardioNoteChip"><HeartPulse size={20} /></span>
           <div>
             <strong>¿Cómo encajarlo con la fuerza?</strong>
             <p>
