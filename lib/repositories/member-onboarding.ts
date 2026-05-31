@@ -4,6 +4,7 @@ import { getSupabaseServiceEnv } from "@/lib/supabase/env";
 import { createServiceSupabaseClient } from "@/lib/supabase/server";
 import { assignDietTemplateToMember, assignWorkoutTemplateToMember } from "@/lib/repositories/member-management";
 import { listManagedDietTemplates, type ManagedDietTemplate } from "@/lib/repositories/nutrition-management";
+import { seedSuggestedHabitsForMember } from "@/lib/repositories/habit-tracking";
 import { listManagedWorkoutTemplates, type ManagedWorkoutTemplate } from "@/lib/repositories/training-management";
 import {
   selectProgram,
@@ -867,6 +868,14 @@ export async function applyOnboardingPlanRecommendation(input: ApplyCoachBriefin
     dietTemplateId,
     assignedBy: input.approvedBy ?? null,
   });
+
+  // Recovery: seed the suggested habits (sleep/steps/water…) so the quiz yields a
+  // ready recovery plan. Best-effort — never blocks plan application.
+  try {
+    await seedSuggestedHabitsForMember(input.workspaceId, response.data.member_profile_id);
+  } catch (error) {
+    console.error("Unable to seed recovery habits during onboarding", error);
+  }
 
   const now = new Date().toISOString();
   const coachReview = {
