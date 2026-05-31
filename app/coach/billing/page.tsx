@@ -5,7 +5,7 @@ import { getSelectedMemberAppBrand } from "@/lib/member-app";
 import { listCoachPlans } from "@/lib/repositories/coach-plans";
 import { getPlatformSubscription, getStripeAccount } from "@/lib/repositories/stripe-billing";
 import { getStripeEnv, isPlatformBillingConfigured, isStripeConnectConfigured } from "@/lib/stripe/env";
-import { archiveCoachPlanAction, createCoachPlanAction, disconnectStripeAction, subscribePlatformAction } from "./actions";
+import { archiveCoachPlanAction, createCoachPlanAction, createMemberCheckoutLinkAction, disconnectStripeAction, subscribePlatformAction } from "./actions";
 
 export const dynamic = "force-dynamic";
 
@@ -19,6 +19,8 @@ const STATUS_MESSAGES: Record<string, { tone: "ok" | "err"; text: string }> = {
   not_configured: { tone: "err", text: "Stripe aún no está configurado en la plataforma." },
   connect_first: { tone: "err", text: "Conecta tu Stripe y activa los cobros antes de crear planes." },
   invalid_plan: { tone: "err", text: "Revisa el nombre y el importe del plan (mínimo 0,50)." },
+  member_checkout_ok: { tone: "ok", text: "Pago de prueba completado. Revisa Stripe y tu suscripción de cliente." },
+  member_checkout_error: { tone: "err", text: "No se pudo generar el enlace de pago. Revisa el plan y tu cuenta de Stripe." },
 };
 
 type BillingPageProps = { searchParams?: Promise<{ status?: string }> };
@@ -147,6 +149,16 @@ export default async function CoachBillingPage({ searchParams }: BillingPageProp
                         <span className="catalogChip">/{plan.interval === "year" ? "año" : "mes"}</span>
                         {plan.stripePriceId ? <span className="catalogChip muted">Stripe</span> : null}
                       </div>
+                      {account?.chargesEnabled && plan.stripePriceId ? (
+                        <form action={createMemberCheckoutLinkAction} className="editForm">
+                          <input type="hidden" name="planId" value={plan.id} />
+                          <label className="spanFull">
+                            Email del cliente (opcional)
+                            <input name="email" type="email" inputMode="email" autoComplete="email" placeholder="cliente@email.com" maxLength={200} />
+                          </label>
+                          <button className="btn ghost sm spanFull" type="submit"><Link2 size={14} /> Generar enlace de pago de prueba</button>
+                        </form>
+                      ) : null}
                     </article>
                   ))}
                 </div>

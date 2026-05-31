@@ -9,6 +9,7 @@ import { archiveCoachPlan, createCoachPlan } from "@/lib/repositories/coach-plan
 import { deleteStripeAccount, getStripeAccount } from "@/lib/repositories/stripe-billing";
 import { createConnectedPrice, createConnectedProduct, createPlatformCheckoutSession, deauthorizeConnect } from "@/lib/stripe/client";
 import { getStripeEnv, isPlatformBillingConfigured } from "@/lib/stripe/env";
+import { createMemberCheckout } from "@/lib/stripe/member-checkout";
 
 async function baseUrl(): Promise<string> {
   const headerList = await headers();
@@ -80,6 +81,33 @@ export async function createCoachPlanAction(formData: FormData) {
     stripePriceId: price.id,
   });
   revalidatePath("/coach/billing");
+}
+
+/**
+ * Generate a TEST member-subscription checkout link for one of the coach's
+ * client plans (Direct charge on the connected account, 25% platform fee). Lets
+ * the coach verify the billing engine end to end before Phase 2 wires the member
+ * app. Redirects to the Stripe URL on success, or back with an error param.
+ */
+export async function createMemberCheckoutLinkAction(formData: FormData) {
+  const brand = await getSelectedMemberAppBrand();
+  await requireWorkspaceMutationAccess(brand.id);
+
+  const planId = String(formData.get("planId") ?? "");
+  const email = String(formData.get("email") ?? "").trim();
+  if (!planId) redirect("/coach/billing?status=invalid_plan");
+
+  const origin = await baseUrl();
+  const result = await createMemberCheckout({
+    workspaceId: brand.id,
+    planId,
+    email: email || undefined,
+    successUrl: `${origin}/coach/billing?status=member_checkout_ok`,
+    cancelUrl: `${origin}/coach/billing?status=cancelled`,
+  });
+
+  if (!result.ok) redirect(`/coach/billing?status=member_checkout_error`);
+  redirect(result.url);
 }
 
 export async function archiveCoachPlanAction(formData: FormData) {
