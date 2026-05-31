@@ -22,10 +22,15 @@ export default async function MemberCoachAiPage() {
           text="Tu coach aún no ha activado su asistente. Vuelve pronto: podrás resolver dudas de entreno y nutrición al instante, con sus reglas."
         />
         <section className="grid">
-          <article className="card span12 inlineEmpty">
-            <Sparkles color="var(--accent)" />
+          <article className="card span12 inlineEmpty uiGlass uiSheen coachAiGate">
+            <span className="uiIconChip coachAiGateChip"><Sparkles size={28} /></span>
             <strong>Próximamente.</strong>
-            <p>Cuando tu coach lo active, aquí tendrás respuestas inmediatas en su voz.</p>
+            <p>Cuando tu coach lo active, aquí tendrás respuestas inmediatas en su voz: entreno, nutrición y sustituciones al instante.</p>
+            <ul className="coachAiGateList">
+              <li><Sparkles size={14} /> Dudas de entreno y técnica</li>
+              <li><Sparkles size={14} /> Sustituciones de comidas</li>
+              <li><Sparkles size={14} /> Con las reglas de tu coach</li>
+            </ul>
           </article>
         </section>
       </>

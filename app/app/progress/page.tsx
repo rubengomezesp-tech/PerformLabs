@@ -66,11 +66,11 @@ function DeltaTag({ measure }: { measure: MeasurementSummary }) {
   );
 }
 
-function MetricCard({ measure, icon }: { measure: MeasurementSummary; icon: ReactNode }) {
+function MetricCard({ measure, icon, i }: { measure: MeasurementSummary; icon: ReactNode; i: number }) {
   return (
-    <article className="card span4 progressMetricCard">
-      <span className="eyebrow">{icon} {measure.label}</span>
-      <strong className="progressMetric">{formatMeasure(measure)}</strong>
+    <article className="card span4 progressMetricCard uiSheen uiFadeUp" style={{ ["--i" as string]: i }}>
+      <span className="progressMetricHead"><span className="uiIconChip">{icon}</span> <span className="uiStatLabel">{measure.label}</span></span>
+      <strong className="progressMetric uiStatValue">{formatMeasure(measure)}</strong>
       <DeltaTag measure={measure} />
     </article>
   );
@@ -113,11 +113,11 @@ export default async function ProgressPage({ searchParams }: ProgressPageProps) 
       <section className="grid">
         {tab === "resumen" ? (
           <>
-            <MetricCard measure={measureByKey.weightKg} icon={<Scale size={15} />} />
-            <MetricCard measure={measureByKey.bodyFatPercent} icon={<LineChart size={15} />} />
-            <MetricCard measure={measureByKey.waistCm} icon={<Ruler size={15} />} />
+            <MetricCard measure={measureByKey.weightKg} icon={<Scale size={16} />} i={0} />
+            <MetricCard measure={measureByKey.bodyFatPercent} icon={<LineChart size={16} />} i={1} />
+            <MetricCard measure={measureByKey.waistCm} icon={<Ruler size={16} />} i={2} />
 
-            <article className="card span12 progressEvolutionCard">
+            <article className="card span12 progressEvolutionCard uiFadeUp" style={{ ["--i" as string]: 3 }}>
               <div className="sectionHeader">
                 <div>
                   <h2>Evolución</h2>
@@ -142,11 +142,14 @@ export default async function ProgressPage({ searchParams }: ProgressPageProps) 
                   ))}
                 </div>
               ) : (
-                <p className="muted">Cuando envíes varios check-ins, aquí verás tus gráficos de evolución de peso, grasa y cintura.</p>
+                <div className="progressInlineEmpty">
+                  <span className="uiIconChip"><LineChart size={18} /></span>
+                  <p>Cuando envíes varios check-ins, aquí verás tus gráficos de evolución de peso, grasa y cintura.</p>
+                </div>
               )}
             </article>
 
-            <article className="card span6 progressPerimCard">
+            <article className="card span6 progressPerimCard uiFadeUp" style={{ ["--i" as string]: 4 }}>
               <div className="sectionHeader">
                 <div>
                   <Ruler color="var(--accent)" />
@@ -167,9 +170,9 @@ export default async function ProgressPage({ searchParams }: ProgressPageProps) 
               </ul>
             </article>
 
-            <Link href="/app/progress?tab=fotos" className="card span6 panelCheckinCard">
+            <Link href="/app/progress?tab=fotos" className="card span6 panelCheckinCard uiFadeUp" style={{ ["--i" as string]: 5 }}>
               <div>
-                <span className="eyebrow"><Camera size={15} /> Fotos de progreso</span>
+                <span className="eyebrow"><span className="uiIconChip"><Camera size={16} /></span> Fotos de progreso</span>
                 <h2>{latest?.photosAvailable ? "Fotos incluidas en tu último check-in." : "Sube tus fotos de progreso."}</h2>
               </div>
               <span className={latest?.photosAvailable ? "tag" : "tag danger"}>{latest?.photosAvailable ? "Incluidas" : "Pendientes"}</span>
@@ -178,16 +181,24 @@ export default async function ProgressPage({ searchParams }: ProgressPageProps) 
         ) : null}
 
         {tab === "fotos" ? (
-          <article className="card span12">
+          <article className="card span12 uiGlass progressPhotosCard">
             <div className="sectionHeader">
               <div>
-                <Camera color="var(--accent)" />
-                <h2>Fotos de progreso.</h2>
-                <p>Frontal, lateral y espalda. Se adjuntan en tu check-in para que el coach compare tu evolución.</p>
+                <span className="uiIconChip"><Camera size={18} /></span>
+                <h2>Mi evolución en fotos.</h2>
+                <p>Frontal, lateral y espalda. Se adjuntan en tu check-in para que el coach compare tu evolución semana a semana.</p>
               </div>
               <span className={latest?.photosAvailable ? "tag" : "tag danger"}>{latest?.photosAvailable ? "Incluidas" : "Pendientes"}</span>
             </div>
-            <p className="muted">Las fotos se suben al enviar tu check-in semanal en la pestaña Medidas.</p>
+            <div className="progressPhotoSlots">
+              {(["Frontal", "Lateral", "Espalda"] as const).map((angle, idx) => (
+                <figure className="progressPhotoSlot uiFadeUp" key={angle} style={{ ["--i" as string]: idx }}>
+                  <div className="progressPhotoFrame" aria-hidden="true"><Camera size={20} /></div>
+                  <figcaption>{angle}</figcaption>
+                </figure>
+              ))}
+            </div>
+            <p className="muted">Las fotos se suben al enviar tu check-in semanal en la pestaña Medidas. Quedan privadas entre tú y tu coach.</p>
             <Link className="btn primary" href="/app/progress?tab=medidas">Ir a enviar check-in <CheckCircle2 size={16} /></Link>
           </article>
         ) : null}
