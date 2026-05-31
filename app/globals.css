@@ -12709,8 +12709,8 @@ button[aria-busy="true"] {
 /* ===== UI UPLIFT B (agent) =====
    Nutrición cluster — Comida, Alimentos, Diario, Recetas, Suplementos.
    "Ethereal Glass to the max": depth, frosted heroes, accent icon chips,
-   tactile cards. All namespaced .ntrb* so it composes on the existing
-   .ntr*/.meal*/.recipe* surfaces without clobbering them. */
+   tactile cards. All namespaced ntrb so it composes on the existing
+   ntr, meal and recipe surfaces without clobbering them. */
 
 /* --- Premium image placeholder: lift the recipe/food fallback so a missing
    photo reads as an intentional branded tile, never a naked empty box. --- */
@@ -12924,10 +12924,10 @@ button[aria-busy="true"] {
 /* ===== END UI UPLIFT B ===== */
 
 /* ===== UI UPLIFT C (agent) =====
-   Cluster C elevation: Progreso, Hábitos, Comunidad, Retos, Soporte, Coach IA,
-   Guías, Perfil, Ciclo. Builds on the Ethereal-Glass foundation utilities
-   (.uiGlass/.uiSheen/.uiIconChip/.uiStat*/.uiFadeUp). Visual only — namespaced
-   to avoid collisions, refines existing .chat*/.profile*/.dangerZone*/.cycle*. */
+   Cluster C elevation: Progreso, Habitos, Comunidad, Retos, Soporte, Coach IA,
+   Guias, Perfil, Ciclo. Builds on the Ethereal-Glass foundation utilities
+   (uiGlass, uiSheen, uiIconChip, uiStat, uiFadeUp). Visual only — namespaced
+   to avoid collisions, refines existing chat, profile, dangerZone, cycle blocks. */
 
 /* ---- Progreso — metric cards as Whoop-style stats ---- */
 .progressMetricCard {
