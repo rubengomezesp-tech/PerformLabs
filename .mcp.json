@@ -1,0 +1,16 @@
+{
+  "mcpServers": {
+    "stitch": {
+      "command": "npx",
+      "args": ["@_davideast/stitch-mcp", "proxy"]
+    },
+    "ui-ux-pro": {
+      "command": "npx",
+      "args": ["-y", "ui-ux-pro-mcp", "--stdio"]
+    },
+    "nanobanana": {
+      "command": "sh",
+      "args": ["-c", "set -a; . ./.env 2>/dev/null; set +a; exec uvx nanobanana-mcp-server@latest"]
+    }
+  }
+}
