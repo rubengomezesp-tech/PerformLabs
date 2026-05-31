@@ -1,8 +1,16 @@
 "use client";
 
 import { useState } from "react";
-import { Utensils } from "lucide-react";
-import { recipeImageUrl, type RecipeImageInput } from "@/lib/nutrition/recipe-image";
+import { Apple, Coffee, Soup, Utensils, UtensilsCrossed, type LucideIcon } from "lucide-react";
+import { recipeImageUrl, recipeVisualKey, stableHash, type RecipeImageInput, type RecipeVisualKey } from "@/lib/nutrition/recipe-image";
+
+const FALLBACK_ICON: Record<RecipeVisualKey, LucideIcon> = {
+  breakfast: Coffee,
+  lunch: Soup,
+  dinner: UtensilsCrossed,
+  snack: Apple,
+  meal: Utensils,
+};
 
 type RecipeImageProps = RecipeImageInput & {
   /**
@@ -32,13 +40,17 @@ export function RecipeImage({ variant = "card", className, children, ...input }:
   const src = recipeImageUrl(input);
   const alt = input.name?.trim() ? input.name : "Receta";
   const frameClass = ["recipeImageFrame", `recipeImageFrame--${variant}`, className].filter(Boolean).join(" ");
+  const Icon = FALLBACK_ICON[recipeVisualKey(input)];
+  // Subtle, deterministic ±15° tint per item so the placeholder tiles never look
+  // like a flat repeated block, while staying on-brand (no off-palette colours).
+  const hue = (stableHash(input.id || input.name || "recipe") % 31) - 15;
 
   return (
     <div className={frameClass}>
-      <span className="recipeImageFallback" aria-hidden="true">
-        <Utensils size={variant === "thumb" ? 18 : 30} />
+      <span className="recipeImageFallback" aria-hidden="true" style={{ filter: `hue-rotate(${hue}deg)` }}>
+        <Icon size={variant === "thumb" ? 18 : 30} />
       </span>
-      {failed ? null : (
+      {src && !failed ? (
         <img
           className="recipeImagePhoto"
           src={src}
@@ -47,7 +59,7 @@ export function RecipeImage({ variant = "card", className, children, ...input }:
           decoding="async"
           onError={() => setFailed(true)}
         />
-      )}
+      ) : null}
       {children}
     </div>
   );

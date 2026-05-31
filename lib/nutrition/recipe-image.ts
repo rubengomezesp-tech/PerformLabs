@@ -1,95 +1,63 @@
 /**
- * Centralized resolver for the image shown on every meal / recipe surface.
+ * Centralized resolver for the image shown on every meal / recipe / food surface.
  *
- * Goal: EVERY recipe shows a relevant food photo, with zero config. A curated
- * `imageUrl` (set by the coach or imported) always wins. When it's empty we fall
- * back to a real, key-less food photo that the client browser loads directly, so
- * cards never render empty.
- *
- * Source today is Loremflickr (public, no API key, CORS-friendly <img> src). It's
- * intentionally isolated here so it can be swapped for Cloudinary (or any signed
- * CDN) later by changing only `fallbackImageUrl` — callers never see the source.
+ * Honesty over decoration: a curated `imageUrl` (set by the coach or imported)
+ * always wins. When none exists we DO NOT invent a random stock photo — that was
+ * the source of "wrong food" mismatches (a salmon dish showing a random pasta).
+ * Instead callers render an on-brand placeholder (a tasteful tile with a dish-aware
+ * icon), which is never misleading. The resolver stays the single swap point for a
+ * future real source (curated Cloudinary uploads or generated photos in storage).
  */
 
 export type RecipeImageInput = {
-  /** Stable identifier (recipe id, meal item id, food id). Used to lock the photo. */
+  /** Stable identifier (recipe id, meal item id, food id). Seeds the tile variant. */
   id: string;
-  /** Recipe / meal name, used for the keyword fallback and as a hashing seed. */
+  /** Recipe / meal / food name. Improves the dish-aware fallback icon. */
   name?: string;
   /** Meal moment ("desayuno", "comida", "cena", "snack", or English equivalents). */
   mealSlot?: string;
-  /**
-   * Explicit English keyword for the fallback photo (e.g. a food category like
-   * "chicken" or "rice"). When set it overrides the meal-slot keyword. Useful for
-   * the food library, where items carry a category rather than a meal slot.
-   */
+  /** Optional explicit category keyword (food library items carry a category). */
   keyword?: string;
-  /** Curated/real image. When a non-empty string, it wins over the fallback. */
+  /** Curated/real image. When a non-empty string, it wins. */
   imageUrl?: string | null;
 };
 
 /**
- * Maps a meal slot (Spanish or English) to an English food keyword Loremflickr
- * understands well, so the fallback photo is at least topically relevant.
- */
-function keywordForMealSlot(mealSlot?: string): string {
-  const slot = (mealSlot ?? "").trim().toLowerCase();
-  switch (slot) {
-    case "desayuno":
-    case "breakfast":
-      return "breakfast";
-    case "comida":
-    case "almuerzo":
-    case "lunch":
-      return "lunch";
-    case "cena":
-    case "dinner":
-      return "dinner";
-    case "snack":
-    case "merienda":
-      return "snack";
-    default:
-      return "food,meal";
-  }
-}
-
-/**
  * Small, stable string hash (djb2). Deterministic across server/client so the
- * locked photo never reshuffles between renders.
+ * placeholder variant never reshuffles between renders.
  */
 export function stableHash(value: string): number {
   let hash = 5381;
   for (let index = 0; index < value.length; index += 1) {
     hash = (hash * 33) ^ value.charCodeAt(index);
   }
-  // Force unsigned 32-bit so the lock is always a positive integer.
+  // Force unsigned 32-bit so the seed is always a positive integer.
   return hash >>> 0;
 }
 
+/** Visual family for the on-brand fallback tile (drives the icon + tint shift). */
+export type RecipeVisualKey = "breakfast" | "lunch" | "dinner" | "snack" | "meal";
+
 /**
- * The key-less photo used when no curated image exists. Centralized so the
- * provider can be swapped (e.g. Cloudinary) without touching call sites.
+ * Picks a dish-aware visual family from the available signals (keyword, meal slot
+ * and name). Best-effort and purely cosmetic — it only chooses an icon, never a
+ * photo, so it can never be "wrong" in a misleading way.
  */
-function fallbackImageUrl(input: RecipeImageInput): string {
-  const explicit = (input.keyword ?? "").trim();
-  const keyword = explicit || keywordForMealSlot(input.mealSlot);
-  const lock = stableHash(input.id || input.name || keyword);
-  // Loremflickr treats commas as keyword separators, so keep them literal and
-  // encode only each individual term.
-  const path = keyword
-    .split(",")
-    .map((term) => encodeURIComponent(term.trim()))
-    .filter(Boolean)
-    .join(",");
-  return `https://loremflickr.com/640/480/${path}?lock=${lock}`;
+export function recipeVisualKey(input: RecipeImageInput): RecipeVisualKey {
+  const text = [input.keyword, input.mealSlot, input.name].filter(Boolean).join(" ").toLowerCase();
+  if (/(desayuno|breakfast|avena|oat|yogur|yogurt|tortilla|huevo|egg|caf[eé]|coffee|tostada|pancake)/.test(text)) return "breakfast";
+  if (/(cena|dinner)/.test(text)) return "dinner";
+  if (/(snack|merienda|fruta|fruit|nuez|nut|barrita|yogur snack)/.test(text)) return "snack";
+  if (/(comida|almuerzo|lunch|bowl|arroz|rice|pollo|chicken|salm[oó]n|salmon|pescado|fish|pasta|carne|beef)/.test(text)) return "lunch";
+  return "meal";
 }
 
 /**
- * Resolves the image URL for a recipe/meal. Returns the curated image when set,
- * otherwise a stable, relevant food photo. Always returns a usable URL.
+ * Resolves the image URL for a recipe/meal/food. Returns the curated image when
+ * set, otherwise `null` so the caller renders the on-brand placeholder. Never
+ * returns a random/generated stock photo.
  */
-export function recipeImageUrl(input: RecipeImageInput): string {
+export function recipeImageUrl(input: RecipeImageInput): string | null {
   const curated = (input.imageUrl ?? "").trim();
-  if (curated) return curated;
-  return fallbackImageUrl(input);
+  return curated || null;
 }

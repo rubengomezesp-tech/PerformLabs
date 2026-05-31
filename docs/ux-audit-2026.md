@@ -138,3 +138,39 @@ de logging de entreno y diario nutricional en `/app`.
   e infra, GitHub para PRs.
 - No romper server actions ni endpoints: el rediseño es de **presentación**.
 - Cada cambio entra con `pnpm typecheck` (y build cuando toca) en verde.
+
+---
+
+## 6. Auditoría de imágenes y medios (Fase 5)
+
+Investigada contra la base de datos real vía MCP de Supabase (`gsfzigayzqhzbtrmmiqq`).
+
+### Hallazgos (datos reales)
+
+| Recurso | Estado | Detalle |
+|---------|--------|---------|
+| **Recetas** | 4 filas · **0 con imagen** · 0 con vídeo | Ej.: "Salmón con boniato y espinacas", "Bowl de pollo y arroz". Sin imagen curada. |
+| **Imágenes de recetas/comidas/foods** | ❌ **discrepancia** | El resolver caía a **Loremflickr** (`loremflickr.com/.../{keyword}?lock={hash}`), foto **aleatoria** por momento del día → "salmón" mostraba una foto cualquiera. **Causa raíz de las discrepancias.** |
+| **Food library** (`food_library_items`) | 0 filas · sin columna de imagen | Problema **latente**: al poblarse, cada alimento habría mostrado foto aleatoria por categoría. |
+| **Ejercicios** | 1003 filas · 873 con imagen · **0 con vídeo** | Imágenes **correctas** (cada ejercicio → su carpeta en `free-exercise-db`), pero alojadas en `raw.githubusercontent.com` (no es CDN). |
+| **Vídeos de ejercicio** (`exercise_videos`) | **0 filas** | Hueco de **contenido**, no de UI: la app ya degrada bien ("Vídeo pendiente", el botón solo aparece si hay `videoUrl`). |
+
+### Corregido en esta fase
+
+- **Eliminada la foto aleatoria** de Loremflickr en `lib/nutrition/recipe-image.ts`:
+  ahora devuelve la imagen **curada** o `null`. Sin imagen, `RecipeImage` muestra un
+  **placeholder on-brand** con **icono según el plato** (desayuno→café, comida→bowl,
+  cena→cubiertos, snack→manzana) y un matiz determinista por hash. Honesto: nunca
+  enseña una imagen equivocada. El resolver sigue siendo el único punto de cambio
+  para una fuente real futura.
+
+### Recomendado (necesita decisión/infra del fundador)
+
+1. **Imágenes reales de recetas/alimentos**: subir fotos curadas (Cloudinary, ya
+   cableado vía `cloudinaryFetch`) **o** generarlas con el MCP `nanobanana` por
+   receta/alimento y guardarlas en un bucket de Supabase Storage (mismo bucket
+   pendiente para fotos de progreso, ver [[Roadmap]]).
+2. **Imágenes de ejercicios por CDN**: pasar las URLs de `raw.githubusercontent.com`
+   por Cloudinary fetch (optimización + caché) o realojarlas.
+3. **Vídeos de ejercicio**: sembrar `exercise_videos`/`default_video_url` (la UI ya
+   está lista). Es palanca de valor para el coaching.
