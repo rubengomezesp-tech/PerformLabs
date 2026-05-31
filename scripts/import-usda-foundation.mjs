@@ -160,7 +160,7 @@ function mapFood(food) {
 }
 
 function identityKey(row) {
-  return `${row.name.toLowerCase()}|${(row.brand ?? "").toLowerCase()}`;
+  return `${row.name.toLowerCase()}|${(row.brand ?? "").toLowerCase()}|${(row.serving_label ?? "").toLowerCase()}`;
 }
 
 async function loadFromFile(file, limit) {
@@ -257,10 +257,10 @@ async function main() {
   const supabase = createSupabase();
   const { data: existingRows, error: existingError } = await supabase
     .from("food_library_items")
-    .select("name,brand")
+    .select("name,brand,serving_label")
     .is("workspace_id", null);
   if (existingError) throw new Error(`No se pudo leer la base existente: ${existingError.message}`);
-  const existing = new Set((existingRows ?? []).map((r) => `${String(r.name).toLowerCase()}|${String(r.brand ?? "").toLowerCase()}`));
+  const existing = new Set((existingRows ?? []).map((r) => `${String(r.name).toLowerCase()}|${String(r.brand ?? "").toLowerCase()}|${String(r.serving_label ?? "").toLowerCase()}`));
 
   const fresh = mapped.filter((row) => !existing.has(identityKey(row)));
   console.log(`\nNuevos a insertar: ${fresh.length} (ya existían ${mapped.length - fresh.length}).`);

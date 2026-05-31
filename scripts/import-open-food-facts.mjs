@@ -165,9 +165,10 @@ function toRow({ serving_note, code, ...row }) {
   return row;
 }
 
-// In-memory de-dupe key (also the DB partial-unique key: lower(name)+lower(brand)).
+// In-memory de-dupe key — mirrors the DB partial-unique key
+// lower(name)+lower(brand)+lower(serving_label). OFF rows are all "100 g".
 function identityKey(row) {
-  return `${row.name.toLowerCase()}|${(row.brand ?? "").toLowerCase()}`;
+  return `${row.name.toLowerCase()}|${(row.brand ?? "").toLowerCase()}|${(row.serving_label ?? "").toLowerCase()}`;
 }
 
 async function fetchPage(page) {
@@ -251,10 +252,10 @@ async function main() {
   // Mirrors seed-nutrition-library.mjs — no onConflict needed, survives re-runs.
   const { data: existingRows, error: existingError } = await supabase
     .from("food_library_items")
-    .select("name,brand")
+    .select("name,brand,serving_label")
     .is("workspace_id", null);
   if (existingError) throw new Error(`No se pudo leer la base existente: ${existingError.message}`);
-  const existing = new Set((existingRows ?? []).map((r) => `${String(r.name).toLowerCase()}|${String(r.brand ?? "").toLowerCase()}`));
+  const existing = new Set((existingRows ?? []).map((r) => `${String(r.name).toLowerCase()}|${String(r.brand ?? "").toLowerCase()}|${String(r.serving_label ?? "").toLowerCase()}`));
 
   const fresh = mapped.filter((row) => !existing.has(identityKey(row))).map(toRow);
   console.log(`\nNuevos a insertar: ${fresh.length} (ya existían ${mapped.length - fresh.length}).`);

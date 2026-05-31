@@ -20,7 +20,10 @@ create index if not exists food_library_items_base_name_idx
 
 -- Stable natural key for base-library imports so the OFF / USDA / curated seeds can
 -- upsert idempotently (re-running never duplicates). Scoped to base rows only, so it
--- never constrains a workspace's own editable copies. Key = lower(name)+lower(brand).
+-- never constrains a workspace's own editable copies. serving_label is part of the
+-- key so a food can have both a "per 100 g" and a "per portion" base entry
+-- (e.g. Plátano 100 g vs Plátano 1 unidad). Imported rows are all "100 g", so they
+-- still dedupe by name+brand in practice.
 create unique index if not exists food_library_items_base_identity_idx
-  on public.food_library_items (lower(name), lower(coalesce(brand, '')))
+  on public.food_library_items (lower(name), lower(coalesce(brand, '')), lower(serving_label))
   where workspace_id is null;

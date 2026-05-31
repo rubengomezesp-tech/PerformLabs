@@ -14,6 +14,8 @@
     "admin:ensure-owner": "node scripts/ensure-platform-owner.mjs",
     "import:exercises": "node scripts/import-free-exercise-db.mjs",
     "import:nutrition": "node scripts/seed-nutrition-library.mjs",
+    "import:foods-off": "node scripts/import-open-food-facts.mjs",
+    "import:foods-usda": "node scripts/import-usda-foundation.mjs",
     "media:images": "node scripts/generate-product-images.mjs"
   },
   "dependencies": {
