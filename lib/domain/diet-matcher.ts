@@ -22,8 +22,18 @@
  */
 
 export type DietGoal = "fat_loss" | "hypertrophy" | "recomposition";
-/** Ordered by restrictiveness: vegan ⊃ vegetarian ⊃ omnivore (a vegan plan is valid for everyone). */
-export type DietStyle = "omnivore" | "vegetarian" | "vegan";
+/**
+ * STYLE dimension — protein-source restrictiveness hierarchy:
+ *   vegan ⊃ vegetarian ⊃ pescetarian ⊃ omnivore
+ * (a stricter plan is always safe for a more permissive member). A pescetarian eats
+ * like an ovo-lacto-vegetarian *plus* fish/shellfish, so it sits between omnivore and
+ * vegetarian. See docs/diet-types.md.
+ *
+ * Diet *type* (the 8 quiz chips) ≠ this enum: gluten-free / dairy-free / halal are
+ * orthogonal EXCLUSION flags and keto is a MACRO flag — all modelled separately below
+ * so they can compose with any style.
+ */
+export type DietStyle = "omnivore" | "pescetarian" | "vegetarian" | "vegan";
 
 /** Normalised inputs the matcher needs (derived from the onboarding quiz). */
 export type DietQuizAnswers = {
@@ -32,6 +42,10 @@ export type DietQuizAnswers = {
   mealsPerDay: number; // 3-5
   /** Canonical allergy tokens the member must avoid (e.g. "frutos-secos", "lactosa"). */
   allergies: string[];
+  /** EXCLUSION dimension: member only accepts halal-certified plans. */
+  halal?: boolean;
+  /** MACRO dimension: member wants a ketogenic (very-low-carb, high-fat) plan. */
+  keto?: boolean;
 };
 
 /** The subset of a diet template the matcher reasons about. */
@@ -41,7 +55,10 @@ export type DietMatchTemplate = {
   goalTag?: DietGoal | string | null;
   dietStyle?: DietStyle | string | null;
   mealsPerDay?: number | null;
-  /** Free tags on the template (e.g. "sin-gluten", "sin-lactosa"), used for allergy safety. */
+  /**
+   * Free tags on the template, used for allergy safety + the orthogonal dimensions:
+   * "sin-gluten"/"sin-lactosa" (exclusion), "halal" (certification), "keto" (macro).
+   */
   tags?: string[] | null;
   /** Union of allergens present across the template's recipes, when known. */
   allergens?: string[] | null;
@@ -58,12 +75,26 @@ export function normalizeGoal(raw: string | null | undefined): DietGoal {
   return "recomposition";
 }
 
-/** Spanish/English label → canonical diet style. Falls back to omnivore. Vegan wins over vegetarian. */
+/**
+ * Spanish/English label → canonical diet style, most-restrictive token wins.
+ * Falls back to omnivore. Order matters: vegan > vegetarian > pescetarian > omnivore.
+ */
 export function normalizeDietStyle(raw: string | null | undefined): DietStyle {
   const v = strip(raw ?? "");
   if (/vegan|vegana/.test(v)) return "vegan";
-  if (/vegetarian|vegetariana|ovolacto|lacto|pesceta|pescatarian/.test(v)) return "vegetarian";
+  if (/ovolacto|lacto[\s-]?ovo|vegetarian|vegetariana/.test(v)) return "vegetarian";
+  if (/pesceta|pescata|pescetarian/.test(v)) return "pescetarian";
   return "omnivore";
+}
+
+/** Free-text diet-style label → halal flag (the quiz "Halal" chip). */
+export function isHalalLabel(raw: string | null | undefined): boolean {
+  return /\bhalal\b/.test(strip(raw ?? ""));
+}
+
+/** Free-text diet-style label → keto flag (the quiz "Keto / baja en carbos" chip). */
+export function isKetoLabel(raw: string | null | undefined): boolean {
+  return /\bketo\b|ketog|cetog|low[\s-]?carb|baja en carb/.test(strip(raw ?? ""));
 }
 
 /** Free-text allergy/diet label → canonical token used to match recipe/template allergens. */
@@ -91,12 +122,35 @@ function isActive(t: DietMatchTemplate) {
 /**
  * Style compatibility: a template is OK if it is *no less restrictive* than the
  * member needs. A vegan member only accepts vegan templates; a vegetarian accepts
- * vegetarian or vegan; an omnivore accepts anything. (vegan ⊆ vegetarian ⊆ omnivore.)
+ * vegetarian or vegan; a pescetarian accepts pescetarian/vegetarian/vegan; an omnivore
+ * accepts anything. (vegan ⊆ vegetarian ⊆ pescetarian ⊆ omnivore.) A vegetarian is
+ * never served a pescetarian plan — it contains fish.
  */
-const STYLE_RANK: Record<DietStyle, number> = { omnivore: 0, vegetarian: 1, vegan: 2 };
+const STYLE_RANK: Record<DietStyle, number> = { omnivore: 0, pescetarian: 1, vegetarian: 2, vegan: 3 };
 function styleOk(template: DietStyle | string | null | undefined, need: DietStyle): boolean {
   if (!template) return need === "omnivore"; // untagged = omnivore; only omnivores accept it
   return STYLE_RANK[normalizeDietStyle(String(template))] >= STYLE_RANK[need];
+}
+
+/**
+ * EXCLUSION dimension — halal: a halal member only accepts templates explicitly tagged
+ * "halal". Non-halal members accept anything (a halal plan is still fine for them, so
+ * this is one-directional, unlike the keto macro flag below). Modelled as a positive
+ * certification tag rather than a "sin-<x>" exclusion. See docs/diet-types.md.
+ */
+function halalOk(t: DietMatchTemplate, need: boolean | undefined): boolean {
+  if (!need) return true;
+  return new Set((t.tags ?? []).map(strip)).has("halal");
+}
+
+/**
+ * MACRO dimension — keto: an exact, two-way flag. A keto member must only get keto
+ * templates (tagged "keto"); a non-keto member must never be handed a keto template
+ * (its very-low-carb/high-fat split is a macro profile they did not ask for).
+ */
+function ketoOk(t: DietMatchTemplate, need: boolean | undefined): boolean {
+  const templateIsKeto = new Set((t.tags ?? []).map(strip)).has("keto");
+  return templateIsKeto === Boolean(need);
 }
 
 /**
@@ -134,20 +188,26 @@ function score(t: DietMatchTemplate, q: DietQuizAnswers): number {
 
 type Filter = (t: DietMatchTemplate, q: DietQuizAnswers) => boolean;
 
-// Exclusions are always enforced (style + allergies). The ladder only relaxes the
-// soft preferences (goal, meals) so we never serve an unsafe or off-diet plan.
+// Exclusions are always enforced (style + allergies + halal + keto). The ladder only
+// relaxes the soft preferences (goal, meals) so we never serve an unsafe, off-diet or
+// wrong-macro plan.
 const fStyle: Filter = (t, q) => styleOk(t.dietStyle, q.dietStyle);
 const fAllergy: Filter = (t, q) => allergiesOk(t, q.allergies);
+const fHalal: Filter = (t, q) => halalOk(t, q.halal);
+const fKeto: Filter = (t, q) => ketoOk(t, q.keto);
 const fGoal: Filter = (t, q) => !t.goalTag || normalizeGoal(String(t.goalTag)) === q.goal;
 const fMeals: Filter = (t, q) => t.mealsPerDay == null || bucketMeals(t.mealsPerDay) === q.mealsPerDay;
 const fMealsApprox: Filter = (t, q) => t.mealsPerDay == null || Math.abs(bucketMeals(t.mealsPerDay) - q.mealsPerDay) <= 1;
 
-/** Hard-filter ladder: each rung relaxes one soft preference; style+allergy never drop. */
+// Hard exclusions enforced on every rung (never relaxed): style, allergies, halal, keto.
+const HARD: Filter[] = [fStyle, fAllergy, fHalal, fKeto];
+
+/** Hard-filter ladder: each rung relaxes one soft preference; HARD filters never drop. */
 const LADDER: Filter[][] = [
-  [fStyle, fAllergy, fGoal, fMeals], // exact
-  [fStyle, fAllergy, fGoal, fMealsApprox], // meals ±1
-  [fStyle, fAllergy, fGoal], // drop meals
-  [fStyle, fAllergy], // goal-agnostic, still safe + on-diet
+  [...HARD, fGoal, fMeals], // exact
+  [...HARD, fGoal, fMealsApprox], // meals ±1
+  [...HARD, fGoal], // drop meals
+  [...HARD], // goal-agnostic, still safe + on-diet + on-macro
 ];
 
 export type DietMatchResult = {

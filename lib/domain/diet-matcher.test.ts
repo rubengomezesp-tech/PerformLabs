@@ -1,6 +1,8 @@
 import { describe, expect, it } from "vitest";
 import {
   bucketMeals,
+  isHalalLabel,
+  isKetoLabel,
   normalizeAllergen,
   normalizeDietStyle,
   normalizeGoal,
@@ -28,14 +30,28 @@ describe("normalizers", () => {
     expect(normalizeGoal("Superavit limpio")).toBe("hypertrophy");
     expect(normalizeGoal("perdida de grasa")).toBe("fat_loss");
   });
-  it("maps diet styles (vegan wins over vegetarian) and clamps meals", () => {
+  it("maps diet styles by restrictiveness (vegan>vegetarian>pescetarian>omnivore) and clamps meals", () => {
     expect(normalizeDietStyle("Vegana")).toBe("vegan");
     expect(normalizeDietStyle("Vegetariana")).toBe("vegetarian");
-    expect(normalizeDietStyle("Pescetariana")).toBe("vegetarian");
+    expect(normalizeDietStyle("Ovolactovegetariana")).toBe("vegetarian");
+    expect(normalizeDietStyle("Pescetariana")).toBe("pescetarian");
+    expect(normalizeDietStyle("Pescatarian")).toBe("pescetarian");
     expect(normalizeDietStyle("Flexible")).toBe("omnivore");
+    // exclusion chips are NOT a protein-source style: they leave style = omnivore
+    expect(normalizeDietStyle("Sin lactosa")).toBe("omnivore");
+    expect(normalizeDietStyle("Sin gluten, Halal")).toBe("omnivore");
+    // most-restrictive token wins in a multi-select string
+    expect(normalizeDietStyle("Pescetariana, Sin gluten, Vegana")).toBe("vegan");
     expect(bucketMeals(2)).toBe(3);
     expect(bucketMeals(4)).toBe(4);
     expect(bucketMeals(9)).toBe(5);
+  });
+  it("detects halal and keto chips from free text", () => {
+    expect(isHalalLabel("Halal")).toBe(true);
+    expect(isHalalLabel("Sin restricciones")).toBe(false);
+    expect(isKetoLabel("Keto / baja en carbos")).toBe(true);
+    expect(isKetoLabel("Cetogenica")).toBe(true);
+    expect(isKetoLabel("Vegana")).toBe(false);
   });
   it("normalises allergy free-text to canonical tokens", () => {
     expect(normalizeAllergen("Frutos secos")).toBe("frutos-secos");
@@ -130,5 +146,82 @@ describe("selectDietTemplate — hard exclusions (never relaxed)", () => {
   it("ignores inactive templates", () => {
     const r = selectDietTemplate(base, [tpl("draft", { status: "draft", goalTag: "fat_loss" })]);
     expect(r.templateId).toBeNull();
+  });
+});
+
+describe("selectDietTemplate — pescetarian hierarchy", () => {
+  const pesce: DietQuizAnswers = { ...base, dietStyle: "pescetarian" };
+
+  it("a pescetarian accepts pescetarian/vegetarian/vegan but not omnivore", () => {
+    const templates = [
+      tpl("omni", { goalTag: "fat_loss", dietStyle: "omnivore" }),
+      tpl("pesce", { goalTag: "fat_loss", dietStyle: "pescetarian" }),
+    ];
+    expect(selectDietTemplate(pesce, templates).templateId).toBe("pesce");
+    // falls through to vegetarian/vegan when no pescetarian plan exists
+    expect(
+      selectDietTemplate(pesce, [tpl("veg", { goalTag: "fat_loss", dietStyle: "vegetarian" })]).templateId,
+    ).toBe("veg");
+    // omnivore-only pool is rejected (pescetarian is stricter than omnivore)
+    expect(selectDietTemplate(pesce, [tpl("omni", { goalTag: "fat_loss", dietStyle: "omnivore" })]).templateId).toBeNull();
+  });
+
+  it("a vegetarian is never served a pescetarian (fish) plan", () => {
+    const veggie: DietQuizAnswers = { ...base, dietStyle: "vegetarian" };
+    expect(
+      selectDietTemplate(veggie, [tpl("pesce", { goalTag: "fat_loss", dietStyle: "pescetarian" })]).templateId,
+    ).toBeNull();
+  });
+
+  it("an omnivore still prefers the least-restrictive style across the 4-rung hierarchy", () => {
+    const templates = [
+      tpl("vegan", { goalTag: "fat_loss", dietStyle: "vegan" }),
+      tpl("pesce", { goalTag: "fat_loss", dietStyle: "pescetarian" }),
+      tpl("omni", { goalTag: "fat_loss", dietStyle: "omnivore" }),
+    ];
+    expect(selectDietTemplate(base, templates).templateId).toBe("omni");
+  });
+});
+
+describe("selectDietTemplate — halal exclusion (one-directional)", () => {
+  const halal: DietQuizAnswers = { ...base, halal: true };
+
+  it("a halal member only accepts templates tagged halal", () => {
+    const templates = [
+      tpl("plain", { goalTag: "fat_loss" }),
+      tpl("halal", { goalTag: "fat_loss", tags: ["halal"] }),
+    ];
+    expect(selectDietTemplate(halal, templates).templateId).toBe("halal");
+    expect(selectDietTemplate(halal, [tpl("plain", { goalTag: "fat_loss" })]).templateId).toBeNull();
+  });
+
+  it("a non-halal member still accepts a halal-tagged plan (no reverse exclusion)", () => {
+    expect(selectDietTemplate(base, [tpl("halal", { goalTag: "fat_loss", tags: ["halal"] })]).templateId).toBe("halal");
+  });
+});
+
+describe("selectDietTemplate — keto macro flag (exact, two-way)", () => {
+  const keto: DietQuizAnswers = { ...base, keto: true };
+
+  it("a keto member only gets keto-tagged plans", () => {
+    const templates = [
+      tpl("standard", { goalTag: "fat_loss" }),
+      tpl("keto", { goalTag: "fat_loss", tags: ["keto", "sin-gluten"] }),
+    ];
+    expect(selectDietTemplate(keto, templates).templateId).toBe("keto");
+    expect(selectDietTemplate(keto, [tpl("standard", { goalTag: "fat_loss" })]).templateId).toBeNull();
+  });
+
+  it("a non-keto member is never handed a keto plan (wrong macro profile)", () => {
+    expect(selectDietTemplate(base, [tpl("keto", { goalTag: "fat_loss", tags: ["keto"] })]).templateId).toBeNull();
+  });
+
+  it("keto composes with the style hierarchy (a vegan keto member needs a vegan keto plan)", () => {
+    const veganKeto: DietQuizAnswers = { ...base, dietStyle: "vegan", keto: true };
+    const templates = [
+      tpl("omni-keto", { goalTag: "fat_loss", dietStyle: "omnivore", tags: ["keto"] }),
+      tpl("vegan-keto", { goalTag: "fat_loss", dietStyle: "vegan", tags: ["keto"] }),
+    ];
+    expect(selectDietTemplate(veganKeto, templates).templateId).toBe("vegan-keto");
   });
 });

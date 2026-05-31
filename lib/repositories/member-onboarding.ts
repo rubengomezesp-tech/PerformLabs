@@ -20,6 +20,8 @@ import {
   selectDietTemplate,
   normalizeGoal as normalizeDietGoal,
   normalizeDietStyle,
+  isHalalLabel,
+  isKetoLabel,
   bucketMeals,
   type DietQuizAnswers,
   type DietMatchTemplate,
@@ -320,11 +322,17 @@ async function matchDietTemplate(
     const p = prefs?.data ?? null;
     const rows = (tpls?.data ?? []) as any[];
     if (!rows.length) return null;
+    // diet_style is the quiz's comma-joined multi-select (e.g. "Pescetariana, Sin gluten,
+    // Keto"). The protein-source style comes from the most-restrictive token; halal/keto
+    // are orthogonal flags read from the same string. See docs/diet-types.md.
+    const dietStyleRaw = String(p?.diet_style ?? "");
     const quiz: DietQuizAnswers = {
       goal: normalizeDietGoal(goal),
-      dietStyle: normalizeDietStyle(p?.diet_style),
+      dietStyle: normalizeDietStyle(dietStyleRaw),
       mealsPerDay: bucketMeals(p?.meals_per_day),
       allergies: Array.isArray(p?.allergies) ? p.allergies : [],
+      halal: isHalalLabel(dietStyleRaw),
+      keto: isKetoLabel(dietStyleRaw),
     };
     const matchTemplates: DietMatchTemplate[] = rows.map((t) => ({
       id: t.id,
