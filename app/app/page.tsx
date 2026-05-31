@@ -45,6 +45,15 @@ export default async function MemberDashboard() {
   const currentWeek = trainingContext.activeAssignment?.currentWeek ?? null;
   const weekPct = currentWeek ? Math.min(100, Math.round((currentWeek / 12) * 100)) : 0;
   const checkin = nextWeeklyCheckin();
+  const hour = new Date().getHours();
+  const greeting = hour < 12 ? "Buenos días" : hour < 20 ? "Buenas tardes" : "Buenas noches";
+  const heroNudge = !trainingContext.activeAssignment
+    ? "Tu coach está activando tu plan"
+    : activeDay
+      ? `Hoy te toca: ${activeDay.title ?? "tu sesión"}`
+      : currentWeek
+        ? `Semana ${currentWeek} de 12 · sigue sumando`
+        : "Sigue sumando, vas muy bien";
 
   const todayPlan = [
     {
@@ -65,7 +74,7 @@ export default async function MemberDashboard() {
   return (
     <>
       <Topbar
-        eyebrow="Panel"
+        eyebrow={greeting}
         title={`Bienvenido a ${brand.name}.`}
         text={brand.welcomeMessage || `Tu espacio de ${brand.name}: entrenamiento, nutrición, progreso y soporte en una sola experiencia.`}
       />
@@ -92,7 +101,7 @@ export default async function MemberDashboard() {
                 <span style={{ width: `${weekPct}%` }} />
               </div>
               <p className="miRecorridoMeta">
-                <span>{currentWeek ? `Semana ${currentWeek} de 12 · empuja una sesión más` : "Tu coach está activando tu plan"}</span>
+                <span>{heroNudge}</span>
               </p>
             </div>
           </div>
