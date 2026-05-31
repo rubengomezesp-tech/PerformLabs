@@ -1,7 +1,7 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
-import { createSupportConversation } from "@/lib/repositories/support-management";
+import { createSupportConversation, sendMemberSupportMessage } from "@/lib/repositories/support-management";
 
 function readText(formData: FormData, key: string) {
   const value = formData.get(key);
@@ -19,4 +19,18 @@ export async function createSupportConversationAction(formData: FormData) {
 
   revalidatePath("/app/support");
   revalidatePath("/coach/content");
+  revalidatePath("/coach/messages");
+}
+
+export async function sendMemberSupportMessageAction(formData: FormData) {
+  const body = readText(formData, "body");
+  if (!body) return;
+
+  await sendMemberSupportMessage({
+    workspaceId: readText(formData, "workspaceId"),
+    body,
+  });
+
+  revalidatePath("/app/support");
+  revalidatePath("/coach/messages");
 }

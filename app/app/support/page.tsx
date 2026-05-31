@@ -3,18 +3,29 @@ import Link from "next/link";
 import { Topbar } from "@/components/topbar";
 import { getSelectedMemberAppBrand } from "@/lib/member-app";
 import { listWorkspaceContentPages } from "@/lib/repositories/member-experience";
-import { listSupportConversations } from "@/lib/repositories/support-management";
+import { getOrCreateMemberConversation, listSupportConversations } from "@/lib/repositories/support-management";
 import { createSupportConversationAction } from "./actions";
+import { ChatComposer } from "./chat-composer";
+import { ChatLive } from "./chat-live";
+import { ChatScroll } from "./chat-scroll";
 
 export const dynamic = "force-dynamic";
 
+function formatTime(value: string) {
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return "";
+  return date.toLocaleTimeString("es-ES", { hour: "2-digit", minute: "2-digit" });
+}
+
 export default async function SupportPage() {
   const brand = await getSelectedMemberAppBrand();
-  const [pages, conversations] = await Promise.all([
+  const [pages, conversations, conversation] = await Promise.all([
     listWorkspaceContentPages(brand.id),
     listSupportConversations(brand.id),
+    getOrCreateMemberConversation(brand.id),
   ]);
   const supportPage = pages.find((page) => page.slug === "soporte");
+  const chatMessages = conversation?.messages ?? [];
   const guides = [
     { icon: BookOpen, title: "Guía inicial", text: "Empieza por aquí" },
     { icon: PlayCircle, title: "Cómo usar la app", text: "Consejos rápidos" },
@@ -27,9 +38,49 @@ export default async function SupportPage() {
       <Topbar
         eyebrow="Soporte"
         title={`Contacto de ${brand.name}.`}
-        text="Abre una conversación con contexto para que el coach pueda responder sobre entrenamiento, nutrición, progreso o acceso."
+        text="Habla directamente con tu coach. Abre también conversaciones con contexto sobre entrenamiento, nutrición, progreso o acceso."
       />
       <section className="grid">
+        {conversation ? (
+          <article className="card span12 chatCard">
+            <div className="sectionHeader">
+              <div>
+                <MessageSquare color="var(--accent)" />
+                <h2>Tu chat con el coach.</h2>
+                <p>Mensajes 1:1 con tu entrenador, en directo. Las respuestas aparecen aquí sin recargar.</p>
+              </div>
+              <span className="chatLiveDot" aria-label="En directo">En directo</span>
+            </div>
+
+            <div className="chatThread">
+              {chatMessages.length ? (
+                chatMessages.map((message) => {
+                  const mine = message.senderRole === "member";
+                  return (
+                    <div className={mine ? "chatRow member" : "chatRow coach"} key={message.id}>
+                      {!mine ? <span className="chatAvatar">{brand.name.slice(0, 1).toUpperCase()}</span> : null}
+                      <div className="chatBubble">
+                        <p>{message.body}</p>
+                        <time>{formatTime(message.createdAt)}</time>
+                      </div>
+                    </div>
+                  );
+                })
+              ) : (
+                <div className="chatEmpty">
+                  <MessageSquare size={22} color="var(--accent)" />
+                  <strong>Empieza la conversación.</strong>
+                  <p>Escribe a tu coach lo que necesites: dudas del plan, sensaciones, una foto que comentar… te responderá por aquí.</p>
+                </div>
+              )}
+              <ChatScroll count={chatMessages.length} />
+            </div>
+
+            <ChatComposer workspaceId={brand.id} />
+            <ChatLive intervalMs={5000} />
+          </article>
+        ) : null}
+
         <article className="card span7 supportComposerCard">
           <div className="sectionHeader">
             <div>
