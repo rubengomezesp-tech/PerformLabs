@@ -52,21 +52,33 @@ async function ensureAdminPreviewProfile(
   if (existing.data) return existing.data;
 
   const fullName = (email?.split("@")[0] || "Vista previa").trim();
-  const inserted = await supabase
+  // Upsert (not insert) so a concurrent first-load race resolves to the same row
+  // via the (workspace_id, user_id) unique key instead of throwing.
+  const upserted = await supabase
     .from("member_profiles")
-    .insert({
-      workspace_id: workspaceId,
-      user_id: userId,
-      full_name: fullName,
-      subscription_status: "active",
-      onboarding_status: "not_started",
-      timezone: "Europe/Madrid",
-    })
+    .upsert(
+      {
+        workspace_id: workspaceId,
+        user_id: userId,
+        full_name: fullName,
+        subscription_status: "active",
+        onboarding_status: "not_started",
+        timezone: "Europe/Madrid",
+      },
+      { onConflict: "workspace_id,user_id" },
+    )
     .select("id,full_name")
     .maybeSingle();
-  if (inserted.data) return inserted.data;
+  if (upserted.data) return upserted.data;
 
-  // Insert lost a race (unique violation) — the row now exists; re-read it.
+  // Never fail silently: surface the real reason (it was invisible before) and
+  // make one last attempt to read a row a racing request may have created.
+  if (upserted.error) {
+    console.error("ensureAdminPreviewProfile: could not provision preview profile", {
+      workspaceId,
+      message: upserted.error.message,
+    });
+  }
   const retry = await supabase
     .from("member_profiles")
     .select("id,full_name")
