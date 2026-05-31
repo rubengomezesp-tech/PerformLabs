@@ -84,9 +84,14 @@ export async function getSelectedMemberAppBrand(): Promise<WorkspaceBrand> {
   const workspaceId = await getSelectedWorkspaceId();
   const host = await getRequestHost();
 
-  // On a trainer's own domain the host wins (the domain IS the tenant); on the
-  // platform apex we fall back to the selected-workspace cookie (founder/demo).
-  const reference = isTenantHost(host) ? host : (workspaceId || host);
+  // On a trainer's own domain the host wins (the domain IS the tenant). Off a
+  // tenant domain (platform apex, a *.vercel.app preview, localhost) the host
+  // can never match a workspace, so resolving by it just yields the synthetic
+  // zero-UUID fallback brand — fine to *show*, but fatal the moment its id is
+  // used as a workspace_id (FK violation). Use the selected-workspace cookie, or
+  // let getWorkspaceBrand pick the first real workspace, so brand.id is always a
+  // real workspace the member app can write against.
+  const reference = isTenantHost(host) ? host : (workspaceId || "");
   return getWorkspaceBrand(reference);
 }
 

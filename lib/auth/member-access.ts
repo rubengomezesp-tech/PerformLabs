@@ -30,6 +30,64 @@ export type MemberContext = {
 
 const ACTIVE_STATUSES = new Set(["active", "trialing"]);
 
+/**
+ * Find-or-create the admin's own comped member profile in a workspace they are
+ * previewing. Lets the owner open and fully use any brand's app (including
+ * brand-new ones with no clients) without hand-creating a member. Idempotent via
+ * the (workspace_id, user_id) unique constraint, so a lost insert race just
+ * re-reads the row the other request created.
+ */
+async function ensureAdminPreviewProfile(
+  supabase: ReturnType<typeof createServiceSupabaseClient>,
+  workspaceId: string,
+  userId: string,
+  email: string | null | undefined,
+): Promise<{ id: string; full_name: string } | null> {
+  const existing = await supabase
+    .from("member_profiles")
+    .select("id,full_name")
+    .eq("workspace_id", workspaceId)
+    .eq("user_id", userId)
+    .maybeSingle();
+  if (existing.data) return existing.data;
+
+  const fullName = (email?.split("@")[0] || "Vista previa").trim();
+  // Upsert (not insert) so a concurrent first-load race resolves to the same row
+  // via the (workspace_id, user_id) unique key instead of throwing.
+  const upserted = await supabase
+    .from("member_profiles")
+    .upsert(
+      {
+        workspace_id: workspaceId,
+        user_id: userId,
+        full_name: fullName,
+        subscription_status: "active",
+        onboarding_status: "not_started",
+        timezone: "Europe/Madrid",
+      },
+      { onConflict: "workspace_id,user_id" },
+    )
+    .select("id,full_name")
+    .maybeSingle();
+  if (upserted.data) return upserted.data;
+
+  // Never fail silently: surface the real reason (it was invisible before) and
+  // make one last attempt to read a row a racing request may have created.
+  if (upserted.error) {
+    console.error("ensureAdminPreviewProfile: could not provision preview profile", {
+      workspaceId,
+      message: upserted.error.message,
+    });
+  }
+  const retry = await supabase
+    .from("member_profiles")
+    .select("id,full_name")
+    .eq("workspace_id", workspaceId)
+    .eq("user_id", userId)
+    .maybeSingle();
+  return retry.data ?? null;
+}
+
 function isOwnerEmail(email: string | null | undefined): boolean {
   const ownerEmail = process.env.COACHOS_OWNER_EMAIL?.trim().toLowerCase();
   return !!ownerEmail && (email ?? "").toLowerCase() === ownerEmail;
@@ -95,27 +153,35 @@ export async function getMemberContext(workspaceIdHint?: string): Promise<Member
     return null;
   }
 
-  // Admin (owner) with no member profile: comp preview of the hinted brand.
-  if (!data?.length) {
-    if (isAdmin && workspaceIdHint) {
-      const preview = await firstProfileOfWorkspace(workspaceIdHint);
-      if (preview) {
-        return {
-          mode: "authenticated",
-          userId: user.id,
-          workspaceId: preview.workspace_id,
-          memberProfileId: preview.id,
-          fullName: preview.full_name ?? "",
-          membershipActive: true,
-          isAdmin: true,
-        };
-      }
+  // Prefer a profile the member actually owns in the hinted workspace.
+  let chosen = (workspaceIdHint && data?.find((profile) => profile.workspace_id === workspaceIdHint)) || null;
+
+  // Admin (owner) previewing a brand where they have no profile yet: provision a
+  // real, comped member profile so the preview is fully interactive — onboarding
+  // and every other write path operate on a real row (a synthetic id would
+  // violate member_profile_id foreign keys). Idempotent via the
+  // (workspace_id, user_id) unique constraint; self-heals on the next load.
+  if (!chosen && isAdmin && workspaceIdHint) {
+    const provisioned = await ensureAdminPreviewProfile(supabase, workspaceIdHint, user.id, user.email);
+    if (provisioned) {
+      return {
+        mode: "authenticated",
+        userId: user.id,
+        workspaceId: workspaceIdHint,
+        memberProfileId: provisioned.id,
+        fullName: provisioned.full_name ?? "",
+        membershipActive: true,
+        isAdmin: true,
+      };
     }
+  }
+
+  // Otherwise fall back to the member's own first profile.
+  chosen = chosen || data?.[0] || null;
+  if (!chosen) {
     return null;
   }
 
-  // Prefer the hinted workspace when the member actually belongs to it.
-  const chosen = (workspaceIdHint && data.find((profile) => profile.workspace_id === workspaceIdHint)) || data[0];
   const status = (chosen as { subscription_status?: string | null }).subscription_status ?? "";
   return {
     mode: "authenticated",
