@@ -82,6 +82,21 @@ async function getDefaultMemberProfileId(workspaceId: string) {
   return context.memberProfileId;
 }
 
+/**
+ * The member's REAL scope, resolved from their verified session. Tolerant of a
+ * bad/zero-UUID workspace hint — the brand can transiently resolve to the
+ * synthetic fallback brand, but the member still owns exactly one workspace, so
+ * we trust getMemberContext. Queries MUST use the returned workspaceId (never the
+ * raw hint) so a flaky brand lookup can't hide the member's own data.
+ */
+async function resolveMemberScope(
+  workspaceIdHint?: string,
+): Promise<{ workspaceId: string; memberProfileId: string } | null> {
+  const context = await getMemberContext(workspaceIdHint ?? "");
+  if (!context) return null;
+  return { workspaceId: context.workspaceId, memberProfileId: context.memberProfileId };
+}
+
 function daysBetween(fromIso?: string | null, toIso = todayIso()) {
   if (!fromIso) return 0;
   const from = new Date(`${fromIso}T00:00:00.000Z`).getTime();
@@ -120,16 +135,16 @@ async function getActiveMealPlanId(
  */
 export async function getMemberNutritionVisibility(workspaceId?: string): Promise<{ hideMacros: boolean }> {
   const env = getSupabaseServiceEnv();
-  if (!env.ok || !isUuid(workspaceId)) return { hideMacros: false };
+  if (!env.ok) return { hideMacros: false };
 
   const supabase = createServiceSupabaseClient();
-  const memberProfileId = await getDefaultMemberProfileId(workspaceId);
-  if (!memberProfileId) return { hideMacros: false };
+  const scope = await resolveMemberScope(workspaceId);
+  if (!scope) return { hideMacros: false };
 
   const { data } = await supabase
     .from("member_diet_preferences")
     .select("hide_macros")
-    .eq("member_profile_id", memberProfileId)
+    .eq("member_profile_id", scope.memberProfileId)
     .maybeSingle();
 
   return { hideMacros: Boolean(data?.hide_macros) };
@@ -224,17 +239,17 @@ export function sumConsumedMacros(
 /** Free-form food diary entries (Smart Add / manual) for a given day. */
 export async function listFoodDiaryEntries(workspaceId?: string, dateInput?: string): Promise<FoodDiaryEntry[]> {
   const env = getSupabaseServiceEnv();
-  if (!env.ok || !isUuid(workspaceId)) return [];
+  if (!env.ok) return [];
 
   const date = dateInput && /^\d{4}-\d{2}-\d{2}$/.test(dateInput) ? dateInput : todayIso();
   const supabase = createServiceSupabaseClient();
-  const memberProfileId = await getDefaultMemberProfileId(workspaceId);
-  if (!memberProfileId) return [];
+  const scope = await resolveMemberScope(workspaceId);
+  if (!scope) return [];
 
   const { data, error } = await (supabase as any)
     .from("food_diary_entries")
     .select("id,name,source,protein_g,fat_g,carbs_g,calories")
-    .eq("member_profile_id", memberProfileId)
+    .eq("member_profile_id", scope.memberProfileId)
     .eq("logged_on", date)
     .order("created_at", { ascending: true });
 
@@ -317,16 +332,17 @@ export async function deleteFoodDiaryEntry(workspaceId: string, entryId: string)
 
 export async function getMemberMealPlanForToday(workspaceId?: string): Promise<MemberMealPlanForToday | null> {
   const env = getSupabaseServiceEnv();
-  if (!env.ok || !isUuid(workspaceId)) return null;
+  if (!env.ok) return null;
 
   const supabase = createServiceSupabaseClient();
-  const memberProfileId = await getDefaultMemberProfileId(workspaceId);
-  if (!memberProfileId) return null;
+  const scope = await resolveMemberScope(workspaceId);
+  if (!scope) return null;
+  const { workspaceId: ws, memberProfileId } = scope;
 
   const plan = await supabase
     .from("assigned_meal_plans")
     .select("id,name,starts_on,target_calories,target_protein_g,target_carbs_g,target_fat_g,water_target_ml,hide_macros")
-    .eq("workspace_id", workspaceId)
+    .eq("workspace_id", ws)
     .eq("member_profile_id", memberProfileId)
     .eq("status", "active")
     .order("created_at", { ascending: false })
@@ -344,7 +360,7 @@ export async function getMemberMealPlanForToday(workspaceId?: string): Promise<M
   const days = await supabase
     .from("assigned_meal_plan_days")
     .select("id,day_number,title,target_calories,target_protein_g,target_carbs_g,target_fat_g")
-    .eq("workspace_id", workspaceId)
+    .eq("workspace_id", ws)
     .eq("assigned_meal_plan_id", activePlan.id)
     .order("day_number", { ascending: true });
 
@@ -358,7 +374,7 @@ export async function getMemberMealPlanForToday(workspaceId?: string): Promise<M
   const items = await supabase
     .from("assigned_meal_plan_items")
     .select("id,recipe_id,meal_slot,title,instructions,calories,protein_g,carbs_g,fat_g,sort_order")
-    .eq("workspace_id", workspaceId)
+    .eq("workspace_id", ws)
     .eq("assigned_meal_plan_day_id", activeDay.id)
     .order("sort_order", { ascending: true });
 
@@ -403,22 +419,24 @@ export async function getNutritionDailySummary(workspaceId?: string, dateInput?:
     mealLogs: [],
   };
   const env = getSupabaseServiceEnv();
-  if (!env.ok || !isUuid(workspaceId)) return empty;
+  if (!env.ok) return empty;
 
   const supabase = createServiceSupabaseClient();
-  const memberProfileId = await getDefaultMemberProfileId(workspaceId);
+  const scope = await resolveMemberScope(workspaceId);
+  const memberProfileId = scope?.memberProfileId ?? null;
+  const ws = scope?.workspaceId ?? workspaceId;
   const date = dateInput && /^\d{4}-\d{2}-\d{2}$/.test(dateInput) ? dateInput : todayIso();
 
   let mealQuery = (supabase as any)
     .from("member_meal_logs")
     .select("meal_slot,status,satisfaction,notes")
-    .eq("workspace_id", workspaceId)
+    .eq("workspace_id", ws)
     .eq("logged_on", date);
 
   let dailyQuery = (supabase as any)
     .from("member_nutrition_daily_logs")
     .select("water_glasses,hunger_level,energy_level,notes")
-    .eq("workspace_id", workspaceId)
+    .eq("workspace_id", ws)
     .eq("logged_on", date);
 
   if (memberProfileId) {
@@ -528,21 +546,18 @@ export async function upsertMealLog(input: MealLogInput) {
  * meals water ring and the daily summary.
  */
 export async function logWaterGlass(workspaceId: string, delta = 1) {
-  if (!isUuid(workspaceId)) {
-    throw new Error("No se pudo identificar la app del cliente.");
-  }
-
-  const supabase = createServiceSupabaseClient();
-  const memberProfileId = await getDefaultMemberProfileId(workspaceId);
-  if (!memberProfileId) {
+  const scope = await resolveMemberScope(workspaceId);
+  if (!scope) {
     throw new Error("Todavía no hay perfil de cliente.");
   }
+  const { workspaceId: ws, memberProfileId } = scope;
 
+  const supabase = createServiceSupabaseClient();
   const date = todayIso();
   const { data: existing } = await (supabase as any)
     .from("member_nutrition_daily_logs")
     .select("water_glasses")
-    .eq("workspace_id", workspaceId)
+    .eq("workspace_id", ws)
     .eq("member_profile_id", memberProfileId)
     .eq("logged_on", date)
     .maybeSingle();
@@ -554,7 +569,7 @@ export async function logWaterGlass(workspaceId: string, delta = 1) {
     .from("member_nutrition_daily_logs")
     .upsert(
       {
-        workspace_id: workspaceId,
+        workspace_id: ws,
         member_profile_id: memberProfileId,
         logged_on: date,
         water_glasses: next,
