@@ -1,18 +1,41 @@
-import { AlertTriangle, Bell, CalendarClock, CheckCircle2, Eye, EyeOff, Mail, MessageSquare, Moon, Ruler, ShieldCheck, Share2, Smartphone, Trash2, UserRound } from "lucide-react";
+import { AlertTriangle, Bell, CheckCircle2, ClipboardCheck, Dumbbell, Eye, EyeOff, Mail, MessageSquare, Moon, Ruler, ShieldCheck, Share2, Smartphone, Trash2, UserRound, Utensils } from "lucide-react";
 import { ReferralCard } from "@/components/referral-card";
 import { Topbar } from "@/components/topbar";
 import { getSelectedMemberAppBrand } from "@/lib/member-app";
 import { goalLabel, getMemberProfileSummary, subscriptionStatusLabel } from "@/lib/repositories/member-profile";
+import { type ReactNode } from "react";
 import { getMemberNutritionVisibility } from "@/lib/repositories/nutrition-tracking";
-import { deleteMemberAccountAction, setMemberMacroVisibilityAction } from "./actions";
+import { getMemberNotificationPreferences, type NotificationKey } from "@/lib/repositories/notification-preferences";
+import { deleteMemberAccountAction, setMemberMacroVisibilityAction, setMemberNotificationAction } from "./actions";
+
+function NotifRow({ icon, label, hint, prefKey, on, workspaceId }: { icon: ReactNode; label: string; hint: string; prefKey: NotificationKey; on: boolean; workspaceId: string }) {
+  return (
+    <div className="notifRow">
+      <span className="notifRowIcon uiIconChip" aria-hidden="true">{icon}</span>
+      <div className="notifRowBody">
+        <strong>{label}</strong>
+        <span>{hint}</span>
+      </div>
+      <form action={setMemberNotificationAction} className="notifRowToggle">
+        <input type="hidden" name="workspaceId" value={workspaceId} />
+        <input type="hidden" name="key" value={prefKey} />
+        <input type="hidden" name="value" value={on ? "off" : "on"} />
+        <button type="submit" role="switch" aria-checked={on} aria-label={`${label}: ${on ? "activado" : "desactivado"}`} className={on ? "notifSwitch on" : "notifSwitch"}>
+          <span className="notifSwitchTrack" aria-hidden="true"><span className="notifSwitchKnob" /></span>
+        </button>
+      </form>
+    </div>
+  );
+}
 
 export default async function ProfilePage({ searchParams }: { searchParams?: Promise<{ error?: string }> }) {
   const params = await searchParams;
   const error = typeof params?.error === "string" ? params.error.trim() : "";
   const brand = await getSelectedMemberAppBrand();
-  const [visibility, summary] = await Promise.all([
+  const [visibility, summary, notif] = await Promise.all([
     getMemberNutritionVisibility(brand.id),
     getMemberProfileSummary(brand.id),
+    getMemberNotificationPreferences(brand.id),
   ]);
 
   const displayName = summary?.fullName || "Tu cuenta";
@@ -113,11 +136,13 @@ export default async function ProfilePage({ searchParams }: { searchParams?: Pro
             </div>
             <span className="tag">Control del cliente</span>
           </div>
-          <div className="notificationPreferenceGrid">
-            <span><CheckCircle2 color="var(--green)" size={17} /> Cambios del coach</span>
-            <span><CalendarClock color="var(--gold)" size={17} /> Entreno: 10:00</span>
-            <span><MessageSquare color="var(--gold)" size={17} /> Mensajes in-app</span>
-            <span><Moon color="var(--gold)" size={17} /> Modo descanso</span>
+          <div className="notifList">
+            <NotifRow icon={<CheckCircle2 size={17} />} label="Cambios del coach" hint="Cuando tu coach ajusta tu plan o nutrición" prefKey="coach_changes" on={notif.coach_changes} workspaceId={brand.id} />
+            <NotifRow icon={<Dumbbell size={17} />} label="Recordatorio de entreno" hint="Aviso el día de tu sesión" prefKey="workout_reminders" on={notif.workout_reminders} workspaceId={brand.id} />
+            <NotifRow icon={<Utensils size={17} />} label="Recordatorio de comidas" hint="Para no saltarte tus registros" prefKey="meal_reminders" on={notif.meal_reminders} workspaceId={brand.id} />
+            <NotifRow icon={<ClipboardCheck size={17} />} label="Check-in semanal" hint="Recordatorio para enviar tu progreso" prefKey="checkin_reminders" on={notif.checkin_reminders} workspaceId={brand.id} />
+            <NotifRow icon={<MessageSquare size={17} />} label="Mensajes in-app" hint="Avisos de mensajes de tu coach" prefKey="in_app_messages" on={notif.in_app_messages} workspaceId={brand.id} />
+            <NotifRow icon={<Moon size={17} />} label="Modo descanso" hint="Silencia los avisos por la noche" prefKey="quiet_mode" on={notif.quiet_mode} workspaceId={brand.id} />
           </div>
         </article>
         <article className="card span12">

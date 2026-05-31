@@ -5,6 +5,7 @@ import { redirect } from "next/navigation";
 import { clearAuthCookies } from "@/lib/auth/session";
 import { deleteMemberAccount } from "@/lib/repositories/member-account";
 import { setMemberHideMacros } from "@/lib/repositories/nutrition-tracking";
+import { NOTIFICATION_KEYS, setMemberNotificationPreference, type NotificationKey } from "@/lib/repositories/notification-preferences";
 
 function readText(formData: FormData, key: string) {
   const value = formData.get(key);
@@ -21,6 +22,16 @@ export async function setMemberMacroVisibilityAction(formData: FormData) {
   revalidatePath("/app/meals");
   revalidatePath("/app/recipes");
   revalidatePath("/app/diary");
+}
+
+export async function setMemberNotificationAction(formData: FormData) {
+  const workspaceId = readText(formData, "workspaceId");
+  const key = readText(formData, "key") as NotificationKey;
+  const value = readText(formData, "value") === "on";
+  if (!NOTIFICATION_KEYS.includes(key)) return;
+
+  await setMemberNotificationPreference(workspaceId, key, value);
+  revalidatePath("/app/profile");
 }
 
 /** GDPR account deletion: irreversible, requires typing the confirmation word. */
