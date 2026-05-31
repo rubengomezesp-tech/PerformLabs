@@ -31,13 +31,50 @@ export type MemberContext = {
 const ACTIVE_STATUSES = new Set(["active", "trialing"]);
 
 /**
- * Sentinel member-profile id for an admin previewing a brand that has no member
- * profiles yet. It matches no row, so every member-scoped read returns the empty
- * state (exactly like a real member with no data) instead of bouncing the owner
- * out of a brand-new brand. Writes keyed by this id fail by design — a preview
- * never mutates member data.
+ * Find-or-create the admin's own comped member profile in a workspace they are
+ * previewing. Lets the owner open and fully use any brand's app (including
+ * brand-new ones with no clients) without hand-creating a member. Idempotent via
+ * the (workspace_id, user_id) unique constraint, so a lost insert race just
+ * re-reads the row the other request created.
  */
-const PREVIEW_MEMBER_PROFILE_ID = "00000000-0000-0000-0000-000000000000";
+async function ensureAdminPreviewProfile(
+  supabase: ReturnType<typeof createServiceSupabaseClient>,
+  workspaceId: string,
+  userId: string,
+  email: string | null | undefined,
+): Promise<{ id: string; full_name: string } | null> {
+  const existing = await supabase
+    .from("member_profiles")
+    .select("id,full_name")
+    .eq("workspace_id", workspaceId)
+    .eq("user_id", userId)
+    .maybeSingle();
+  if (existing.data) return existing.data;
+
+  const fullName = (email?.split("@")[0] || "Vista previa").trim();
+  const inserted = await supabase
+    .from("member_profiles")
+    .insert({
+      workspace_id: workspaceId,
+      user_id: userId,
+      full_name: fullName,
+      subscription_status: "active",
+      onboarding_status: "not_started",
+      timezone: "Europe/Madrid",
+    })
+    .select("id,full_name")
+    .maybeSingle();
+  if (inserted.data) return inserted.data;
+
+  // Insert lost a race (unique violation) — the row now exists; re-read it.
+  const retry = await supabase
+    .from("member_profiles")
+    .select("id,full_name")
+    .eq("workspace_id", workspaceId)
+    .eq("user_id", userId)
+    .maybeSingle();
+  return retry.data ?? null;
+}
 
 function isOwnerEmail(email: string | null | undefined): boolean {
   const ownerEmail = process.env.COACHOS_OWNER_EMAIL?.trim().toLowerCase();
@@ -104,39 +141,35 @@ export async function getMemberContext(workspaceIdHint?: string): Promise<Member
     return null;
   }
 
-  // Admin (owner) with no member profile: comp preview of the hinted brand.
-  if (!data?.length) {
-    if (isAdmin && workspaceIdHint) {
-      // Prefer cloning an existing member so the preview shows real content...
-      const preview = await firstProfileOfWorkspace(workspaceIdHint);
-      if (preview) {
-        return {
-          mode: "authenticated",
-          userId: user.id,
-          workspaceId: preview.workspace_id,
-          memberProfileId: preview.id,
-          fullName: preview.full_name ?? "",
-          membershipActive: true,
-          isAdmin: true,
-        };
-      }
-      // ...but a brand with no clients yet must still be previewable by the
-      // owner: synthesize an empty member context instead of bouncing.
+  // Prefer a profile the member actually owns in the hinted workspace.
+  let chosen = (workspaceIdHint && data?.find((profile) => profile.workspace_id === workspaceIdHint)) || null;
+
+  // Admin (owner) previewing a brand where they have no profile yet: provision a
+  // real, comped member profile so the preview is fully interactive — onboarding
+  // and every other write path operate on a real row (a synthetic id would
+  // violate member_profile_id foreign keys). Idempotent via the
+  // (workspace_id, user_id) unique constraint; self-heals on the next load.
+  if (!chosen && isAdmin && workspaceIdHint) {
+    const provisioned = await ensureAdminPreviewProfile(supabase, workspaceIdHint, user.id, user.email);
+    if (provisioned) {
       return {
         mode: "authenticated",
         userId: user.id,
         workspaceId: workspaceIdHint,
-        memberProfileId: PREVIEW_MEMBER_PROFILE_ID,
-        fullName: "",
+        memberProfileId: provisioned.id,
+        fullName: provisioned.full_name ?? "",
         membershipActive: true,
         isAdmin: true,
       };
     }
+  }
+
+  // Otherwise fall back to the member's own first profile.
+  chosen = chosen || data?.[0] || null;
+  if (!chosen) {
     return null;
   }
 
-  // Prefer the hinted workspace when the member actually belongs to it.
-  const chosen = (workspaceIdHint && data.find((profile) => profile.workspace_id === workspaceIdHint)) || data[0];
   const status = (chosen as { subscription_status?: string | null }).subscription_status ?? "";
   return {
     mode: "authenticated",
