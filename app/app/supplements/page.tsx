@@ -25,20 +25,24 @@ export default async function MemberSupplementsPage() {
       <section className="grid">
         {supplements.length ? (
           <>
-            <article className="card span12 suppSummary ntrSuppSummary">
-              <Pill color="var(--accent)" />
+            <article className="card span12 suppSummary ntrSuppSummary uiGlass uiSheen ntrbSuppSummary">
+              <span className="uiIconChip ntrbSuppChip"><Pill size={22} /></span>
               <div className="ntrSuppSummaryBody">
                 <strong>{takenCount}/{supplements.length} tomados hoy</strong>
                 <p>Mantén la constancia: los suplementos solo funcionan si son diarios.</p>
-                <div className="ntrSuppProgress" role="progressbar" aria-valuemin={0} aria-valuemax={supplements.length} aria-valuenow={takenCount} aria-label="Suplementos tomados hoy">
+                <div className="ntrSuppProgress" role="progressbar" aria-valuemin={0} aria-valuemax={supplements.length} aria-valuenow={takenCount} aria-label={`${takenCount} de ${supplements.length} suplementos tomados hoy`}>
                   <span style={{ width: `${supplements.length ? Math.round((takenCount / supplements.length) * 100) : 0}%` }} />
                 </div>
               </div>
+              <div className="ntrbSuppStat uiStat">
+                <strong className="uiStatValue">{supplements.length ? Math.round((takenCount / supplements.length) * 100) : 0}<i>%</i></strong>
+                <small className="uiStatLabel">Adherencia hoy</small>
+              </div>
             </article>
 
-            {byTiming.map((group) => (
-              <article className="card span12 suppGroup" key={group.timing}>
-                <h2 className="suppGroupTitle">{TIMING_LABEL[group.timing as SupplementTiming]}</h2>
+            {byTiming.map((group, gi) => (
+              <article className="card span12 suppGroup uiSheen ntrbSuppGroup uiFadeUp" style={{ ["--i" as string]: gi }} key={group.timing}>
+                <h2 className="suppGroupTitle ntrbRecipeSubhead"><span className="uiIconChip ntrbSectionChip"><Pill size={16} /></span>{TIMING_LABEL[group.timing as SupplementTiming]}</h2>
                 <ul className="suppList">
                   {group.items.map((s) => (
                     <li className={s.takenToday ? "suppRow done" : "suppRow"} key={s.id}>

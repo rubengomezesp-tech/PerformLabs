@@ -140,37 +140,37 @@ export default async function MemberFoodsPage({ searchParams }: FoodsPageProps) 
         }
       />
       <section className="grid">
-        <article className="card span12 foodSearchCard">
+        <article className="card span12 foodSearchCard uiGlass uiSheen ntrbSearchCard">
           <form method="get" action="/app/foods" className="foodSearch" role="search">
             <input type="hidden" name="date" value={date} />
             <Search size={17} className="foodSearchIcon" />
             <input name="q" defaultValue={query} placeholder="Buscar alimento (pollo, arroz, avena…)" aria-label="Buscar alimento" />
-            <button className="btn sm" type="submit">Buscar</button>
+            <button className="btn sm primary" type="submit">Buscar</button>
           </form>
         </article>
 
         {!hideMacros && diaryEntries.length ? (
-          <article className="card span12 ntrFoodsTotals" aria-live="polite">
+          <article className="card span12 ntrFoodsTotals uiAccentCard uiSheen" aria-live="polite">
             <div className="ntrFoodsTotalsHead">
-              <NotebookPen size={16} color="var(--accent)" />
+              <span className="uiIconChip ntrbStatChip"><NotebookPen size={16} /></span>
               <strong>{isToday ? "Llevas hoy" : "Registrado ese día"}</strong>
               <Link className="ntrFoodsTotalsLink" href={`/app/diary?date=${date}`}>Ver diario</Link>
             </div>
             <div className="ntrFoodsTotalsRow">
-              <span><strong>{Math.round(loggedToday.calories)}</strong><small>kcal</small></span>
-              <span><strong>{Math.round(loggedToday.protein)}<i>g</i></strong><small>Proteínas</small></span>
-              <span><strong>{Math.round(loggedToday.carbs)}<i>g</i></strong><small>Carbos</small></span>
-              <span><strong>{Math.round(loggedToday.fat)}<i>g</i></strong><small>Grasas</small></span>
-              <span><strong>{diaryEntries.length}</strong><small>entradas</small></span>
+              <span className="uiStat"><strong className="uiStatValue">{Math.round(loggedToday.calories)}</strong><small className="uiStatLabel">kcal</small></span>
+              <span className="uiStat"><strong className="uiStatValue">{Math.round(loggedToday.protein)}<i>g</i></strong><small className="uiStatLabel">Proteínas</small></span>
+              <span className="uiStat"><strong className="uiStatValue">{Math.round(loggedToday.carbs)}<i>g</i></strong><small className="uiStatLabel">Carbos</small></span>
+              <span className="uiStat"><strong className="uiStatValue">{Math.round(loggedToday.fat)}<i>g</i></strong><small className="uiStatLabel">Grasas</small></span>
+              <span className="uiStat"><strong className="uiStatValue">{diaryEntries.length}</strong><small className="uiStatLabel">entradas</small></span>
             </div>
           </article>
         ) : null}
 
         {favorites.length ? (
-          <article className="card span12 foodGroupCard">
+          <article className="card span12 foodGroupCard ntrbFavCard uiSheen">
             <div className="sectionHeader">
               <div>
-                <Heart color="var(--accent)" />
+                <span className="uiIconChip ntrbSectionChip"><Heart size={18} /></span>
                 <h2>Tus favoritos</h2>
                 <p>Lo que más registras, siempre a mano.</p>
               </div>

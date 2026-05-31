@@ -88,10 +88,10 @@ export default async function MemberDiaryPage({ searchParams }: DiaryPageProps) 
           })}
         </nav>
 
-        <article className="card span12 diaryIntakeCard">
+        <article className="card span12 diaryIntakeCard uiAccentCard uiSheen">
           <div className="sectionHeader">
             <div>
-              <NotebookPen color="var(--accent)" />
+              <span className="uiIconChip ntrbSectionChip"><NotebookPen size={18} /></span>
               <h2>Ingesta del día</h2>
               <p>{isToday ? "Hoy" : selected} · {hasPlan ? `${doneCount}/${items.length} comidas registradas` : "Sin plan publicado"}</p>
             </div>
@@ -110,16 +110,16 @@ export default async function MemberDiaryPage({ searchParams }: DiaryPageProps) 
           )}
         </article>
 
-        <article className="card span12 diaryStats">
-          <span><CheckCircle2 size={17} color="var(--accent)" /> <strong>{doneCount}</strong> comidas registradas</span>
-          <span><Droplets size={17} color="var(--accent)" /> <strong>{summary.waterGlasses}</strong> vasos de agua</span>
-          <span><Apple size={17} color="var(--accent)" /> <strong>{summary.energyLevel ? `${summary.energyLevel}/5` : "—"}</strong> energía</span>
+        <article className="card span12 diaryStats ntrbDiaryStats uiSheen">
+          <span className="ntrbDiaryStat"><span className="uiIconChip ntrbStatChip"><CheckCircle2 size={16} /></span><span className="uiStat"><strong className="uiStatValue">{doneCount}</strong><small className="uiStatLabel">comidas</small></span></span>
+          <span className="ntrbDiaryStat"><span className="uiIconChip ntrbStatChip"><Droplets size={16} /></span><span className="uiStat"><strong className="uiStatValue">{summary.waterGlasses}</strong><small className="uiStatLabel">vasos agua</small></span></span>
+          <span className="ntrbDiaryStat"><span className="uiIconChip ntrbStatChip"><Apple size={16} /></span><span className="uiStat"><strong className="uiStatValue">{summary.energyLevel ? `${summary.energyLevel}/5` : "—"}</strong><small className="uiStatLabel">energía</small></span></span>
         </article>
 
-        <article className="card span12 smartAddCard">
+        <article className="card span12 smartAddCard uiSheen">
           <div className="sectionHeader">
             <div>
-              <Camera color="var(--accent)" />
+              <span className="uiIconChip ntrbSectionChip"><Camera size={18} /></span>
               <h2>Foto a la comida</h2>
               <p>Haz una foto a tu plato y la IA estima los macros y lo añade a tu día. Sin escribir.</p>
             </div>
@@ -128,10 +128,10 @@ export default async function MemberDiaryPage({ searchParams }: DiaryPageProps) 
           <PhotoMealAdd workspaceId={brand.id} date={selected} />
         </article>
 
-        <article className="card span12 smartAddCard">
+        <article className="card span12 smartAddCard uiSheen">
           <div className="sectionHeader">
             <div>
-              <Sparkles color="var(--accent)" />
+              <span className="uiIconChip ntrbSectionChip"><Sparkles size={18} /></span>
               <h2>Smart Add</h2>
               <p>O describe lo que comiste y la IA estima los macros y lo añade a tu día.</p>
             </div>
@@ -147,10 +147,10 @@ export default async function MemberDiaryPage({ searchParams }: DiaryPageProps) 
 
         {hasPlan ? (
           <div className="span12 diaryEntries">
-            {items.map((item) => {
+            {items.map((item, index) => {
               const done = logBySlot.get(item.mealSlot)?.status === "done";
               return (
-                <article className={done ? "card diaryEntry done" : "card diaryEntry"} key={item.id}>
+                <article className={`card diaryEntry uiSheen ntrbDiaryEntry uiFadeUp${done ? " done" : ""}`} style={{ ["--i" as string]: index }} key={item.id}>
                   <div className="diaryEntryHead">
                     <div>
                       <small>{item.mealSlot}</small>
@@ -189,10 +189,10 @@ export default async function MemberDiaryPage({ searchParams }: DiaryPageProps) 
         )}
 
         {foodEntries.length ? (
-          <article className="card span12 foodEntriesCard">
+          <article className="card span12 foodEntriesCard uiSheen">
             <div className="sectionHeader">
               <div>
-                <Sparkles color="var(--accent)" />
+                <span className="uiIconChip ntrbSectionChip"><Sparkles size={18} /></span>
                 <h2>Añadido por ti</h2>
                 <p>Comidas que registraste fuera del plan.</p>
               </div>
