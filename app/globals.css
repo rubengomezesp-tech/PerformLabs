@@ -13427,6 +13427,43 @@ button[aria-busy="true"] {
   overflow: hidden;
 }
 .profileInfoCard h2 { margin: 0; }
+.profileHero {
+  display: flex;
+  align-items: center;
+  gap: 18px;
+  flex-wrap: wrap;
+}
+.profileHeroAvatar {
+  flex: 0 0 auto;
+  width: 60px;
+  height: 60px;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  font-size: 24px;
+  font-weight: 800;
+  color: #07121f;
+  background: linear-gradient(135deg, var(--accent), color-mix(in srgb, var(--accent) 55%, #9fd6ff));
+}
+.profileHeroBody {
+  flex: 1 1 220px;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+.profileHeroBody h2 {
+  margin: 0;
+}
+.profileHeroEmail {
+  margin: 0;
+  color: var(--text-muted);
+  font-size: 13.5px;
+}
+.profileHeroMeta {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
 .dangerZoneChip {
   display: inline-grid;
   place-items: center;

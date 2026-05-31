@@ -41,6 +41,18 @@ export default async function ProfilePage({ searchParams }: { searchParams?: Pro
         </div>
       ) : null}
       <section className="grid">
+        <article className="card span12 profileHero uiGlass uiSheen uiFadeUp" style={{ ["--i" as string]: 0 }}>
+          <span className="profileHeroAvatar" aria-hidden="true">{(displayName.trim()[0] || "U").toUpperCase()}</span>
+          <div className="profileHeroBody">
+            <span className="eyebrow">{brand.name}</span>
+            <h2>{displayName}</h2>
+            <p className="profileHeroEmail">{displayEmail}</p>
+          </div>
+          <div className="profileHeroMeta">
+            <span className={`tag${planActive ? "" : " profileTagMuted"}`}>{planLabel}</span>
+            <span className="tag">{objective}</span>
+          </div>
+        </article>
         <article className="card span4 profileInfoCard uiSheen uiFadeUp" style={{ ["--i" as string]: 0 }}>
           <span className="uiIconChip"><UserRound size={18} /></span>
           <h2>Cuenta</h2>
