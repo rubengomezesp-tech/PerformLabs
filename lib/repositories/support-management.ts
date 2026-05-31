@@ -24,6 +24,18 @@ export type SupportMessage = {
   createdAt: string;
 };
 
+export type MemberSupportMessageInput = {
+  workspaceId: string;
+  body: string;
+};
+
+export type MemberConversation = {
+  id: string;
+  subject: string;
+  status: string;
+  messages: SupportMessage[];
+};
+
 export type ManagedSupportConversation = {
   id: string;
   subject: string;
@@ -177,4 +189,130 @@ export async function listSupportConversations(workspaceId?: string): Promise<Ma
     createdAt: conversation.created_at,
     messages: messagesByConversation.get(conversation.id) ?? [],
   }));
+}
+
+/**
+ * The member's single 1:1 thread with their coach. We treat the most recent
+ * non-archived conversation as the canonical chat, lazily creating one the first
+ * time the member opens the page so the thread is never empty-by-error. The
+ * member is always resolved from the verified session (`getMemberContext`) — the
+ * service-role read is scoped to that member's `member_profile_id`, so a member
+ * can never see another member's thread even though RLS is bypassed server-side.
+ */
+export async function getOrCreateMemberConversation(workspaceId: string): Promise<MemberConversation | null> {
+  const env = getSupabaseServiceEnv();
+  if (!env.ok || !workspaceId) return null;
+
+  const memberProfileId = await getDefaultMemberProfileId(workspaceId);
+  if (!memberProfileId) return null;
+
+  const supabase = createServiceSupabaseClient();
+  const existing = await supabase
+    .from("support_conversations")
+    .select("id,subject,status")
+    .eq("workspace_id", workspaceId)
+    .eq("member_profile_id", memberProfileId)
+    .neq("status", "archived")
+    .order("last_message_at", { ascending: false })
+    .limit(1)
+    .maybeSingle();
+
+  if (existing.error) {
+    console.error("Unable to load member conversation", existing.error.message);
+    return null;
+  }
+
+  let conversation = existing.data;
+  if (!conversation) {
+    const created = await supabase
+      .from("support_conversations")
+      .insert({
+        workspace_id: workspaceId,
+        member_profile_id: memberProfileId,
+        subject: "Chat con tu coach",
+        category: "general",
+        priority: "normal",
+        status: "open",
+        last_message_at: new Date().toISOString(),
+      })
+      .select("id,subject,status")
+      .single();
+    if (created.error || !created.data) {
+      console.error("Unable to create member conversation", created.error?.message);
+      return null;
+    }
+    conversation = created.data;
+  }
+
+  const messages = await supabase
+    .from("support_messages")
+    .select("id,sender_role,body,created_at")
+    .eq("conversation_id", conversation.id)
+    .order("created_at", { ascending: true });
+
+  if (messages.error) {
+    console.error("Unable to load member messages", messages.error.message);
+  }
+
+  // Mark coach replies as read for this member now that they're viewing them.
+  await supabase
+    .from("support_messages")
+    .update({ read_at: new Date().toISOString() })
+    .eq("conversation_id", conversation.id)
+    .eq("sender_role", "coach")
+    .is("read_at", null);
+
+  return {
+    id: conversation.id,
+    subject: conversation.subject,
+    status: conversation.status,
+    messages: (messages.data ?? []).map((message) => ({
+      id: message.id,
+      senderRole: message.sender_role,
+      body: message.body,
+      createdAt: message.created_at,
+    })),
+  };
+}
+
+/**
+ * Send a message as the member into their own 1:1 thread. Resolves the member
+ * from the verified session and verifies the target conversation belongs to that
+ * member before inserting — so a forged `conversationId` in a direct POST can't
+ * write into another member's (or workspace's) thread.
+ */
+export async function sendMemberSupportMessage(input: MemberSupportMessageInput) {
+  if (!input.workspaceId) throw new Error("Falta la marca.");
+  const body = input.body.trim();
+  if (!body) throw new Error("El mensaje es obligatorio.");
+
+  const memberProfileId = await getDefaultMemberProfileId(input.workspaceId);
+  if (!memberProfileId) throw new Error("Inicia sesión para escribir a tu coach.");
+
+  const conversation = await getOrCreateMemberConversation(input.workspaceId);
+  if (!conversation) throw new Error("No se pudo abrir tu conversación.");
+
+  const supabase = createServiceSupabaseClient();
+  const result = await supabase.from("support_messages").insert({
+    workspace_id: input.workspaceId,
+    conversation_id: conversation.id,
+    member_profile_id: memberProfileId,
+    sender_role: "member",
+    body,
+  });
+
+  if (result.error) throw new Error(`No se pudo enviar: ${result.error.message}`);
+
+  const updated = await supabase
+    .from("support_conversations")
+    .update({
+      status: "waiting_coach",
+      last_message_at: new Date().toISOString(),
+      updated_at: new Date().toISOString(),
+    })
+    .eq("workspace_id", input.workspaceId)
+    .eq("id", conversation.id)
+    .eq("member_profile_id", memberProfileId);
+
+  if (updated.error) throw new Error(`No se pudo actualizar la conversación: ${updated.error.message}`);
 }

@@ -11629,3 +11629,144 @@ button[aria-busy="true"] {
   flex: 0 0 auto;
 }
 /* ===== END PROFILE DANGER ZONE ===== */
+
+/* ===== MEMBER CHAT (agent) ===== */
+.chatCard {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+.chatLiveDot {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--muted);
+}
+.chatLiveDot::before {
+  content: "";
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--accent);
+  box-shadow: 0 0 0 0 color-mix(in srgb, var(--accent) 60%, transparent);
+  animation: chatPulse 2s ease-out infinite;
+}
+@keyframes chatPulse {
+  0% { box-shadow: 0 0 0 0 color-mix(in srgb, var(--accent) 55%, transparent); }
+  70% { box-shadow: 0 0 0 7px transparent; }
+  100% { box-shadow: 0 0 0 0 transparent; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .chatLiveDot::before { animation: none; }
+}
+.chatThread {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  max-height: 52vh;
+  overflow-y: auto;
+  padding: 4px 2px;
+  scroll-behavior: smooth;
+}
+.chatThreadCoach {
+  max-height: 40vh;
+}
+.chatRow {
+  display: flex;
+  align-items: flex-end;
+  gap: 8px;
+  max-width: 82%;
+}
+.chatRow.member {
+  align-self: flex-end;
+  flex-direction: row-reverse;
+}
+.chatRow.coach {
+  align-self: flex-start;
+}
+.chatAvatar {
+  display: grid;
+  place-items: center;
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  background: var(--surface-2, color-mix(in srgb, var(--accent) 8%, var(--surface)));
+  border: 1px solid var(--line);
+  color: var(--accent-strong, var(--accent));
+  font-size: 13px;
+  font-weight: 700;
+  flex-shrink: 0;
+}
+.chatBubble {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 10px 13px;
+  border-radius: 16px;
+}
+.chatBubble p {
+  margin: 0;
+  font-size: 14px;
+  line-height: 1.45;
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+.chatBubble time {
+  align-self: flex-end;
+  font-size: 11px;
+  opacity: 0.7;
+}
+.chatRow.coach .chatBubble {
+  background: var(--surface-2, color-mix(in srgb, var(--accent) 6%, var(--surface)));
+  border: 1px solid var(--line);
+  border-bottom-left-radius: 5px;
+  color: var(--text);
+}
+.chatRow.member .chatBubble {
+  background: var(--accent);
+  color: var(--accent-contrast, #fff);
+  border-bottom-right-radius: 5px;
+}
+.chatRow.member .chatBubble time {
+  color: var(--accent-contrast, #fff);
+}
+.chatEmpty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  text-align: center;
+  padding: 28px 16px;
+  color: var(--muted);
+}
+.chatEmpty strong {
+  color: var(--text);
+  font-size: 15px;
+}
+.chatEmpty p {
+  margin: 0;
+  max-width: 38ch;
+  font-size: 13px;
+}
+.chatComposer {
+  display: flex;
+  gap: 8px;
+  align-items: flex-end;
+  border-top: 1px solid var(--line);
+  padding-top: 12px;
+}
+.chatComposer textarea {
+  flex: 1;
+  resize: none;
+  min-height: 44px;
+  max-height: 140px;
+  line-height: 1.4;
+}
+.chatComposer .chatSend {
+  flex: 0 0 auto;
+  height: 44px;
+  padding-inline: 16px;
+}
+/* ===== END MEMBER CHAT ===== */

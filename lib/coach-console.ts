@@ -48,6 +48,7 @@ export const coachNav = [
     ],
   },
   { label: "Miembros", href: "/coach/members", icon: Users, group: "Clientes" },
+  { label: "Mensajes", href: "/coach/messages", icon: MessagesSquare, group: "Clientes" },
   { label: "Retención IA", href: "/coach/retention", icon: HeartPulse, group: "Clientes" },
   { label: "Check-ins", href: "/coach/checkins", icon: ClipboardCheck, group: "Clientes" },
   { label: "Comunidad", href: "/coach/community", icon: MessagesSquare, group: "Clientes" },
