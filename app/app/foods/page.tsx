@@ -1,5 +1,6 @@
 import { Heart, NotebookPen, Plus, Salad, Search } from "lucide-react";
 import Link from "next/link";
+import { MemberEmpty } from "@/components/member-empty";
 import { RecipeImage } from "@/components/recipe-image";
 import { SubmitButton } from "@/components/submit-button";
 import { Topbar } from "@/components/topbar";
@@ -195,11 +196,11 @@ export default async function MemberFoodsPage({ searchParams }: FoodsPageProps) 
             </article>
           ))
         ) : (
-          <article className="card span12 inlineEmpty">
-            <Salad color="var(--accent)" />
-            <strong>{query ? "Sin resultados para tu búsqueda." : "Aún no hay alimentos en tu biblioteca."}</strong>
-            <p>{query ? "Prueba con otro nombre o pídele a tu coach que lo añada." : "Tu coach irá añadiendo los alimentos de tu plan aquí."}</p>
-          </article>
+          <MemberEmpty
+            icon={Salad}
+            title={query ? "Sin resultados para tu búsqueda." : "Aún no hay alimentos en tu biblioteca."}
+            text={query ? "Prueba con otro nombre o pídele a tu coach que lo añada." : "Tu coach irá añadiendo los alimentos de tu plan aquí."}
+          />
         )}
 
         {isFallback ? (

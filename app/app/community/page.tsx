@@ -1,4 +1,5 @@
 import { Heart, MessageSquare, Pin, Send, Sparkles, Trash2 } from "lucide-react";
+import { MemberEmpty } from "@/components/member-empty";
 import { SubmitButton } from "@/components/submit-button";
 import { Topbar } from "@/components/topbar";
 import { getSelectedMemberAppBrand } from "@/lib/member-app";
@@ -82,11 +83,11 @@ export default async function MemberCommunityPage() {
             ))}
           </div>
         ) : (
-          <article className="card span12 inlineEmpty uiGlass">
-            <span className="uiIconChip" style={{ width: 52, height: 52, borderRadius: 16 }}><MessageSquare size={24} /></span>
-            <strong>Sé el primero en publicar.</strong>
-            <p>Comparte tu primer avance y arranca la comunidad de tu marca.</p>
-          </article>
+          <MemberEmpty
+            icon={MessageSquare}
+            title="Sé el primero en publicar."
+            text="Comparte tu primer avance y arranca la comunidad de tu marca."
+          />
         )}
       </section>
     </>

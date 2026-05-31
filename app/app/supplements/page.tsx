@@ -1,4 +1,5 @@
 import { Check, Pill } from "lucide-react";
+import { MemberEmpty } from "@/components/member-empty";
 import { Topbar } from "@/components/topbar";
 import { getSelectedMemberAppBrand } from "@/lib/member-app";
 import { getMemberSupplementsToday, TIMING_LABEL, TIMING_ORDER, type SupplementTiming } from "@/lib/repositories/supplements";
@@ -64,11 +65,11 @@ export default async function MemberSupplementsPage() {
             ))}
           </>
         ) : (
-          <article className="card span12 inlineEmpty">
-            <Pill color="var(--accent)" />
-            <strong>Aún no tienes suplementos pautados.</strong>
-            <p>Cuando tu coach te asigne un protocolo de suplementación, lo verás aquí para marcarlo cada día.</p>
-          </article>
+          <MemberEmpty
+            icon={Pill}
+            title="Aún no tienes suplementos pautados."
+            text="Cuando tu coach te asigne un protocolo de suplementación, lo verás aquí para marcarlo cada día."
+          />
         )}
       </section>
     </>

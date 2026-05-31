@@ -1,4 +1,5 @@
 import { CalendarDays, Flame, Trophy, Users } from "lucide-react";
+import { MemberEmpty } from "@/components/member-empty";
 import { SubmitButton } from "@/components/submit-button";
 import { Topbar } from "@/components/topbar";
 import { getSelectedMemberAppBrand } from "@/lib/member-app";
@@ -82,11 +83,11 @@ export default async function MemberChallengesPage() {
             );
           })
         ) : (
-          <article className="card span12 inlineEmpty uiGlass">
-            <span className="uiIconChip" style={{ width: 52, height: 52, borderRadius: 16 }}><Trophy size={24} /></span>
-            <strong>Aún no hay retos activos.</strong>
-            <p>Cuando tu coach lance un reto, aquí podrás unirte y ver la clasificación en directo.</p>
-          </article>
+          <MemberEmpty
+            icon={Trophy}
+            title="Aún no hay retos activos."
+            text="Cuando tu coach lance un reto, aquí podrás unirte y ver la clasificación en directo."
+          />
         )}
       </section>
     </>

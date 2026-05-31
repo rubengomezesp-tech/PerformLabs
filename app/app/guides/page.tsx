@@ -1,4 +1,5 @@
 import { BookOpen } from "lucide-react";
+import { MemberEmpty } from "@/components/member-empty";
 import { Topbar } from "@/components/topbar";
 import { getSelectedMemberAppBrand } from "@/lib/member-app";
 import { listWorkspaceContentPages } from "@/lib/repositories/member-experience";
@@ -23,11 +24,11 @@ export default async function GuidesPage() {
             <span className={page.status === "active" ? "tag" : "tag profileTagMuted"}>{page.status === "active" ? "Activo" : "Preparando"}</span>
           </article>
         )) : (
-          <article className="card span12 inlineEmpty uiGlass">
-            <span className="uiIconChip" style={{ width: 52, height: 52, borderRadius: 16 }}><BookOpen size={24} /></span>
-            <strong>Aún no hay guías publicadas.</strong>
-            <p>Cuando tu coach publique sus guías y recursos, los verás aquí.</p>
-          </article>
+          <MemberEmpty
+            icon={BookOpen}
+            title="Aún no hay guías publicadas."
+            text="Cuando tu coach publique sus guías y recursos, los verás aquí."
+          />
         )}
       </section>
     </>

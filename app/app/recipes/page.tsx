@@ -1,5 +1,6 @@
 import { ChefHat, Filter, Utensils } from "lucide-react";
 import Link from "next/link";
+import { MemberEmpty } from "@/components/member-empty";
 import { MacroStrip } from "@/components/macro-strip";
 import { RecipeImage } from "@/components/recipe-image";
 import { Topbar } from "@/components/topbar";
@@ -92,12 +93,12 @@ export default async function MemberRecipesPage({ searchParams }: RecipesPagePro
             ))}
           </div>
         ) : (
-          <article className="card span12 inlineEmpty">
-            <ChefHat color="var(--accent)" />
-            <strong>{hasFilters ? "No hay recetas con estos filtros." : "Todavía no hay recetas publicadas."}</strong>
-            <p>{hasFilters ? "Prueba con otra búsqueda o cambia el momento del día." : "Tu coach añadirá recetas a tu marca y aparecerán aquí."}</p>
-            {hasFilters ? <Link className="btn ghost" href="/app/recipes">Limpiar filtros</Link> : null}
-          </article>
+          <MemberEmpty
+            icon={ChefHat}
+            title={hasFilters ? "No hay recetas con estos filtros." : "Todavía no hay recetas publicadas."}
+            text={hasFilters ? "Prueba con otra búsqueda o cambia el momento del día." : "Tu coach añadirá recetas a tu marca y aparecerán aquí."}
+            action={hasFilters ? <Link className="btn ghost" href="/app/recipes">Limpiar filtros</Link> : undefined}
+          />
         )}
       </section>
     </>
