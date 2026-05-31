@@ -10651,6 +10651,28 @@ button[aria-busy="true"] {
   color: var(--accent);
 }
 
+/* Supplements summary — adherence progress bar under the count. */
+.ntrSuppSummary {
+  align-items: flex-start;
+}
+.ntrSuppSummaryBody {
+  flex: 1;
+}
+.ntrSuppProgress {
+  margin-top: 10px;
+  height: 8px;
+  border-radius: var(--radius-pill);
+  background: var(--surface-3);
+  overflow: hidden;
+}
+.ntrSuppProgress > span {
+  display: block;
+  height: 100%;
+  border-radius: inherit;
+  background: linear-gradient(90deg, var(--accent), var(--accent-strong));
+  transition: width 0.3s ease;
+}
+
 @media (max-width: 560px) {
   .ntrTodayCard .ntrTodayBody {
     gap: 18px;

@@ -25,11 +25,14 @@ export default async function MemberSupplementsPage() {
       <section className="grid">
         {supplements.length ? (
           <>
-            <article className="card span12 suppSummary">
+            <article className="card span12 suppSummary ntrSuppSummary">
               <Pill color="var(--accent)" />
-              <div>
+              <div className="ntrSuppSummaryBody">
                 <strong>{takenCount}/{supplements.length} tomados hoy</strong>
                 <p>Mantén la constancia: los suplementos solo funcionan si son diarios.</p>
+                <div className="ntrSuppProgress" role="progressbar" aria-valuemin={0} aria-valuemax={supplements.length} aria-valuenow={takenCount} aria-label="Suplementos tomados hoy">
+                  <span style={{ width: `${supplements.length ? Math.round((takenCount / supplements.length) * 100) : 0}%` }} />
+                </div>
               </div>
             </article>
 
