@@ -56,6 +56,7 @@ function FoodRow({
         className="foodThumb"
         id={food.id}
         name={food.name}
+        imageUrl={food.imageUrl}
         keyword={FOOD_KEYWORD[food.category]}
       />
       <div className="foodInfo">

@@ -24,6 +24,8 @@ export type FoodItem = {
   fat: number;
   carbs: number;
   calories: number;
+  /** Curated/generated product photo. Empty → on-brand placeholder. */
+  imageUrl?: string;
   /** True when the row is a built-in starter food (not yet a real DB row). */
   isStarter: boolean;
 };
@@ -141,6 +143,7 @@ function mapRow(row: any): FoodItem {
     fat: Number(row.fat_g ?? 0),
     carbs: Number(row.carbs_g ?? 0),
     calories: Number(row.calories ?? 0),
+    imageUrl: row.image_url ?? "",
     isStarter: false,
   };
 }
@@ -160,7 +163,7 @@ export async function listFoodLibrary(workspaceId?: string, query = ""): Promise
   const supabase = createServiceSupabaseClient();
   const { data, error } = await (supabase as any)
     .from("food_library_items")
-    .select("id,name,brand,serving_label,category,protein_g,fat_g,carbs_g,calories,sort_order")
+    .select("id,name,brand,serving_label,category,protein_g,fat_g,carbs_g,calories,image_url,sort_order")
     .eq("workspace_id", workspaceId)
     .order("sort_order", { ascending: true })
     .order("name", { ascending: true })
@@ -213,6 +216,7 @@ export async function createFoodItem(input: {
   fat: number;
   carbs: number;
   calories: number;
+  imageUrl?: string;
 }): Promise<void> {
   if (!isUuid(input.workspaceId)) throw new Error("No se pudo identificar la marca.");
   if (!input.name.trim()) throw new Error("El alimento necesita un nombre.");
@@ -234,6 +238,7 @@ export async function createFoodItem(input: {
     fat_g: fat,
     carbs_g: carbs,
     calories,
+    image_url: input.imageUrl?.trim() || null,
   });
   if (error) throw new Error(`No se pudo crear el alimento: ${error.message}`);
 }
@@ -308,7 +313,7 @@ async function resolveFood(workspaceId: string, foodId: string): Promise<FoodIte
   const supabase = createServiceSupabaseClient();
   const { data } = await (supabase as any)
     .from("food_library_items")
-    .select("id,name,brand,serving_label,category,protein_g,fat_g,carbs_g,calories")
+    .select("id,name,brand,serving_label,category,protein_g,fat_g,carbs_g,calories,image_url")
     .eq("workspace_id", workspaceId)
     .eq("id", foodId)
     .maybeSingle();

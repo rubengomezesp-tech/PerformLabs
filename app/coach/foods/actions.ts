@@ -34,6 +34,7 @@ export async function createFoodItemAction(formData: FormData) {
     fat: readNumber(formData, "fat"),
     carbs: readNumber(formData, "carbs"),
     calories: readNumber(formData, "calories"),
+    imageUrl: readText(formData, "imageUrl"),
   });
 
   await recordSecurityAuditEvent({

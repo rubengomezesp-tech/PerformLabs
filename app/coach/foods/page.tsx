@@ -55,6 +55,7 @@ export default async function CoachFoodsPage() {
               <label>Grasas (g)<input name="fat" type="number" min="0" step="0.1" placeholder="3.6" /></label>
               <label>Kcal<input name="calories" type="number" min="0" step="1" placeholder="165" /></label>
             </div>
+            <label>Foto del producto (URL, opcional)<input name="imageUrl" type="url" inputMode="url" placeholder="https://… (si la dejas vacía, se usa el icono de marca)" /></label>
             <SubmitButton className="btn primary" pendingLabel="Añadiendo…"><Salad size={16} /> Añadir a la biblioteca</SubmitButton>
           </form>
         </article>
