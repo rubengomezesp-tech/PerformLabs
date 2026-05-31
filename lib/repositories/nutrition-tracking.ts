@@ -342,6 +342,40 @@ export async function getMemberMealPlanForToday(workspaceId?: string): Promise<M
   };
 }
 
+export type ConsumedMacros = {
+  calories: number;
+  protein: number;
+  carbs: number;
+  fat: number;
+};
+
+/**
+ * Sum of macros consumed on a given day: the plan meals marked "done" plus any
+ * free-form / library diary entries. Pure helper so the meals plan view and the
+ * diary can both show consumed-vs-target without duplicating the math.
+ */
+export function sumConsumedMacros(
+  planItems: Array<{ mealSlot: string; calories: number | null; proteinG: number | null; carbsG: number | null; fatG: number | null }>,
+  doneSlots: Set<string>,
+  diaryEntries: FoodDiaryEntry[],
+): ConsumedMacros {
+  const totals: ConsumedMacros = { calories: 0, protein: 0, carbs: 0, fat: 0 };
+  for (const item of planItems) {
+    if (!doneSlots.has(item.mealSlot)) continue;
+    totals.calories += item.calories ?? 0;
+    totals.protein += item.proteinG ?? 0;
+    totals.carbs += item.carbsG ?? 0;
+    totals.fat += item.fatG ?? 0;
+  }
+  for (const entry of diaryEntries) {
+    totals.calories += entry.calories ?? 0;
+    totals.protein += entry.protein ?? 0;
+    totals.carbs += entry.carbs ?? 0;
+    totals.fat += entry.fat ?? 0;
+  }
+  return totals;
+}
+
 export async function getNutritionDailySummary(workspaceId?: string, dateInput?: string): Promise<NutritionDailySummary> {
   const empty: NutritionDailySummary = {
     completedMeals: 0,
