@@ -2,6 +2,7 @@ import { CalendarClock, CheckCircle2, ChevronRight, Dumbbell, Play, Repeat2, Tar
 import Link from "next/link";
 import { Dialog } from "@/components/dialog";
 import { ExercisePreview } from "@/components/exercise-preview";
+import { RestTimer } from "@/components/rest-timer";
 import { Topbar } from "@/components/topbar";
 import { getSelectedMemberAppBrand } from "@/lib/member-app";
 import { getMemberTrainingContext, type MemberAssignedWorkoutDay, type MemberAssignedWorkoutExercise } from "@/lib/repositories/member-onboarding";
@@ -376,6 +377,7 @@ export default async function WorkoutsPage() {
                             </div>
                           ))}
                         </div>
+                        <RestTimer seconds={exercise.restSeconds ?? 90} />
                         <div className="actions">
                           {exercise.videoUrl ? (
                             <a className="btn primary" href={exercise.videoUrl} target="_blank" rel="noreferrer">

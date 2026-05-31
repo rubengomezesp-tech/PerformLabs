@@ -3114,6 +3114,98 @@ a.card:hover {
   gap: 10px;
 }
 
+.restTimer {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin: 12px 0;
+  padding: 8px 10px;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  background: var(--surface-2);
+  transition: border-color 0.2s ease, background 0.2s ease;
+}
+.restTimer[data-running="true"] {
+  border-color: color-mix(in srgb, var(--accent) 45%, var(--line));
+}
+.restTimer[data-done="true"] {
+  border-color: color-mix(in srgb, var(--success) 55%, var(--line));
+  background: color-mix(in srgb, var(--success) 12%, var(--surface-2));
+}
+.restTimerToggle,
+.restTimerReset {
+  flex: 0 0 auto;
+  display: grid;
+  place-items: center;
+  width: 36px;
+  height: 36px;
+  border-radius: 10px;
+  border: 1px solid var(--line);
+  background: var(--surface);
+  color: var(--text);
+  cursor: pointer;
+}
+.restTimerToggle {
+  background: var(--accent);
+  border-color: var(--accent);
+  color: var(--accent-contrast, #04121f);
+}
+.restTimerReset {
+  color: var(--text-muted);
+}
+.restTimerBody {
+  flex: 1 1 auto;
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  min-width: 0;
+}
+.restTimerTop {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+.restTimerLabel {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 12.5px;
+  font-weight: 600;
+  color: var(--text-muted);
+}
+.restTimerTime {
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--text);
+  font-variant-numeric: tabular-nums;
+}
+.restTimer[data-done="true"] .restTimerTime {
+  color: var(--success);
+}
+.restTimerTrack {
+  display: block;
+  height: 6px;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--text) 12%, transparent);
+  overflow: hidden;
+}
+.restTimerTrack > span {
+  display: block;
+  height: 100%;
+  border-radius: inherit;
+  background: var(--accent);
+  transition: width 1s linear;
+}
+.restTimer[data-done="true"] .restTimerTrack > span {
+  background: var(--success);
+}
+@media (prefers-reduced-motion: reduce) {
+  .restTimerTrack > span {
+    transition: none;
+  }
+}
+
 .setLogRow {
   display: grid;
   grid-template-columns: 72px minmax(90px, 0.7fr) minmax(90px, 0.7fr) minmax(150px, 1fr);
