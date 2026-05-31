@@ -21,28 +21,81 @@ const measureFields = [
   ["Cadera", "hipCm", "cm"],
 ];
 
-function Sparkline({ points, label }: { points: Array<{ date: string; value: number }>; label: string }) {
+// Premium trend chart: gradient area, dashed gridlines with min/max value labels,
+// per-point dots and an emphasised latest reading. Pure SVG so it renders on the
+// server, scales uniformly, and carries a descriptive a11y label.
+function Sparkline({ points, label, unit }: { points: Array<{ date: string; value: number }>; label: string; unit?: string }) {
   if (points.length < 2) return null;
-  const width = 320;
-  const height = 96;
-  const pad = 10;
+  const width = 324;
+  const height = 120;
+  const padL = 40;
+  const padR = 14;
+  const padT = 14;
+  const padB = 14;
+  const values = points.map((point) => point.value);
+  const min = Math.min(...values);
+  const max = Math.max(...values);
+  const range = max - min || 1;
+  const plotW = width - padL - padR;
+  const plotH = height - padT - padB;
+  const xAt = (index: number) => padL + (index * plotW) / (points.length - 1);
+  const yAt = (value: number) => padT + (1 - (value - min) / range) * plotH;
+  const coords = points.map((point, index) => [xAt(index), yAt(point.value)] as const);
+  const line = coords.map(([x, y], index) => `${index === 0 ? "M" : "L"}${x.toFixed(1)} ${y.toFixed(1)}`).join(" ");
+  const baseline = (padT + plotH).toFixed(1);
+  const area = `${line} L${coords[coords.length - 1][0].toFixed(1)} ${baseline} L${coords[0][0].toFixed(1)} ${baseline} Z`;
+  const gradId = `spark-${label.replace(/[^a-zA-Z0-9]/g, "")}`;
+  const fmt = (value: number) => (Number.isInteger(value) ? String(value) : value.toFixed(1));
+  const gridLines = [max, (max + min) / 2, min];
+  const [lastX, lastY] = coords[coords.length - 1];
+  const suffix = unit ? ` ${unit}` : "";
+
+  return (
+    <svg className="progressSpark" viewBox={`0 0 ${width} ${height}`} role="img" aria-label={`Evolución de ${label.toLowerCase()}: de ${fmt(values[0])} a ${fmt(points[points.length - 1].value)}${suffix}`}>
+      <defs>
+        <linearGradient id={gradId} x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0%" stopColor="var(--accent)" stopOpacity="0.26" />
+          <stop offset="100%" stopColor="var(--accent)" stopOpacity="0" />
+        </linearGradient>
+      </defs>
+      {gridLines.map((value, index) => {
+        const gy = yAt(value);
+        return (
+          <g key={index}>
+            <line className="progressChartGrid" x1={padL} y1={gy.toFixed(1)} x2={width - padR} y2={gy.toFixed(1)} />
+            <text className="progressChartAxis" x={padL - 7} y={(gy + 3).toFixed(1)} textAnchor="end">{fmt(value)}</text>
+          </g>
+        );
+      })}
+      <path d={area} fill={`url(#${gradId})`} />
+      <path className="progressChartLine" d={line} />
+      {coords.slice(0, -1).map(([cx, cy], index) => (
+        <circle key={index} className="progressChartDot" cx={cx.toFixed(1)} cy={cy.toFixed(1)} r={2.3} />
+      ))}
+      <circle className="progressChartHalo" cx={lastX.toFixed(1)} cy={lastY.toFixed(1)} r={6} />
+      <circle className="progressChartLast" cx={lastX.toFixed(1)} cy={lastY.toFixed(1)} r={3.6} />
+    </svg>
+  );
+}
+
+// Compact, label-free trend used inside the KPI metric cards (decorative).
+function MiniSpark({ points }: { points: Array<{ date: string; value: number }> }) {
+  if (points.length < 2) return null;
+  const width = 120;
+  const height = 34;
+  const pad = 3;
   const values = points.map((point) => point.value);
   const min = Math.min(...values);
   const max = Math.max(...values);
   const range = max - min || 1;
   const stepX = (width - pad * 2) / (points.length - 1);
-  const coords = points.map((point, index) => {
-    const x = pad + index * stepX;
-    const y = pad + (1 - (point.value - min) / range) * (height - pad * 2);
-    return [x, y] as const;
-  });
+  const coords = points.map((point, index) => [pad + index * stepX, pad + (1 - (point.value - min) / range) * (height - pad * 2)] as const);
   const line = coords.map(([x, y], index) => `${index === 0 ? "M" : "L"}${x.toFixed(1)} ${y.toFixed(1)}`).join(" ");
-  const area = `${line} L${coords[coords.length - 1][0].toFixed(1)} ${height} L${coords[0][0].toFixed(1)} ${height} Z`;
-
+  const [lastX, lastY] = coords[coords.length - 1];
   return (
-    <svg className="progressSpark" viewBox={`0 0 ${width} ${height}`} preserveAspectRatio="none" role="img" aria-label={`Evolución de ${label.toLowerCase()}`}>
-      <path d={area} fill="var(--accent)" opacity={0.12} />
-      <path d={line} fill="none" stroke="var(--accent)" strokeWidth={2.5} strokeLinejoin="round" strokeLinecap="round" />
+    <svg className="progressMiniSpark" viewBox={`0 0 ${width} ${height}`} preserveAspectRatio="none" aria-hidden="true">
+      <path d={line} fill="none" stroke="var(--accent)" strokeWidth={2} strokeLinejoin="round" strokeLinecap="round" />
+      <circle cx={lastX.toFixed(1)} cy={lastY.toFixed(1)} r={2.4} fill="var(--accent)" />
     </svg>
   );
 }
@@ -72,6 +125,7 @@ function MetricCard({ measure, icon, i }: { measure: MeasurementSummary; icon: R
       <span className="progressMetricHead"><span className="uiIconChip">{icon}</span> <span className="uiStatLabel">{measure.label}</span></span>
       <strong className="progressMetric uiStatValue">{formatMeasure(measure)}</strong>
       <DeltaTag measure={measure} />
+      {measure.trend.length > 1 ? <MiniSpark points={measure.trend} /> : null}
     </article>
   );
 }
@@ -133,7 +187,7 @@ export default async function ProgressPage({ searchParams }: ProgressPageProps) 
                         <span className="progressSparkLabel">{measure.label}</span>
                         <DeltaTag measure={measure} />
                       </div>
-                      <Sparkline points={measure.trend} label={measure.label} />
+                      <Sparkline points={measure.trend} label={measure.label} unit={measure.unit} />
                       <div className="progressSparkAxis">
                         <span>{measure.trend[0].date || "inicio"}</span>
                         <span>{measure.trend[measure.trend.length - 1].date || "hoy"}</span>
