@@ -12399,6 +12399,7 @@ button[aria-busy="true"] {
 }
 /* ===== END MEMBER CHAT ===== */
 
+
 /* ===== UI UPLIFT A (agent) =====
    Cluster A: Panel/dashboard, Entreno (workouts), Cardio.
    "Ethereal Glass to the max" — composes onto the shared foundation
@@ -12418,26 +12419,6 @@ button[aria-busy="true"] {
 }
 .panelHabitChip,
 .cardioSessionIcon.uiIconChip {
-/* ===== UI UPLIFT C (agent) =====
-   Cluster C elevation: Progreso, Hábitos, Comunidad, Retos, Soporte, Coach IA,
-   Guías, Perfil, Ciclo. Builds on the Ethereal-Glass foundation utilities
-   (.uiGlass/.uiSheen/.uiIconChip/.uiStat*/.uiFadeUp). Visual only — namespaced
-   to avoid collisions, refines existing .chat*/.profile*/.dangerZone*/.cycle*. */
-
-/* ---- Progreso — metric cards as Whoop-style stats ---- */
-.progressMetricCard {
-  position: relative;
-  gap: 10px;
-  overflow: hidden;
-}
-.progressMetricHead {
-  display: inline-flex;
-  align-items: center;
-  gap: 9px;
-}
-/* Compact icon-chip when nested in an eyebrow / metric head (smaller text scale). */
-.progressMetricHead .uiIconChip,
-.eyebrow .uiIconChip {
   width: 30px;
   height: 30px;
   border-radius: 9px;
@@ -12593,6 +12574,138 @@ button[aria-busy="true"] {
 }
 .workoutHeroEyebrow,
 .trnCardioHeroEyebrow {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+}
+.workoutHeroChip,
+.trnCardioHeroChip {
+  width: 34px;
+  height: 34px;
+  border-radius: 10px;
+}
+/* uiMeta hero pills keep the framed look but softer */
+.workoutAppHero .workoutHeroMeta.uiMeta span,
+.trnCardioHero .trnCardioHeroMeta.uiMeta span {
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 9px;
+  background: rgba(255, 255, 255, 0.05);
+  color: var(--text-muted);
+  padding: 7px 11px;
+  font-size: 13px;
+  font-weight: 600;
+}
+
+/* Status cards — stat-led header */
+.workoutStatusTop {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+.workoutStatusCard .workoutStatUnit {
+  font-size: 0.46em;
+  font-weight: 600;
+  color: var(--text-muted);
+  letter-spacing: 0;
+}
+
+/* Week-plan empty cover — branded gradient, never a naked box */
+.workoutDayCoverEmpty {
+  color: var(--accent);
+  border: 1px solid color-mix(in srgb, var(--accent) 26%, transparent);
+  background:
+    radial-gradient(120% 120% at 25% 15%, color-mix(in srgb, var(--accent) 30%, transparent), transparent 62%),
+    linear-gradient(160deg, color-mix(in srgb, var(--accent) 14%, var(--surface-2)), var(--surface));
+}
+
+/* Exercise media empty state — branded, not a flat video glyph box */
+.sessionExerciseMediaEmpty {
+  display: grid;
+  place-items: center;
+  color: var(--accent);
+  background:
+    radial-gradient(130% 130% at 30% 10%, color-mix(in srgb, var(--accent) 26%, transparent), transparent 60%),
+    linear-gradient(165deg, color-mix(in srgb, var(--accent) 12%, var(--surface-2)), var(--surface));
+}
+
+/* Progression hint — make the "last time" cue feel like a coach prompt */
+.trnProgressionHint {
+  border-radius: 10px;
+  border: 1px solid color-mix(in srgb, var(--accent) 30%, transparent);
+  background: color-mix(in srgb, var(--accent) 9%, transparent);
+  padding: 9px 12px;
+}
+
+/* ---------- CARDIO ---------- */
+.trnCardioHero.uiGlass {
+  border: 1px solid rgba(255, 255, 255, 0.09);
+  background:
+    radial-gradient(140% 120% at 100% 0%, color-mix(in srgb, var(--accent) 14%, transparent), transparent 60%),
+    linear-gradient(165deg, color-mix(in srgb, var(--surface-2) 82%, transparent), color-mix(in srgb, var(--surface) 72%, transparent));
+}
+/* Steps/NEAT card — restructured to chip + stat */
+.trnCardioStepsCard {
+  display: grid;
+  gap: 12px;
+  align-content: start;
+}
+.trnCardioStepsChip {
+  width: 44px;
+  height: 44px;
+  border-radius: 13px;
+}
+.trnCardioStepsStat .uiStatValue {
+  font-size: clamp(28px, 3.4vw, 38px);
+}
+
+/* Recommended protocol gets the accent selected treatment via .selected
+   (so its .uiIconChip fills). Add a soft glow + border. */
+.trnCardioCard.recommended {
+  border-color: color-mix(in srgb, var(--accent) 40%, var(--border));
+  box-shadow: var(--shadow), 0 0 34px -16px color-mix(in srgb, var(--accent) 70%, transparent);
+}
+
+/* Cardio "how to fit it" note — accent card layout */
+.trnCardioNote {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  gap: 14px;
+  align-items: start;
+}
+.trnCardioNoteChip {
+  width: 42px;
+  height: 42px;
+  border-radius: 12px;
+}
+
+@media (max-width: 720px) {
+  .dashHeroProgress {
+    grid-template-columns: 1fr;
+    gap: 14px;
+  }
+  .memberProgramCard {
+    grid-template-columns: 52px minmax(0, 1fr);
+  }
+  .memberProgramArt {
+    width: 52px;
+    height: 52px;
+  }
+}
+
+/* Respect reduced-motion: kill the hover drifts + the progress-bar tween for
+   users who opt out (the entrance fade is already guarded in .uiFadeUp). */
+@media (prefers-reduced-motion: reduce) {
+  .panelCheckinCard:hover .panelCheckinChip,
+  .memberAction:hover .memberActionArrow,
+  .memberAction:hover .memberActionIcon {
+    transform: none;
+  }
+  .dashHeroBar .progressTrack span {
+    transition: none;
+  }
+}
+/* ===== END UI UPLIFT A ===== */
+
 /* ===== UI UPLIFT B (agent) =====
    Nutrición cluster — Comida, Alimentos, Diario, Recetas, Suplementos.
    "Ethereal Glass to the max": depth, frosted heroes, accent icon chips,
@@ -12726,133 +12839,6 @@ button[aria-busy="true"] {
   align-items: center;
   gap: 10px;
 }
-.workoutHeroChip,
-.trnCardioHeroChip {
-  width: 34px;
-  height: 34px;
-  border-radius: 10px;
-}
-/* uiMeta hero pills keep the framed look but softer */
-.workoutAppHero .workoutHeroMeta.uiMeta span,
-.trnCardioHero .trnCardioHeroMeta.uiMeta span {
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  border-radius: 9px;
-  background: rgba(255, 255, 255, 0.05);
-  color: var(--text-muted);
-  padding: 7px 11px;
-  font-size: 13px;
-  font-weight: 600;
-}
-
-/* Status cards — stat-led header */
-.workoutStatusTop {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-}
-.workoutStatusCard .workoutStatUnit {
-  font-size: 0.46em;
-  font-weight: 600;
-  color: var(--text-muted);
-  letter-spacing: 0;
-}
-
-/* Week-plan empty cover — branded gradient, never a naked box */
-.workoutDayCoverEmpty {
-  color: var(--accent);
-  border: 1px solid color-mix(in srgb, var(--accent) 26%, transparent);
-  background:
-    radial-gradient(120% 120% at 25% 15%, color-mix(in srgb, var(--accent) 30%, transparent), transparent 62%),
-    linear-gradient(160deg, color-mix(in srgb, var(--accent) 14%, var(--surface-2)), var(--surface));
-}
-
-/* Exercise media empty state — branded, not a flat video glyph box */
-.sessionExerciseMediaEmpty {
-  display: grid;
-  place-items: center;
-  color: var(--accent);
-  background:
-    radial-gradient(130% 130% at 30% 10%, color-mix(in srgb, var(--accent) 26%, transparent), transparent 60%),
-    linear-gradient(165deg, color-mix(in srgb, var(--accent) 12%, var(--surface-2)), var(--surface));
-}
-
-/* Progression hint — make the "last time" cue feel like a coach prompt */
-.trnProgressionHint {
-  border-radius: 10px;
-  border: 1px solid color-mix(in srgb, var(--accent) 30%, transparent);
-  background: color-mix(in srgb, var(--accent) 9%, transparent);
-  padding: 9px 12px;
-}
-
-/* ---------- CARDIO ---------- */
-.trnCardioHero.uiGlass {
-  border: 1px solid rgba(255, 255, 255, 0.09);
-  background:
-    radial-gradient(140% 120% at 100% 0%, color-mix(in srgb, var(--accent) 14%, transparent), transparent 60%),
-    linear-gradient(165deg, color-mix(in srgb, var(--surface-2) 82%, transparent), color-mix(in srgb, var(--surface) 72%, transparent));
-}
-/* Steps/NEAT card — restructured to chip + stat */
-.trnCardioStepsCard {
-  display: grid;
-  gap: 12px;
-  align-content: start;
-}
-.trnCardioStepsChip {
-  width: 44px;
-  height: 44px;
-  border-radius: 13px;
-}
-.trnCardioStepsStat .uiStatValue {
-  font-size: clamp(28px, 3.4vw, 38px);
-}
-
-/* Recommended protocol gets the accent selected treatment via .selected
-   (so its .uiIconChip fills). Add a soft glow + border. */
-.trnCardioCard.recommended {
-  border-color: color-mix(in srgb, var(--accent) 40%, var(--border));
-  box-shadow: var(--shadow), 0 0 34px -16px color-mix(in srgb, var(--accent) 70%, transparent);
-}
-
-/* Cardio "how to fit it" note — accent card layout */
-.trnCardioNote {
-  display: grid;
-  grid-template-columns: auto minmax(0, 1fr);
-  gap: 14px;
-  align-items: start;
-}
-.trnCardioNoteChip {
-  width: 42px;
-  height: 42px;
-  border-radius: 12px;
-}
-
-@media (max-width: 720px) {
-  .dashHeroProgress {
-    grid-template-columns: 1fr;
-    gap: 14px;
-  }
-  .memberProgramCard {
-    grid-template-columns: 52px minmax(0, 1fr);
-  }
-  .memberProgramArt {
-    width: 52px;
-    height: 52px;
-  }
-}
-
-/* Respect reduced-motion: kill the hover drifts + the progress-bar tween for
-   users who opt out (the entrance fade is already guarded in .uiFadeUp). */
-@media (prefers-reduced-motion: reduce) {
-  .panelCheckinCard:hover .panelCheckinChip,
-  .memberAction:hover .memberActionArrow,
-  .memberAction:hover .memberActionIcon {
-    transform: none;
-  }
-  .dashHeroBar .progressTrack span {
-    transition: none;
-  }
-}
-/* ===== END UI UPLIFT A ===== */
 .ntrbDiaryStat .uiStatValue { font-size: clamp(20px, 2.4vw, 26px); }
 .ntrbDiaryEntry.diaryEntry {
   transition: transform var(--dur-fast) var(--ease), border-color var(--dur-fast) var(--ease);
@@ -12936,6 +12922,31 @@ button[aria-busy="true"] {
   .ntrbRecipeCard:hover .recipeMedia img { transform: none; }
 }
 /* ===== END UI UPLIFT B ===== */
+
+/* ===== UI UPLIFT C (agent) =====
+   Cluster C elevation: Progreso, Hábitos, Comunidad, Retos, Soporte, Coach IA,
+   Guías, Perfil, Ciclo. Builds on the Ethereal-Glass foundation utilities
+   (.uiGlass/.uiSheen/.uiIconChip/.uiStat*/.uiFadeUp). Visual only — namespaced
+   to avoid collisions, refines existing .chat*/.profile*/.dangerZone*/.cycle*. */
+
+/* ---- Progreso — metric cards as Whoop-style stats ---- */
+.progressMetricCard {
+  position: relative;
+  gap: 10px;
+  overflow: hidden;
+}
+.progressMetricHead {
+  display: inline-flex;
+  align-items: center;
+  gap: 9px;
+}
+/* Compact icon-chip when nested in an eyebrow / metric head (smaller text scale). */
+.progressMetricHead .uiIconChip,
+.eyebrow .uiIconChip {
+  width: 30px;
+  height: 30px;
+  border-radius: 9px;
+}
 .eyebrow .uiIconChip { vertical-align: middle; }
 .progressMetricCard .uiStatValue {
   font-size: clamp(28px, 3.4vw, 36px);
