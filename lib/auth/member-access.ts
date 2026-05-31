@@ -79,8 +79,12 @@ export async function getMemberContext(workspaceIdHint?: string): Promise<Member
 
   // Production: the member is whoever holds the verified session token.
   const user = await getVerifiedUser();
-  if (!user) return null;
+  if (!user) {
+    console.error("[memberctx] no verified user from cookie", { hint: workspaceIdHint });
+    return null;
+  }
   const isAdmin = await isPlatformAdminUser(user.id, user.email);
+  console.error("[memberctx] resolved", JSON.stringify({ userId: user.id, email: user.email, isAdmin, hint: workspaceIdHint }));
 
   const { data, error } = await supabase
     .from("member_profiles")
