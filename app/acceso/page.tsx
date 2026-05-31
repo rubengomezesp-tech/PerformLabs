@@ -2,6 +2,7 @@ import type { CSSProperties } from "react";
 import Link from "next/link";
 import { LogIn, Sparkles } from "lucide-react";
 import { memberSignInAction } from "@/app/auth/actions";
+import { GoogleSignInButton } from "@/components/google-signin-button";
 import { getSelectedMemberAppBrand } from "@/lib/member-app";
 
 export const dynamic = "force-dynamic";
@@ -49,6 +50,8 @@ export default async function MemberAccessPage({ searchParams }: AccesoPageProps
             Entrar <LogIn size={18} />
           </button>
         </form>
+        <div className="authDivider"><span>o</span></div>
+        <GoogleSignInButton />
         <p className="muted">¿Eres entrenador o staff? <Link href="/login">Entra a la consola</Link></p>
       </section>
       <section className="authAside">
