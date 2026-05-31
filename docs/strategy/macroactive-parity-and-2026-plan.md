@@ -34,7 +34,7 @@ Supabase para estado de suscripción/entitlements (ya tenemos `entitlements`).
 | Food Diary (anillos ingesta, entradas, días) | ✅ v1 | `/app/diary` (sin registro libre todavía) |
 | Mostrar/ocultar calorías y macros | 🟡 | Plan ✅ · toggle del miembro y global de marca pendientes |
 | My Journey (fotos de progreso) | 🟡 `/app/progress` | Falta photo-journey dedicado |
-| Trackers: habit / step / period | ⛔ | Retención alta; habit tracker primero |
+| Trackers: habit ✅ · period ✅ (`/app/cycle`) · step ⛔ (HealthKit) | Retención alta; habit tracker primero |
 | Workout Log (sets/reps/metrics por miembro) | 🟡 | Tabla `workout_performance_logs` existe; falta UI |
 | Billing info | ⛔ | (account delete: ✅ ver abajo) | |
 
@@ -46,7 +46,7 @@ habit tracker con Supabase Realtime, step tracker vía Health Connect en build n
 | Pieza | PerformLabs | Notas |
 | --- | --- | --- |
 | All-member community (feed, posts, likes, moderación, pin, mentions) | ⛔ | `/console/community` interno existe; falta feed del miembro |
-| One-to-one chat (miembro ↔ coach, archivos, voz, typing) | ⛔ | `/app/support` es estático |
+| One-to-one chat (miembro ↔ coach) | ✅ | `/app/support` chat en vivo + `/coach/messages` inbox (polling; Realtime listo) |
 | Asignar miembros a coach en chat | ⛔ | |
 
 **2026:** **Supabase Realtime** (sin dep nueva) para chat y feed en vivo;
@@ -78,10 +78,10 @@ moderación asistida por IA.
 | Label/barcode scanner | ⛔ | Cámara + OpenFoodFacts (gratis) |
 | Dining out | ⛔ | |
 | Favorites / reuse previous / treat meals / variety tags | ⛔ | |
-| Meal swaps (3 opciones) | ⛔ | |
+| Meal swaps | ✅ | `swap_options` + alternativas derivadas, swap in-place | |
 | Days of meal plan (2–7) / couples | 🟡 | |
 | Net carbs, condimentos, refeed/veg days | 🟡 | |
-| PDF del plan | ⛔ | |
+| PDF del plan | ✅ | `/app/meals/print` + window.print | |
 
 **2026:** **Smart Add con Claude** (texto/foto → macros), scanner con
 OpenFoodFacts en vez de base de pago, swaps con IA.

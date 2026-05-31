@@ -7,6 +7,24 @@ updated: 2026-05-30
 
 Las decisiones clave y su _por qué_. La más reciente arriba.
 
+- **2026-05-31 · Chat 1:1, nutrición premium, perfil real y borrado GDPR (3 agentes)**
+  — cerrados varios gaps de los informes, verificados E2E en producción como Alex:
+  (1) **Chat miembro↔coach** en `/app/support` + inbox del coach en `/coach/messages`.
+  "En vivo" por **polling** (`router.refresh` cada 5s) en vez de Supabase Realtime,
+  porque el JWT del miembro vive en cookie httpOnly y el navegador no puede abrir un
+  socket autenticado; migración de publicación Realtime aplicada para el upgrade
+  futuro (cuando se exponga un token a `realtime.setAuth`). (2) **Nutrición premium**:
+  meal swaps (usa `swap_options`, deriva alternativas del mismo slot), **plan
+  imprimible/PDF** (`/app/meals/print` + `window.print` con `@media print`, sin
+  dependencia PDF), y **period tracker** (`/app/cycle`, tabla `member_cycle_logs`).
+  (3) **Perfil con datos reales** (nombre/email/plan/objetivo de la sesión).
+  (4) **Borrado de cuenta GDPR** (`/app/profile`): resuelve el miembro de su sesión,
+  bloquea admin/owner, borra PII + `member_profiles` (cascade) + auth user. Lección de
+  orquestación: cuando `main` está al día, los worktree-agents forkan de `main` actual
+  → integración limpia (solo `globals.css` choca, se conservan ambos bloques). Ver
+  [[Features]].
+
+
 - **2026-05-31 · El scope de datos del miembro se deriva de su sesión, no del
   `brand.id`** — verificando en producción como "Alex Demo" (login real por SQL:
   `extensions.crypt`+`email_confirmed_at`+identidad email), la página de comidas
