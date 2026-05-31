@@ -47,7 +47,7 @@ export default async function CoachMessagesPage() {
             <article className="card span12 chatCard" key={conversation.id}>
               <div className="sectionHeader">
                 <div>
-                  <MessageSquare color="var(--gold)" />
+                  <MessageSquare color="var(--gold)" aria-hidden="true" />
                   <h2>{conversation.memberName}</h2>
                   <p>{conversation.subject} · {conversation.category}</p>
                 </div>

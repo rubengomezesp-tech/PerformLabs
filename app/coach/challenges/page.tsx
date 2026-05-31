@@ -31,7 +31,7 @@ export default async function CoachChallengesPage() {
         <article className="card span5 coachBrainForm">
           <div className="sectionHeader">
             <div>
-              <Trophy color="var(--accent)" />
+              <Trophy color="var(--accent)" aria-hidden="true" />
               <h2>Nuevo reto</h2>
               <p>La clasificación se calcula con datos reales de tus clientes.</p>
             </div>
@@ -93,7 +93,7 @@ export default async function CoachChallengesPage() {
             ))
           ) : (
             <article className="card inlineEmpty">
-              <Trophy color="var(--accent)" />
+              <Trophy color="var(--accent)" aria-hidden="true" />
               <strong>Lanza tu primer reto.</strong>
               <p>Un reto de entrenos o hábitos del mes dispara la participación y la retención.</p>
             </article>

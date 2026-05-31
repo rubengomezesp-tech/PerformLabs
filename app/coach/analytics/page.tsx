@@ -29,7 +29,7 @@ export default async function CoachAnalyticsPage() {
           />
         ))}
         <article className="card span12 coachBuilderCard">
-          <TrendingUp color="var(--accent)" />
+          <TrendingUp color="var(--accent)" aria-hidden="true" />
           <div>
             <h2>Lo que mediremos despues</h2>
             <p>Adherencia por programa, miembros en riesgo, comidas completadas, entrenamientos registrados y tiempo medio de respuesta.</p>

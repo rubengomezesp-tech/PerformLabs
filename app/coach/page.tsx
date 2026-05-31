@@ -72,7 +72,7 @@ export default async function CoachHomePage() {
         <article className="card span7 motionCard coachAttentionCard">
           <div className="sectionHeader">
             <div>
-              <ClipboardCheck color="var(--accent)" />
+              <ClipboardCheck color="var(--accent)" aria-hidden="true" />
               <h2>Prioridad de hoy</h2>
               <p>Lo que el entrenador debe resolver antes de tocar detalles secundarios.</p>
             </div>
@@ -93,7 +93,7 @@ export default async function CoachHomePage() {
         <article className="card span5 motionCard coachActivityCard">
           <div className="sectionHeader">
             <div>
-              <Activity color="var(--gold)" />
+              <Activity color="var(--gold)" aria-hidden="true" />
               <h2>Actividad reciente</h2>
               <p>Senales de clientes sin abrir pantalla por pantalla.</p>
             </div>
@@ -121,7 +121,7 @@ export default async function CoachHomePage() {
         <article className="span12 coachBriefingsSection">
           <div className="sectionHeader">
             <div>
-              <MessageSquareText color="var(--gold)" />
+              <MessageSquareText color="var(--gold)" aria-hidden="true" />
               <h2>Briefings de nuevos clientes</h2>
               <p>Datos de registro convertidos en decisiones practicas para entreno y nutricion.</p>
             </div>

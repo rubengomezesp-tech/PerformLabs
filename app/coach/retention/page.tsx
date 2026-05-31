@@ -63,7 +63,7 @@ export default async function CoachRetentionPage() {
           <article className="card span12 retentionPanel">
             <div className="sectionHeader">
               <div>
-                <HeartPulse color="var(--accent)" />
+                <HeartPulse color="var(--accent)" aria-hidden="true" />
                 <h2>Radar de clientes</h2>
                 <p>Ordenado por riesgo. Lo más urgente, arriba.</p>
               </div>
@@ -142,7 +142,7 @@ export default async function CoachRetentionPage() {
           </article>
         ) : (
           <article className="card span12 inlineEmpty">
-            <HeartPulse color="var(--accent)" />
+            <HeartPulse color="var(--accent)" aria-hidden="true" />
             <strong>Aún no hay datos de retención.</strong>
             <p>Cuando tus clientes empiecen a entrenar, registrar comidas y hacer check-ins, aquí verás quién necesita tu atención antes de que sea tarde.</p>
           </article>

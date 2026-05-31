@@ -49,7 +49,7 @@ export default async function CoachCheckinsPage() {
         <article className="card span12 nutritionLabCard">
           <div className="sectionHeader">
             <div>
-              <TrendingUp color="var(--gold)" />
+              <TrendingUp color="var(--gold)" aria-hidden="true" />
               <h2>Alertas inteligentes.</h2>
               <p>Señales que ayudan al coach a intervenir antes de que el cliente se enfríe.</p>
             </div>
@@ -77,7 +77,7 @@ export default async function CoachCheckinsPage() {
           <article className="card span6 motionCard" key={checkin.id}>
             <div className="sectionHeader">
               <div>
-                <ClipboardCheck color="var(--gold)" />
+                <ClipboardCheck color="var(--gold)" aria-hidden="true" />
                 <h2>{checkin.memberName}</h2>
                 <p>{checkin.submittedAt ? checkin.submittedAt.slice(0, 10) : "Sin fecha"}</p>
               </div>

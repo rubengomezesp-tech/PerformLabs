@@ -61,7 +61,7 @@ export default async function CoachMembersPage() {
       <section className="grid">
         {members.length ? members.map((member) => (
           <article className="card span4 motionCard" key={member.id}>
-            <UserRound color="var(--gold)" />
+            <UserRound color="var(--gold)" aria-hidden="true" />
             <h2>{member.fullName}</h2>
             <p><Mail size={15} /> {member.email}</p>
             <ul className="list">

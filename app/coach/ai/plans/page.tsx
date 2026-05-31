@@ -43,7 +43,7 @@ export default async function CoachAiPlansPage({ searchParams }: PageProps) {
         {!brain.persona && !brain.rules ? (
           <article className="card span12 aiStatus">
             <div>
-              <Sparkles color="var(--accent)" />
+              <Sparkles color="var(--accent)" aria-hidden="true" />
               <div>
                 <strong>Afina primero tu cerebro de IA.</strong>
                 <p>Cuanto más definas tu metodología y tus reglas, más se parecerán los planes a los que harías tú.</p>
@@ -57,7 +57,7 @@ export default async function CoachAiPlansPage({ searchParams }: PageProps) {
           <input name="workspaceId" type="hidden" value={brand.id} />
           <div className="sectionHeader">
             <div>
-              <Wand2 color="var(--accent)" />
+              <Wand2 color="var(--accent)" aria-hidden="true" />
               <h2>Brief del cliente</h2>
               <p>Dame el contexto y genero el borrador con tus reglas.</p>
             </div>
@@ -166,7 +166,7 @@ export default async function CoachAiPlansPage({ searchParams }: PageProps) {
             ))
           ) : (
             <article className="card inlineEmpty">
-              <Sparkles color="var(--accent)" />
+              <Sparkles color="var(--accent)" aria-hidden="true" />
               <strong>Genera tu primer plan.</strong>
               <p>Rellena el brief y la IA redactará un borrador con tu metodología para que lo revises.</p>
             </article>

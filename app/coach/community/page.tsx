@@ -59,7 +59,7 @@ export default async function CoachCommunityPage() {
         <article className="card span12 communityComposer">
           <div className="sectionHeader">
             <div>
-              <Megaphone color="var(--accent)" />
+              <Megaphone color="var(--accent)" aria-hidden="true" />
               <h2>Publicar anuncio oficial.</h2>
               <p>Aparece destacado y fijado arriba en la app de tus clientes. Úsalo para retos, novedades o motivación de la semana.</p>
             </div>
@@ -111,7 +111,7 @@ export default async function CoachCommunityPage() {
           </div>
         ) : (
           <article className="card span12 inlineEmpty">
-            <MessageSquare color="var(--accent)" />
+            <MessageSquare color="var(--accent)" aria-hidden="true" />
             <strong>Aún no hay actividad en tu comunidad.</strong>
             <p>Publica el primer anuncio para arrancar la conversación con tus clientes.</p>
           </article>

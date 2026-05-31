@@ -72,7 +72,7 @@ export default async function CoachContentPage() {
 
         {pages.map((page) => (
           <article className="card span4 motionCard" key={page.id}>
-            <BookOpen color="var(--gold)" />
+            <BookOpen color="var(--gold)" aria-hidden="true" />
             <h2>{page.heading}</h2>
             <p>{page.notes || page.title}</p>
             <span className="tag">{page.status}</span>
@@ -82,7 +82,7 @@ export default async function CoachContentPage() {
         <article className="card span12">
           <div className="sectionHeader">
             <div>
-              <MessageSquare color="var(--gold)" />
+              <MessageSquare color="var(--gold)" aria-hidden="true" />
               <h2>Bandeja de soporte.</h2>
               <p>Conversaciones abiertas desde la app del cliente, con respuesta del coach.</p>
             </div>

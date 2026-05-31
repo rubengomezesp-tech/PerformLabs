@@ -327,7 +327,7 @@ export default async function CoachExercisesPage({ searchParams }: CoachExercise
         <article className="card span12 motionCard">
           <div className="sectionHeader">
             <div>
-              <ListChecks color="var(--accent)" />
+              <ListChecks color="var(--accent)" aria-hidden="true" />
               <h2>Tu librería.</h2>
               <p>{exercises.length} {hasFilters ? "con estos filtros" : "disponibles"} · base de PerformLabs + ejercicios propios de tu marca.</p>
             </div>
@@ -351,14 +351,14 @@ export default async function CoachExercisesPage({ searchParams }: CoachExercise
             </div>
           ) : hasFilters ? (
             <div className="inlineEmpty">
-              <Filter color="var(--accent)" />
+              <Filter color="var(--accent)" aria-hidden="true" />
               <strong>No hay ejercicios con estos filtros.</strong>
               <p>Ajusta la búsqueda, el músculo, el equipo o el origen para ampliar los resultados.</p>
               <a className="btn ghost" href="/coach/exercises">Limpiar filtros</a>
             </div>
           ) : (
             <div className="inlineEmpty">
-              <Dumbbell color="var(--accent)" />
+              <Dumbbell color="var(--accent)" aria-hidden="true" />
               <strong>Cargando la librería base…</strong>
               <p>La biblioteca profesional (130+ ejercicios) se instala automáticamente al desplegar. Si no aparece, crea los tuyos con “Nuevo ejercicio”.</p>
             </div>

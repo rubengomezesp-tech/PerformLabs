@@ -173,7 +173,7 @@ export default async function CoachNutritionPage() {
         <article className="card span12 motionCard">
           <div className="sectionHeader">
             <div>
-              <UtensilsCrossed color="var(--accent)" />
+              <UtensilsCrossed color="var(--accent)" aria-hidden="true" />
               <h2>Cómo montar una dieta.</h2>
               <p>Cuatro pasos. Usa los alimentos y recetas base (con macros), o crea los tuyos.</p>
             </div>
@@ -189,7 +189,7 @@ export default async function CoachNutritionPage() {
         <article className="card span12 motionCard">
           <div className="sectionHeader">
             <div>
-              <UtensilsCrossed color="var(--accent)" />
+              <UtensilsCrossed color="var(--accent)" aria-hidden="true" />
               <h2>Planes de comidas.</h2>
               <p>Monta cada plantilla con recetas por día y momento. Al asignarla a un miembro, estas comidas aparecen en su app.</p>
             </div>
@@ -215,7 +215,7 @@ export default async function CoachNutritionPage() {
           return (
             <article className="card span6 motionCard" key={template.id}>
               <div className="appCardHeader">
-                <Apple color="var(--accent)" />
+                <Apple color="var(--accent)" aria-hidden="true" />
                 <div>
                   <h3>{template.name}</h3>
                   <p>{template.goal || "Objetivo pendiente"}</p>
@@ -307,7 +307,7 @@ export default async function CoachNutritionPage() {
         <article className="card span12 motionCard">
           <div className="sectionHeader">
             <div>
-              <Soup color="var(--accent)" />
+              <Soup color="var(--accent)" aria-hidden="true" />
               <h2>Recetas.</h2>
               <p>Añade ingredientes con gramos y los macros se calculan solos. Estas recetas alimentan los planes.</p>
             </div>
@@ -383,7 +383,7 @@ export default async function CoachNutritionPage() {
         <article className="card span12 motionCard">
           <div className="sectionHeader">
             <div>
-              <Apple color="var(--accent)" />
+              <Apple color="var(--accent)" aria-hidden="true" />
               <h2>Alimentos.</h2>
               <p>Valores por 100 g. La librería base es compartida; los tuyos se añaden con “Nuevo ingrediente”.</p>
             </div>
@@ -417,7 +417,7 @@ export default async function CoachNutritionPage() {
               <article className="card nutritionLabCard">
                 <div className="sectionHeader">
                   <div>
-                    <Calculator color="var(--accent)" />
+                    <Calculator color="var(--accent)" aria-hidden="true" />
                     <h2>MacroLab profesional.</h2>
                     <p>Calcula BMR, gasto diario, calorias objetivo, proteina, grasas, carbohidratos, fibra, agua y reparto por comidas.</p>
                   </div>
@@ -515,7 +515,7 @@ export default async function CoachNutritionPage() {
               <article className="card nutritionStrategyCard">
                 <div className="sectionHeader">
                   <div>
-                    <Flame color="var(--accent)" />
+                    <Flame color="var(--accent)" aria-hidden="true" />
                     <h2>Motor de ajuste semanal.</h2>
                     <p>El coach no solo calcula macros: decide si mantener, recortar, subir calorías, hacer refeed o simplificar por adherencia.</p>
                   </div>
@@ -524,7 +524,7 @@ export default async function CoachNutritionPage() {
                 <div className="nutritionDecisionGrid">
                   <section className="moduleGroup">
                     <div className="appCardHeader">
-                      <TrendingUp color="var(--accent)" />
+                      <TrendingUp color="var(--accent)" aria-hidden="true" />
                       <h3>Decisión recomendada</h3>
                     </div>
                     <p>{adjustment.reason}</p>

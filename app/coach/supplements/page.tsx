@@ -22,7 +22,7 @@ export default async function CoachSupplementsPage() {
         <article className="card span5">
           <div className="sectionHeader">
             <div>
-              <Pill color="var(--accent)" />
+              <Pill color="var(--accent)" aria-hidden="true" />
               <h2>Nuevo suplemento</h2>
               <p>Nombre, dosis y cuándo tomarlo.</p>
             </div>
@@ -49,7 +49,7 @@ export default async function CoachSupplementsPage() {
         <article className="card span7">
           <div className="sectionHeader">
             <div>
-              <Pill color="var(--accent)" />
+              <Pill color="var(--accent)" aria-hidden="true" />
               <h2>Protocolo actual</h2>
               <p>{supplements.length} suplemento(s) pautado(s).</p>
             </div>

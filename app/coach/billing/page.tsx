@@ -56,7 +56,7 @@ export default async function CoachBillingPage({ searchParams }: BillingPageProp
           <article className="card span12">
             <div className="sectionHeader">
               <div>
-                <CreditCard color="var(--accent)" />
+                <CreditCard color="var(--accent)" aria-hidden="true" />
                 <h2>Pagos en preparación.</h2>
                 <p>La conexión con Stripe se activará en cuanto la plataforma termine de configurar las claves. No necesitas hacer nada todavía.</p>
               </div>
@@ -68,7 +68,7 @@ export default async function CoachBillingPage({ searchParams }: BillingPageProp
             <article className="card span6">
               <div className="sectionHeader">
                 <div>
-                  <Link2 color="var(--accent)" />
+                  <Link2 color="var(--accent)" aria-hidden="true" />
                   <h2>Tu cuenta de Stripe.</h2>
                   <p>Con Connect (Standard) los cobros van directos a tu cuenta y tú mantienes el control.</p>
                 </div>
@@ -97,7 +97,7 @@ export default async function CoachBillingPage({ searchParams }: BillingPageProp
             <article className="card span6">
               <div className="sectionHeader">
                 <div>
-                  <ShieldCheck color="var(--accent)" />
+                  <ShieldCheck color="var(--accent)" aria-hidden="true" />
                   <h2>Tu plan en PerformLabs.</h2>
                   <p>La suscripción que mantiene tu app de marca operativa.</p>
                 </div>
@@ -123,7 +123,7 @@ export default async function CoachBillingPage({ searchParams }: BillingPageProp
             <article className="card span12">
               <div className="sectionHeader">
                 <div>
-                  <CreditCard color="var(--accent)" />
+                  <CreditCard color="var(--accent)" aria-hidden="true" />
                   <h2>Planes para tus clientes.</h2>
                   <p>Define lo que cobras a tus clientes. El precio se crea en tu cuenta de Stripe; PerformLabs retiene el {applicationFeePercent}%.</p>
                 </div>

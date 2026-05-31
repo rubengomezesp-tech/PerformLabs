@@ -218,7 +218,7 @@ export default async function CoachProgramsPage({ searchParams }: CoachProgramsP
         <article className="card span12 coachProgramGuide motionCard">
           <div className="sectionHeader">
             <div>
-              <Dumbbell color="var(--accent)" />
+              <Dumbbell color="var(--accent)" aria-hidden="true" />
               <h2>Cómo crear una rutina.</h2>
               <p>Usa “Generar 12 semanas” para una base con ejercicios, o “Nuevo programa” para empezar de cero.</p>
             </div>
@@ -234,7 +234,7 @@ export default async function CoachProgramsPage({ searchParams }: CoachProgramsP
         <article className="card span12 motionCard">
           <div className="sectionHeader">
             <div>
-              <Dumbbell color="var(--accent)" />
+              <Dumbbell color="var(--accent)" aria-hidden="true" />
               <h2>Plantillas base · empieza en 1 clic.</h2>
               <p>Genera un programa completo de 12 semanas por objetivo y luego ajústalo. (Necesita la librería de ejercicios cargada.)</p>
             </div>
@@ -261,7 +261,7 @@ export default async function CoachProgramsPage({ searchParams }: CoachProgramsP
         <details className="card span12 trainingIntelligenceCard advancedProgramPanel">
           <summary>
             <div>
-              <Gauge color="var(--gold)" />
+              <Gauge color="var(--gold)" aria-hidden="true" />
               <span>
                 <h2>Herramienta avanzada de progresión.</h2>
                 <p>Úsala cuando quieras revisar carga, recuperación, semanas de descarga y ajustes del bloque.</p>
@@ -272,7 +272,7 @@ export default async function CoachProgramsPage({ searchParams }: CoachProgramsP
           <div className="trainingDecisionGrid">
             <section className="moduleGroup">
               <div className="appCardHeader">
-                <Activity color="var(--gold)" />
+                <Activity color="var(--gold)" aria-hidden="true" />
                 <h3>Decisión del bloque</h3>
               </div>
               <p>{workoutAdjustment.reason}</p>
@@ -307,7 +307,7 @@ export default async function CoachProgramsPage({ searchParams }: CoachProgramsP
         <article className="card span12 coachProgramCommand" id="editar-rutinas">
           <div className="sectionHeader">
             <div>
-              <Dumbbell color="var(--accent)" />
+              <Dumbbell color="var(--accent)" aria-hidden="true" />
               <h2>Tus rutinas.</h2>
               <p>Cada programa son 12 semanas (3 meses). Abre un mes y una semana para ajustar ejercicios, series, reps, descanso y notas. Publícalo cuando esté listo y asígnalo en Miembros.</p>
             </div>
@@ -330,7 +330,7 @@ export default async function CoachProgramsPage({ searchParams }: CoachProgramsP
           <article className="card motionCard" key={template.id}>
             <div className="sectionHeader">
               <div>
-                <Dumbbell color="var(--gold)" />
+                <Dumbbell color="var(--gold)" aria-hidden="true" />
                 <h2>{template.name}</h2>
                 <p>Plan {template.daysPerWeek} días/semana · {template.goal || "objetivo libre"}</p>
               </div>

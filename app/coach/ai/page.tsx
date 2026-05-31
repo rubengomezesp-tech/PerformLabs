@@ -42,7 +42,7 @@ export default async function CoachAiPage() {
       <section className="grid">
         <article className={brain.enabled && aiReady ? "card span12 aiStatus live" : "card span12 aiStatus"}>
           <div>
-            <Sparkles color="var(--accent)" />
+            <Sparkles color="var(--accent)" aria-hidden="true" />
             <div>
               <strong>
                 {brain.enabled && aiReady
@@ -66,7 +66,7 @@ export default async function CoachAiPage() {
 
           <div className="sectionHeader">
             <div>
-              <Brain color="var(--accent)" />
+              <Brain color="var(--accent)" aria-hidden="true" />
               <h2>El cerebro de tu asistente.</h2>
               <p>Esto es lo que hace que hable como tú. Sé específico: cuanto más detalle, más fiel.</p>
             </div>
@@ -123,13 +123,13 @@ export default async function CoachAiPage() {
 
         <div className="span4 coachBrainSide">
           <article className="card coachBrainGenerator">
-            <Wand2 color="var(--accent)" />
+            <Wand2 color="var(--accent)" aria-hidden="true" />
             <h3>Generador de planes IA</h3>
             <p>Convierte tu metodología en programas: la IA redacta el borrador con tus reglas y tú lo apruebas en un clic.</p>
             <Link className="btn primary" href="/coach/ai/plans"><Wand2 size={16} /> Abrir generador</Link>
           </article>
           <article className="card aiUsageCard">
-            <Gauge color="var(--accent)" />
+            <Gauge color="var(--accent)" aria-hidden="true" />
             <h3>Consumo de IA este mes</h3>
             <div className="aiUsageRow">
               <div className="aiUsageRowHead"><span>Consultas del cliente</span><small>{usage.coachBrain.toLocaleString("es-ES")} / {AI_MONTHLY_LIMITS.coach_brain.toLocaleString("es-ES")}</small></div>
@@ -142,12 +142,12 @@ export default async function CoachAiPage() {
             <p>Tu plan incluye este volumen mensual. Tus clientes nunca se quedan sin atención: al alcanzar el límite, sus mensajes te llegan a ti.</p>
           </article>
           <article className="card">
-            <ShieldCheck color="var(--accent)" />
+            <ShieldCheck color="var(--accent)" aria-hidden="true" />
             <h3>Tú mandas, siempre</h3>
             <p>El asistente nunca da consejo médico ni cambia tu plan por su cuenta: aplica tus reglas y, ante dudas serias o dolor, deriva al cliente a ti. Coach-in-the-loop.</p>
           </article>
           <article className="card">
-            <MessageCircleQuestion color="var(--accent)" />
+            <MessageCircleQuestion color="var(--accent)" aria-hidden="true" />
             <h3>Qué te preguntan</h3>
             {questions.length ? (
               <ul className="list coachBrainQuestions">

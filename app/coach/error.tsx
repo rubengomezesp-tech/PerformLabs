@@ -11,7 +11,7 @@ export default function CoachError({ error, reset }: { error: Error & { digest?:
 
   return (
     <div className="memberErrorState">
-      <AlertTriangle size={42} color="var(--accent)" />
+      <AlertTriangle size={42} color="var(--accent)" aria-hidden="true" />
       <h1>Algo no cargó bien.</h1>
       <p>Hubo un problema al mostrar esta sección. Vuelve a intentarlo.</p>
       <div className="memberErrorActions">

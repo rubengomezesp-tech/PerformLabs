@@ -29,7 +29,7 @@ export default async function CoachFoodsPage() {
         <article className="card span5">
           <div className="sectionHeader">
             <div>
-              <Salad color="var(--accent)" />
+              <Salad color="var(--accent)" aria-hidden="true" />
               <h2>Nuevo alimento</h2>
               <p>Macros por la ración indicada. Si no pones calorías, las calculamos.</p>
             </div>
@@ -62,7 +62,7 @@ export default async function CoachFoodsPage() {
         <article className="card span7">
           <div className="sectionHeader">
             <div>
-              <Salad color="var(--accent)" />
+              <Salad color="var(--accent)" aria-hidden="true" />
               <h2>Biblioteca</h2>
               <p>{isFallback ? "Mostrando alimentos base de ejemplo." : `${realCount} alimento(s) en tu biblioteca.`}</p>
             </div>
@@ -70,7 +70,7 @@ export default async function CoachFoodsPage() {
 
           {isFallback ? (
             <div className="foodSeed">
-              <Sparkles size={18} color="var(--accent)" />
+              <Sparkles size={18} color="var(--accent)" aria-hidden="true" />
               <div>
                 <strong>Empieza con {items.length} alimentos comunes.</strong>
                 <p>Cárgalos como base editable y ajústalos a tu marca, o añade los tuyos a la izquierda.</p>
