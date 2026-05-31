@@ -7,6 +7,23 @@ updated: 2026-05-30
 
 Las decisiones clave y su _por qué_. La más reciente arriba.
 
+- **2026-05-31 · El scope de datos del miembro se deriva de su sesión, no del
+  `brand.id`** — verificando en producción como "Alex Demo" (login real por SQL:
+  `extensions.crypt`+`email_confirmed_at`+identidad email), la página de comidas
+  salía vacía y el +1 vaso lanzaba, aunque entreno/cardio/panel mostraban sus
+  datos. Causa: `getSelectedMemberAppBrand`/`getWorkspaceBrand` se llaman ~4×/request
+  (layout metadata/viewport/shell + página) sin memoizar, y bajo presión de pool una
+  resolución podía caer al `fallbackBrand()` zero-UUID; los repos de nutrición usan
+  `isUuid` estricto → reads vacíos, writes que lanzaban. `cache()`+retry no bastó.
+  **Cura definitiva**: `resolveMemberScope` deriva `{workspaceId, memberProfileId}`
+  REALES de `getMemberContext` (un miembro tiene UNA workspace, resoluble de su
+  sesión) e ignora el hint de marca; las queries usan ESO. Regla general: para datos
+  de un usuario autenticado, deriva el scope de su sesión, nunca de un parámetro que
+  puede venir corrupto. Todo el overhaul (entreno+nutrición+cardio+coach programs+
+  seguridad) está en producción y verificado E2E como Alex. Demo login:
+  `alex.demo@performlabs.app` en demo.performlabs.app. Ver [[Arquitectura]].
+
+
 - **2026-05-31 · Overhaul de Entrenamiento + Nutrición (3 agentes en paralelo) +
   demo rica + hardening** — overhaul funcional+UI hecho con 3 subagentes en
   worktrees aislados (Entreno / Nutrición / Demo+seguridad) e integrado por merge
