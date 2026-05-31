@@ -1,7 +1,69 @@
-import { Activity, Flame, Footprints, Gauge, HeartPulse, Repeat, Timer, Zap } from "lucide-react";
+import { Activity, Bike, Clock3, Flame, Footprints, Gauge, HeartPulse, Plus, Repeat, Timer, Waves, Zap } from "lucide-react";
 import { Topbar } from "@/components/topbar";
 import { getSelectedMemberAppBrand } from "@/lib/member-app";
 import { getMemberCardioContext } from "@/lib/repositories/member-onboarding";
+import { listCardioSessions, type CardioSession } from "@/lib/repositories/cardio";
+import { logCardioSessionAction } from "./actions";
+
+const MODALITIES: Array<{ value: string; label: string }> = [
+  { value: "caminar", label: "Caminar" },
+  { value: "correr", label: "Correr" },
+  { value: "bici", label: "Bici" },
+  { value: "eliptica", label: "Elíptica" },
+  { value: "hiit", label: "HIIT" },
+  { value: "remo", label: "Remo" },
+];
+
+const MODALITY_LABELS: Record<string, string> = Object.fromEntries(
+  MODALITIES.map((modality) => [modality.value, modality.label]),
+);
+
+const INTENSITY_LABELS: Record<string, string> = { baja: "Baja", media: "Media", alta: "Alta" };
+
+function modalityIcon(modality: string) {
+  switch (modality) {
+    case "caminar":
+      return <Footprints size={16} />;
+    case "bici":
+      return <Bike size={16} />;
+    case "remo":
+      return <Waves size={16} />;
+    case "hiit":
+      return <Flame size={16} />;
+    default:
+      return <Activity size={16} />;
+  }
+}
+
+function formatDate(iso: string) {
+  const parsed = new Date(`${iso}T00:00:00`);
+  if (Number.isNaN(parsed.getTime())) return iso;
+  return parsed.toLocaleDateString("es-ES", { weekday: "short", day: "numeric", month: "short" });
+}
+
+function SessionRow({ session }: { session: CardioSession }) {
+  const meta: string[] = [];
+  if (session.minutes) meta.push(`${session.minutes} min`);
+  if (session.distanceKm) meta.push(`${session.distanceKm} km`);
+  if (session.calories) meta.push(`${session.calories} kcal`);
+  if (session.avgHr) meta.push(`${session.avgHr} ppm`);
+  return (
+    <li className="cardioSessionRow">
+      <span className="cardioSessionIcon" aria-hidden>{modalityIcon(session.modality)}</span>
+      <div className="cardioSessionBody">
+        <div className="cardioSessionTop">
+          <strong>{MODALITY_LABELS[session.modality] ?? session.modality}</strong>
+          {session.intensity ? (
+            <span className="cardioTag">{INTENSITY_LABELS[session.intensity] ?? session.intensity}</span>
+          ) : null}
+          <span className="cardioSessionDate">{formatDate(session.loggedOn)}</span>
+        </div>
+        {meta.length ? <p className="cardioSessionMeta">{meta.join(" · ")}</p> : null}
+        {session.notes ? <p className="cardioSessionNotes">{session.notes}</p> : null}
+      </div>
+    </li>
+  );
+}
 
 type CardioProtocol = {
   key: "hiit" | "liss";
@@ -59,6 +121,7 @@ const PROTOCOLS: CardioProtocol[] = [
 export default async function CardioPage() {
   const brand = await getSelectedMemberAppBrand();
   const cardio = await getMemberCardioContext(brand.id);
+  const { recent, week } = await listCardioSessions(brand.id);
 
   const recommended = cardio.preferredModality
     ? PROTOCOLS.find((protocol) => protocol.key === cardio.preferredModality) ?? null
@@ -136,6 +199,87 @@ export default async function CardioPage() {
             </article>
           );
         })}
+
+        <article className="card span6 cardioLogCard">
+          <header className="cardioCardHead">
+            <span className="cardioCardIcon" aria-hidden><Plus size={18} /></span>
+            <div>
+              <h2>Registrar sesión</h2>
+              <p>Apunta tu cardio de hoy. Solo el tipo es obligatorio.</p>
+            </div>
+          </header>
+          <form action={logCardioSessionAction} className="cardioForm">
+            <input name="workspaceId" type="hidden" value={brand.id} />
+            <label className="cardioField">
+              <span>Tipo de cardio</span>
+              <select name="modality" defaultValue="caminar" required>
+                {MODALITIES.map((modality) => (
+                  <option key={modality.value} value={modality.value}>{modality.label}</option>
+                ))}
+              </select>
+            </label>
+            <label className="cardioField">
+              <span>Intensidad</span>
+              <select name="intensity" defaultValue="media">
+                <option value="baja">Baja (LISS)</option>
+                <option value="media">Media</option>
+                <option value="alta">Alta (HIIT)</option>
+              </select>
+            </label>
+            <div className="cardioFieldRow">
+              <label className="cardioField">
+                <span><Clock3 size={14} /> Minutos</span>
+                <input name="minutes" type="number" min={1} max={600} inputMode="numeric" placeholder="Ej. 30" />
+              </label>
+              <label className="cardioField">
+                <span><Gauge size={14} /> Distancia (km)</span>
+                <input name="distanceKm" type="number" min={0} step="0.1" inputMode="decimal" placeholder="Ej. 5" />
+              </label>
+            </div>
+            <div className="cardioFieldRow">
+              <label className="cardioField">
+                <span><Flame size={14} /> Calorías</span>
+                <input name="calories" type="number" min={0} max={5000} inputMode="numeric" placeholder="Opcional" />
+              </label>
+              <label className="cardioField">
+                <span><HeartPulse size={14} /> Pulso medio</span>
+                <input name="avgHr" type="number" min={0} max={240} inputMode="numeric" placeholder="ppm" />
+              </label>
+            </div>
+            <label className="cardioField">
+              <span>Notas</span>
+              <textarea name="notes" rows={2} maxLength={500} placeholder="Sensaciones, ritmo, incidencias..." />
+            </label>
+            <button className="btn primary cardioSubmit" type="submit"><Plus size={16} /> Guardar sesión</button>
+          </form>
+        </article>
+
+        <article className="card span6 cardioRecentCard">
+          <header className="cardioCardHead">
+            <span className="cardioCardIcon" aria-hidden><Timer size={18} /></span>
+            <div>
+              <h2>Tus últimas sesiones</h2>
+              <p>Resumen de los últimos 7 días.</p>
+            </div>
+          </header>
+          <div className="cardioWeekSummary" role="group" aria-label="Resumen semanal">
+            <div className="cardioStat">
+              <span className="cardioStatValue">{week.sessions}</span>
+              <span className="cardioStatLabel">Sesiones (7 días)</span>
+            </div>
+            <div className="cardioStat">
+              <span className="cardioStatValue">{week.totalMinutes}</span>
+              <span className="cardioStatLabel">Minutos totales</span>
+            </div>
+          </div>
+          {recent.length ? (
+            <ul className="cardioSessionList">
+              {recent.map((session) => (<SessionRow key={session.id} session={session} />))}
+            </ul>
+          ) : (
+            <p className="cardioEmpty">Todavía no has registrado cardio. Cuando lo hagas, aparecerá aquí.</p>
+          )}
+        </article>
 
         <article className="card span12 trnCardioNote">
           <HeartPulse color="var(--accent)" />

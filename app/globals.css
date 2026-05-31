@@ -11388,3 +11388,213 @@ button[aria-busy="true"] {
 }
 
 /* ===== END NUTRITION CLOSURE ===== */
+/* ===== CARDIO LOGGING (agent) ===== */
+.cardioLogCard,
+.cardioRecentCard {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.cardioCardHead {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+}
+
+.cardioCardHead h2 {
+  margin: 0;
+}
+
+.cardioCardHead p {
+  margin: 2px 0 0;
+  color: var(--muted);
+  font-size: 0.88rem;
+}
+
+.cardioCardIcon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  flex: 0 0 auto;
+  border-radius: var(--radius);
+  border: 1px solid var(--line);
+  background: var(--surface-2);
+  color: var(--gold);
+}
+
+.cardioForm {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.cardioFieldRow {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+}
+
+.cardioField {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  font-size: 0.82rem;
+  color: var(--muted);
+}
+
+.cardioField > span {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.cardioField input,
+.cardioField select,
+.cardioField textarea {
+  width: 100%;
+  padding: 10px 12px;
+  border-radius: var(--radius);
+  border: 1px solid var(--line);
+  background: var(--surface-2);
+  color: var(--text);
+}
+
+.cardioField textarea {
+  resize: vertical;
+  min-height: 56px;
+}
+
+.cardioField input:focus,
+.cardioField select:focus,
+.cardioField textarea:focus {
+  outline: none;
+  border-color: var(--gold);
+}
+
+.cardioSubmit {
+  margin-top: 4px;
+  align-self: flex-start;
+}
+
+.cardioWeekSummary {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+}
+
+.cardioStat {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: 12px 14px;
+  border-radius: var(--radius);
+  border: 1px solid var(--line);
+  background: var(--surface-2);
+}
+
+.cardioStatValue {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: var(--gold);
+  line-height: 1.1;
+}
+
+.cardioStatLabel {
+  font-size: 0.78rem;
+  color: var(--muted);
+}
+
+.cardioSessionList {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.cardioSessionRow {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 12px;
+  border-radius: var(--radius);
+  border: 1px solid var(--line);
+  background: var(--surface-2);
+}
+
+.cardioSessionIcon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 30px;
+  height: 30px;
+  flex: 0 0 auto;
+  border-radius: var(--radius-pill);
+  background: var(--surface-3);
+  color: var(--gold);
+}
+
+.cardioSessionBody {
+  flex: 1;
+  min-width: 0;
+}
+
+.cardioSessionTop {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.cardioSessionTop strong {
+  color: var(--text);
+}
+
+.cardioSessionDate {
+  margin-left: auto;
+  font-size: 0.78rem;
+  color: var(--muted);
+  text-transform: capitalize;
+}
+
+.cardioTag {
+  font-size: 0.72rem;
+  padding: 2px 8px;
+  border-radius: var(--radius-pill);
+  border: 1px solid var(--line);
+  color: var(--gold);
+}
+
+.cardioSessionMeta {
+  margin: 4px 0 0;
+  font-size: 0.84rem;
+  color: var(--muted);
+}
+
+.cardioSessionNotes {
+  margin: 4px 0 0;
+  font-size: 0.82rem;
+  color: var(--text-soft);
+}
+
+.cardioEmpty {
+  margin: 0;
+  padding: 16px;
+  border-radius: var(--radius);
+  border: 1px dashed var(--line);
+  color: var(--muted);
+  font-size: 0.88rem;
+  text-align: center;
+}
+
+@media (max-width: 520px) {
+  .cardioFieldRow,
+  .cardioWeekSummary {
+    grid-template-columns: 1fr;
+  }
+}
+/* ===== END CARDIO LOGGING ===== */
