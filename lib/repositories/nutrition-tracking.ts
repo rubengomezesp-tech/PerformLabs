@@ -37,6 +37,39 @@ export type NutritionDailySummary = {
   }>;
 };
 
+/**
+ * A single alternative the member can pick for a meal. Either references a real
+ * brand recipe (recipeId set, so picking it actually swaps the plan item) or is a
+ * derived suggestion (recipeId null — informational, "ask your coach"). Macros are
+ * always carried so the UI can show the trade-off and respect hide-macros.
+ */
+export type MealSwapOption = {
+  recipeId: string | null;
+  title: string;
+  note: string | null;
+  calories: number | null;
+  proteinG: number | null;
+  carbsG: number | null;
+  fatG: number | null;
+  /** true when this swap is the one currently assigned to the meal. */
+  selected: boolean;
+};
+
+export type MemberMealPlanItem = {
+  id: string;
+  recipeId: string | null;
+  mealSlot: string;
+  title: string;
+  instructions: string;
+  ingredients: number;
+  tags: string[];
+  calories: number | null;
+  proteinG: number | null;
+  carbsG: number | null;
+  fatG: number | null;
+  swapOptions: MealSwapOption[];
+};
+
 export type MemberMealPlanForToday = {
   planId: string;
   planName: string;
@@ -48,19 +81,7 @@ export type MemberMealPlanForToday = {
   targetFatG: number | null;
   waterTargetMl: number | null;
   hideMacros: boolean;
-  items: Array<{
-    id: string;
-    recipeId: string | null;
-    mealSlot: string;
-    title: string;
-    instructions: string;
-    ingredients: number;
-    tags: string[];
-    calories: number | null;
-    proteinG: number | null;
-    carbsG: number | null;
-    fatG: number | null;
-  }>;
+  items: MemberMealPlanItem[];
 };
 
 function todayIso() {
@@ -330,6 +351,104 @@ export async function deleteFoodDiaryEntry(workspaceId: string, entryId: string)
   }
 }
 
+type RecipeLite = {
+  id: string;
+  name: string;
+  mealSlot: string;
+  calories: number | null;
+  proteinG: number | null;
+  carbsG: number | null;
+  fatG: number | null;
+};
+
+/** Normalises a stored swap_options jsonb entry (coach-authored) into a MealSwapOption shape. */
+function normaliseStoredSwap(raw: any): MealSwapOption | null {
+  if (!raw || typeof raw !== "object") return null;
+  const title = String(raw.title ?? raw.name ?? "").trim();
+  if (!title) return null;
+  const num = (value: unknown) =>
+    value === null || value === undefined || value === "" || !Number.isFinite(Number(value)) ? null : Number(value);
+  return {
+    recipeId: typeof raw.recipeId === "string" ? raw.recipeId : typeof raw.recipe_id === "string" ? raw.recipe_id : null,
+    title,
+    note: typeof raw.note === "string" && raw.note.trim() ? raw.note.trim() : typeof raw.reason === "string" && raw.reason.trim() ? raw.reason.trim() : null,
+    calories: num(raw.calories),
+    proteinG: num(raw.proteinG ?? raw.protein_g),
+    carbsG: num(raw.carbsG ?? raw.carbs_g),
+    fatG: num(raw.fatG ?? raw.fat_g),
+    selected: false,
+  };
+}
+
+/**
+ * Derives up to `limit` sensible alternatives for a meal when the coach hasn't
+ * authored explicit swap_options. Picks brand recipes that share the meal slot and
+ * sit closest in calories to the assigned meal (so macros stay comparable). Excludes
+ * the meal's own recipe. Pure & deterministic so the same meal always offers the
+ * same alternatives within a render.
+ */
+function deriveSwapOptions(
+  item: { recipeId: string | null; mealSlot: string; calories: number | null },
+  recipes: RecipeLite[],
+  limit = 3,
+): MealSwapOption[] {
+  const slot = (item.mealSlot ?? "").trim().toLowerCase();
+  const target = item.calories ?? null;
+  const candidates = recipes
+    .filter((recipe) => recipe.id !== item.recipeId)
+    .filter((recipe) => !slot || (recipe.mealSlot ?? "").trim().toLowerCase() === slot);
+
+  candidates.sort((a, b) => {
+    if (target !== null && a.calories !== null && b.calories !== null) {
+      const diff = Math.abs(a.calories - target) - Math.abs(b.calories - target);
+      if (diff !== 0) return diff;
+    }
+    return a.name.localeCompare(b.name);
+  });
+
+  return candidates.slice(0, limit).map((recipe) => ({
+    recipeId: recipe.id,
+    title: recipe.name,
+    note: target !== null && recipe.calories !== null
+      ? recipe.calories === target
+        ? "Mismas calorías"
+        : `${recipe.calories > target ? "+" : "−"}${Math.abs(recipe.calories - target)} kcal`
+      : "Misma franja",
+    calories: recipe.calories,
+    proteinG: recipe.proteinG,
+    carbsG: recipe.carbsG,
+    fatG: recipe.fatG,
+    selected: false,
+  }));
+}
+
+/**
+ * Builds the member-facing swap options for an assigned meal item:
+ *  1. Coach-authored stored options (swap_options jsonb) take priority.
+ *  2. Otherwise derive 2–3 alternatives from brand recipes in the same slot.
+ * Marks the option matching the item's current recipe as `selected`. Honours
+ * hide-macros by nulling per-option macros.
+ */
+export function buildMealSwapOptions(
+  item: { recipeId: string | null; mealSlot: string; calories: number | null },
+  storedRaw: unknown,
+  recipes: RecipeLite[],
+  hideMacros: boolean,
+): MealSwapOption[] {
+  const stored = Array.isArray(storedRaw)
+    ? storedRaw.map(normaliseStoredSwap).filter((option): option is MealSwapOption => option !== null)
+    : [];
+  const options = stored.length ? stored : deriveSwapOptions(item, recipes);
+  return options.map((option) => ({
+    ...option,
+    selected: !!option.recipeId && option.recipeId === item.recipeId,
+    calories: hideMacros ? null : option.calories,
+    proteinG: hideMacros ? null : option.proteinG,
+    carbsG: hideMacros ? null : option.carbsG,
+    fatG: hideMacros ? null : option.fatG,
+  }));
+}
+
 export async function getMemberMealPlanForToday(workspaceId?: string): Promise<MemberMealPlanForToday | null> {
   const env = getSupabaseServiceEnv();
   if (!env.ok) return null;
@@ -373,7 +492,7 @@ export async function getMemberMealPlanForToday(workspaceId?: string): Promise<M
   const activeDay = days.data[dayIndex] ?? days.data[0];
   const items = await supabase
     .from("assigned_meal_plan_items")
-    .select("id,recipe_id,meal_slot,title,instructions,calories,protein_g,carbs_g,fat_g,sort_order")
+    .select("id,recipe_id,meal_slot,title,instructions,calories,protein_g,carbs_g,fat_g,swap_options,sort_order")
     .eq("workspace_id", ws)
     .eq("assigned_meal_plan_day_id", activeDay.id)
     .order("sort_order", { ascending: true });
@@ -381,6 +500,8 @@ export async function getMemberMealPlanForToday(workspaceId?: string): Promise<M
   if (items.error) {
     console.error("Unable to load assigned meal items", items.error.message);
   }
+
+  const recipeOptions = await loadRecipeSwapPool(supabase, ws);
 
   return {
     planId: activePlan.id,
@@ -405,6 +526,186 @@ export async function getMemberMealPlanForToday(workspaceId?: string): Promise<M
       proteinG: activePlan.hide_macros ? null : item.protein_g,
       carbsG: activePlan.hide_macros ? null : item.carbs_g,
       fatG: activePlan.hide_macros ? null : item.fat_g,
+      swapOptions: buildMealSwapOptions(
+        { recipeId: item.recipe_id, mealSlot: item.meal_slot, calories: item.calories },
+        (item as any).swap_options,
+        recipeOptions,
+        activePlan.hide_macros,
+      ),
+    })),
+  };
+}
+
+/**
+ * Loads a small pool of brand + base recipes (with computed macros) used to derive
+ * meal swap suggestions when a meal has no coach-authored swap_options. Mirrors the
+ * macro aggregation in listManagedRecipes but stays light (only the fields the swap
+ * picker needs) so the meals page server render isn't slowed down.
+ */
+async function loadRecipeSwapPool(
+  supabase: ReturnType<typeof createServiceSupabaseClient>,
+  workspaceId: string,
+): Promise<RecipeLite[]> {
+  const { data, error } = await supabase
+    .from("recipes")
+    .select("id,name,meal_slot")
+    .or(`workspace_id.eq.${workspaceId},workspace_id.is.null`)
+    .order("created_at", { ascending: false })
+    .limit(80);
+
+  if (error || !data?.length) {
+    if (error) console.error("Unable to load recipe swap pool", error.message);
+    return [];
+  }
+
+  const ids = data.map((recipe) => recipe.id);
+  const links = await supabase
+    .from("recipe_ingredients")
+    .select("recipe_id,grams,ingredients(calories_per_100g,protein_per_100g,carbs_per_100g,fat_per_100g)")
+    .in("recipe_id", ids);
+
+  const macros = new Map<string, { calories: number; protein: number; carbs: number; fat: number }>();
+  for (const link of links.data ?? []) {
+    const ingredient = (link as any).ingredients as {
+      calories_per_100g?: number;
+      protein_per_100g?: number;
+      carbs_per_100g?: number;
+      fat_per_100g?: number;
+    } | null;
+    const ratio = Number((link as any).grams) / 100;
+    const current = macros.get((link as any).recipe_id) ?? { calories: 0, protein: 0, carbs: 0, fat: 0 };
+    current.calories += (ingredient?.calories_per_100g ?? 0) * ratio;
+    current.protein += (ingredient?.protein_per_100g ?? 0) * ratio;
+    current.carbs += (ingredient?.carbs_per_100g ?? 0) * ratio;
+    current.fat += (ingredient?.fat_per_100g ?? 0) * ratio;
+    macros.set((link as any).recipe_id, current);
+  }
+
+  return data.map((recipe) => {
+    const m = macros.get(recipe.id);
+    return {
+      id: recipe.id,
+      name: recipe.name,
+      mealSlot: recipe.meal_slot,
+      calories: m ? Math.round(m.calories) : null,
+      proteinG: m ? Math.round(m.protein) : null,
+      carbsG: m ? Math.round(m.carbs) : null,
+      fatG: m ? Math.round(m.fat) : null,
+    };
+  });
+}
+
+export type MemberMealPlanDay = {
+  dayId: string;
+  dayNumber: number;
+  dayTitle: string;
+  isToday: boolean;
+  targetCalories: number | null;
+  targetProteinG: number | null;
+  targetCarbsG: number | null;
+  targetFatG: number | null;
+  items: Array<{
+    id: string;
+    mealSlot: string;
+    title: string;
+    instructions: string;
+    calories: number | null;
+    proteinG: number | null;
+    carbsG: number | null;
+    fatG: number | null;
+  }>;
+};
+
+export type MemberMealPlanWeek = {
+  planId: string;
+  planName: string;
+  waterTargetMl: number | null;
+  hideMacros: boolean;
+  days: MemberMealPlanDay[];
+};
+
+/**
+ * The member's full active plan (every day, in order) for the printable / PDF
+ * export. Marks the day that is "today" in the rotation so the print view can
+ * highlight it. Honours hide-macros (nulls every macro). Uses resolveMemberScope so
+ * a flaky brand hint can't hide the member's own plan.
+ */
+export async function getMemberMealPlanWeek(workspaceId?: string): Promise<MemberMealPlanWeek | null> {
+  const env = getSupabaseServiceEnv();
+  if (!env.ok) return null;
+
+  const supabase = createServiceSupabaseClient();
+  const scope = await resolveMemberScope(workspaceId);
+  if (!scope) return null;
+  const { workspaceId: ws, memberProfileId } = scope;
+
+  const plan = await supabase
+    .from("assigned_meal_plans")
+    .select("id,name,starts_on,water_target_ml,hide_macros")
+    .eq("workspace_id", ws)
+    .eq("member_profile_id", memberProfileId)
+    .eq("status", "active")
+    .order("created_at", { ascending: false })
+    .limit(1)
+    .maybeSingle();
+
+  if (plan.error || !plan.data) return null;
+  const activePlan = plan.data;
+
+  const days = await supabase
+    .from("assigned_meal_plan_days")
+    .select("id,day_number,title,target_calories,target_protein_g,target_carbs_g,target_fat_g")
+    .eq("workspace_id", ws)
+    .eq("assigned_meal_plan_id", activePlan.id)
+    .order("day_number", { ascending: true });
+
+  if (days.error || !days.data?.length) return null;
+
+  const todayIndex = daysBetween(activePlan.starts_on) % days.data.length;
+  const todayId = days.data[todayIndex]?.id ?? days.data[0].id;
+  const dayIds = days.data.map((day) => day.id);
+
+  const items = await supabase
+    .from("assigned_meal_plan_items")
+    .select("id,assigned_meal_plan_day_id,meal_slot,title,instructions,calories,protein_g,carbs_g,fat_g,sort_order")
+    .eq("workspace_id", ws)
+    .in("assigned_meal_plan_day_id", dayIds)
+    .order("sort_order", { ascending: true });
+
+  if (items.error) console.error("Unable to load plan week items", items.error.message);
+
+  const hide = Boolean(activePlan.hide_macros);
+  const itemsByDay = new Map<string, MemberMealPlanDay["items"]>();
+  for (const item of items.data ?? []) {
+    const current = itemsByDay.get(item.assigned_meal_plan_day_id) ?? [];
+    current.push({
+      id: item.id,
+      mealSlot: item.meal_slot,
+      title: item.title,
+      instructions: item.instructions ?? "",
+      calories: hide ? null : item.calories,
+      proteinG: hide ? null : item.protein_g,
+      carbsG: hide ? null : item.carbs_g,
+      fatG: hide ? null : item.fat_g,
+    });
+    itemsByDay.set(item.assigned_meal_plan_day_id, current);
+  }
+
+  return {
+    planId: activePlan.id,
+    planName: activePlan.name,
+    waterTargetMl: activePlan.water_target_ml,
+    hideMacros: hide,
+    days: days.data.map((day) => ({
+      dayId: day.id,
+      dayNumber: day.day_number,
+      dayTitle: day.title ?? `Día ${day.day_number}`,
+      isToday: day.id === todayId,
+      targetCalories: hide ? null : day.target_calories,
+      targetProteinG: hide ? null : day.target_protein_g,
+      targetCarbsG: hide ? null : day.target_carbs_g,
+      targetFatG: hide ? null : day.target_fat_g,
+      items: itemsByDay.get(day.id) ?? [],
     })),
   };
 }

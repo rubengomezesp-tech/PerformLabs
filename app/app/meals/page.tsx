@@ -1,4 +1,4 @@
-import { Apple, CheckCircle2, ChefHat, Droplets, MessageSquare, NotebookPen, Plus, Repeat, ShoppingBasket, Sparkles, Utensils } from "lucide-react";
+import { Apple, CalendarHeart, CheckCircle2, ChefHat, Droplets, MessageSquare, NotebookPen, Plus, Printer, Repeat, ShoppingBasket, Sparkles, Utensils } from "lucide-react";
 import Link from "next/link";
 import { MacroRings } from "@/components/macro-rings";
 import { MacroStrip } from "@/components/macro-strip";
@@ -15,6 +15,7 @@ import {
 } from "@/lib/repositories/nutrition-tracking";
 import { listManagedRecipes } from "@/lib/repositories/nutrition-management";
 import { logWaterGlassAction, saveMealLogAction, saveNutritionDayAction, swapMealAction } from "./actions";
+import { MealSwapPicker } from "./meal-swap-picker";
 
 export default async function MealsPage() {
   const brand = await getSelectedMemberAppBrand();
@@ -37,6 +38,7 @@ export default async function MealsPage() {
     proteinG: item.proteinG,
     carbsG: item.carbsG,
     fatG: item.fatG,
+    swapOptions: item.swapOptions,
   })) ?? [];
   const hasApprovedMealPlan = mealCards.length > 0;
   const hideMacros = (assignedMealPlan?.hideMacros ?? false) || visibility.hideMacros;
@@ -76,6 +78,9 @@ export default async function MealsPage() {
         text="Sigue tu día sin complicarte: marca comidas, agua y sensaciones para que tu coach pueda ajustar mejor."
         actions={
           <>
+            {hasApprovedMealPlan ? (
+              <Link className="btn" href="/app/meals/print"><Printer size={16} /> Imprimir plan</Link>
+            ) : null}
             <Link className="btn" href="/app/diary"><NotebookPen size={16} /> Diario</Link>
             <Link className="btn ghost" href="/app/recipes"><ChefHat size={16} /> Recetas</Link>
           </>
@@ -238,31 +243,42 @@ export default async function MealsPage() {
               <button className="btn primary" formNoValidate name="status" value="done" type="submit"><CheckCircle2 size={16} /> Hecho</button>
               <button className="btn" name="status" value="swap_requested" type="submit"><Repeat size={16} /> Avisar al coach</button>
             </form>
-            {recipeOptions.length ? (
-              <Dialog
-                triggerClassName="btn ghost sm mealSwapTrigger"
-                trigger={<><Repeat size={15} /> Cambiar comida</>}
-                title={`Cambiar ${meal.title}`}
-                description="Elige otra receta de tu marca para esta comida. Se actualiza en tu plan y tu diario."
-              >
-                <form action={swapMealAction} className="editForm">
-                  <input name="workspaceId" type="hidden" value={brand.id} />
-                  <input name="itemId" type="hidden" value={meal.id} />
-                  <label className="spanFull">
-                    Nueva receta
-                    <select name="recipeId" defaultValue="" required>
-                      <option value="" disabled>Elige una receta…</option>
-                      {recipeOptions.map((recipe) => (
-                        <option key={recipe.id} value={recipe.id}>
-                          {recipe.name}{!hideMacros && recipe.calories ? ` · ${recipe.calories} kcal` : ""}
-                        </option>
-                      ))}
-                    </select>
-                  </label>
-                  <button className="btn primary spanFull" type="submit">Cambiar comida</button>
-                </form>
-              </Dialog>
-            ) : null}
+            <div className="mealSwapRow">
+              {meal.swapOptions.length ? (
+                <MealSwapPicker
+                  workspaceId={brand.id}
+                  itemId={meal.id}
+                  mealTitle={meal.title}
+                  options={meal.swapOptions}
+                  hideMacros={hideMacros}
+                />
+              ) : null}
+              {recipeOptions.length ? (
+                <Dialog
+                  triggerClassName="btn ghost sm mealSwapTrigger"
+                  trigger={<><Repeat size={15} /> Otra receta</>}
+                  title={`Cambiar ${meal.title}`}
+                  description="Elige cualquier otra receta de tu marca para esta comida. Se actualiza en tu plan y tu diario."
+                >
+                  <form action={swapMealAction} className="editForm">
+                    <input name="workspaceId" type="hidden" value={brand.id} />
+                    <input name="itemId" type="hidden" value={meal.id} />
+                    <label className="spanFull">
+                      Nueva receta
+                      <select name="recipeId" defaultValue="" required>
+                        <option value="" disabled>Elige una receta…</option>
+                        {recipeOptions.map((recipe) => (
+                          <option key={recipe.id} value={recipe.id}>
+                            {recipe.name}{!hideMacros && recipe.calories ? ` · ${recipe.calories} kcal` : ""}
+                          </option>
+                        ))}
+                      </select>
+                    </label>
+                    <button className="btn primary spanFull" type="submit">Cambiar comida</button>
+                  </form>
+                </Dialog>
+              ) : null}
+            </div>
           </article>
         ))}
 
@@ -296,6 +312,7 @@ export default async function MealsPage() {
             <label className="spanFull">Contexto para tu coach<textarea name="notes" rows={3} placeholder="Hambre, digestión, energía, horarios o algo concreto que pueda revisar..." /></label>
             <button className="btn primary" type="submit"><Plus size={17} /> Guardar seguimiento</button>
           </form>
+          <Link className="btn ghost sm mealCycleLink" href="/app/cycle"><CalendarHeart size={15} /> Seguimiento del ciclo</Link>
         </article>
 
         <article className="card span5 mealCoachNote">
