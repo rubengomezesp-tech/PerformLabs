@@ -104,8 +104,14 @@ function starterId(index: number) {
   return `starter-${index}`;
 }
 
+/** Stable /seed/foods/<slug>.webp path; matches scripts/seed-starter-food-images.mjs. */
+function starterFoodImage(name: string): string {
+  const slug = name.normalize("NFD").replace(/[̀-ͯ]/g, "").toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-+|-+$/g, "");
+  return `/seed/foods/${slug}.webp`;
+}
+
 function starterItems(): FoodItem[] {
-  return STARTER_FOODS.map((food, index) => ({ ...food, id: starterId(index), isStarter: true }));
+  return STARTER_FOODS.map((food, index) => ({ ...food, id: starterId(index), imageUrl: starterFoodImage(food.name), isStarter: true }));
 }
 
 function isUuid(value?: string | null): value is string {
@@ -270,6 +276,7 @@ export async function seedStarterFoods(workspaceId: string): Promise<number> {
     fat_g: food.fat,
     carbs_g: food.carbs,
     calories: food.calories,
+    image_url: starterFoodImage(food.name),
     sort_order: index,
   }));
 
