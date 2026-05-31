@@ -7,6 +7,18 @@ updated: 2026-05-30
 
 Las decisiones clave y su _por qué_. La más reciente arriba.
 
+- **2026-05-30 · El owner siempre puede previsualizar una marca, aunque esté vacía
+  (fix login web)** — el login Google entraba bien (cookie/303 OK, lo confirma el
+  evento `auth.session_activated`) pero rebotaba a `/acceso`. Causa real: el
+  comp-preview del owner clonaba "el primer `member_profile` de la marca", y todas
+  las workspaces tienen **0 perfiles** → `firstProfileOfWorkspace()` null →
+  `getMemberContext` devolvía null → rebote. Decisión: una marca **sin clientes
+  todavía** debe seguir siendo previsualizable por el owner. `getMemberContext`
+  sintetiza un contexto de miembro vacío (sentinel `00000000-…`) cuando el admin
+  no tiene perfil y la marca no tiene ninguno: reads member-scoped → estado vacío
+  (como un miembro sin datos), writes fallan por diseño (una preview no muta). Es
+  durable: vale para cualquier marca nueva sin sembrar datos. Ver [[Arquitectura]].
+
 - **2026-05-30 · RLS de la app móvil + cierre de fugas de PII (P0)** — la app móvil
   (Expo) usa la **anon key + RLS** (nunca service-role en cliente; la web sí usa
   service-role y por eso se salta RLS). ~25 tablas del miembro estaban con **RLS

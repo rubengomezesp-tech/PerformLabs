@@ -30,6 +30,15 @@ export type MemberContext = {
 
 const ACTIVE_STATUSES = new Set(["active", "trialing"]);
 
+/**
+ * Sentinel member-profile id for an admin previewing a brand that has no member
+ * profiles yet. It matches no row, so every member-scoped read returns the empty
+ * state (exactly like a real member with no data) instead of bouncing the owner
+ * out of a brand-new brand. Writes keyed by this id fail by design — a preview
+ * never mutates member data.
+ */
+const PREVIEW_MEMBER_PROFILE_ID = "00000000-0000-0000-0000-000000000000";
+
 function isOwnerEmail(email: string | null | undefined): boolean {
   const ownerEmail = process.env.COACHOS_OWNER_EMAIL?.trim().toLowerCase();
   return !!ownerEmail && (email ?? "").toLowerCase() === ownerEmail;
@@ -98,6 +107,7 @@ export async function getMemberContext(workspaceIdHint?: string): Promise<Member
   // Admin (owner) with no member profile: comp preview of the hinted brand.
   if (!data?.length) {
     if (isAdmin && workspaceIdHint) {
+      // Prefer cloning an existing member so the preview shows real content...
       const preview = await firstProfileOfWorkspace(workspaceIdHint);
       if (preview) {
         return {
@@ -110,6 +120,17 @@ export async function getMemberContext(workspaceIdHint?: string): Promise<Member
           isAdmin: true,
         };
       }
+      // ...but a brand with no clients yet must still be previewable by the
+      // owner: synthesize an empty member context instead of bouncing.
+      return {
+        mode: "authenticated",
+        userId: user.id,
+        workspaceId: workspaceIdHint,
+        memberProfileId: PREVIEW_MEMBER_PROFILE_ID,
+        fullName: "",
+        membershipActive: true,
+        isAdmin: true,
+      };
     }
     return null;
   }
