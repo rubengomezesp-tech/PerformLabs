@@ -56,7 +56,7 @@ export function MembersExplorer({
     return (
       <EmptyState
         icon={Users}
-        title="Todavia no hay miembros en esta app."
+        title="Todavía no hay miembros en esta app."
         text="Crea el primer miembro para asignarle entrenamiento, nutrición y seguimiento."
       />
     );
@@ -110,12 +110,12 @@ export function MembersExplorer({
               <>
                 <strong>{member.activeWorkoutPlan.name}</strong>
                 <p>
-                  {member.activeWorkoutPlan.daysPerWeek ?? "-"} dias/semana · Mes {member.activeWorkoutPlan.currentMonth} · Semana {member.activeWorkoutPlan.currentWeek}
+                  {member.activeWorkoutPlan.daysPerWeek ?? "-"} días/semana · Mes {member.activeWorkoutPlan.currentMonth} · Semana {member.activeWorkoutPlan.currentWeek}
                 </p>
-                <small>Revision: {member.activeWorkoutPlan.nextReviewOn || "sin fecha"} · {member.activeWorkoutPlan.reviewStatus}</small>
+                <small>Revisión: {member.activeWorkoutPlan.nextReviewOn || "sin fecha"} · {member.activeWorkoutPlan.reviewStatus}</small>
               </>
             ) : (
-              <p>Sin entrenamiento asignado todavia.</p>
+              <p>Sin entrenamiento asignado todavía.</p>
             )}
           </div>
           <div className="memberQuickLinks">
@@ -142,7 +142,7 @@ export function MembersExplorer({
             </label>
             <label>
               Objetivo de fase
-              <input name="assignmentGoal" defaultValue={member.activeWorkoutPlan?.assignmentGoal ?? member.goal} placeholder="Definicion, fuerza, adherencia..." />
+              <input name="assignmentGoal" defaultValue={member.activeWorkoutPlan?.assignmentGoal ?? member.goal} placeholder="Definición, fuerza, adherencia..." />
             </label>
             <label>
               Mes
