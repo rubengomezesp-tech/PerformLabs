@@ -11629,3 +11629,16 @@ button[aria-busy="true"] {
   flex: 0 0 auto;
 }
 /* ===== END PROFILE DANGER ZONE ===== */
+
+/* ===== PROFILE REAL DATA (agent) ===== */
+.profileEmail {
+  font-variant-numeric: tabular-nums;
+  word-break: break-word;
+  color: var(--muted, inherit);
+}
+.tag.profileTagMuted {
+  border-color: color-mix(in srgb, var(--muted, #6b7280) 28%, transparent);
+  background: color-mix(in srgb, var(--muted, #6b7280) 12%, transparent);
+  color: var(--muted, #6b7280);
+}
+/* ===== END PROFILE REAL DATA ===== */

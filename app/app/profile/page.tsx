@@ -2,6 +2,7 @@ import { AlertTriangle, Bell, CalendarClock, CheckCircle2, Eye, EyeOff, Mail, Me
 import { ReferralCard } from "@/components/referral-card";
 import { Topbar } from "@/components/topbar";
 import { getSelectedMemberAppBrand } from "@/lib/member-app";
+import { goalLabel, getMemberProfileSummary, subscriptionStatusLabel } from "@/lib/repositories/member-profile";
 import { getMemberNutritionVisibility } from "@/lib/repositories/nutrition-tracking";
 import { deleteMemberAccountAction, setMemberMacroVisibilityAction } from "./actions";
 
@@ -9,7 +10,19 @@ export default async function ProfilePage({ searchParams }: { searchParams?: Pro
   const params = await searchParams;
   const error = typeof params?.error === "string" ? params.error.trim() : "";
   const brand = await getSelectedMemberAppBrand();
-  const visibility = await getMemberNutritionVisibility(brand.id);
+  const [visibility, summary] = await Promise.all([
+    getMemberNutritionVisibility(brand.id),
+    getMemberProfileSummary(brand.id),
+  ]);
+
+  const displayName = summary?.fullName || "Tu cuenta";
+  const displayEmail = summary?.email || "Sin email registrado";
+  const planLabel = subscriptionStatusLabel(summary?.subscriptionStatus);
+  const planActive = summary?.subscriptionStatus === "active" || summary?.subscriptionStatus === "trialing";
+  const objective = goalLabel(summary?.goal ?? summary?.trainingGoal) ?? "Sin definir";
+  const mealsLabel = summary?.mealsPerDay ? `${summary.mealsPerDay}` : "Sin definir";
+  const daysLabel = summary?.daysPerWeek ? `${summary.daysPerWeek} días/sem` : "Sin definir";
+  const macrosLabel = summary?.hideMacros ? "Ocultos" : "Visibles";
 
   return (
     <>
@@ -32,25 +45,26 @@ export default async function ProfilePage({ searchParams }: { searchParams?: Pro
           <UserRound color="var(--gold)" />
           <h2>Cuenta</h2>
           <ul className="list">
-            <li className="row">Nombre <strong>Cliente demo</strong></li>
-            <li className="row">Email <span>cliente@email.com</span></li>
-            <li className="row">Plan <span className="tag">Activo</span></li>
+            <li className="row">Nombre <strong>{displayName}</strong></li>
+            <li className="row">Email <span className="profileEmail">{displayEmail}</span></li>
+            <li className="row">Plan <span className={`tag${planActive ? "" : " profileTagMuted"}`}>{planLabel}</span></li>
           </ul>
         </article>
         <article className="card span4">
           <Ruler color="var(--gold)" />
           <h2>Preferencias</h2>
           <ul className="list">
-            <li className="row">Medidas <strong>Métrico</strong></li>
-            <li className="row">Objetivo <strong>Definición</strong></li>
-            <li className="row">Comidas/día <strong>4</strong></li>
+            <li className="row">Objetivo <strong>{objective}</strong></li>
+            <li className="row">Comidas/día <strong>{mealsLabel}</strong></li>
+            <li className="row">Entrenos <strong>{daysLabel}</strong></li>
+            <li className="row">Calorías y macros <span className="tag">{macrosLabel}</span></li>
           </ul>
         </article>
         <article className="card span4">
           <Bell color="var(--gold)" />
           <h2>Comunicación</h2>
           <ul className="list">
-            <li className="row"><Mail size={16} /> Email <span className="tag">Activo</span></li>
+            <li className="row"><Mail size={16} /> Email <span className={`tag${summary?.email ? "" : " profileTagMuted"}`}>{summary?.email ? "Activo" : "Sin email"}</span></li>
             <li className="row"><Smartphone size={16} /> Push <span className="tag">Preparado</span></li>
             <li className="row">Check-ins <strong>Semanal</strong></li>
           </ul>
