@@ -1,6 +1,7 @@
 import type { CSSProperties } from "react";
 import { LogIn, ShieldCheck } from "lucide-react";
 import { memberSignInAction } from "@/app/auth/actions";
+import { GoogleSignInButton } from "@/components/google-signin-button";
 import { getSelectedMemberAppBrand } from "@/lib/member-app";
 
 export const dynamic = "force-dynamic";
@@ -55,6 +56,8 @@ export default async function MemberLandingPage({ searchParams }: MemberLandingP
             Entrar a la app <LogIn size={18} />
           </button>
         </form>
+        <div className="authDivider"><span>o</span></div>
+        <GoogleSignInButton />
 
         <p className="muted memberLandingSupport">
           <ShieldCheck size={15} /> ¿Sin acceso todavía? Escribe a {brand.supportEmail}.

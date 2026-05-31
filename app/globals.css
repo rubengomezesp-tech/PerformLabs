@@ -7266,6 +7266,47 @@ a.diaryEntryTitle:hover {
   font-size: 14px;
   line-height: 1.5;
 }
+.authDivider {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin: 4px 0;
+  color: var(--text-soft);
+  font-size: 12px;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+}
+.authDivider::before,
+.authDivider::after {
+  content: "";
+  flex: 1;
+  height: 1px;
+  background: var(--border);
+}
+.googleSignIn {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.googleBtn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  width: 100%;
+  min-height: 44px;
+  background: #ffffff;
+  color: #1f1f1f;
+  border: 1px solid var(--border-strong);
+  font-weight: 600;
+}
+.googleBtn:hover {
+  background: #f2f2f2;
+}
+.googleBtn:disabled {
+  opacity: 0.7;
+  cursor: default;
+}
 .memberAccessForm label {
   display: flex;
   flex-direction: column;
