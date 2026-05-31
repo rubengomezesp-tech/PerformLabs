@@ -10563,3 +10563,297 @@ button[aria-busy="true"] {
     grid-column: span 6;
   }
 }
+
+/* ===== TRAINING AREA (agent) ===== */
+
+/* --- Member workouts: exercise detail card --- */
+.trnExerciseMedia img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+.trnExerciseTags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin: 4px 0 2px;
+}
+.trnTag {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 4px 9px;
+  border-radius: var(--radius-pill);
+  border: 1px solid var(--line);
+  background: var(--surface-2);
+  color: var(--text-soft);
+  font-size: 12px;
+  font-weight: 500;
+  line-height: 1;
+}
+.trnTag svg {
+  opacity: 0.8;
+}
+.trnTag.muscle {
+  border-color: color-mix(in srgb, var(--accent) 40%, var(--line));
+  background: color-mix(in srgb, var(--accent) 12%, var(--surface-2));
+  color: var(--text);
+}
+.trnTag.level {
+  text-transform: capitalize;
+  border-color: var(--border-strong);
+}
+.trnExerciseCue {
+  margin: 6px 0 2px;
+  padding: 9px 12px;
+  border-left: 2px solid var(--accent);
+  border-radius: 0 var(--radius) var(--radius) 0;
+  background: var(--surface-2);
+  color: var(--text-soft);
+  font-size: 13px;
+  line-height: 1.45;
+}
+.trnExerciseCue strong {
+  color: var(--text);
+}
+.trnProgressionHint {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  margin: 8px 0 2px;
+  padding: 8px 12px;
+  border-radius: var(--radius);
+  background: color-mix(in srgb, var(--accent) 10%, var(--surface-2));
+  border: 1px solid color-mix(in srgb, var(--accent) 28%, var(--line));
+  color: var(--text-soft);
+  font-size: 13px;
+}
+.trnProgressionHint svg {
+  color: var(--accent);
+  flex-shrink: 0;
+}
+.trnProgressionHint strong {
+  color: var(--text);
+}
+
+/* --- Member cardio page --- */
+.trnCardioHero {
+  display: grid;
+  grid-template-columns: 1.6fr 1fr;
+  gap: 22px;
+  align-items: center;
+  padding: 26px 28px;
+  border-radius: var(--radius-lg);
+  border: 1px solid var(--border-strong);
+  background:
+    radial-gradient(120% 120% at 100% 0%, color-mix(in srgb, var(--accent) 14%, transparent), transparent 60%),
+    var(--surface-2);
+}
+.trnCardioHero h2 {
+  margin: 6px 0 8px;
+  font-size: 24px;
+  line-height: 1.15;
+}
+.trnCardioHero p {
+  margin: 0;
+  color: var(--muted);
+  max-width: 52ch;
+}
+.trnCardioHeroMeta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 16px;
+  margin-top: 16px;
+}
+.trnCardioHeroMeta span {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  color: var(--text-soft);
+  font-size: 13.5px;
+  font-weight: 500;
+}
+.trnCardioHeroMeta svg {
+  color: var(--accent);
+}
+.trnCardioStepsCard {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 2px;
+  padding: 20px;
+  border-radius: var(--radius);
+  border: 1px solid var(--line);
+  background: var(--surface);
+}
+.trnCardioStepsCard svg {
+  color: var(--accent);
+  margin-bottom: 4px;
+}
+.trnCardioStepsCard strong {
+  font-size: 30px;
+  line-height: 1;
+  letter-spacing: -0.02em;
+}
+.trnCardioStepsCard small {
+  color: var(--text-soft);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  font-size: 11px;
+  font-weight: 600;
+}
+.trnCardioStepsCard p {
+  margin: 10px 0 0;
+  color: var(--muted);
+  font-size: 13px;
+  line-height: 1.45;
+}
+.trnCardioCard {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+.trnCardioCard.recommended {
+  border-color: var(--accent);
+  box-shadow: inset 0 0 0 1px var(--accent);
+}
+.trnCardioCardHead {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+.trnCardioCardHead > div {
+  display: flex;
+  flex-direction: column;
+  margin-right: auto;
+}
+.trnCardioCardHead strong {
+  font-size: 18px;
+}
+.trnCardioCardHead small {
+  color: var(--muted);
+  font-size: 13px;
+}
+.trnCardioIcon {
+  display: grid;
+  place-items: center;
+  width: 42px;
+  height: 42px;
+  border-radius: var(--radius);
+  background: color-mix(in srgb, var(--accent) 16%, var(--surface-2));
+  color: var(--accent);
+  flex-shrink: 0;
+}
+.trnCardioStats {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+.trnCardioStats span {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 5px 10px;
+  border-radius: var(--radius-pill);
+  background: var(--surface-2);
+  border: 1px solid var(--line);
+  color: var(--text-soft);
+  font-size: 12.5px;
+  font-weight: 500;
+}
+.trnCardioBestFor {
+  margin: 0;
+  color: var(--text-soft);
+  font-size: 14px;
+}
+.trnCardioStructure {
+  list-style: none;
+  counter-reset: cardio-step;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.trnCardioStructure li {
+  counter-increment: cardio-step;
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: 10px 12px 10px 42px;
+  border-radius: var(--radius);
+  background: var(--surface-2);
+  border: 1px solid var(--line);
+}
+.trnCardioStructure li::before {
+  content: counter(cardio-step);
+  position: absolute;
+  left: 12px;
+  top: 10px;
+  display: grid;
+  place-items: center;
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  background: color-mix(in srgb, var(--accent) 18%, var(--surface-3));
+  color: var(--accent);
+  font-size: 12px;
+  font-weight: 700;
+}
+.trnCardioStructure strong {
+  font-size: 13.5px;
+}
+.trnCardioStructure span {
+  color: var(--muted);
+  font-size: 13px;
+  line-height: 1.4;
+}
+.trnCardioCues {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.trnCardioCues li {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  color: var(--text-soft);
+  font-size: 13px;
+  line-height: 1.4;
+}
+.trnCardioCues svg {
+  color: var(--accent);
+  margin-top: 2px;
+  flex-shrink: 0;
+}
+.trnCardioNote {
+  display: flex;
+  align-items: flex-start;
+  gap: 16px;
+}
+.trnCardioNote > svg {
+  flex-shrink: 0;
+  margin-top: 2px;
+}
+.trnCardioNote strong {
+  display: block;
+  margin-bottom: 4px;
+  font-size: 16px;
+}
+.trnCardioNote p {
+  margin: 0;
+  color: var(--muted);
+  max-width: 70ch;
+}
+
+@media (max-width: 720px) {
+  .trnCardioHero {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* ===== END TRAINING AREA ===== */
