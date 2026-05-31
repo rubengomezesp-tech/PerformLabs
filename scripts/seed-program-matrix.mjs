@@ -116,9 +116,13 @@ function norm(value) {
 function readArgs() {
   const args = process.argv.slice(2);
   const sampleArg = args.find((a) => a.startsWith("--sample="));
+  const fixtureArg = args.find((a) => a.startsWith("--fixture="));
   return {
     apply: args.includes("--apply"),
     sampleFull: sampleArg ? sampleArg.split("=")[1] === "full" : false,
+    // Offline dry-run only: read the exercise library from a local JSON snapshot
+    // instead of Supabase, so the matrix can be sampled with real ids without creds.
+    fixture: fixtureArg ? fixtureArg.split("=")[1] : null,
   };
 }
 
@@ -354,7 +358,7 @@ function* matrix() {
 }
 
 async function main() {
-  const { apply, sampleFull } = readArgs();
+  const { apply, sampleFull, fixture } = readArgs();
   await loadEnvFile();
 
   const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
@@ -364,36 +368,42 @@ async function main() {
   if (apply && !hasEnv) {
     throw new Error("Faltan NEXT_PUBLIC_SUPABASE_URL o SUPABASE_SERVICE_ROLE_KEY (revisa .env.local).");
   }
+  if (apply && fixture) {
+    throw new Error("--fixture es solo para dry-run offline; no se puede escribir con --apply desde un fixture.");
+  }
 
-  // We need the exercise library to build real programs. With env we read it live;
-  // without env (pure offline dry-run) we cannot pick real ids, so we require env to
-  // produce a meaningful sample. Reads are harmless (no writes unless --apply).
-  if (!hasEnv) {
+  // We need the exercise library to build real programs. Sources, in order:
+  //   1) --fixture=<path>  → offline dry-run from a local JSON snapshot
+  //   2) live Supabase read (when creds are present)
+  //   3) neither → can only report the matrix SIZE
+  let supabase = null;
+  let allRows = [];
+
+  if (fixture) {
+    allRows = JSON.parse(await readFile(fixture, "utf8"));
+  } else if (hasEnv) {
+    supabase = createClient(url, serviceRoleKey, { auth: { persistSession: false, autoRefreshToken: false } });
+    const pageSize = 1000;
+    for (let from = 0; ; from += pageSize) {
+      const { data, error } = await supabase
+        .from("exercises")
+        .select("id,name,muscle_groups,equipment,locations,difficulty,mechanic,is_base_library,workspace_id")
+        .is("workspace_id", null)
+        .order("name", { ascending: true })
+        .range(from, from + pageSize - 1);
+      if (error) throw new Error(`No se pudieron leer ejercicios: ${error.message}`);
+      if (!data?.length) break;
+      allRows.push(...data);
+      if (data.length < pageSize) break;
+    }
+  } else {
     console.log(JSON.stringify({
       mode: "dry-run",
-      note: "Sin credenciales: solo puedo calcular el TAMANO de la matriz, no muestrear ejercicios reales. Exporta NEXT_PUBLIC_SUPABASE_URL + SUPABASE_SERVICE_ROLE_KEY para el muestreo completo.",
+      note: "Sin credenciales ni --fixture: solo calculo el TAMANO de la matriz. Exporta NEXT_PUBLIC_SUPABASE_URL + SUPABASE_SERVICE_ROLE_KEY (o pasa --fixture=ruta.json) para muestrear ejercicios reales.",
       matrix: { goals: GOALS, sexes: SEXES, places: PLACES, days: DAYS, minutes: MINUTES },
       programs: GOALS.length * SEXES.length * PLACES.length * DAYS.length * MINUTES.length,
     }, null, 2));
     return;
-  }
-
-  const supabase = createClient(url, serviceRoleKey, { auth: { persistSession: false, autoRefreshToken: false } });
-
-  // Load base-library exercises once.
-  const allRows = [];
-  const pageSize = 1000;
-  for (let from = 0; ; from += pageSize) {
-    const { data, error } = await supabase
-      .from("exercises")
-      .select("id,name,muscle_groups,equipment,locations,difficulty,mechanic,is_base_library,workspace_id")
-      .is("workspace_id", null)
-      .order("name", { ascending: true })
-      .range(from, from + pageSize - 1);
-    if (error) throw new Error(`No se pudieron leer ejercicios: ${error.message}`);
-    if (!data?.length) break;
-    allRows.push(...data);
-    if (data.length < pageSize) break;
   }
   const validIds = new Set(allRows.map((r) => r.id));
 
