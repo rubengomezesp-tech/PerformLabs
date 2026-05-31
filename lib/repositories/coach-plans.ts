@@ -55,6 +55,15 @@ export async function listCoachPlans(workspaceId: string): Promise<CoachPlan[]> 
   return ((data ?? []) as PlanRow[]).map(mapPlan);
 }
 
+/** A single coach client plan by id (used to build member checkouts). */
+export async function getCoachClientPlan(planId: string): Promise<CoachPlan | null> {
+  if (!getSupabaseServiceEnv().ok || !planId) return null;
+  // Table post-dates the generated database.types; cast to reach it.
+  const supabase = createServiceSupabaseClient() as any;
+  const { data } = await supabase.from("coach_client_plans").select("*").eq("id", planId).maybeSingle();
+  return data ? mapPlan(data as PlanRow) : null;
+}
+
 export async function createCoachPlan(input: {
   workspaceId: string;
   name: string;
