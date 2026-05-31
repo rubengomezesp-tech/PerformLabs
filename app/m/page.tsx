@@ -43,7 +43,7 @@ export default async function MemberLandingPage({ searchParams }: MemberLandingP
         </div>
 
         <form action={memberSignInAction} className="memberAccessForm">
-          {params?.error ? <p className="formMessage danger">{params.error}</p> : null}
+          {params?.error ? <p className="formMessage danger" role="alert">{params.error}</p> : null}
           <label>
             Email
             <input name="email" type="email" required placeholder="tu@email.com" autoComplete="email" />

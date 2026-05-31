@@ -35,8 +35,8 @@ export default async function MemberAccessPage({ searchParams }: AccesoPageProps
           <h1>Entra a {brand.name}.</h1>
           <p>Entra con tu email y la contraseña que te dio tu entrenador.</p>
         </div>
-        {params?.error ? <p className="formMessage danger">{params.error}</p> : null}
-        {params?.success ? <p className="formMessage success">{params.success}</p> : null}
+        {params?.error ? <p className="formMessage danger" role="alert">{params.error}</p> : null}
+        {params?.success ? <p className="formMessage success" role="status">{params.success}</p> : null}
         <form action={memberSignInAction} className="authForm">
           <label>
             Email

@@ -25,17 +25,17 @@ export default async function LoginPage({ searchParams }: LoginPageProps) {
           <h1>Entra a tu consola.</h1>
           <p>Si ya aceptaste la invitación, entra aquí con tu email y contraseña. Al entrar verás “Estás dentro” en la barra lateral.</p>
         </div>
-        {params?.error ? <p className="formMessage danger">{params.error}</p> : null}
-        {params?.success ? <p className="formMessage success">{params.success}</p> : null}
+        {params?.error ? <p className="formMessage danger" role="alert">{params.error}</p> : null}
+        {params?.success ? <p className="formMessage success" role="status">{params.success}</p> : null}
         <form action={signInAction} className="authForm">
           <input name="next" type="hidden" value={params?.next ?? "/console"} />
           <label>
             Email
-            <input name="email" placeholder="tu@email.com" required type="email" />
+            <input name="email" placeholder="tu@email.com" required type="email" autoComplete="email" />
           </label>
           <label>
             Contraseña
-            <input name="password" required type="password" />
+            <input name="password" required type="password" autoComplete="current-password" />
           </label>
           <button className="btn primary" type="submit">
             Entrar <LogIn size={18} />

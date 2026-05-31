@@ -25,17 +25,17 @@ export default async function RegisterPage({ searchParams }: RegisterPageProps) 
           <h1>Solicita entrada al sistema.</h1>
           <p>Las cuentas reales se activan solo por invitación confirmada de PerformLabs.</p>
         </div>
-        {params?.error ? <p className="formMessage danger">{params.error}</p> : null}
-        {params?.success ? <p className="formMessage success">{params.success}</p> : null}
+        {params?.error ? <p className="formMessage danger" role="alert">{params.error}</p> : null}
+        {params?.success ? <p className="formMessage success" role="status">{params.success}</p> : null}
         <form action={requestAccessAction} className="authForm">
           <input name="ref" type="hidden" value={params?.ref ?? ""} />
           <label>
             Nombre
-            <input name="fullName" placeholder="Tu nombre" required />
+            <input name="fullName" placeholder="Tu nombre" required autoComplete="name" />
           </label>
           <label>
             Email
-            <input name="email" placeholder="tu@email.com" required type="email" />
+            <input name="email" placeholder="tu@email.com" required type="email" autoComplete="email" />
           </label>
           <label>Marca o equipo<input name="brandName" placeholder="Nombre de la marca" /></label>
           <label>Contexto<textarea name="notes" rows={3} placeholder="Quién te invitó, marca, rol esperado o motivo de acceso..." /></label>

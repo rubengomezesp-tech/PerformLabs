@@ -137,11 +137,11 @@ export default async function BillingPage({ searchParams }: BillingPageProps) {
             <table className="table">
               <thead>
                 <tr>
-                  <th>Plan</th>
-                  <th>Precio</th>
-                  <th>Intervalo</th>
-                  <th>Trial</th>
-                  <th>Estado</th>
+                  <th scope="col">Plan</th>
+                  <th scope="col">Precio</th>
+                  <th scope="col">Intervalo</th>
+                  <th scope="col">Trial</th>
+                  <th scope="col">Estado</th>
                 </tr>
               </thead>
               <tbody>

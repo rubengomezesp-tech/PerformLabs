@@ -22,7 +22,7 @@ export function Table<Row>({ columns, rows, rowKey, className, ...rest }: TableP
       <thead>
         <tr>
           {columns.map((col) => (
-            <th key={col.key}>{col.header}</th>
+            <th key={col.key} scope="col">{col.header}</th>
           ))}
         </tr>
       </thead>
