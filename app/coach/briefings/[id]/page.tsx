@@ -104,11 +104,11 @@ export default async function CoachBriefingDetailPage({ params }: CoachBriefingD
             </label>
             <label>
               Días por semana
-              <input name="daysPerWeek" defaultValue={briefing.trainingDaysPerWeek ?? ""} min="1" max="7" type="number" />
+              <input name="daysPerWeek" defaultValue={briefing.trainingDaysPerWeek ?? ""} min="1" max="7" type="number" inputMode="numeric" />
             </label>
             <label>
               Comidas al día
-              <input name="mealsPerDay" defaultValue={briefing.mealsPerDay ?? ""} min="1" max="8" type="number" />
+              <input name="mealsPerDay" defaultValue={briefing.mealsPerDay ?? ""} min="1" max="8" type="number" inputMode="numeric" />
             </label>
             <label className="toggleRow">
               <input name="hideMacros" type="checkbox" defaultChecked={briefing.hideMacros} />

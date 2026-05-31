@@ -49,7 +49,7 @@ export default async function CoachChallengesPage() {
                   <option value="checkins">Check-ins enviados</option>
                 </select>
               </label>
-              <label>Objetivo<input name="goal" type="number" min={1} max={1000} defaultValue={12} /></label>
+              <label>Objetivo<input name="goal" type="number" inputMode="numeric" min={1} max={1000} defaultValue={12} /></label>
               <label>Empieza<input name="startsOn" type="date" defaultValue={today} /></label>
               <label>Termina<input name="endsOn" type="date" defaultValue={in28} /></label>
             </div>

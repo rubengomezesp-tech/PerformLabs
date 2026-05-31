@@ -86,11 +86,11 @@ export default async function CoachAiPlansPage({ searchParams }: PageProps) {
             </label>
             <label>
               Días/semana
-              <input name="daysPerWeek" type="number" min={1} max={7} defaultValue={4} />
+              <input name="daysPerWeek" type="number" inputMode="numeric" min={1} max={7} defaultValue={4} />
             </label>
             <label>
               Min/sesión
-              <input name="sessionMinutes" type="number" min={20} max={150} defaultValue={60} />
+              <input name="sessionMinutes" type="number" inputMode="numeric" min={20} max={150} defaultValue={60} />
             </label>
           </div>
           <label>

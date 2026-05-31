@@ -80,11 +80,11 @@ export default async function CoachNutritionPage() {
                 </label>
                 <label>
                   Kcal min
-                  <input name="caloriesMin" placeholder="1800" type="number" />
+                  <input name="caloriesMin" placeholder="1800" type="number" inputMode="numeric" />
                 </label>
                 <label>
                   Kcal max
-                  <input name="caloriesMax" placeholder="2200" type="number" />
+                  <input name="caloriesMax" placeholder="2200" type="number" inputMode="numeric" />
                 </label>
                 <label className="spanFull">
                   Proteina %
@@ -284,7 +284,7 @@ export default async function CoachNutritionPage() {
                     </label>
                     <label>
                       Día
-                      <input name="dayNumber" type="number" min="1" step="1" defaultValue="1" />
+                      <input name="dayNumber" type="number" inputMode="numeric" min="1" step="1" defaultValue="1" />
                     </label>
                     <label>
                       Momento
@@ -296,7 +296,7 @@ export default async function CoachNutritionPage() {
                     </label>
                     <label>
                       Raciones
-                      <input name="servingMultiplier" type="number" min="0.25" step="0.25" defaultValue="1" />
+                      <input name="servingMultiplier" type="number" inputMode="decimal" min="0.25" step="0.25" defaultValue="1" />
                     </label>
                     <button className="btn primary spanFull" type="submit">Añadir comida</button>
                   </form>
@@ -369,7 +369,7 @@ export default async function CoachNutritionPage() {
                   </label>
                   <label>
                     Gramos
-                    <input name="grams" type="number" min="1" step="1" defaultValue="100" />
+                    <input name="grams" type="number" inputMode="decimal" min="1" step="1" defaultValue="100" />
                   </label>
                   <button className="btn primary spanFull" type="submit">Añadir ingrediente</button>
                 </form>
@@ -444,15 +444,15 @@ export default async function CoachNutritionPage() {
                     </label>
                     <label>
                       Edad
-                      <input name="age" defaultValue="32" min="12" type="number" />
+                      <input name="age" defaultValue="32" min="12" type="number" inputMode="numeric" />
                     </label>
                     <label>
                       Altura cm
-                      <input name="heightCm" defaultValue="178" min="120" type="number" />
+                      <input name="heightCm" defaultValue="178" min="120" type="number" inputMode="decimal" />
                     </label>
                     <label>
                       Peso kg
-                      <input name="weightKg" defaultValue="82" min="35" step="0.1" type="number" />
+                      <input name="weightKg" defaultValue="82" min="35" step="0.1" type="number" inputMode="decimal" />
                     </label>
                     <label>
                       Actividad
@@ -474,19 +474,19 @@ export default async function CoachNutritionPage() {
                     </label>
                     <label>
                       Proteina g/kg
-                      <input name="proteinPerKg" defaultValue="2.2" min="1.2" max="3" step="0.1" type="number" />
+                      <input name="proteinPerKg" defaultValue="2.2" min="1.2" max="3" step="0.1" type="number" inputMode="decimal" />
                     </label>
                     <label>
                       Grasas %
-                      <input name="fatRatio" defaultValue="25" min="15" max="40" type="number" />
+                      <input name="fatRatio" defaultValue="25" min="15" max="40" type="number" inputMode="numeric" />
                     </label>
                     <label>
                       Comidas/dia
-                      <input name="mealsPerDay" defaultValue="4" min="3" max="5" type="number" />
+                      <input name="mealsPerDay" defaultValue="4" min="3" max="5" type="number" inputMode="numeric" />
                     </label>
                     <label>
                       Entrenos/semana
-                      <input name="trainingDaysPerWeek" defaultValue="5" min="0" max="7" type="number" />
+                      <input name="trainingDaysPerWeek" defaultValue="5" min="0" max="7" type="number" inputMode="numeric" />
                     </label>
                     <button className="btn primary" type="submit">Generar plantilla macro</button>
                   </form>

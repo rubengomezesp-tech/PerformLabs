@@ -162,7 +162,7 @@ export default async function CoachBillingPage({ searchParams }: BillingPageProp
                   </label>
                   <label>
                     Precio
-                    <input name="amount" type="number" min="0.5" step="0.5" placeholder="49.90" required />
+                    <input name="amount" type="number" inputMode="decimal" min="0.5" step="0.5" placeholder="49.90" required />
                   </label>
                   <label>
                     Periodicidad

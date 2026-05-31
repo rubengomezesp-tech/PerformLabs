@@ -116,7 +116,7 @@ export default async function CoachMembersPage() {
               </label>
               <label>
                 Semana
-                <input name="currentWeek" defaultValue={String(member.activeWorkoutPlan?.currentWeek ?? 1)} min="1" max="12" type="number" />
+                <input name="currentWeek" defaultValue={String(member.activeWorkoutPlan?.currentWeek ?? 1)} min="1" max="12" type="number" inputMode="numeric" />
               </label>
               <label>
                 Proxima revision

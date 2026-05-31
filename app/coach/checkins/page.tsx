@@ -127,7 +127,7 @@ export default async function CoachCheckinsPage() {
               </label>
               <label>
                 Próxima revisión (días)
-                <input name="reviewInDays" type="number" min="1" max="60" defaultValue="7" />
+                <input name="reviewInDays" type="number" inputMode="numeric" min="1" max="60" defaultValue="7" />
               </label>
               <button className="btn primary spanFull" type="submit">
                 Guardar revisión <CheckCircle2 size={16} />

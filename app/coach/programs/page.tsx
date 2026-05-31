@@ -161,11 +161,11 @@ export default async function CoachProgramsPage({ searchParams }: CoachProgramsP
                 </label>
                 <label>
                   Días/semana
-                  <input name="daysPerWeek" defaultValue="4" min="3" max="7" type="number" />
+                  <input name="daysPerWeek" defaultValue="4" min="3" max="7" type="number" inputMode="numeric" />
                 </label>
                 <label>
                   Min/sesión
-                  <input name="sessionMinutes" defaultValue="60" min="35" max="120" type="number" />
+                  <input name="sessionMinutes" defaultValue="60" min="35" max="120" type="number" inputMode="numeric" />
                 </label>
                 <fieldset className="injuryPicker spanFull">
                   <legend>Lesiones / límites (opcional) — se evitarán esos músculos</legend>
@@ -205,7 +205,7 @@ export default async function CoachProgramsPage({ searchParams }: CoachProgramsP
                 </label>
                 <label>
                   Días/semana
-                  <input name="daysPerWeek" defaultValue="3" min="1" max="7" type="number" />
+                  <input name="daysPerWeek" defaultValue="3" min="1" max="7" type="number" inputMode="numeric" />
                 </label>
                 <button className="btn primary spanFull" type="submit">Crear programa</button>
               </form>
@@ -448,10 +448,10 @@ export default async function CoachProgramsPage({ searchParams }: CoachProgramsP
                                         <input name="templateExerciseId" type="hidden" value={exercise.id} />
                                         <input name="dayId" type="hidden" value={day.id} />
                                         <input name="exerciseId" type="hidden" value={exercise.exerciseId} />
-                                        <label>Series<input name="sets" defaultValue={String(exercise.sets ?? 3)} min="1" type="number" /></label>
+                                        <label>Series<input name="sets" defaultValue={String(exercise.sets ?? 3)} min="1" type="number" inputMode="numeric" /></label>
                                         <label>Reps<input name="reps" defaultValue={exercise.reps || "8-12"} /></label>
                                         <label>Tempo<input name="tempo" defaultValue={exercise.tempo || "3-1-1"} placeholder="3-1-1" /></label>
-                                        <label>Descanso (s)<input name="restSeconds" defaultValue={String(exercise.restSeconds ?? 90)} min="0" type="number" /></label>
+                                        <label>Descanso (s)<input name="restSeconds" defaultValue={String(exercise.restSeconds ?? 90)} min="0" type="number" inputMode="numeric" /></label>
                                         <label>RIR objetivo<input name="targetRir" defaultValue={exercise.targetRir || "2"} placeholder="0-3" /></label>
                                         <label>Técnica
                                           <select name="intensityTechnique" defaultValue={exercise.intensityTechnique}>
@@ -499,10 +499,10 @@ export default async function CoachProgramsPage({ searchParams }: CoachProgramsP
                                     ))}
                                   </select>
                                 </label>
-                                <label>Series<input name="sets" defaultValue="3" min="1" type="number" /></label>
+                                <label>Series<input name="sets" defaultValue="3" min="1" type="number" inputMode="numeric" /></label>
                                 <label>Reps<input name="reps" defaultValue="8-12" /></label>
                                 <label>Tempo<input name="tempo" defaultValue="3-1-1" placeholder="3-1-1" /></label>
-                                <label>Descanso (s)<input name="restSeconds" defaultValue="90" min="0" type="number" /></label>
+                                <label>Descanso (s)<input name="restSeconds" defaultValue="90" min="0" type="number" inputMode="numeric" /></label>
                                 <label>RIR objetivo<input name="targetRir" defaultValue="2" placeholder="0-3" /></label>
                                 <label>Técnica
                                   <select name="intensityTechnique" defaultValue="">
@@ -547,11 +547,11 @@ export default async function CoachProgramsPage({ searchParams }: CoachProgramsP
               <input name="templateId" type="hidden" value={template.id} />
               <label>
                 Semana
-                <input name="weekNumber" defaultValue="1" min="1" type="number" />
+                <input name="weekNumber" defaultValue="1" min="1" type="number" inputMode="numeric" />
               </label>
               <label>
                 Dia
-                <input name="dayNumber" defaultValue={String(template.days.length + 1)} min="1" type="number" />
+                <input name="dayNumber" defaultValue={String(template.days.length + 1)} min="1" type="number" inputMode="numeric" />
               </label>
               <label>
                 Titulo
