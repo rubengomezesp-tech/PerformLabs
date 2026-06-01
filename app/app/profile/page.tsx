@@ -1,4 +1,4 @@
-import { AlertTriangle, Bell, CheckCircle2, ClipboardCheck, Dumbbell, Eye, EyeOff, Mail, MessageSquare, Moon, Ruler, ShieldCheck, Share2, Smartphone, Trash2, UserRound, Utensils } from "lucide-react";
+import { Bell, CheckCircle2, ClipboardCheck, Dumbbell, Eye, EyeOff, Mail, MessageSquare, Moon, Ruler, ShieldCheck, Share2, Smartphone, Trash2, UserRound, Utensils } from "lucide-react";
 import { ReferralCard } from "@/components/referral-card";
 import { Topbar } from "@/components/topbar";
 import { getSelectedMemberAppBrand } from "@/lib/member-app";
@@ -28,9 +28,7 @@ function NotifRow({ icon, label, hint, prefKey, on, workspaceId }: { icon: React
   );
 }
 
-export default async function ProfilePage({ searchParams }: { searchParams?: Promise<{ error?: string }> }) {
-  const params = await searchParams;
-  const error = typeof params?.error === "string" ? params.error.trim() : "";
+export default async function ProfilePage() {
   const brand = await getSelectedMemberAppBrand();
   const [visibility, summary, notif] = await Promise.all([
     getMemberNutritionVisibility(brand.id),
@@ -54,15 +52,6 @@ export default async function ProfilePage({ searchParams }: { searchParams?: Pro
         title="Datos, preferencias y privacidad."
         text={`Tu cuenta dentro de ${brand.name}: información básica, preferencias del plan y ajustes de comunicación.`}
       />
-      {error ? (
-        <div className="onboardingNotice" role="alert">
-          <AlertTriangle size={18} />
-          <div>
-            <strong>No se pudo completar la acción.</strong>
-            <span>{error}</span>
-          </div>
-        </div>
-      ) : null}
       <section className="grid">
         <article className="card span12 profileHero uiGlass uiSheen uiFadeUp" style={{ ["--i" as string]: 0 }}>
           <span className="profileHeroAvatar" aria-hidden="true">{(displayName.trim()[0] || "U").toUpperCase()}</span>
