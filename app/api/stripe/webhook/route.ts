@@ -5,7 +5,9 @@ import {
   setMemberSubscriptionStatus,
   upsertMemberSubscription,
 } from "@/lib/repositories/member-subscriptions";
+import { provisionPaidMember } from "@/lib/repositories/member-management";
 import {
+  deleteWebhookEvent,
   findWorkspaceByStripeAccount,
   recordWebhookEvent,
   upsertPlatformSubscription,
@@ -50,8 +52,13 @@ export async function POST(request: NextRequest) {
   try {
     await handleEvent(event);
   } catch (error) {
-    // The event is already recorded; swallow handler bugs so Stripe does not retry forever.
+    // We claimed this event id before processing. Since the handler failed,
+    // release the claim and return 500 so Stripe re-delivers and we reprocess
+    // (downstream upserts/inserts are idempotent). Without this, a transient
+    // failure would permanently drop a paid event.
     console.error("stripe webhook handler failed", (error as Error).message);
+    await deleteWebhookEvent(event.id);
+    return NextResponse.json({ ok: false, error: "handler_failed" }, { status: 500 });
   }
   return NextResponse.json({ received: true });
 }
@@ -179,10 +186,31 @@ async function handleConnectedEvent(event: StripeEvent, account: string) {
         currentPeriodEnd,
         cancelAtPeriodEnd,
       });
-      if (memberProfileId) {
+      let resolvedMemberProfileId = memberProfileId;
+      if (!resolvedMemberProfileId) {
+        // Fase 2 self-serve funnel: no member yet. Provision one from the paid
+        // customer's email, then back-patch the subscription row we upserted.
+        const email = (object.customer_details?.email as string) || "";
+        if (email) {
+          resolvedMemberProfileId = await provisionPaidMember({
+            workspaceId,
+            email,
+            fullName: (object.customer_details?.name as string) ?? null,
+            status,
+          });
+          if (resolvedMemberProfileId && subscriptionId) {
+            await upsertMemberSubscription({
+              stripeSubscriptionId: subscriptionId,
+              memberProfileId: resolvedMemberProfileId,
+              status,
+            });
+          }
+        }
+      }
+      if (resolvedMemberProfileId) {
         const customerId = object.customer as string | undefined;
-        if (customerId) await setMemberStripeCustomer(memberProfileId, customerId);
-        await setMemberSubscriptionStatus(memberProfileId, status);
+        if (customerId) await setMemberStripeCustomer(resolvedMemberProfileId, customerId);
+        await setMemberSubscriptionStatus(resolvedMemberProfileId, status);
       }
       return;
     }

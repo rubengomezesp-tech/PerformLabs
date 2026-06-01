@@ -173,6 +173,17 @@ export async function recordWebhookEvent(event: { id: string; type: string; acco
   return !error;
 }
 
+/**
+ * Releases a previously-recorded event id so a Stripe retry can reprocess it.
+ * Used when the handler fails AFTER the event was claimed, so a transient error
+ * doesn't permanently drop a paid event.
+ */
+export async function deleteWebhookEvent(id: string): Promise<void> {
+  if (!getSupabaseServiceEnv().ok || !id) return;
+  const supabase = createServiceSupabaseClient() as any;
+  await supabase.from("stripe_webhook_events").delete().eq("id", id);
+}
+
 export async function findWorkspaceByStripeAccount(stripeUserId: string): Promise<string | null> {
   if (!getSupabaseServiceEnv().ok) return null;
   // These tables post-date the generated database.types; cast to reach them,

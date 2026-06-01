@@ -1,5 +1,6 @@
 import { calculateNutritionTargets, type ActivityLevel, type NutritionGoal } from "@/lib/domain/nutrition-engine";
 import { members } from "@/lib/data";
+import { clampMemberStatus } from "@/lib/repositories/member-subscriptions";
 import { getSupabaseServiceEnv } from "@/lib/supabase/env";
 import { createServiceSupabaseClient } from "@/lib/supabase/server";
 
@@ -765,6 +766,74 @@ export async function createManagedMember(input: MemberInput) {
     await supabase.auth.admin.deleteUser(userResult.data.user.id);
     throw new Error(`No se pudo crear el perfil: ${error.message}`);
   }
+}
+
+async function findAuthUserIdByEmail(
+  supabase: ReturnType<typeof createServiceSupabaseClient>,
+  email: string,
+): Promise<string | null> {
+  // Pre-launch scale: scan the first pages of users for a case-insensitive match.
+  // TODO: replace with a by-email index/RPC once the user base grows.
+  for (let page = 1; page <= 10; page++) {
+    const { data, error } = await supabase.auth.admin.listUsers({ page, perPage: 200 });
+    if (error || !data?.users?.length) break;
+    const match = data.users.find((user) => (user.email || "").toLowerCase() === email);
+    if (match) return match.id;
+    if (data.users.length < 200) break;
+  }
+  return null;
+}
+
+/**
+ * Find-or-create an active member from a CONFIRMED payment (Fase 2 self-serve
+ * funnel). Called by the Stripe webhook after `checkout.session.completed`, so an
+ * account only ever exists for a paying member — there is still no open signup.
+ * Idempotent on (workspace_id, user_id): a repeat purchase or a coach-precreated
+ * member is reused, not duplicated. Returns the member_profiles id (or null).
+ */
+export async function provisionPaidMember(input: {
+  workspaceId: string;
+  email: string;
+  fullName?: string | null;
+  status?: string;
+}): Promise<string | null> {
+  if (!getSupabaseServiceEnv().ok) return null;
+  const email = input.email.trim().toLowerCase();
+  if (!input.workspaceId || !email.includes("@")) return null;
+
+  const supabase = createServiceSupabaseClient();
+  const fullName = (input.fullName?.trim() || email.split("@")[0] || "Cliente").slice(0, 120);
+
+  let userId: string | null = null;
+  const created = await supabase.auth.admin.createUser({
+    email,
+    email_confirm: true,
+    user_metadata: { full_name: fullName },
+  });
+  if (created.data?.user) {
+    userId = created.data.user.id;
+  } else {
+    // Email already registered (coach pre-created, or a repeat purchase): reuse it.
+    userId = await findAuthUserIdByEmail(supabase, email);
+  }
+  if (!userId) return null;
+
+  const profile = await supabase
+    .from("member_profiles")
+    .upsert(
+      {
+        workspace_id: input.workspaceId,
+        user_id: userId,
+        full_name: fullName,
+        subscription_status: clampMemberStatus(input.status),
+        onboarding_status: "invited",
+        timezone: "Europe/Madrid",
+      },
+      { onConflict: "workspace_id,user_id" },
+    )
+    .select("id")
+    .maybeSingle();
+  return profile.data?.id ?? null;
 }
 
 export async function assignPlansToMember(input: MemberAssignmentInput) {
