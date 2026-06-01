@@ -26,9 +26,16 @@ const MEMBER_STATUSES: ReadonlySet<MemberSubscriptionStatus> = new Set([
 
 /** Clamp any Stripe/free-text status to a valid member_profiles enum value. */
 export function clampMemberStatus(status: string | null | undefined): MemberSubscriptionStatus {
-  return status && MEMBER_STATUSES.has(status as MemberSubscriptionStatus)
-    ? (status as MemberSubscriptionStatus)
-    : "active";
+  const value = (status || "").toLowerCase();
+  if (MEMBER_STATUSES.has(value as MemberSubscriptionStatus)) return value as MemberSubscriptionStatus;
+  // Map Stripe statuses that aren't 1:1 with our enum, and NEVER silently grant
+  // access: an unknown / non-paying status defaults to a non-entitling value so a
+  // member without a cleared payment (canceled / unpaid / incomplete) can't slip
+  // into /app, which gates on {active, trialing}.
+  if (value === "canceled") return "cancelled";
+  if (value === "incomplete") return "past_due";
+  if (value === "unpaid" || value === "incomplete_expired") return "expired";
+  return "expired";
 }
 
 export type MemberSubscription = {
