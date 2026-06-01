@@ -9,6 +9,8 @@ export default async function manifest(): Promise<MetadataRoute.Manifest> {
   const shortName = (brand.appName || brand.name || "App").slice(0, 12);
 
   return {
+    // Stable identity so the install isn't re-keyed if start_url ever changes.
+    id: "/app",
     name: brand.name,
     short_name: shortName,
     description: `${brand.name}: entrenamiento, nutrición y progreso.`,
@@ -19,7 +21,9 @@ export default async function manifest(): Promise<MetadataRoute.Manifest> {
     background_color: dark,
     theme_color: dark,
     icons: [
+      { src: "/icon-192.png", sizes: "192x192", type: "image/png", purpose: "any" },
       { src: "/icon.png", sizes: "512x512", type: "image/png", purpose: "any" },
+      { src: "/icon-maskable.png", sizes: "512x512", type: "image/png", purpose: "maskable" },
       { src: "/apple-icon.png", sizes: "180x180", type: "image/png" },
     ],
   };
