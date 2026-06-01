@@ -1,6 +1,7 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
+import { requireWorkspaceMutationAccess } from "@/lib/auth/access-control";
 import { updateWorkspaceBranding } from "@/lib/repositories/workspaces";
 
 function readText(formData: FormData, key: string) {
@@ -10,6 +11,9 @@ function readText(formData: FormData, key: string) {
 
 export async function updateBrandingAction(formData: FormData) {
   const workspaceId = readText(formData, "workspaceId");
+  // Authorize: only a manager of THIS workspace may rewrite its branding.
+  // Without this guard the action is an unauthenticated cross-tenant write.
+  await requireWorkspaceMutationAccess(workspaceId);
 
   await updateWorkspaceBranding(workspaceId, {
     accentColor: readText(formData, "accentColor"),

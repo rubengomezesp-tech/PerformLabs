@@ -146,7 +146,23 @@ async function handleConnectedEvent(event: StripeEvent, account: string) {
     case "checkout.session.completed": {
       if (object.metadata?.kind !== "member_subscription") return;
       const memberProfileId = (object.metadata?.member_profile_id as string) || null;
-      const subscriptionId = (object.subscription as string) ?? null;
+      const subscriptionId = (object.subscription as string) || null;
+      // The Checkout Session object only exposes its own status ("complete"); the
+      // authoritative subscription status/price/period live on the subscription,
+      // which sits on the coach's connected account.
+      let status = "active";
+      let stripePriceId: string | null = null;
+      let currentPeriodStart: string | null = null;
+      let currentPeriodEnd: string | null = null;
+      let cancelAtPeriodEnd = false;
+      if (subscriptionId) {
+        const sub = (await retrieveSubscription(subscriptionId, { stripeAccount: account })) as Record<string, any>;
+        status = (sub.status as string) || "active";
+        stripePriceId = sub.items?.data?.[0]?.price?.id ?? null;
+        currentPeriodStart = toIso(sub.current_period_start);
+        currentPeriodEnd = toIso(sub.current_period_end);
+        cancelAtPeriodEnd = Boolean(sub.cancel_at_period_end);
+      }
       await upsertMemberSubscription({
         workspaceId,
         memberProfileId,
@@ -154,16 +170,19 @@ async function handleConnectedEvent(event: StripeEvent, account: string) {
         stripeAccountId: account,
         stripeCustomerId: (object.customer as string) ?? null,
         stripeSubscriptionId: subscriptionId ?? "",
-        stripePriceId: (object.metadata?.stripe_price_id as string) ?? null,
-        status: (object.status as string) || "active",
+        stripePriceId,
+        status,
         applicationFeePercent,
         amount: typeof object.amount_total === "number" ? object.amount_total : null,
         currency: (object.currency as string) ?? null,
+        currentPeriodStart,
+        currentPeriodEnd,
+        cancelAtPeriodEnd,
       });
       if (memberProfileId) {
         const customerId = object.customer as string | undefined;
         if (customerId) await setMemberStripeCustomer(memberProfileId, customerId);
-        await setMemberSubscriptionStatus(memberProfileId, "active");
+        await setMemberSubscriptionStatus(memberProfileId, status);
       }
       return;
     }

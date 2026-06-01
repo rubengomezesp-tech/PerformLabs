@@ -1,6 +1,7 @@
 import { cloudinaryFetch, exerciseCardImage } from "@/lib/cloudinary";
 import { exerciseLibrary, workouts } from "@/lib/data";
 import { buildPeriodizedWorkoutPlan, type ExperienceLevel, type TrainingLocation, type WorkoutGoal } from "@/lib/domain/workout-engine";
+import { getMemberContext } from "@/lib/auth/member-access";
 import { getSupabaseServiceEnv } from "@/lib/supabase/env";
 import { createServiceSupabaseClient } from "@/lib/supabase/server";
 
@@ -1066,6 +1067,10 @@ export async function swapAssignedWorkoutExercise(input: { workspaceId: string; 
   }
 
   const supabase = createServiceSupabaseClient();
+  // Scope the swap to the caller's own assigned exercise: without this a member
+  // could swap another member's prescription via a forged assignedExerciseId.
+  const member = await getMemberContext(input.workspaceId);
+  if (!member) throw new Error("No se pudo identificar la app del cliente.");
   const exercise = await supabase
     .from("exercises")
     .select("id,name,default_video_url,workspace_id")
@@ -1088,6 +1093,7 @@ export async function swapAssignedWorkoutExercise(input: { workspaceId: string; 
     })
     .eq("id", input.assignedExerciseId)
     .eq("workspace_id", input.workspaceId)
+    .eq("member_profile_id", member.memberProfileId)
     .select("id");
 
   if (error) {

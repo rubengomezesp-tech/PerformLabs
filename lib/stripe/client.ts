@@ -116,8 +116,8 @@ export function retrieveAccount(stripeUserId: string): Promise<StripeAccountResp
   return stripeRequest<StripeAccountResponse>("GET", `/accounts/${stripeUserId}`);
 }
 
-export function retrieveSubscription(subscriptionId: string) {
-  return stripeRequest("GET", `/subscriptions/${subscriptionId}`);
+export function retrieveSubscription(subscriptionId: string, options: { stripeAccount?: string } = {}) {
+  return stripeRequest("GET", `/subscriptions/${subscriptionId}`, {}, options);
 }
 
 export function retrieveCheckoutSession(sessionId: string) {

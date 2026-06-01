@@ -75,11 +75,14 @@ export async function createCommunityPost(workspaceId: string, body: string) {
 
   const supabase = createServiceSupabaseClient();
   const member = await getDefaultMember(workspaceId);
+  // Only an authenticated member of this workspace may post (mirrors
+  // toggleCommunityLike/deleteCommunityPost) — blocks anonymous feed injection.
+  if (!member) throw new Error("Todavía no hay perfil de cliente.");
 
   const { error } = await (supabase as any).from("community_posts").insert({
     workspace_id: workspaceId,
-    member_profile_id: member?.id ?? null,
-    author_name: member?.full_name || "Miembro",
+    member_profile_id: member.id,
+    author_name: member.full_name || "Miembro",
     body: text.slice(0, 2000),
   });
   if (error) throw new Error(`No se pudo publicar: ${error.message}`);

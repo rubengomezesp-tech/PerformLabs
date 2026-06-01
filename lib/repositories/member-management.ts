@@ -3,6 +3,25 @@ import { members } from "@/lib/data";
 import { getSupabaseServiceEnv } from "@/lib/supabase/env";
 import { createServiceSupabaseClient } from "@/lib/supabase/server";
 
+/**
+ * Guard: confirm `memberProfileId` belongs to `workspaceId` before a coach/console
+ * action writes plan rows onto it. The data layer uses the service-role client
+ * (RLS bypassed), so this app-level check is the real cross-tenant control.
+ */
+async function assertMemberInWorkspace(
+  supabase: ReturnType<typeof createServiceSupabaseClient>,
+  workspaceId: string,
+  memberProfileId: string,
+): Promise<void> {
+  const { data, error } = await supabase
+    .from("member_profiles")
+    .select("id")
+    .eq("id", memberProfileId)
+    .eq("workspace_id", workspaceId)
+    .maybeSingle();
+  if (error || !data) throw new Error("Ese cliente no pertenece a tu marca.");
+}
+
 export type ManagedMember = {
   id: string;
   userId: string;
@@ -270,6 +289,7 @@ export async function assignWorkoutTemplateToMember(input: {
   if (!input.workoutTemplateId) return null;
 
   const supabase = createServiceSupabaseClient();
+  await assertMemberInWorkspace(supabase, input.workspaceId, input.memberProfileId);
   const nowDate = new Date();
   const now = nowDate.toISOString().slice(0, 10);
   const workout = await supabase
@@ -506,6 +526,7 @@ export async function assignDietTemplateToMember(input: {
   if (!input.dietTemplateId) return null;
 
   const supabase = createServiceSupabaseClient();
+  await assertMemberInWorkspace(supabase, input.workspaceId, input.memberProfileId);
   const member = await supabase
     .from("member_profiles")
     .select("sex,height_cm,starting_weight_kg,birth_date,activity_level,goal")
@@ -792,6 +813,7 @@ export async function advanceMemberWorkoutPlan(input: {
   }
 
   const supabase = createServiceSupabaseClient();
+  await assertMemberInWorkspace(supabase, input.workspaceId, input.memberProfileId);
   const { data: plan } = await supabase
     .from("assigned_workout_plans")
     .select("id,current_week,current_month")
