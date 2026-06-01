@@ -213,3 +213,74 @@ export async function recordPlatformFeeEvent(record: {
   // A unique-violation on the primary key means we have seen this invoice before.
   return !error;
 }
+
+function isUuid(value?: string | null): value is string {
+  return !!value && /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(value);
+}
+
+export type WorkspaceBillingSummary = {
+  total: number;
+  active: number;
+  trialing: number;
+  pastDue: number;
+  /** paused / cancelled / expired — no longer billing. */
+  inactive: number;
+  /** Sum of the recurring charge (cents) across active subscriptions. */
+  mrrCents: number;
+  /** Average recurring revenue per active member (cents). */
+  arpuCents: number;
+  /** Upper-cased dominant currency code (defaults to EUR). */
+  currency: string;
+};
+
+/**
+ * Workspace-level billing read for the coach analytics page. member_subscriptions
+ * is service-role only, so this uses the service client like the rest of this
+ * module. `amount` is the recurring price unit_amount in cents (see the Stripe
+ * webhook); MRR sums it across active subscriptions only.
+ */
+export async function getWorkspaceBillingSummary(workspaceId?: string): Promise<WorkspaceBillingSummary> {
+  const empty: WorkspaceBillingSummary = {
+    total: 0,
+    active: 0,
+    trialing: 0,
+    pastDue: 0,
+    inactive: 0,
+    mrrCents: 0,
+    arpuCents: 0,
+    currency: "EUR",
+  };
+  if (!getSupabaseServiceEnv().ok || !isUuid(workspaceId)) return empty;
+
+  const supabase = createServiceSupabaseClient() as any;
+  const { data } = await supabase
+    .from("member_subscriptions")
+    .select("status,amount,currency")
+    .eq("workspace_id", workspaceId);
+
+  const rows = (data ?? []) as Array<{ status: string | null; amount: number | null; currency: string | null }>;
+  if (!rows.length) return empty;
+
+  const summary: WorkspaceBillingSummary = { ...empty, total: rows.length };
+  const currencyCounts = new Map<string, number>();
+  for (const row of rows) {
+    const status = clampMemberStatus(row.status);
+    if (status === "active") {
+      summary.active += 1;
+      summary.mrrCents += row.amount ?? 0;
+    } else if (status === "trialing") {
+      summary.trialing += 1;
+    } else if (status === "past_due") {
+      summary.pastDue += 1;
+    } else {
+      summary.inactive += 1;
+    }
+    const currency = (row.currency || "").toUpperCase();
+    if (currency) currencyCounts.set(currency, (currencyCounts.get(currency) ?? 0) + 1);
+  }
+
+  summary.arpuCents = summary.active ? Math.round(summary.mrrCents / summary.active) : 0;
+  const dominant = [...currencyCounts.entries()].sort((a, b) => b[1] - a[1])[0]?.[0];
+  summary.currency = dominant || "EUR";
+  return summary;
+}

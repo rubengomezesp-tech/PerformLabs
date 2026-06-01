@@ -13818,3 +13818,97 @@ button[aria-busy="true"] {
   }
 }
 /* ===== END Exercise demo preview ===== */
+
+/* ===== Coach analytics (distribution bars + KPI tiles) ===== */
+.analyticsBars {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+.analyticsBar {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.analyticsBarHead {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  font-size: 0.86rem;
+  color: var(--text-muted);
+}
+.analyticsBarHead strong {
+  color: var(--text);
+  font-variant-numeric: tabular-nums;
+}
+.analyticsBarTrack {
+  height: 8px;
+  border-radius: 999px;
+  background: var(--surface-3);
+  overflow: hidden;
+}
+.analyticsBarFill {
+  height: 100%;
+  border-radius: 999px;
+  min-width: 2px;
+  transition: width 0.4s cubic-bezier(0.22, 1, 0.36, 1);
+}
+.analyticsBig {
+  margin: 0 0 4px;
+  font-family: var(--font-display, inherit);
+  font-size: 1.7rem;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  color: var(--text);
+  font-variant-numeric: tabular-nums;
+}
+.analyticsBig span {
+  font-size: 0.9rem;
+  font-weight: 500;
+  color: var(--text-soft);
+  letter-spacing: 0;
+}
+.analyticsKpiRow {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 22px;
+}
+.analyticsKpi {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+.analyticsKpi strong {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: var(--text);
+  font-variant-numeric: tabular-nums;
+}
+.analyticsKpi strong.isWarning {
+  color: var(--warning);
+}
+.analyticsKpi span {
+  font-size: 0.82rem;
+  color: var(--text-muted);
+}
+.analyticsFoot {
+  margin: 4px 0 0;
+  font-size: 0.86rem;
+  color: var(--text-muted);
+}
+.analyticsInlineLink {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  color: var(--accent);
+  font-weight: 600;
+}
+.analyticsInlineLink:hover {
+  text-decoration: underline;
+}
+.coachActivityList {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+/* ===== END Coach analytics ===== */
