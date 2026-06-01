@@ -7,7 +7,7 @@ import { getSelectedMemberAppBrand } from "@/lib/member-app";
 import { listManagedMembers } from "@/lib/repositories/member-management";
 import { listManagedDietTemplates } from "@/lib/repositories/nutrition-management";
 import { listManagedWorkoutTemplates } from "@/lib/repositories/training-management";
-import { assignCoachMemberPlansAction, createCoachMemberAction } from "./actions";
+import { assignCoachMemberPlansAction, bulkAssignCoachMemberPlansAction, createCoachMemberAction } from "./actions";
 
 export const dynamic = "force-dynamic";
 
@@ -66,6 +66,7 @@ export default async function CoachMembersPage() {
           workoutTemplates={workoutTemplates}
           dietTemplates={dietTemplates}
           assignAction={assignCoachMemberPlansAction}
+          bulkAssignAction={bulkAssignCoachMemberPlansAction}
         />
       </section>
     </>

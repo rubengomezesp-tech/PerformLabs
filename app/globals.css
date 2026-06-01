@@ -13929,3 +13929,52 @@ button[aria-busy="true"] {
   margin-bottom: 4px;
 }
 /* ===== END Member guide reader ===== */
+
+/* ===== Coach members: bulk selection ===== */
+.memberCard {
+  position: relative;
+}
+.memberSelect {
+  position: absolute;
+  top: 14px;
+  right: 14px;
+  display: inline-flex;
+}
+.memberSelect input,
+.membersSelectAll input {
+  width: 18px;
+  height: 18px;
+  accent-color: var(--accent);
+  cursor: pointer;
+}
+.memberCardSelected {
+  outline: 2px solid var(--accent);
+  outline-offset: -2px;
+}
+.membersSelectAll {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.86rem;
+  color: var(--text-muted);
+  cursor: pointer;
+}
+.membersBulkBar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+.membersBulkBar .bulkActions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+.membersBulkHint {
+  margin: 0;
+  font-size: 0.82rem;
+  color: var(--text-soft);
+}
+/* ===== END Coach members ===== */

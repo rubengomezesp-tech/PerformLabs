@@ -2,7 +2,7 @@
 
 import { useMemo, useState } from "react";
 import Link from "next/link";
-import { ClipboardCheck, Mail, MessageSquareText, Plus, Search, UserRound, Users } from "lucide-react";
+import { ClipboardCheck, Layers, Mail, MessageSquareText, Plus, Search, UserRound, Users } from "lucide-react";
 import { Dialog } from "@/components/dialog";
 import { EmptyState } from "@/components/empty-state";
 import { SubmitButton } from "@/components/ui";
@@ -26,12 +26,14 @@ export function MembersExplorer({
   workoutTemplates,
   dietTemplates,
   assignAction,
+  bulkAssignAction,
 }: {
   brandId: string;
   members: ManagedMember[];
   workoutTemplates: PlanOption[];
   dietTemplates: DietOption[];
   assignAction: (formData: FormData) => void | Promise<void>;
+  bulkAssignAction: (formData: FormData) => void | Promise<void>;
 }) {
   const [query, setQuery] = useState("");
   const [status, setStatus] = useState("all");
@@ -51,6 +53,26 @@ export function MembersExplorer({
       );
     });
   }, [members, query, status]);
+
+  const [selected, setSelected] = useState<Set<string>>(new Set());
+  const toggle = (id: string) =>
+    setSelected((prev) => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id);
+      else next.add(id);
+      return next;
+    });
+  const clearSelection = () => setSelected(new Set());
+  const filteredIds = filtered.map((member) => member.id);
+  const allFilteredSelected = filteredIds.length > 0 && filteredIds.every((id) => selected.has(id));
+  const toggleAllFiltered = () =>
+    setSelected((prev) => {
+      const next = new Set(prev);
+      if (allFilteredSelected) filteredIds.forEach((id) => next.delete(id));
+      else filteredIds.forEach((id) => next.add(id));
+      return next;
+    });
+  const selectedIds = [...selected];
 
   if (!members.length) {
     return (
@@ -91,10 +113,75 @@ export function MembersExplorer({
         <p className="membersCount" role="status">
           {filtered.length} de {members.length} miembro(s)
         </p>
+        <label className="membersSelectAll">
+          <input
+            type="checkbox"
+            checked={allFilteredSelected}
+            onChange={toggleAllFiltered}
+            aria-label="Seleccionar todos los miembros filtrados"
+          />
+          <span>Seleccionar todos</span>
+        </label>
       </div>
 
+      {selected.size > 0 ? (
+        <div className="card span12 membersBulkBar" role="region" aria-label="Acciones en lote">
+          <span><strong>{selected.size}</strong> seleccionado(s)</span>
+          <div className="bulkActions">
+            <Dialog
+              triggerClassName="btn primary"
+              trigger={<><Layers size={16} /> Asignar plan</>}
+              title={`Asignar plan a ${selected.size} miembro(s)`}
+              description="Se aplica el mismo entrenamiento y/o nutrición a todos los seleccionados."
+            >
+              <form action={bulkAssignAction} className="coachAssignForm">
+                <input name="workspaceId" type="hidden" value={brandId} />
+                {selectedIds.map((id) => (
+                  <input key={id} name="memberProfileIds" type="hidden" value={id} />
+                ))}
+                <label>
+                  Entrenamiento
+                  <select name="workoutTemplateId" defaultValue="">
+                    <option value="">Sin cambio</option>
+                    {workoutTemplates.map((template) => (
+                      <option key={template.id} value={template.id}>{template.name}</option>
+                    ))}
+                  </select>
+                </label>
+                <label>
+                  Nutrición
+                  <select name="dietTemplateId" defaultValue="">
+                    <option value="">Sin cambio</option>
+                    {dietTemplates.map((template) => (
+                      <option key={template.id} value={template.id}>{template.name}</option>
+                    ))}
+                  </select>
+                </label>
+                <label className="spanFull">
+                  Objetivo de fase
+                  <input name="assignmentGoal" placeholder="Definición, fuerza, adherencia..." />
+                </label>
+                <p className="membersBulkHint spanFull">Se asignará a {selected.size} miembro(s) · Mes 1 · Semana 1.</p>
+                <SubmitButton variant="primary" className="spanFull" successToast={`Planes asignados a ${selected.size} miembro(s)`}>
+                  Asignar a {selected.size}
+                </SubmitButton>
+              </form>
+            </Dialog>
+            <button type="button" className="btn ghost sm" onClick={clearSelection}>Limpiar selección</button>
+          </div>
+        </div>
+      ) : null}
+
       {filtered.length ? filtered.map((member) => (
-        <article className="card span4 motionCard" key={member.id}>
+        <article className={`card span4 motionCard memberCard${selected.has(member.id) ? " memberCardSelected" : ""}`} key={member.id}>
+          <label className="memberSelect">
+            <input
+              type="checkbox"
+              checked={selected.has(member.id)}
+              onChange={() => toggle(member.id)}
+              aria-label={`Seleccionar ${member.fullName}`}
+            />
+          </label>
           <UserRound color="var(--gold)" aria-hidden="true" />
           <h2>{member.fullName}</h2>
           <p><Mail size={15} /> {member.email}</p>
