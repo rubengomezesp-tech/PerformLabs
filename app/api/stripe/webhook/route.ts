@@ -6,6 +6,7 @@ import {
   upsertMemberSubscription,
 } from "@/lib/repositories/member-subscriptions";
 import { provisionPaidMember } from "@/lib/repositories/member-management";
+import { fireMemberEventNotification } from "@/lib/notifications/events";
 import {
   deleteWebhookEvent,
   findWorkspaceByStripeAccount,
@@ -223,6 +224,7 @@ async function handleConnectedEvent(event: StripeEvent, account: string) {
         const customerId = object.customer as string | undefined;
         if (customerId) await setMemberStripeCustomer(resolvedMemberProfileId, customerId);
         await setMemberSubscriptionStatus(resolvedMemberProfileId, status);
+        await fireMemberEventNotification({ workspaceId, memberProfileId: resolvedMemberProfileId, eventKey: "customer.account_activated" });
       }
       return;
     }
@@ -276,6 +278,7 @@ async function handleConnectedEvent(event: StripeEvent, account: string) {
     case "invoice.payment_failed": {
       const memberProfileId = (object.subscription_details?.metadata?.member_profile_id as string) || null;
       if (memberProfileId) await setMemberSubscriptionStatus(memberProfileId, "past_due");
+      await fireMemberEventNotification({ workspaceId, memberProfileId, eventKey: "payment.failed" });
       return;
     }
 

@@ -1,5 +1,6 @@
 import { calculateNutritionTargets, type ActivityLevel, type NutritionGoal } from "@/lib/domain/nutrition-engine";
 import { members } from "@/lib/data";
+import { fireMemberEventNotification } from "@/lib/notifications/events";
 import { clampMemberStatus } from "@/lib/repositories/member-subscriptions";
 import { getSupabaseServiceEnv } from "@/lib/supabase/env";
 import { createServiceSupabaseClient } from "@/lib/supabase/server";
@@ -861,6 +862,15 @@ export async function assignPlansToMember(input: MemberAssignmentInput) {
         assignedBy: input.assignedBy,
       })
     : null;
+
+  if (mealAssignment) {
+    // Notify the member their coach activated a new plan (best-effort push).
+    await fireMemberEventNotification({
+      workspaceId: input.workspaceId,
+      memberProfileId: input.memberProfileId,
+      eventKey: "nutrition.plan_activated",
+    });
+  }
 
   return { workoutAssignment, mealAssignment };
 }

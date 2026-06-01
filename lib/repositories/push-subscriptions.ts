@@ -90,6 +90,27 @@ export async function listActiveSubscriptions(workspaceId: string): Promise<Push
   }));
 }
 
+/** Enabled push subscriptions for a specific member (for event-fired pushes). */
+export async function listMemberSubscriptions(workspaceId: string, memberProfileId: string): Promise<PushSubscriptionRow[]> {
+  const env = getSupabaseServiceEnv();
+  if (!env.ok || !isUuid(workspaceId) || !isUuid(memberProfileId)) return [];
+  const supabase = createServiceSupabaseClient();
+  const { data, error } = await (supabase as any)
+    .from("push_subscriptions")
+    .select("id,member_profile_id,endpoint,p256dh,auth")
+    .eq("workspace_id", workspaceId)
+    .eq("member_profile_id", memberProfileId)
+    .eq("enabled", true);
+  if (error || !data) return [];
+  return (data as Array<any>).map((row) => ({
+    id: row.id,
+    memberProfileId: row.member_profile_id,
+    endpoint: row.endpoint,
+    p256dh: row.p256dh,
+    auth: row.auth,
+  }));
+}
+
 export async function markSubscriptionNotified(id: string): Promise<void> {
   if (!isUuid(id)) return;
   const supabase = createServiceSupabaseClient();
