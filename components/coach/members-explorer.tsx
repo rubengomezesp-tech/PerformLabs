@@ -119,6 +119,7 @@ export function MembersExplorer({
             )}
           </div>
           <div className="memberQuickLinks">
+            <Link className="btn ghost sm" href={`/coach/members/${member.id}`}><UserRound size={15} /> Ver ficha</Link>
             <Link className="btn ghost sm" href="/coach/messages"><MessageSquareText size={15} /> Mensajes</Link>
             <Link className="btn ghost sm" href="/coach/checkins"><ClipboardCheck size={15} /> Check-ins</Link>
           </div>
