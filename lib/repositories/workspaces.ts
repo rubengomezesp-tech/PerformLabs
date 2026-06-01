@@ -179,7 +179,7 @@ function isInternalWorkspace(workspace: { name: string; slug: string }) {
   return workspace.slug === "platform" || name.includes("operativa") || name.includes("mother platform");
 }
 
-function normalizeWorkspaceReference(value?: string | null) {
+export function normalizeWorkspaceReference(value?: string | null) {
   const reference = normalizeDomain(value);
   if (!reference || reference === "localhost" || reference === "127.0.0.1") {
     return "";
