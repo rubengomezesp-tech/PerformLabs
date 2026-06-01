@@ -912,6 +912,30 @@ export type Database = {
           },
         ]
       }
+      auth_rate_limits: {
+        Row: {
+          attempts: number
+          blocked_until: string | null
+          key: string
+          updated_at: string
+          window_started_at: string
+        }
+        Insert: {
+          attempts?: number
+          blocked_until?: string | null
+          key: string
+          updated_at?: string
+          window_started_at?: string
+        }
+        Update: {
+          attempts?: number
+          blocked_until?: string | null
+          key?: string
+          updated_at?: string
+          window_started_at?: string
+        }
+        Relationships: []
+      }
       cardio_session_logs: {
         Row: {
           avg_hr: number | null
