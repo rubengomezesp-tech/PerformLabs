@@ -13978,3 +13978,138 @@ button[aria-busy="true"] {
   color: var(--text-soft);
 }
 /* ===== END Coach members ===== */
+
+/* ===== Coach messages: two-panel inbox ===== */
+.inbox {
+  display: grid;
+  grid-template-columns: minmax(240px, 320px) 1fr;
+  padding: 0;
+  overflow: hidden;
+  min-height: 460px;
+}
+.inboxList {
+  overflow-y: auto;
+  max-height: 72vh;
+  border-right: 1px solid var(--border);
+}
+.inboxItem {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  padding: 12px 14px;
+  text-align: left;
+  cursor: pointer;
+  color: var(--text);
+  background: transparent;
+  border: 0;
+  border-bottom: 1px solid var(--border);
+}
+.inboxItem:hover,
+.inboxItem.active {
+  background: var(--surface-2);
+}
+.inboxAvatar {
+  display: grid;
+  place-items: center;
+  width: 34px;
+  height: 34px;
+  flex-shrink: 0;
+  border-radius: 50%;
+  font-size: 0.82rem;
+  font-weight: 600;
+  color: var(--accent-contrast);
+  background: var(--accent);
+}
+.inboxItemBody {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  flex: 1;
+  min-width: 0;
+}
+.inboxItemBody small {
+  color: var(--text-muted);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.inboxDot {
+  width: 8px;
+  height: 8px;
+  flex-shrink: 0;
+  border-radius: 50%;
+  background: var(--danger);
+}
+.inboxThread {
+  display: flex;
+  flex-direction: column;
+  min-height: 460px;
+  max-height: 72vh;
+}
+.inboxThreadHead {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 14px;
+  border-bottom: 1px solid var(--border);
+}
+.inboxThreadTitle {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  flex: 1;
+  min-width: 0;
+}
+.inboxThreadTitle small {
+  color: var(--text-muted);
+}
+.inboxMessages {
+  flex: 1;
+  overflow-y: auto;
+  padding: 16px 14px;
+}
+.inboxThread .chatComposer {
+  border-top: 1px solid var(--border);
+  padding: 12px 14px;
+}
+.inboxBack {
+  display: none;
+  align-items: center;
+  justify-content: center;
+  background: transparent;
+  border: 0;
+  color: var(--text);
+  cursor: pointer;
+  padding: 4px;
+}
+.inboxEmpty {
+  flex: 1;
+  display: grid;
+  place-items: center;
+  gap: 8px;
+  padding: 24px;
+  text-align: center;
+  color: var(--text-soft);
+}
+@media (max-width: 760px) {
+  .inbox {
+    grid-template-columns: 1fr;
+  }
+  .inboxList {
+    border-right: 0;
+  }
+  .inboxThread {
+    display: none;
+  }
+  .inbox[data-thread-open="true"] .inboxList {
+    display: none;
+  }
+  .inbox[data-thread-open="true"] .inboxThread {
+    display: flex;
+  }
+  .inboxBack {
+    display: inline-flex;
+  }
+}
+/* ===== END Coach messages ===== */
