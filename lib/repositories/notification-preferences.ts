@@ -1,5 +1,5 @@
 import { getMemberContext } from "@/lib/auth/member-access";
-import type { Database } from "@/lib/supabase/database.types";
+import type { TablesInsert } from "@/lib/supabase/types";
 import { getSupabaseServiceEnv } from "@/lib/supabase/env";
 import { createServiceSupabaseClient } from "@/lib/supabase/server";
 
@@ -76,7 +76,7 @@ export async function setMemberNotificationPreference(workspaceId: string, key: 
     member_profile_id: memberProfileId,
     [key]: value,
     updated_at: new Date().toISOString(),
-  } as Database["public"]["Tables"]["member_notification_preferences"]["Insert"];
+  } as TablesInsert<"member_notification_preferences">;
   const { error } = await supabase
     .from("member_notification_preferences")
     .upsert(payload, { onConflict: "member_profile_id" });

@@ -1,3 +1,4 @@
+import type { SupabaseClient } from "@supabase/supabase-js";
 import { getSupabaseServiceEnv } from "@/lib/supabase/env";
 import { createServiceSupabaseClient } from "@/lib/supabase/server";
 
@@ -20,7 +21,8 @@ function checkStatus(condition: boolean, warningCondition = false): LaunchReadin
   return "missing";
 }
 
-async function countRows(supabase: any, table: string, workspaceId: string, extra?: (query: any) => any) {
+// The table name is resolved at runtime, so the client stays schema-loose here.
+async function countRows(supabase: SupabaseClient, table: string, workspaceId: string, extra?: (query: any) => any) {
   let query = supabase
     .from(table)
     .select("id", { count: "exact", head: true })

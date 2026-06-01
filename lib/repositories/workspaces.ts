@@ -5,6 +5,7 @@ import { appSettingDefinitions, defaultMemberAppPages } from "@/lib/domain/platf
 import type { EntitlementModule, EntitlementStatus, WorkspaceEntitlement } from "@/lib/repositories/entitlements";
 import { getSupabaseServiceEnv } from "@/lib/supabase/env";
 import { createServiceSupabaseClient } from "@/lib/supabase/server";
+import type { Json, TablesInsert } from "@/lib/supabase/types";
 
 export type WorkspaceSummary = {
   id: string;
@@ -251,7 +252,7 @@ function mapSummaryEntitlement(row?: {
 }
 
 async function seedBaseWorkspaceApp(
-  supabase: any,
+  supabase: ReturnType<typeof createServiceSupabaseClient>,
   input: {
     workspaceId: string;
     workspaceName: string;
@@ -267,10 +268,10 @@ async function seedBaseWorkspaceApp(
     "support.website_url": publicUrl,
   };
 
-  const settingsPayload = appSettingDefinitions.map((setting) => ({
+  const settingsPayload: TablesInsert<"app_settings">[] = appSettingDefinitions.map((setting) => ({
     workspace_id: input.workspaceId,
     key: setting.key,
-    value: settingOverrides[setting.key] ?? setting.defaultValue,
+    value: (settingOverrides[setting.key] ?? setting.defaultValue) as Json,
     updated_at: new Date().toISOString(),
   }));
 
@@ -282,38 +283,40 @@ async function seedBaseWorkspaceApp(
     throw new Error(`No se pudo preparar la configuracion base: ${settingsResult.error.message}`);
   }
 
+  const contentPages: TablesInsert<"content_pages">[] = [
+    {
+      workspace_id: input.workspaceId,
+      title: "Bienvenida",
+      slug: "bienvenida",
+      status: "draft",
+      body: {
+        title: `Bienvenido a ${input.workspaceName}`,
+        notes: "Preparar bienvenida, normas de uso y primeros pasos del cliente.",
+      },
+    },
+    {
+      workspace_id: input.workspaceId,
+      title: "Soporte",
+      slug: "soporte",
+      status: "draft",
+      body: {
+        title: "Soporte",
+        notes: "Definir canales, tiempos de respuesta y mensajes iniciales.",
+      },
+    },
+  ];
+
   const contentResult = await supabase
     .from("content_pages")
-    .upsert([
-      {
-        workspace_id: input.workspaceId,
-        title: "Bienvenida",
-        slug: "bienvenida",
-        status: "draft",
-        body: {
-          title: `Bienvenido a ${input.workspaceName}`,
-          notes: "Preparar bienvenida, normas de uso y primeros pasos del cliente.",
-        },
-      },
-      {
-        workspace_id: input.workspaceId,
-        title: "Soporte",
-        slug: "soporte",
-        status: "draft",
-        body: {
-          title: "Soporte",
-          notes: "Definir canales, tiempos de respuesta y mensajes iniciales.",
-        },
-      },
-    ], { onConflict: "workspace_id,slug" })
+    .upsert(contentPages, { onConflict: "workspace_id,slug" })
     .select("id,slug");
 
   if (contentResult.error) {
     throw new Error(`No se pudo crear el contenido base: ${contentResult.error.message}`);
   }
 
-  const contentPageBySlug = new Map((contentResult.data ?? []).map((page: any) => [page.slug, page.id]));
-  const appPages = defaultMemberAppPages.map((page) => ({
+  const contentPageBySlug = new Map((contentResult.data ?? []).map((page) => [page.slug, page.id]));
+  const appPages: TablesInsert<"app_pages">[] = defaultMemberAppPages.map((page) => ({
     workspace_id: input.workspaceId,
     title: page.title,
     route: page.route,
@@ -501,7 +504,7 @@ export async function createWorkspace(input: WorkspaceInput) {
   return data.id as string;
 }
 
-async function applyBrandingSettings(supabase: any, brand: WorkspaceBrand): Promise<WorkspaceBrand> {
+async function applyBrandingSettings(supabase: ReturnType<typeof createServiceSupabaseClient>, brand: WorkspaceBrand): Promise<WorkspaceBrand> {
   if (!isUuid(brand.id)) return brand;
 
   const { data } = await supabase

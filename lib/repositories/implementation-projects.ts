@@ -1,4 +1,5 @@
 import { createServiceSupabaseClient } from "@/lib/supabase/server";
+import type { Json, TablesInsert } from "@/lib/supabase/types";
 import { appSettingDefinitions } from "@/lib/domain/platform-logic";
 
 export type ImplementationProjectSummary = {
@@ -222,7 +223,7 @@ function dateFromOffset(dayOffset: number) {
 }
 
 async function recordAuditEvent(
-  supabase: any,
+  supabase: ReturnType<typeof createServiceSupabaseClient>,
   input: {
     workspaceId?: string | null;
     action: string;
@@ -236,12 +237,12 @@ async function recordAuditEvent(
     action: input.action,
     entity_type: input.entityType,
     entity_id: input.entityId ?? null,
-    metadata: input.metadata ?? {},
+    metadata: (input.metadata ?? {}) as Json,
   });
 }
 
 async function ensureOperationalWorkspaceAssets(
-  supabase: any,
+  supabase: ReturnType<typeof createServiceSupabaseClient>,
   input: {
     workspaceId: string;
     workspaceName: string;
@@ -259,10 +260,10 @@ async function ensureOperationalWorkspaceAssets(
     "support.website_url": publicUrl,
   };
 
-  const settingsPayload = appSettingDefinitions.map((setting) => ({
+  const settingsPayload: TablesInsert<"app_settings">[] = appSettingDefinitions.map((setting) => ({
     workspace_id: input.workspaceId,
     key: setting.key,
-    value: settingOverrides[setting.key] ?? setting.defaultValue,
+    value: (settingOverrides[setting.key] ?? setting.defaultValue) as Json,
     updated_at: new Date().toISOString(),
   }));
 
@@ -274,7 +275,7 @@ async function ensureOperationalWorkspaceAssets(
     throw new Error(`No se pudo preparar la configuración inicial: ${settingsResult.error.message}`);
   }
 
-  const contentPages = [
+  const contentPages: TablesInsert<"content_pages">[] = [
     {
       workspace_id: input.workspaceId,
       title: "Bienvenida",
@@ -306,8 +307,8 @@ async function ensureOperationalWorkspaceAssets(
     throw new Error(`No se pudo crear el contenido inicial: ${contentResult.error.message}`);
   }
 
-  const contentPageBySlug = new Map((contentResult.data ?? []).map((page: any) => [page.slug, page.id]));
-  const appPages = [
+  const contentPageBySlug = new Map((contentResult.data ?? []).map((page) => [page.slug, page.id]));
+  const appPages: TablesInsert<"app_pages">[] = [
     { title: "Panel", route: "/app", page_type: "dashboard", menu_area: "main", sort_order: 10, is_system: true },
     { title: "Inicio", route: "/app/onboarding", page_type: "onboarding", menu_area: "main", sort_order: 15, is_system: true, content_page_id: contentPageBySlug.get("bienvenida") ?? null },
     { title: "Entreno", route: "/app/workouts", page_type: "workouts", menu_area: "main", sort_order: 20, is_system: true },
@@ -455,7 +456,7 @@ function mapTemplate(template: any, tasks: ImplementationTemplateTask[], default
   };
 }
 
-async function loadTemplateForConversion(supabase: any, templateId?: string) {
+async function loadTemplateForConversion(supabase: ReturnType<typeof createServiceSupabaseClient>, templateId?: string) {
   const templateQuery = supabase
     .from("implementation_templates")
     .select("id,name,slug,description,buyer_type,estimated_days,is_active,sort_order");

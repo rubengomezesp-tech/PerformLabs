@@ -1,3 +1,4 @@
+import type { SupabaseClient } from "@supabase/supabase-js";
 import { getSupabaseServiceEnv } from "@/lib/supabase/env";
 import { createServiceSupabaseClient } from "@/lib/supabase/server";
 
@@ -13,7 +14,8 @@ export type OperationsQueueItem = {
   status: string;
 };
 
-async function countRows(supabase: any, table: string, extra?: (query: any) => any) {
+// The table name is resolved at runtime, so the client stays schema-loose here.
+async function countRows(supabase: SupabaseClient, table: string, extra?: (query: any) => any) {
   let query = supabase.from(table).select("id", { count: "exact", head: true });
   if (extra) query = extra(query);
   const { count, error } = await query;
