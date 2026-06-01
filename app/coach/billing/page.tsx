@@ -1,9 +1,12 @@
 import { CheckCircle2, CreditCard, Link2, Plus, ShieldCheck, Trash2, Unplug } from "lucide-react";
+import { headers } from "next/headers";
 import Link from "next/link";
+import { CopyButton } from "@/components/copy-button";
 import { Topbar } from "@/components/topbar";
 import { getSelectedMemberAppBrand } from "@/lib/member-app";
 import { listCoachPlans } from "@/lib/repositories/coach-plans";
 import { getPlatformSubscription, getStripeAccount } from "@/lib/repositories/stripe-billing";
+import { getWorkspaceSlug } from "@/lib/repositories/workspaces";
 import { getStripeEnv, isPlatformBillingConfigured, isStripeConnectConfigured } from "@/lib/stripe/env";
 import { archiveCoachPlanAction, createCoachPlanAction, createMemberCheckoutLinkAction, disconnectStripeAction, subscribePlatformAction } from "./actions";
 
@@ -32,11 +35,16 @@ export default async function CoachBillingPage({ searchParams }: BillingPageProp
   const brand = await getSelectedMemberAppBrand();
   const connectReady = isStripeConnectConfigured();
   const billingReady = isPlatformBillingConfigured();
-  const [account, subscription, plans] = await Promise.all([
+  const headerStore = await headers();
+  const host = headerStore.get("x-forwarded-host") || headerStore.get("host") || "www.performlabs.app";
+  const proto = headerStore.get("x-forwarded-proto") || "https";
+  const [account, subscription, plans, slug] = await Promise.all([
     getStripeAccount(brand.id),
     getPlatformSubscription(brand.id),
     listCoachPlans(brand.id),
+    getWorkspaceSlug(brand.id),
   ]);
+  const salesUrl = slug ? `${proto}://${host}/c/${slug}` : null;
   const { applicationFeePercent } = getStripeEnv();
   const subscriptionActive = subscription?.status === "active" || subscription?.status === "trialing";
 
@@ -191,6 +199,43 @@ export default async function CoachBillingPage({ searchParams }: BillingPageProp
                 </form>
               ) : (
                 <p className="muted">Conecta tu Stripe y activa los cobros para crear planes.</p>
+              )}
+            </article>
+
+            <article className="card span12">
+              <div className="sectionHeader">
+                <div>
+                  <Link2 color="var(--accent)" aria-hidden="true" />
+                  <h2>Tu página de ventas.</h2>
+                  <p>Comparte este enlace para que tus clientes se suscriban a tus planes. El cobro va directo a tu Stripe y PerformLabs retiene el {applicationFeePercent}%.</p>
+                </div>
+                {account?.chargesEnabled && plans.length ? (
+                  <span className="tag">Lista para vender</span>
+                ) : (
+                  <span className="tag danger">{!account?.chargesEnabled ? "Activa cobros" : "Crea un plan"}</span>
+                )}
+              </div>
+              {salesUrl ? (
+                <>
+                  <ul className="list">
+                    <li className="row">
+                      <code style={{ wordBreak: "break-all" }}>{salesUrl}</code>
+                      <span style={{ display: "inline-flex", gap: 8 }}>
+                        <CopyButton text={salesUrl} className="btn ghost sm" label="Copiar" />
+                        <Link className="btn ghost sm" href={salesUrl} target="_blank" rel="noopener noreferrer">
+                          <Link2 size={14} /> Abrir
+                        </Link>
+                      </span>
+                    </li>
+                  </ul>
+                  {!plans.length ? (
+                    <p className="muted">Crea al menos un plan arriba para que tu página tenga algo que vender.</p>
+                  ) : !account?.chargesEnabled ? (
+                    <p className="muted">Activa los cobros en tu Stripe para que los clientes puedan pagar desde aquí.</p>
+                  ) : null}
+                </>
+              ) : (
+                <p className="muted">Conecta tu Stripe para obtener tu página de ventas.</p>
               )}
             </article>
           </>
