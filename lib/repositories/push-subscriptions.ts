@@ -1,5 +1,6 @@
 import { getSupabaseServiceEnv } from "@/lib/supabase/env";
 import { createServiceSupabaseClient } from "@/lib/supabase/server";
+import { daysAgoIso } from "@/lib/utils/dates";
 import { isUuid } from "@/lib/utils/uuid";
 
 export type PushSubscriptionRow = {
@@ -45,7 +46,7 @@ export async function listNudgeableSubscriptions(workspaceId: string, cooldownDa
   const env = getSupabaseServiceEnv();
   if (!env.ok || !isUuid(workspaceId)) return [];
   const supabase = createServiceSupabaseClient();
-  const cutoff = new Date(Date.now() - cooldownDays * 86_400_000).toISOString();
+  const cutoff = daysAgoIso(cooldownDays);
 
   const { data, error } = await supabase
     .from("push_subscriptions")

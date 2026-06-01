@@ -1,6 +1,7 @@
 import { getMemberContext } from "@/lib/auth/member-access";
 import { getSupabaseServiceEnv } from "@/lib/supabase/env";
 import { createServiceSupabaseClient } from "@/lib/supabase/server";
+import { daysFromNowIso } from "@/lib/utils/dates";
 import { isUuid } from "@/lib/utils/uuid";
 
 export type ChallengeMetric = "workouts" | "habits" | "checkins";
@@ -202,7 +203,7 @@ export async function createChallenge(input: {
     metric: ["workouts", "habits", "checkins"].includes(input.metric) ? input.metric : "workouts",
     goal: Math.max(1, Math.min(1000, input.goal || 12)),
     starts_on: input.startsOn || new Date().toISOString().slice(0, 10),
-    ends_on: input.endsOn || new Date(Date.now() + 28 * 86_400_000).toISOString().slice(0, 10),
+    ends_on: input.endsOn || daysFromNowIso(28).slice(0, 10),
     status: "active",
   });
   if (error) throw new Error(`No se pudo crear el reto: ${error.message}`);

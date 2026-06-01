@@ -1,5 +1,6 @@
 import { getSupabaseServiceEnv } from "@/lib/supabase/env";
 import { createServiceSupabaseClient } from "@/lib/supabase/server";
+import { DAY_MS, daysAgoIso } from "@/lib/utils/dates";
 import { isUuid } from "@/lib/utils/uuid";
 
 export type RetentionTier = "high" | "medium" | "low";
@@ -37,7 +38,7 @@ function daysBetween(fromIso: string | null, now: number): number | null {
   if (!fromIso) return null;
   const then = new Date(fromIso).getTime();
   if (!Number.isFinite(then)) return null;
-  return Math.max(0, Math.floor((now - then) / 86_400_000));
+  return Math.max(0, Math.floor((now - then) / DAY_MS));
 }
 
 function tierFor(score: number): RetentionTier {
@@ -52,9 +53,9 @@ export async function getRetentionRadar(workspaceId?: string): Promise<Retention
 
   const supabase = createServiceSupabaseClient();
   const now = Date.now();
-  const sinceActivity = new Date(now - 45 * 86_400_000).toISOString();
+  const sinceActivity = daysAgoIso(45, now);
   const sinceActivityDate = sinceActivity.slice(0, 10);
-  const sinceCheckin = new Date(now - 120 * 86_400_000).toISOString();
+  const sinceCheckin = daysAgoIso(120, now);
 
   const [membersResult, sessionsResult, mealsResult, checkinsResult, activityResult] = await Promise.all([
     supabase
@@ -97,7 +98,7 @@ export async function getRetentionRadar(workspaceId?: string): Promise<Retention
   const lastActivityMs = new Map<string, number>();
   const workouts14 = new Map<string, number>();
   const lastCheckinMs = new Map<string, number>();
-  const fortnightAgo = now - 14 * 86_400_000;
+  const fortnightAgo = now - 14 * DAY_MS;
 
   const noteActivity = (memberId: string | null, iso: string | null) => {
     if (!memberId || !iso) return;
