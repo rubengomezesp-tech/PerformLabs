@@ -2,7 +2,11 @@
 
 import { revalidatePath } from "next/cache";
 import { requireWorkspaceMutationAccess } from "@/lib/auth/access-control";
-import { createManagedScheduledNotification, saveManagedNotificationTemplate } from "@/lib/repositories/notification-management";
+import {
+  createManagedScheduledNotification,
+  saveManagedNotificationTemplate,
+  setScheduledNotificationStatus,
+} from "@/lib/repositories/notification-management";
 import { recordSecurityAuditEvent } from "@/lib/repositories/security-management";
 
 function readText(formData: FormData, key: string) {
@@ -38,6 +42,36 @@ export async function saveCoachNotificationTemplateAction(formData: FormData) {
     },
   });
 
+  revalidatePath("/coach/notifications");
+}
+
+/** Move a draft campaign to 'scheduled' so the cron dispatcher delivers it. */
+export async function activateCoachScheduledNotificationAction(formData: FormData) {
+  const workspaceId = readText(formData, "workspaceId");
+  const session = await requireWorkspaceMutationAccess(workspaceId);
+  await setScheduledNotificationStatus(workspaceId, readText(formData, "scheduledId"), "scheduled");
+  await recordSecurityAuditEvent({
+    workspaceId,
+    actorUserId: session.mode === "authenticated" ? session.user.id : null,
+    action: "coach.notification_scheduled.activated",
+    entityType: "scheduled_notification",
+    entityId: readText(formData, "scheduledId") || null,
+  });
+  revalidatePath("/coach/notifications");
+}
+
+/** Pull a scheduled campaign back to draft so it won't be delivered. */
+export async function cancelCoachScheduledNotificationAction(formData: FormData) {
+  const workspaceId = readText(formData, "workspaceId");
+  const session = await requireWorkspaceMutationAccess(workspaceId);
+  await setScheduledNotificationStatus(workspaceId, readText(formData, "scheduledId"), "draft");
+  await recordSecurityAuditEvent({
+    workspaceId,
+    actorUserId: session.mode === "authenticated" ? session.user.id : null,
+    action: "coach.notification_scheduled.cancelled",
+    entityType: "scheduled_notification",
+    entityId: readText(formData, "scheduledId") || null,
+  });
   revalidatePath("/coach/notifications");
 }
 

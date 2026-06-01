@@ -359,6 +359,10 @@ async function seedBaseWorkspaceApp(
   }
 }
 
+function formatEuros(cents: number): string {
+  return `${Math.round(cents / 100).toLocaleString("es-ES")} €`;
+}
+
 export async function listWorkspaceSummaries(): Promise<{
   source: "supabase" | "mock";
   workspaces: WorkspaceSummary[];
@@ -398,6 +402,24 @@ export async function listWorkspaceSummaries(): Promise<{
     (entitlementResult.data ?? []).map((entitlement) => [entitlement.workspace_id, entitlement]),
   );
 
+  // Real per-workspace member count + MRR (were hardcoded 0 / "0€"). member_subscriptions
+  // is service-role only and post-dates the generated types, hence the cast.
+  const membersByWorkspace = new Map<string, number>();
+  const mrrCentsByWorkspace = new Map<string, number>();
+  if (workspaceIds.length) {
+    const [memberRows, subRows] = await Promise.all([
+      supabase.from("member_profiles").select("workspace_id").in("workspace_id", workspaceIds),
+      (supabase as any).from("member_subscriptions").select("workspace_id,amount,status").in("workspace_id", workspaceIds),
+    ]);
+    for (const row of (memberRows.data ?? []) as Array<{ workspace_id: string }>) {
+      membersByWorkspace.set(row.workspace_id, (membersByWorkspace.get(row.workspace_id) ?? 0) + 1);
+    }
+    for (const row of (subRows.data ?? []) as Array<{ workspace_id: string; amount: number | null; status: string | null }>) {
+      if ((row.status ?? "").toLowerCase() !== "active") continue;
+      mrrCentsByWorkspace.set(row.workspace_id, (mrrCentsByWorkspace.get(row.workspace_id) ?? 0) + (row.amount ?? 0));
+    }
+  }
+
   return {
     source: "supabase",
     workspaces: visibleWorkspaces.map((workspace) => {
@@ -416,8 +438,8 @@ export async function listWorkspaceSummaries(): Promise<{
         status: workspace.is_active ? "Activa" : "Pausada",
         isActive: workspace.is_active,
         accentColor: workspace.accent_color,
-        members: 0,
-        mrr: "0€",
+        members: membersByWorkspace.get(workspace.id) ?? 0,
+        mrr: formatEuros(mrrCentsByWorkspace.get(workspace.id) ?? 0),
         entitlement: mapSummaryEntitlement(entitlementsByWorkspace.get(workspace.id)),
       };
     }),

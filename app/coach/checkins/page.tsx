@@ -4,7 +4,7 @@ import { EmptyState } from "@/components/empty-state";
 import { Topbar } from "@/components/topbar";
 import { SubmitButton } from "@/components/ui";
 import { getSelectedMemberAppBrand } from "@/lib/member-app";
-import { getCoachIntelligenceAlerts, listManagedCheckins } from "@/lib/repositories/checkin-management";
+import { getCheckinPhotoUrls, getCoachIntelligenceAlerts, listManagedCheckins } from "@/lib/repositories/checkin-management";
 import { reviewCoachCheckinAction } from "./actions";
 
 export const dynamic = "force-dynamic";
@@ -25,6 +25,16 @@ export default async function CoachCheckinsPage() {
   const pending = checkins.filter((checkin) => checkin.status !== "reviewed").length;
   const reviewed = checkins.filter((checkin) => checkin.status === "reviewed").length;
   const withPhotos = checkins.filter((checkin) => checkin.photosAvailable).length;
+
+  // Resolve short-lived signed URLs only for the check-ins that actually carry photos.
+  const photoUrlsByCheckin = new Map<string, string[]>();
+  await Promise.all(
+    checkins
+      .filter((checkin) => checkin.photoPaths.length > 0)
+      .map(async (checkin) => {
+        photoUrlsByCheckin.set(checkin.id, await getCheckinPhotoUrls(checkin.photoPaths));
+      }),
+  );
 
   return (
     <>
@@ -85,13 +95,23 @@ export default async function CoachCheckinsPage() {
               <span className={checkin.status === "reviewed" ? "tag" : "tag danger"}>{checkin.status}</span>
             </div>
             <ul className="list">
-              <li className="row"><Camera size={16} /> Fotos <span className="tag">{checkin.photosAvailable ? "Sí" : "No"}</span></li>
+              <li className="row"><Camera size={16} /> Fotos <span className="tag">{checkin.photoPaths.length ? `${checkin.photoPaths.length} foto(s)` : checkin.photosAvailable ? "Sí" : "No"}</span></li>
               <li className="row">Peso <strong>{checkin.values.weightKg ? `${checkin.values.weightKg} kg` : "Sin dato"}{weightDelta !== null ? ` (${weightDelta > 0 ? "+" : ""}${weightDelta.toFixed(1)} kg)` : ""}</strong></li>
               <li className="row">Grasa <strong>{checkin.values.bodyFatPercent ? `${checkin.values.bodyFatPercent}%` : "Sin dato"}</strong></li>
               <li className="row">Adherencia entreno <strong>{checkin.values.trainingAdherence || "Pendiente"}</strong></li>
               <li className="row">Adherencia nutrición <strong>{checkin.values.nutritionAdherence || "Pendiente"}</strong></li>
               <li className="row">Resultado <span>{checkin.resultsStatus}</span></li>
             </ul>
+            {(photoUrlsByCheckin.get(checkin.id) ?? []).length ? (
+              <div style={{ display: "flex", gap: 8, flexWrap: "wrap", margin: "4px 0 8px" }}>
+                {(photoUrlsByCheckin.get(checkin.id) ?? []).map((url, index) => (
+                  <a key={index} href={url} target="_blank" rel="noreferrer">
+                    {/* eslint-disable-next-line @next/next/no-img-element */}
+                    <img src={url} alt={`Foto de progreso ${index + 1}`} style={{ width: 72, height: 72, objectFit: "cover", borderRadius: 8, border: "1px solid var(--border)" }} />
+                  </a>
+                ))}
+              </div>
+            ) : null}
             {checkin.values.notes ? <p className="sessionCoachNotes">{checkin.values.notes}</p> : null}
             <Dialog
               triggerClassName={checkin.status === "reviewed" ? "btn" : "btn primary"}

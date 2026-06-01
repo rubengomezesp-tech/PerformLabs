@@ -288,3 +288,70 @@ export async function getWorkspaceBillingSummary(workspaceId?: string): Promise<
   summary.currency = dominant || "EUR";
   return summary;
 }
+
+export type PlatformRevenueSummary = {
+  activeSubscriptions: number;
+  /** Gross recurring revenue members pay across all coaches (cents). */
+  grossMrrCents: number;
+  /** PerformLabs' recurring share via application_fee_percent (cents). */
+  platformMrrCents: number;
+  /** All-time platform fees actually collected, from the invoice ledger (cents). */
+  feesCollectedCents: number;
+  feesThisMonthCents: number;
+  /** All-time gross member-payment volume processed (cents). */
+  grossVolumeCents: number;
+  currency: string;
+};
+
+/**
+ * Platform-wide revenue read for the operator console: gross member MRR, the
+ * PerformLabs 25% share, and fees actually collected from the platform_fee_events
+ * ledger. Service-role only, like the rest of this module.
+ */
+export async function getPlatformRevenueSummary(): Promise<PlatformRevenueSummary> {
+  const empty: PlatformRevenueSummary = {
+    activeSubscriptions: 0,
+    grossMrrCents: 0,
+    platformMrrCents: 0,
+    feesCollectedCents: 0,
+    feesThisMonthCents: 0,
+    grossVolumeCents: 0,
+    currency: "EUR",
+  };
+  if (!getSupabaseServiceEnv().ok) return empty;
+
+  const supabase = createServiceSupabaseClient() as any;
+  const [subsRes, feesRes] = await Promise.all([
+    supabase.from("member_subscriptions").select("amount,status,application_fee_percent,currency"),
+    supabase.from("platform_fee_events").select("amount_total,application_fee_amount,currency,created_at"),
+  ]);
+
+  const summary: PlatformRevenueSummary = { ...empty };
+  const currencyCounts = new Map<string, number>();
+  const startOfMonth = new Date();
+  startOfMonth.setUTCDate(1);
+  startOfMonth.setUTCHours(0, 0, 0, 0);
+
+  for (const row of (subsRes.data ?? []) as Array<{ amount: number | null; status: string | null; application_fee_percent: number | null; currency: string | null }>) {
+    if (clampMemberStatus(row.status) !== "active") continue;
+    summary.activeSubscriptions += 1;
+    const amount = row.amount ?? 0;
+    summary.grossMrrCents += amount;
+    summary.platformMrrCents += Math.round(amount * ((row.application_fee_percent ?? 25) / 100));
+    const currency = (row.currency || "").toUpperCase();
+    if (currency) currencyCounts.set(currency, (currencyCounts.get(currency) ?? 0) + 1);
+  }
+
+  for (const row of (feesRes.data ?? []) as Array<{ amount_total: number | null; application_fee_amount: number | null; currency: string | null; created_at: string }>) {
+    summary.grossVolumeCents += row.amount_total ?? 0;
+    const fee = row.application_fee_amount ?? 0;
+    summary.feesCollectedCents += fee;
+    if (row.created_at && new Date(row.created_at) >= startOfMonth) summary.feesThisMonthCents += fee;
+    const currency = (row.currency || "").toUpperCase();
+    if (currency) currencyCounts.set(currency, (currencyCounts.get(currency) ?? 0) + 1);
+  }
+
+  const dominant = [...currencyCounts.entries()].sort((a, b) => b[1] - a[1])[0]?.[0];
+  summary.currency = dominant || "EUR";
+  return summary;
+}

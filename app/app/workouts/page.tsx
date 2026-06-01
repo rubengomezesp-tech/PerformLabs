@@ -366,8 +366,8 @@ export default async function WorkoutsPage() {
                               <strong>Serie {setIndex + 1}</strong>
                               <label>Reps hechas<input name="actualReps" placeholder={detail.progression?.lastReps ? String(detail.progression.lastReps) : exercise.reps || "10"} type="number" inputMode="numeric" min="0" /></label>
                               <label>Peso kg<input name="weightKg" placeholder={detail.progression?.lastWeightKg ? String(detail.progression.lastWeightKg) : "0"} type="number" inputMode="decimal" min="0" step="0.5" /></label>
-                              <input name="rir" type="hidden" value="" />
-                              <input name="rpe" type="hidden" value="" />
+                              <label>RIR<input name="rir" placeholder={exercise.targetRir ? String(exercise.targetRir) : "—"} type="number" inputMode="numeric" min="0" max="10" /></label>
+                              <label>RPE<input name="rpe" placeholder="—" type="number" inputMode="decimal" min="1" max="10" step="0.5" /></label>
                               <label>Cómo fue<select name="setNotes" defaultValue="">
                                 <option value="">Normal</option>
                                 <option value="Fácil">Fácil</option>

@@ -137,3 +137,84 @@ export async function createManagedScheduledNotification(input: ScheduledNotific
 
   if (error) throw new Error(`No se pudo crear la notificacion: ${error.message}`);
 }
+
+export type DueScheduledNotification = {
+  id: string;
+  workspaceId: string;
+  name: string;
+  message: string;
+};
+
+/**
+ * Platform-wide: scheduled push campaigns that are due to send (status
+ * 'scheduled', delivery time reached or immediate). The cron dispatcher consumes
+ * these — only `push` is processed since that's the only live transport.
+ */
+export async function listDueScheduledNotifications(limit = 200): Promise<DueScheduledNotification[]> {
+  const env = getSupabaseServiceEnv();
+  if (!env.ok) return [];
+
+  const supabase = createServiceSupabaseClient();
+  const { data, error } = await supabase
+    .from("scheduled_notifications")
+    .select("id,workspace_id,name,payload,delivery_at,status,channel")
+    .eq("status", "scheduled")
+    .eq("channel", "push")
+    .or(`delivery_at.is.null,delivery_at.lte.${new Date().toISOString()}`)
+    .order("delivery_at", { ascending: true })
+    .limit(limit);
+
+  if (error || !data) {
+    if (error) console.error("Unable to load due scheduled notifications", error.message);
+    return [];
+  }
+
+  return data.map((row) => ({
+    id: row.id,
+    workspaceId: row.workspace_id,
+    name: row.name,
+    message: jsonText(row.payload, "message"),
+  }));
+}
+
+/**
+ * Atomically claim a campaign for sending: flips 'scheduled' -> 'sending' only if
+ * it's still 'scheduled', so two overlapping cron runs can never both send it.
+ * Returns true to the run that won the claim.
+ */
+export async function claimScheduledNotificationForSend(id: string): Promise<boolean> {
+  const env = getSupabaseServiceEnv();
+  if (!env.ok || !id) return false;
+  const supabase = createServiceSupabaseClient();
+  const { data, error } = await supabase
+    .from("scheduled_notifications")
+    .update({ status: "sending" })
+    .eq("id", id)
+    .eq("status", "scheduled")
+    .select("id");
+  if (error) {
+    console.error("Unable to claim scheduled notification", error.message);
+    return false;
+  }
+  return (data?.length ?? 0) > 0;
+}
+
+/** Engine-side terminal status update (trusted; no workspace scoping). */
+export async function markScheduledNotificationStatus(id: string, status: "sent" | "failed" | "scheduled"): Promise<void> {
+  const env = getSupabaseServiceEnv();
+  if (!env.ok || !id) return;
+  const supabase = createServiceSupabaseClient();
+  await supabase.from("scheduled_notifications").update({ status }).eq("id", id);
+}
+
+/** Coach-side status change (workspace-scoped), for activate/cancel actions. */
+export async function setScheduledNotificationStatus(workspaceId: string, id: string, status: string): Promise<void> {
+  if (!workspaceId || !id) throw new Error("Falta el aviso.");
+  const supabase = createServiceSupabaseClient();
+  const { error } = await supabase
+    .from("scheduled_notifications")
+    .update({ status })
+    .eq("workspace_id", workspaceId)
+    .eq("id", id);
+  if (error) throw new Error(`No se pudo actualizar el aviso: ${error.message}`);
+}

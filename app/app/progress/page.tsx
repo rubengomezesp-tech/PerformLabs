@@ -297,7 +297,7 @@ export default async function ProgressPage({ searchParams }: ProgressPageProps) 
               </label>
               <label>Entreno %<input name="trainingAdherence" inputMode="decimal" placeholder="85" /></label>
               <label>Nutrición %<input name="nutritionAdherence" inputMode="decimal" placeholder="90" /></label>
-              <label className="toggleRow">Fotos subidas<input name="photosAvailable" type="checkbox" /></label>
+              <label className="spanFull">Fotos de progreso (frontal, lateral, espalda)<input name="photos" type="file" accept="image/*" multiple /></label>
               <label className="spanFull">Sensaciones y notas
                 <textarea name="notes" rows={4} placeholder="Hambre, estrés, molestias, entrenamiento, comidas, ciclo, energía..." />
               </label>

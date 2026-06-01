@@ -3,6 +3,10 @@
     {
       "path": "/api/cron/nudges",
       "schedule": "0 17 * * *"
+    },
+    {
+      "path": "/api/cron/notifications",
+      "schedule": "*/15 * * * *"
     }
   ]
 }
