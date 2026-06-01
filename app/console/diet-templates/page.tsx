@@ -244,7 +244,7 @@ export default async function DietTemplatesPage({ searchParams }: DietTemplatesP
               ))}
             </div>
           ) : (
-            <p className="muted">Aún no hay plantillas guardadas para esta marca. Crea una desde "Nueva plantilla" y aparecerá aquí como fórmula versionada.</p>
+            <p className="muted">Aún no hay plantillas guardadas para esta marca. Crea una desde «Nueva plantilla» y aparecerá aquí como fórmula versionada.</p>
           )}
         </article>
 

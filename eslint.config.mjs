@@ -16,13 +16,12 @@ const eslintConfig = [
   ...nextCoreWebVitals,
   {
     // eslint-config-next 16 ships newer/stricter React-Compiler rules the existing
-    // code predates. Demote them to warnings so lint runs green in CI now (they
-    // stay visible for incremental cleanup) without a risky effect refactor.
+    // code predates. The two react-hooks rules below stay warnings for now: fixing
+    // them needs a careful effect refactor. The content rules (unescaped entities,
+    // html-link-for-pages) have been fixed, so they're back at error.
     rules: {
       "react-hooks/set-state-in-effect": "warn",
       "react-hooks/purity": "warn",
-      "react/no-unescaped-entities": "warn",
-      "@next/next/no-html-link-for-pages": "warn",
     },
   },
 ];

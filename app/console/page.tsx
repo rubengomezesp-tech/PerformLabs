@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { ArrowRight, BriefcaseBusiness, CalendarCheck, CheckCircle2, ClipboardCheck, Plus, Rocket, Sparkles } from "lucide-react";
 import { Topbar } from "@/components/topbar";
 import { modules } from "@/lib/data";
@@ -50,8 +51,8 @@ export default async function ConsoleHome() {
         text="Nuestro equipo acompaña al cliente, recoge requisitos y prepara dominio, logo, branding, clientes, entrenamientos, nutrición, pagos y contenido."
         actions={
           <>
-            <a className="btn" href="/console/projects">Ver proyectos <ClipboardCheck size={18} /></a>
-            <a className="btn primary" href="/console/leads">Nueva implantación <Plus size={18} /></a>
+            <Link className="btn" href="/console/projects">Ver proyectos <ClipboardCheck size={18} /></Link>
+            <Link className="btn primary" href="/console/leads">Nueva implantación <Plus size={18} /></Link>
           </>
         }
       />
