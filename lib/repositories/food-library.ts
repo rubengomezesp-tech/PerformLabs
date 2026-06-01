@@ -2,6 +2,7 @@ import { getMemberContext } from "@/lib/auth/member-access";
 import { getSupabaseServiceEnv } from "@/lib/supabase/env";
 import { createServiceSupabaseClient } from "@/lib/supabase/server";
 import { addFoodDiaryEntry } from "@/lib/repositories/nutrition-tracking";
+import { isUuid } from "@/lib/utils/uuid";
 
 export type FoodCategory =
   | "protein"
@@ -114,10 +115,6 @@ function starterFoodImage(name: string): string {
 
 function starterItems(): FoodItem[] {
   return STARTER_FOODS.map((food, index) => ({ ...food, id: starterId(index), imageUrl: starterFoodImage(food.name), isStarter: true, isBase: false }));
-}
-
-function isUuid(value?: string | null): value is string {
-  return !!value && /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(value);
 }
 
 function normalizeCategory(value: unknown): FoodCategory {

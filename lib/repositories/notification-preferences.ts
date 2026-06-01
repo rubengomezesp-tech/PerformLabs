@@ -2,6 +2,7 @@ import { getMemberContext } from "@/lib/auth/member-access";
 import type { TablesInsert } from "@/lib/supabase/types";
 import { getSupabaseServiceEnv } from "@/lib/supabase/env";
 import { createServiceSupabaseClient } from "@/lib/supabase/server";
+import { isUuid } from "@/lib/utils/uuid";
 
 export type NotificationKey =
   | "coach_changes"
@@ -25,10 +26,6 @@ const DEFAULTS: NotificationPreferences = {
 };
 
 export const NOTIFICATION_KEYS = Object.keys(DEFAULTS) as NotificationKey[];
-
-function isUuid(value?: string | null): value is string {
-  return !!value && /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(value);
-}
 
 async function resolveMemberId(workspaceId?: string): Promise<string | null> {
   if (!isUuid(workspaceId)) return null;

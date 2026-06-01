@@ -1,6 +1,7 @@
 import { getMemberContext } from "@/lib/auth/member-access";
 import { getSupabaseServiceEnv } from "@/lib/supabase/env";
 import { createServiceSupabaseClient } from "@/lib/supabase/server";
+import { isUuid } from "@/lib/utils/uuid";
 
 export type MealLogStatus = "done" | "skipped" | "swap_requested";
 
@@ -86,10 +87,6 @@ export type MemberMealPlanForToday = {
 
 function todayIso() {
   return new Date().toISOString().slice(0, 10);
-}
-
-function isUuid(value?: string | null): value is string {
-  return !!value && /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{12}$/i.test(value);
 }
 
 function clampInteger(value: number | null, min: number, max: number) {

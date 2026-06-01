@@ -1,6 +1,7 @@
 import { getMemberContext } from "@/lib/auth/member-access";
 import { getSupabaseServiceEnv } from "@/lib/supabase/env";
 import { createServiceSupabaseClient } from "@/lib/supabase/server";
+import { isUuid } from "@/lib/utils/uuid";
 
 export type CardioModality = "caminar" | "correr" | "bici" | "eliptica" | "hiit" | "remo";
 
@@ -40,10 +41,6 @@ export type LogCardioInput = {
 
 const VALID_MODALITIES = new Set<string>(["caminar", "correr", "bici", "eliptica", "hiit", "remo"]);
 const VALID_INTENSITIES = new Set<string>(["baja", "media", "alta"]);
-
-function isUuid(value?: string | null): value is string {
-  return !!value && /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(value);
-}
 
 function todayIso() {
   return new Date().toISOString().slice(0, 10);

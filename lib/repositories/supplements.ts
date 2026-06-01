@@ -1,6 +1,7 @@
 import { getMemberContext } from "@/lib/auth/member-access";
 import { getSupabaseServiceEnv } from "@/lib/supabase/env";
 import { createServiceSupabaseClient } from "@/lib/supabase/server";
+import { isUuid } from "@/lib/utils/uuid";
 
 export type SupplementTiming = "morning" | "pre" | "post" | "meal" | "night" | "anytime";
 
@@ -24,10 +25,6 @@ export const TIMING_LABEL: Record<SupplementTiming, string> = {
 };
 
 export const TIMING_ORDER: SupplementTiming[] = ["morning", "pre", "post", "meal", "night", "anytime"];
-
-function isUuid(value?: string | null): value is string {
-  return !!value && /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(value);
-}
 
 function normalizeTiming(value: unknown): SupplementTiming {
   return TIMING_ORDER.includes(value as SupplementTiming) ? (value as SupplementTiming) : "anytime";

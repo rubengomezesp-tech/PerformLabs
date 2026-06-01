@@ -6,6 +6,7 @@ import type { EntitlementModule, EntitlementStatus, WorkspaceEntitlement } from 
 import { getSupabaseServiceEnv } from "@/lib/supabase/env";
 import { createServiceSupabaseClient } from "@/lib/supabase/server";
 import type { Json, TablesInsert } from "@/lib/supabase/types";
+import { isUuid } from "@/lib/utils/uuid";
 
 export type WorkspaceSummary = {
   id: string;
@@ -176,10 +177,6 @@ function fallbackBrand(): WorkspaceBrand {
 function isInternalWorkspace(workspace: { name: string; slug: string }) {
   const name = workspace.name.toLowerCase();
   return workspace.slug === "platform" || name.includes("operativa") || name.includes("mother platform");
-}
-
-function isUuid(value: string) {
-  return /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(value);
 }
 
 function normalizeWorkspaceReference(value?: string | null) {

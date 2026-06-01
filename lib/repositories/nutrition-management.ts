@@ -3,6 +3,7 @@ import { getMemberContext } from "@/lib/auth/member-access";
 import { dietTemplateCategories, meals } from "@/lib/data";
 import { getSupabaseServiceEnv } from "@/lib/supabase/env";
 import { createServiceSupabaseClient } from "@/lib/supabase/server";
+import { isUuid } from "@/lib/utils/uuid";
 
 export type ManagedDietCategory = {
   id: string;
@@ -154,10 +155,6 @@ function parseRatio(value: string) {
   const parsed = Number.parseFloat(value);
   if (!Number.isFinite(parsed)) return null;
   return parsed > 1 ? parsed / 100 : parsed;
-}
-
-function isUuid(value?: string): value is string {
-  return !!value && /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(value);
 }
 
 function fallbackCategories(): ManagedDietCategory[] {

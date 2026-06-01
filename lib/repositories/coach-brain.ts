@@ -1,6 +1,7 @@
 import { getMemberContext } from "@/lib/auth/member-access";
 import { getSupabaseServiceEnv } from "@/lib/supabase/env";
 import { createServiceSupabaseClient } from "@/lib/supabase/server";
+import { isUuid } from "@/lib/utils/uuid";
 
 export type CoachBrain = {
   workspaceId: string;
@@ -31,10 +32,6 @@ export type CoachAiQuestionInsight = {
 
 const DEFAULT_GREETING =
   "¡Hola! Soy el asistente de tu coach. Pregúntame lo que necesites sobre tu entreno, tu dieta o tus dudas del día a día.";
-
-function isUuid(value?: string | null): value is string {
-  return !!value && /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(value);
-}
 
 function defaultBrain(workspaceId: string, configured: boolean): CoachBrain {
   return {

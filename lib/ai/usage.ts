@@ -1,5 +1,6 @@
 import { getSupabaseServiceEnv } from "@/lib/supabase/env";
 import { createServiceSupabaseClient } from "@/lib/supabase/server";
+import { isUuid } from "@/lib/utils/uuid";
 
 export type AiFeature = "coach_brain" | "plan_gen" | "photo";
 
@@ -41,10 +42,6 @@ export function estimateCostUsd(model: string, usage: AiTokenUsage): number {
     (input * p.input + output * p.output + cacheRead * p.cacheRead + cacheWrite * p.cacheWrite) /
     1_000_000
   );
-}
-
-function isUuid(value?: string | null): value is string {
-  return !!value && /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(value);
 }
 
 function startOfMonthIso(): string {

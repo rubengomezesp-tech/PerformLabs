@@ -1,5 +1,6 @@
 import { getSupabaseServiceEnv } from "@/lib/supabase/env";
 import { createServiceSupabaseClient } from "@/lib/supabase/server";
+import { isUuid } from "@/lib/utils/uuid";
 
 export type RetentionTier = "high" | "medium" | "low";
 
@@ -30,10 +31,6 @@ export type RetentionRadar = {
 
 function emptyRadar(): RetentionRadar {
   return { members: [], summary: { activeMembers: 0, atRisk: 0, watch: 0, healthy: 0, avgAdherence: 0 } };
-}
-
-function isUuid(value?: string | null): value is string {
-  return !!value && /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(value);
 }
 
 function daysBetween(fromIso: string | null, now: number): number | null {

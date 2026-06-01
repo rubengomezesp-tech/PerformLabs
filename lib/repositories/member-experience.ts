@@ -1,6 +1,7 @@
 import { contentPages } from "@/lib/data";
 import { getSupabaseServiceEnv } from "@/lib/supabase/env";
 import { createServiceSupabaseClient } from "@/lib/supabase/server";
+import { isUuid } from "@/lib/utils/uuid";
 
 export type MemberAppPage = {
   title: string;
@@ -46,10 +47,6 @@ const defaultAppPages: MemberAppPage[] = [
   { title: "Soporte", route: "/app/support", pageType: "support", menuArea: "main", sortOrder: 60, status: "active", isSystem: true },
   { title: "Perfil", route: "/app/profile", pageType: "profile", menuArea: "main", sortOrder: 70, status: "active", isSystem: true },
 ];
-
-function isUuid(value?: string): value is string {
-  return !!value && /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(value);
-}
 
 function bodyValue(body: unknown, key: string) {
   if (!body || typeof body !== "object" || Array.isArray(body)) {

@@ -1,6 +1,7 @@
 import type { Database } from "@/lib/supabase/database.types";
 import { getSupabaseServiceEnv } from "@/lib/supabase/env";
 import { createServiceSupabaseClient } from "@/lib/supabase/server";
+import { isUuid } from "@/lib/utils/uuid";
 
 export type EntitlementStatus = Database["public"]["Enums"]["entitlement_status"];
 
@@ -114,10 +115,6 @@ function fallbackEntitlement(workspaceId: string): WorkspaceEntitlement {
     enforcedAt: "",
     updatedAt: "",
   };
-}
-
-function isUuid(value?: string): value is string {
-  return !!value && /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(value);
 }
 
 function mapEntitlement(row: {
