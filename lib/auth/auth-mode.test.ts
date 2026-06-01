@@ -19,4 +19,10 @@ describe("auth-mode", () => {
   it("allows local auth enforcement when requested", () => {
     expect(isConsoleAuthRequired({ NODE_ENV: "development", COACHOS_AUTH_REQUIRED: "true" })).toBe(true);
   });
+
+  it("requires auth when NODE_ENV is unset or non-dev (no accidental open deploy)", () => {
+    expect(isConsoleAuthRequired({})).toBe(true);
+    expect(isConsoleAuthRequired({ NODE_ENV: "staging" })).toBe(true);
+    expect(isConsoleAuthRequired({ NODE_ENV: "" })).toBe(true);
+  });
 });
