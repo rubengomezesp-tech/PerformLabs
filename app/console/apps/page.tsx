@@ -4,12 +4,14 @@ import { Topbar } from "@/components/topbar";
 import { baseAppBlueprint, baseAppMetrics } from "@/lib/domain/app-blueprint";
 import { entitlementModuleDescriptions, entitlementModuleLabels, entitlementModules, entitlementStatusLabels } from "@/lib/repositories/entitlements";
 import { listWorkspaceSummaries } from "@/lib/repositories/workspaces";
-import { createWorkspaceAction, toggleWorkspaceAction, updateWorkspaceAction, updateWorkspaceEntitlementAction } from "./actions";
+import { isVercelDomainsConfigured } from "@/lib/vercel/domains";
+import { connectWorkspaceDomainAction, createWorkspaceAction, toggleWorkspaceAction, updateWorkspaceAction, updateWorkspaceEntitlementAction } from "./actions";
 
 export const dynamic = "force-dynamic";
 
 export default async function ChildAppsPage() {
   const { workspaces } = await listWorkspaceSummaries();
+  const vercelReady = isVercelDomainsConfigured();
 
   return (
     <>
@@ -175,8 +177,15 @@ export default async function ChildAppsPage() {
                   <span className="muted">Dominio propio</span>
                   <span>{app.domain ? app.domain : <span className="tag">Sin conectar</span>}</span>
                 </div>
+                <form action={connectWorkspaceDomainAction} style={{ display: "flex", gap: 8, margin: "6px 0", flexWrap: "wrap" }}>
+                  <input name="id" type="hidden" value={app.id} />
+                  <input name="customDomain" defaultValue={app.domain} placeholder="app.sumarca.com" aria-label={`Dominio propio de ${app.name}`} />
+                  <button className="btn sm" type="submit">Conectar dominio</button>
+                </form>
                 <p className="muted domainHint">
-                  Para conectar: añade el host en Vercel (proyecto perform-labs-pcgg) y deja <code>*.performlabs.app</code> en DNS-only en Cloudflare. El dominio propio lo compra y enlaza PerformLabs.
+                  {vercelReady
+                    ? "Se da de alta en Vercel automáticamente. Apunta el DNS del dominio a Vercel (CNAME → cname.vercel-dns.com, o A → 76.76.21.21) y deja *.performlabs.app en DNS-only."
+                    : "Se guarda el dominio; el alta automática en Vercel necesita VERCEL_API_TOKEN. Mientras, añádelo a mano en el proyecto perform-labs-pcgg. DNS: CNAME → cname.vercel-dns.com."}
                 </p>
               </div>
 
