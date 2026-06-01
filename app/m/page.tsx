@@ -1,6 +1,6 @@
 import type { CSSProperties } from "react";
-import { LogIn, ShieldCheck } from "lucide-react";
-import { memberSignInAction } from "@/app/auth/actions";
+import { LogIn, Mail, ShieldCheck } from "lucide-react";
+import { memberSignInAction, requestMemberAccessLinkAction } from "@/app/auth/actions";
 import { GoogleSignInButton } from "@/components/google-signin-button";
 import { getSelectedMemberAppBrand } from "@/lib/member-app";
 
@@ -42,22 +42,34 @@ export default async function MemberLandingPage({ searchParams }: MemberLandingP
           <p>{subtext}</p>
         </div>
 
-        <form action={memberSignInAction} className="memberAccessForm">
-          {params?.error ? <p className="formMessage danger" role="alert">{params.error}</p> : null}
+        {params?.error ? <p className="formMessage danger" role="alert">{params.error}</p> : null}
+        <form action={requestMemberAccessLinkAction} className="memberAccessForm">
           <label>
             Email
-            <input name="email" type="email" required placeholder="tu@email.com" autoComplete="email" />
-          </label>
-          <label>
-            Contraseña
-            <input name="password" type="password" required autoComplete="current-password" />
+            <input name="email" type="email" required placeholder="tu@email.com" autoComplete="email" inputMode="email" />
           </label>
           <button className="btn primary" type="submit" style={{ background: accent, borderColor: accent }}>
-            Entrar a la app <LogIn size={18} />
+            Enviarme un enlace de acceso <Mail size={18} />
           </button>
         </form>
         <div className="authDivider"><span>o</span></div>
         <GoogleSignInButton />
+        <details>
+          <summary className="muted" style={{ cursor: "pointer", marginTop: 14 }}>¿Tienes contraseña? Entra con ella</summary>
+          <form action={memberSignInAction} className="memberAccessForm" style={{ marginTop: 12 }}>
+            <label>
+              Email
+              <input name="email" type="email" required placeholder="tu@email.com" autoComplete="email" />
+            </label>
+            <label>
+              Contraseña
+              <input name="password" type="password" required autoComplete="current-password" />
+            </label>
+            <button className="btn" type="submit">
+              Entrar <LogIn size={18} />
+            </button>
+          </form>
+        </details>
 
         <p className="muted memberLandingSupport">
           <ShieldCheck size={15} /> ¿Sin acceso todavía? Escribe a {brand.supportEmail}.
