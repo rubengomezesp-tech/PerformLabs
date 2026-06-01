@@ -1,11 +1,11 @@
 import { getSupabaseServiceEnv } from "@/lib/supabase/env";
 import { createServiceSupabaseClient } from "@/lib/supabase/server";
+import type { TablesInsert } from "@/lib/supabase/types";
 import { isUuid } from "@/lib/utils/uuid";
 
 // Member -> Coach subscriptions (Phase 1 monetization). Mirrors the style of
 // stripe-billing.ts: a getSupabaseServiceEnv() guard so every write no-ops
-// cleanly without Supabase env, snake_case payloads, and `supabase`
-// casts because these columns/tables post-date the generated database.types.
+// cleanly without Supabase env, and snake_case payloads.
 
 /** The subscription status enum on member_profiles (0001_initial_schema.sql). */
 export type MemberSubscriptionStatus =
@@ -152,9 +152,7 @@ export async function upsertMemberSubscription(record: {
   cancelAtPeriodEnd?: boolean;
 }): Promise<void> {
   if (!getSupabaseServiceEnv().ok || !record.stripeSubscriptionId) return;
-  // Tables/columns post-date the generated database.types; cast to reach them,
-  // same pattern used elsewhere in the repo until types are regenerated.
-  const supabase = createServiceSupabaseClient() as any;
+  const supabase = createServiceSupabaseClient();
 
   const payload: Record<string, unknown> = {
     stripe_subscription_id: record.stripeSubscriptionId,
@@ -174,13 +172,17 @@ export async function upsertMemberSubscription(record: {
   if (record.currentPeriodEnd !== undefined) payload.current_period_end = record.currentPeriodEnd;
   if (record.cancelAtPeriodEnd !== undefined) payload.cancel_at_period_end = record.cancelAtPeriodEnd;
 
-  await supabase.from("member_subscriptions").upsert(payload, { onConflict: "stripe_subscription_id" });
+  // Partial upsert: only provided fields are written (a later event patches an
+  // earlier row), so the dynamic payload is asserted to the table's Insert type.
+  await supabase
+    .from("member_subscriptions")
+    .upsert(payload as TablesInsert<"member_subscriptions">, { onConflict: "stripe_subscription_id" });
 }
 
 /** The most recent member subscription for a member profile, if any. */
 export async function getMemberSubscriptionByMember(memberProfileId: string): Promise<MemberSubscription | null> {
   if (!getSupabaseServiceEnv().ok || !memberProfileId) return null;
-  const supabase = createServiceSupabaseClient() as any;
+  const supabase = createServiceSupabaseClient();
   const { data } = await supabase
     .from("member_subscriptions")
     .select("*")
@@ -194,7 +196,7 @@ export async function getMemberSubscriptionByMember(memberProfileId: string): Pr
 /** Store the member's Stripe customer id (on the coach's connected account). */
 export async function setMemberStripeCustomer(memberProfileId: string, stripeCustomerId: string): Promise<void> {
   if (!getSupabaseServiceEnv().ok || !memberProfileId || !stripeCustomerId) return;
-  const supabase = createServiceSupabaseClient() as any;
+  const supabase = createServiceSupabaseClient();
   await supabase
     .from("member_profiles")
     .update({ stripe_customer_id: stripeCustomerId, updated_at: new Date().toISOString() })
@@ -208,7 +210,7 @@ export async function setMemberStripeCustomer(memberProfileId: string, stripeCus
  */
 export async function setMemberSubscriptionStatus(memberProfileId: string, status: string): Promise<void> {
   if (!getSupabaseServiceEnv().ok || !memberProfileId) return;
-  const supabase = createServiceSupabaseClient() as any;
+  const supabase = createServiceSupabaseClient();
   await supabase
     .from("member_profiles")
     .update({ subscription_status: clampMemberStatus(status), updated_at: new Date().toISOString() })
@@ -233,7 +235,7 @@ export async function recordPlatformFeeEvent(record: {
 }): Promise<boolean> {
   if (!getSupabaseServiceEnv().ok) return true;
   if (!record.id) return false;
-  const supabase = createServiceSupabaseClient() as any;
+  const supabase = createServiceSupabaseClient();
   const { error } = await supabase.from("platform_fee_events").insert({
     id: record.id,
     workspace_id: record.workspaceId ?? null,
@@ -287,7 +289,7 @@ export async function getWorkspaceBillingSummary(workspaceId?: string): Promise<
   };
   if (!getSupabaseServiceEnv().ok || !isUuid(workspaceId)) return empty;
 
-  const supabase = createServiceSupabaseClient() as any;
+  const supabase = createServiceSupabaseClient();
   const { data } = await supabase
     .from("member_subscriptions")
     .select("status,amount,currency")
@@ -351,7 +353,7 @@ export async function getPlatformRevenueSummary(): Promise<PlatformRevenueSummar
   };
   if (!getSupabaseServiceEnv().ok) return empty;
 
-  const supabase = createServiceSupabaseClient() as any;
+  const supabase = createServiceSupabaseClient();
   const [subsRes, feesRes] = await Promise.all([
     supabase.from("member_subscriptions").select("amount,status,application_fee_percent,currency"),
     supabase.from("platform_fee_events").select("amount_total,application_fee_amount,currency,created_at"),

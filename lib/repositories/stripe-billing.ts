@@ -75,7 +75,7 @@ export async function getStripeAccount(workspaceId: string): Promise<StripeAccou
   if (!getSupabaseServiceEnv().ok || !workspaceId) return null;
   // These tables post-date the generated database.types; cast to reach them,
   // same pattern used elsewhere in the repo until types are regenerated.
-  const supabase = createServiceSupabaseClient() as any;
+  const supabase = createServiceSupabaseClient();
   const { data } = await supabase.from("stripe_accounts").select("*").eq("workspace_id", workspaceId).maybeSingle();
   return data ? mapAccount(data as AccountRow) : null;
 }
@@ -94,7 +94,7 @@ export async function upsertStripeAccount(input: {
   if (!getSupabaseServiceEnv().ok) return;
   // These tables post-date the generated database.types; cast to reach them,
   // same pattern used elsewhere in the repo until types are regenerated.
-  const supabase = createServiceSupabaseClient() as any;
+  const supabase = createServiceSupabaseClient();
   await supabase.from("stripe_accounts").upsert(
     {
       workspace_id: input.workspaceId,
@@ -116,7 +116,7 @@ export async function deleteStripeAccount(workspaceId: string): Promise<void> {
   if (!getSupabaseServiceEnv().ok) return;
   // These tables post-date the generated database.types; cast to reach them,
   // same pattern used elsewhere in the repo until types are regenerated.
-  const supabase = createServiceSupabaseClient() as any;
+  const supabase = createServiceSupabaseClient();
   await supabase.from("stripe_accounts").delete().eq("workspace_id", workspaceId);
 }
 
@@ -124,7 +124,7 @@ export async function getPlatformSubscription(workspaceId: string): Promise<Plat
   if (!getSupabaseServiceEnv().ok || !workspaceId) return null;
   // These tables post-date the generated database.types; cast to reach them,
   // same pattern used elsewhere in the repo until types are regenerated.
-  const supabase = createServiceSupabaseClient() as any;
+  const supabase = createServiceSupabaseClient();
   const { data } = await supabase.from("platform_subscriptions").select("*").eq("workspace_id", workspaceId).maybeSingle();
   return data ? mapSubscription(data as SubscriptionRow) : null;
 }
@@ -141,7 +141,7 @@ export async function upsertPlatformSubscription(input: {
   if (!getSupabaseServiceEnv().ok) return;
   // These tables post-date the generated database.types; cast to reach them,
   // same pattern used elsewhere in the repo until types are regenerated.
-  const supabase = createServiceSupabaseClient() as any;
+  const supabase = createServiceSupabaseClient();
   await supabase.from("platform_subscriptions").upsert(
     {
       workspace_id: input.workspaceId,
@@ -162,7 +162,7 @@ export async function recordWebhookEvent(event: { id: string; type: string; acco
   if (!getSupabaseServiceEnv().ok) return true;
   // These tables post-date the generated database.types; cast to reach them,
   // same pattern used elsewhere in the repo until types are regenerated.
-  const supabase = createServiceSupabaseClient() as any;
+  const supabase = createServiceSupabaseClient();
   const { error } = await supabase.from("stripe_webhook_events").insert({
     id: event.id,
     type: event.type,
@@ -184,7 +184,7 @@ export async function recordWebhookEvent(event: { id: string; type: string; acco
  */
 export async function deleteWebhookEvent(id: string): Promise<void> {
   if (!getSupabaseServiceEnv().ok || !id) return;
-  const supabase = createServiceSupabaseClient() as any;
+  const supabase = createServiceSupabaseClient();
   await supabase.from("stripe_webhook_events").delete().eq("id", id);
 }
 
@@ -192,7 +192,7 @@ export async function findWorkspaceByStripeAccount(stripeUserId: string): Promis
   if (!getSupabaseServiceEnv().ok) return null;
   // These tables post-date the generated database.types; cast to reach them,
   // same pattern used elsewhere in the repo until types are regenerated.
-  const supabase = createServiceSupabaseClient() as any;
+  const supabase = createServiceSupabaseClient();
   const { data } = await supabase.from("stripe_accounts").select("workspace_id").eq("stripe_user_id", stripeUserId).maybeSingle();
   return (data as { workspace_id: string } | null)?.workspace_id ?? null;
 }

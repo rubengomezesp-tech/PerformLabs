@@ -45,7 +45,7 @@ function mapPlan(row: PlanRow): CoachPlan {
 export async function listCoachPlans(workspaceId: string): Promise<CoachPlan[]> {
   if (!getSupabaseServiceEnv().ok || !workspaceId) return [];
   // Table post-dates the generated database.types; cast to reach it.
-  const supabase = createServiceSupabaseClient() as any;
+  const supabase = createServiceSupabaseClient();
   const { data } = await supabase
     .from("coach_client_plans")
     .select("*")
@@ -59,7 +59,7 @@ export async function listCoachPlans(workspaceId: string): Promise<CoachPlan[]> 
 export async function getCoachClientPlan(planId: string): Promise<CoachPlan | null> {
   if (!getSupabaseServiceEnv().ok || !planId) return null;
   // Table post-dates the generated database.types; cast to reach it.
-  const supabase = createServiceSupabaseClient() as any;
+  const supabase = createServiceSupabaseClient();
   const { data } = await supabase.from("coach_client_plans").select("*").eq("id", planId).maybeSingle();
   return data ? mapPlan(data as PlanRow) : null;
 }
@@ -75,7 +75,7 @@ export async function createCoachPlan(input: {
   stripePriceId?: string | null;
 }): Promise<void> {
   if (!getSupabaseServiceEnv().ok) return;
-  const supabase = createServiceSupabaseClient() as any;
+  const supabase = createServiceSupabaseClient();
   await supabase.from("coach_client_plans").insert({
     workspace_id: input.workspaceId,
     name: input.name,
@@ -90,7 +90,7 @@ export async function createCoachPlan(input: {
 
 export async function archiveCoachPlan(workspaceId: string, planId: string): Promise<void> {
   if (!getSupabaseServiceEnv().ok) return;
-  const supabase = createServiceSupabaseClient() as any;
+  const supabase = createServiceSupabaseClient();
   await supabase
     .from("coach_client_plans")
     .update({ active: false })
