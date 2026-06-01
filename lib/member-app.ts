@@ -1,5 +1,6 @@
 import { cache } from "react";
 import { cookies, headers } from "next/headers";
+import { notFound } from "next/navigation";
 import {
   Activity,
   Apple,
@@ -19,6 +20,8 @@ import {
 } from "lucide-react";
 import { listWorkspaceAppPages, type MemberAppPage } from "@/lib/repositories/member-experience";
 import { getWorkspaceBrand, type WorkspaceBrand } from "@/lib/repositories/workspaces";
+import { getSupabaseServiceEnv } from "@/lib/supabase/env";
+import { shouldBlockUnknownTenantHost } from "@/lib/tenant-host-guard";
 
 const selectedWorkspaceCookie = "performlabs_workspace_id";
 
@@ -89,6 +92,7 @@ function toNavItem(page: MemberAppPage): MemberNavItem {
 export const getSelectedMemberAppBrand = cache(async (): Promise<WorkspaceBrand> => {
   const workspaceId = await getSelectedWorkspaceId();
   const host = await getRequestHost();
+  const onTenantHost = isTenantHost(host);
 
   // On a trainer's own domain the host wins (the domain IS the tenant). Off a
   // tenant domain (platform apex, a *.vercel.app preview, localhost) the host
@@ -97,8 +101,23 @@ export const getSelectedMemberAppBrand = cache(async (): Promise<WorkspaceBrand>
   // used as a workspace_id (FK violation). Use the selected-workspace cookie, or
   // let getWorkspaceBrand pick the first real workspace, so brand.id is always a
   // real workspace the member app can write against.
-  const reference = isTenantHost(host) ? host : (workspaceId || "");
-  return getWorkspaceBrand(reference);
+  const reference = onTenantHost ? host : (workspaceId || "");
+  const brand = await getWorkspaceBrand(reference);
+
+  // L4: an unknown tenant host (a stranger's domain pointed at us) resolves to the
+  // zero-UUID fallback. Refuse to serve it a generic look-alike brand — 404 instead.
+  if (
+    shouldBlockUnknownTenantHost({
+      onTenantHost,
+      brandId: brand.id,
+      serviceEnvOk: getSupabaseServiceEnv().ok,
+      isProduction: process.env.NODE_ENV === "production",
+    })
+  ) {
+    notFound();
+  }
+
+  return brand;
 });
 
 export async function getSelectedMemberAppShell(): Promise<{
