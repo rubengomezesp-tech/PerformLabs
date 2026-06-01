@@ -1,6 +1,6 @@
 import { CalendarDays, Flame, Trophy, Users } from "lucide-react";
 import { MemberEmpty } from "@/components/member-empty";
-import { SubmitButton } from "@/components/submit-button";
+import { SubmitButton } from "@/components/ui";
 import { Topbar } from "@/components/topbar";
 import { getSelectedMemberAppBrand } from "@/lib/member-app";
 import { listMemberChallenges, metricLabel } from "@/lib/repositories/challenges";
@@ -63,7 +63,7 @@ export default async function MemberChallengesPage() {
                   <form action={joinChallengeAction} className="challengeJoin">
                     <input name="workspaceId" type="hidden" value={brand.id} />
                     <input name="challengeId" type="hidden" value={c.id} />
-                    <SubmitButton className="btn primary" pendingLabel="Uniéndote…"><Trophy size={16} /> Unirme al reto</SubmitButton>
+                    <SubmitButton variant="primary"><Trophy size={16} /> Unirme al reto</SubmitButton>
                     <span className="challengeMeta"><Users size={13} /> {c.participants} participando</span>
                   </form>
                 )}

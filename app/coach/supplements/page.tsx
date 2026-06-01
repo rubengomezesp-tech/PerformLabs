@@ -1,6 +1,6 @@
 import { Pill, Trash2 } from "lucide-react";
 import { Dialog } from "@/components/dialog";
-import { SubmitButton } from "@/components/submit-button";
+import { SubmitButton } from "@/components/ui";
 import { Topbar } from "@/components/topbar";
 import { getSelectedMemberAppBrand } from "@/lib/member-app";
 import { listSupplements, TIMING_LABEL, TIMING_ORDER, type SupplementTiming } from "@/lib/repositories/supplements";
@@ -43,7 +43,7 @@ export default async function CoachSupplementsPage() {
               </label>
             </div>
             <label>Notas<input name="notes" placeholder="Con agua o zumo." maxLength={300} /></label>
-            <SubmitButton className="btn primary" pendingLabel="Añadiendo…"><Pill size={16} /> Añadir al protocolo</SubmitButton>
+            <SubmitButton variant="primary" successToast="Añadido al protocolo"><Pill size={16} /> Añadir al protocolo</SubmitButton>
           </form>
         </article>
 

@@ -1,6 +1,6 @@
 import { Salad, Sparkles, Trash2 } from "lucide-react";
 import { Dialog } from "@/components/dialog";
-import { SubmitButton } from "@/components/submit-button";
+import { SubmitButton } from "@/components/ui";
 import { Topbar } from "@/components/topbar";
 import { getSelectedMemberAppBrand } from "@/lib/member-app";
 import { CATEGORY_LABEL, CATEGORY_ORDER, listFoodLibrary, type FoodCategory } from "@/lib/repositories/food-library";
@@ -57,7 +57,7 @@ export default async function CoachFoodsPage() {
               <label>Kcal<input name="calories" type="number" inputMode="numeric" min="0" step="1" placeholder="165" /></label>
             </div>
             <label>Foto del producto (URL, opcional)<input name="imageUrl" type="url" inputMode="url" placeholder="https://… (si la dejas vacía, se usa el icono de marca)" /></label>
-            <SubmitButton className="btn primary" pendingLabel="Añadiendo…"><Salad size={16} /> Añadir a la biblioteca</SubmitButton>
+            <SubmitButton variant="primary" successToast="Alimento añadido"><Salad size={16} /> Añadir a la biblioteca</SubmitButton>
           </form>
         </article>
 
@@ -79,7 +79,7 @@ export default async function CoachFoodsPage() {
               </div>
               <form action={seedStarterFoodsAction}>
                 <input name="workspaceId" type="hidden" value={brand.id} />
-                <SubmitButton className="btn" pendingLabel="Cargando…"><Sparkles size={15} /> Cargar alimentos base</SubmitButton>
+                <SubmitButton successToast="Alimentos base cargados"><Sparkles size={15} /> Cargar alimentos base</SubmitButton>
               </form>
             </div>
           ) : null}

@@ -1,6 +1,6 @@
 import { Heart, MessageSquare, Pin, Send, Sparkles, Trash2 } from "lucide-react";
 import { MemberEmpty } from "@/components/member-empty";
-import { SubmitButton } from "@/components/submit-button";
+import { SubmitButton } from "@/components/ui";
 import { Topbar } from "@/components/topbar";
 import { getSelectedMemberAppBrand } from "@/lib/member-app";
 import { listCommunityPosts } from "@/lib/repositories/community";
@@ -43,7 +43,7 @@ export default async function MemberCommunityPage() {
               <span className="communityAvatar communityAvatarMe" aria-hidden="true">{initials(brand.name)}</span>
               <textarea name="body" rows={3} required placeholder="¿Cómo va tu semana? Comparte un logro, una duda o un tip…" />
             </div>
-            <SubmitButton className="btn primary" pendingLabel="Publicando…"><Send size={16} /> Publicar</SubmitButton>
+            <SubmitButton variant="primary"><Send size={16} /> Publicar</SubmitButton>
           </form>
         </article>
 

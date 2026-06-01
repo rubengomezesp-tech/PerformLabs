@@ -1,6 +1,6 @@
 import { MessageSquare, MessagesSquare, Send } from "lucide-react";
 import { EmptyState } from "@/components/empty-state";
-import { SubmitButton } from "@/components/submit-button";
+import { SubmitButton } from "@/components/ui";
 import { Topbar } from "@/components/topbar";
 import { getSelectedMemberAppBrand } from "@/lib/member-app";
 import { listSupportConversations } from "@/lib/repositories/support-management";
@@ -89,7 +89,7 @@ export default async function CoachMessagesPage() {
                   maxLength={2000}
                   autoComplete="off"
                 />
-                <SubmitButton className="btn primary chatSend" pendingLabel="" aria-label="Enviar respuesta">
+                <SubmitButton variant="primary" className="chatSend" aria-label="Enviar respuesta" successToast="Respuesta enviada">
                   <Send size={16} />
                 </SubmitButton>
               </form>

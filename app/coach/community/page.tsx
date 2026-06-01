@@ -1,6 +1,6 @@
 import { Heart, Megaphone, MessageSquare, Pin, PinOff, Sparkles, Trash2, Users } from "lucide-react";
 import { Dialog } from "@/components/dialog";
-import { SubmitButton } from "@/components/submit-button";
+import { SubmitButton } from "@/components/ui";
 import { Topbar } from "@/components/topbar";
 import { getSelectedMemberAppBrand } from "@/lib/member-app";
 import { listCommunityModeration } from "@/lib/repositories/community";
@@ -70,7 +70,7 @@ export default async function CoachCommunityPage() {
             <input name="workspaceId" type="hidden" value={brand.id} />
             <input name="authorName" type="hidden" value={brand.name} />
             <textarea name="body" rows={3} required placeholder="Escribe tu anuncio para toda la comunidad…" />
-            <SubmitButton className="btn primary" pendingLabel="Publicando…"><Megaphone size={16} /> Publicar anuncio</SubmitButton>
+            <SubmitButton variant="primary" successToast="Anuncio publicado"><Megaphone size={16} /> Publicar anuncio</SubmitButton>
           </form>
         </article>
 

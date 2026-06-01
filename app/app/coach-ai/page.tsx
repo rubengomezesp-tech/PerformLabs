@@ -1,5 +1,5 @@
 import { Send, Sparkles } from "lucide-react";
-import { SubmitButton } from "@/components/submit-button";
+import { SubmitButton } from "@/components/ui";
 import { Topbar } from "@/components/topbar";
 import { isCoachBrainAiConfigured } from "@/lib/ai/coach-brain";
 import { getSelectedMemberAppBrand } from "@/lib/member-app";
@@ -65,7 +65,7 @@ export default async function MemberCoachAiPage() {
           <form action={askCoachAiAction} className="coachChatComposer">
             <input name="workspaceId" type="hidden" value={brand.id} />
             <input name="question" placeholder="Pregunta lo que necesites…" required autoComplete="off" maxLength={1000} />
-            <SubmitButton className="btn primary" pendingLabel="Pensando…"><Send size={16} /></SubmitButton>
+            <SubmitButton variant="primary" aria-label="Enviar mensaje"><Send size={16} /></SubmitButton>
           </form>
           {!aiReady ? (
             <p className="coachChatHint">El asistente se está poniendo a punto. Tu pregunta queda registrada y tu coach la verá.</p>

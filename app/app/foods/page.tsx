@@ -2,7 +2,7 @@ import { Heart, NotebookPen, Plus, Salad, Search } from "lucide-react";
 import Link from "next/link";
 import { MemberEmpty } from "@/components/member-empty";
 import { RecipeImage } from "@/components/recipe-image";
-import { SubmitButton } from "@/components/submit-button";
+import { SubmitButton } from "@/components/ui";
 import { Topbar } from "@/components/topbar";
 import { getSelectedMemberAppBrand } from "@/lib/member-app";
 import {
@@ -94,7 +94,7 @@ function FoodRow({
             defaultValue="1"
             aria-label="Raciones"
           />
-          <SubmitButton className="btn sm primary" pendingLabel="…"><Plus size={14} /> Añadir</SubmitButton>
+          <SubmitButton variant="primary" size="sm"><Plus size={14} /> Añadir</SubmitButton>
         </form>
       </div>
     </li>

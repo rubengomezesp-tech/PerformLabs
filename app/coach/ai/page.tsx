@@ -1,6 +1,6 @@
 import { Brain, Gauge, MessageCircleQuestion, ShieldCheck, Sparkles, Wand2 } from "lucide-react";
 import Link from "next/link";
-import { SubmitButton } from "@/components/submit-button";
+import { SubmitButton } from "@/components/ui";
 import { Topbar } from "@/components/topbar";
 import { isCoachBrainAiConfigured } from "@/lib/ai/coach-brain";
 import { AI_MONTHLY_LIMITS, getMonthlyAiUsage } from "@/lib/ai/usage";
@@ -118,7 +118,7 @@ export default async function CoachAiPage() {
             <textarea name="forbidden" rows={3} defaultValue={brain.forbidden} placeholder={"Ej:\n- Nunca recomendar suplementos concretos por marca.\n- Nunca dar dosis de medicación.\n- No prometer “bajar X kg en Y semanas”.\n- Ante dolor agudo, derivar siempre a consulta."} maxLength={3000} />
           </label>
 
-          <SubmitButton className="btn primary" pendingLabel="Guardando…"><Wand2 size={18} /> Guardar mi cerebro de IA</SubmitButton>
+          <SubmitButton variant="primary" successToast="Cerebro de IA guardado"><Wand2 size={18} /> Guardar mi cerebro de IA</SubmitButton>
         </form>
 
         <div className="span4 coachBrainSide">
