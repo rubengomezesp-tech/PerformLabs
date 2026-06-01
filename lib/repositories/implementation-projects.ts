@@ -231,7 +231,7 @@ async function recordAuditEvent(
     metadata?: Record<string, unknown>;
   },
 ) {
-  await (supabase as any).from("audit_log").insert({
+  await supabase.from("audit_log").insert({
     workspace_id: input.workspaceId ?? null,
     action: input.action,
     entity_type: input.entityType,
@@ -266,7 +266,7 @@ async function ensureOperationalWorkspaceAssets(
     updated_at: new Date().toISOString(),
   }));
 
-  const settingsResult = await (supabase as any)
+  const settingsResult = await supabase
     .from("app_settings")
     .upsert(settingsPayload, { onConflict: "workspace_id,key" });
 
@@ -297,7 +297,7 @@ async function ensureOperationalWorkspaceAssets(
     },
   ];
 
-  const contentResult = await (supabase as any)
+  const contentResult = await supabase
     .from("content_pages")
     .upsert(contentPages, { onConflict: "workspace_id,slug" })
     .select("id,slug");
@@ -322,7 +322,7 @@ async function ensureOperationalWorkspaceAssets(
     ...page,
   }));
 
-  const appPagesResult = await (supabase as any)
+  const appPagesResult = await supabase
     .from("app_pages")
     .upsert(appPages, { onConflict: "workspace_id,route" });
 
@@ -330,7 +330,7 @@ async function ensureOperationalWorkspaceAssets(
     throw new Error(`No se pudo crear la navegación inicial: ${appPagesResult.error.message}`);
   }
 
-  const existingProduct = await (supabase as any)
+  const existingProduct = await supabase
     .from("product_catalog_items")
     .select("id")
     .eq("workspace_id", input.workspaceId)
@@ -338,7 +338,7 @@ async function ensureOperationalWorkspaceAssets(
     .maybeSingle();
 
   if (!existingProduct.data?.id) {
-    const productResult = await (supabase as any).from("product_catalog_items").insert({
+    const productResult = await supabase.from("product_catalog_items").insert({
       workspace_id: input.workspaceId,
       name: input.brief.offerSummary ? "Oferta principal" : `Programa ${input.workspaceName}`,
       description: cleanOptional(input.brief.offerSummary || input.brief.pricingNotes || "Producto principal pendiente de definir."),
@@ -456,7 +456,7 @@ function mapTemplate(template: any, tasks: ImplementationTemplateTask[], default
 }
 
 async function loadTemplateForConversion(supabase: any, templateId?: string) {
-  const templateQuery = (supabase as any)
+  const templateQuery = supabase
     .from("implementation_templates")
     .select("id,name,slug,description,buyer_type,estimated_days,is_active,sort_order");
 
@@ -469,12 +469,12 @@ async function loadTemplateForConversion(supabase: any, templateId?: string) {
   }
 
   const [tasksResult, defaultsResult] = await Promise.all([
-    (supabase as any)
+    supabase
       .from("implementation_template_tasks")
       .select("id,template_id,phase,title,description,sort_order,day_offset")
       .eq("template_id", templateResult.data.id)
       .order("sort_order", { ascending: true }),
-    (supabase as any)
+    supabase
       .from("implementation_template_brief_defaults")
       .select("*")
       .eq("template_id", templateResult.data.id)
@@ -490,7 +490,7 @@ async function loadTemplateForConversion(supabase: any, templateId?: string) {
 
 export async function listImplementationTemplates(): Promise<ImplementationTemplateSummary[]> {
   const supabase = createServiceSupabaseClient();
-  const { data, error } = await (supabase as any)
+  const { data, error } = await supabase
     .from("implementation_templates")
     .select("id,name,slug,description,buyer_type,estimated_days,is_active,sort_order")
     .order("sort_order", { ascending: true });
@@ -503,12 +503,12 @@ export async function listImplementationTemplates(): Promise<ImplementationTempl
   const templateIds = (data ?? []).map((template: any) => template.id);
   const [tasksResult, defaultsResult] = templateIds.length
     ? await Promise.all([
-        (supabase as any)
+        supabase
           .from("implementation_template_tasks")
           .select("id,template_id,phase,title,description,sort_order,day_offset")
           .in("template_id", templateIds)
           .order("sort_order", { ascending: true }),
-        (supabase as any)
+        supabase
           .from("implementation_template_brief_defaults")
           .select("*")
           .in("template_id", templateIds),
@@ -539,7 +539,7 @@ export async function convertLeadToProject(leadId: string, templateId?: string) 
   }
 
   const supabase = createServiceSupabaseClient();
-  const existing = await (supabase as any)
+  const existing = await supabase
     .from("implementation_projects")
     .select("id")
     .eq("lead_id", leadId)
@@ -549,7 +549,7 @@ export async function convertLeadToProject(leadId: string, templateId?: string) 
     return existing.data.id as string;
   }
 
-  const leadResult = await (supabase as any)
+  const leadResult = await supabase
     .from("sales_leads")
     .select("id,full_name,email,brand_name,assigned_agent")
     .eq("id", leadId)
@@ -562,7 +562,7 @@ export async function convertLeadToProject(leadId: string, templateId?: string) 
   const selectedTemplate = await loadTemplateForConversion(supabase, templateId);
   const lead = leadResult.data;
   const projectName = lead.brand_name || `App de ${lead.full_name}`;
-  const projectResult = await (supabase as any)
+  const projectResult = await supabase
     .from("implementation_projects")
     .insert({
       lead_id: lead.id,
@@ -600,7 +600,7 @@ export async function convertLeadToProject(leadId: string, templateId?: string) 
     due_date: dateFromOffset(task.dayOffset),
   }));
 
-  const tasksResult = await (supabase as any)
+  const tasksResult = await supabase
     .from("project_onboarding_tasks")
     .insert(tasks);
 
@@ -609,7 +609,7 @@ export async function convertLeadToProject(leadId: string, templateId?: string) 
   }
 
   const defaults = selectedTemplate?.defaults;
-  const briefResult = await (supabase as any)
+  const briefResult = await supabase
     .from("project_briefs")
     .insert({
       project_id: projectId,
@@ -633,7 +633,7 @@ export async function convertLeadToProject(leadId: string, templateId?: string) 
     throw new Error(`No se pudo crear el briefing inicial: ${briefResult.error.message}`);
   }
 
-  await (supabase as any)
+  await supabase
     .from("sales_leads")
     .update({
       status: "qualified",
@@ -641,7 +641,7 @@ export async function convertLeadToProject(leadId: string, templateId?: string) 
     })
     .eq("id", leadId);
 
-  await (supabase as any).from("lead_notes").insert({
+  await supabase.from("lead_notes").insert({
     lead_id: leadId,
     author_name: "Sistema",
     note: selectedTemplate?.template.name
@@ -654,7 +654,7 @@ export async function convertLeadToProject(leadId: string, templateId?: string) 
 
 export async function listImplementationProjects(): Promise<ImplementationProjectSummary[]> {
   const supabase = createServiceSupabaseClient();
-  const { data, error } = await (supabase as any)
+  const { data, error } = await supabase
     .from("implementation_projects")
     .select("id,template_id,workspace_id,project_name,client_name,client_email,assigned_agent,status,launch_target_date,created_at")
     .order("created_at", { ascending: false })
@@ -667,7 +667,7 @@ export async function listImplementationProjects(): Promise<ImplementationProjec
 
   const projectIds = (data ?? []).map((project: any) => project.id);
   const tasksResult = projectIds.length
-    ? await (supabase as any)
+    ? await supabase
         .from("project_onboarding_tasks")
         .select("id,project_id,phase,title,description,status,sort_order,due_date,completed_at")
         .in("project_id", projectIds)
@@ -693,7 +693,7 @@ export async function getImplementationProjectDetail(projectId: string): Promise
   }
 
   const supabase = createServiceSupabaseClient();
-  const projectResult = await (supabase as any)
+  const projectResult = await supabase
     .from("implementation_projects")
     .select("id,template_id,workspace_id,project_name,client_name,client_email,assigned_agent,status,launch_target_date,created_at")
     .eq("id", projectId)
@@ -704,12 +704,12 @@ export async function getImplementationProjectDetail(projectId: string): Promise
   }
 
   const [tasksResult, briefResult] = await Promise.all([
-    (supabase as any)
+    supabase
       .from("project_onboarding_tasks")
       .select("id,project_id,phase,title,description,status,sort_order,due_date,completed_at")
       .eq("project_id", projectId)
       .order("sort_order", { ascending: true }),
-    (supabase as any)
+    supabase
       .from("project_briefs")
       .select("*")
       .eq("project_id", projectId)
@@ -730,7 +730,7 @@ export async function updateProjectStatus(input: ProjectUpdateInput) {
   }
 
   const supabase = createServiceSupabaseClient();
-  const { error } = await (supabase as any)
+  const { error } = await supabase
     .from("implementation_projects")
     .update({
       status: input.status,
@@ -751,7 +751,7 @@ export async function updateProjectTask(input: ProjectTaskUpdateInput) {
   }
 
   const supabase = createServiceSupabaseClient();
-  const { error } = await (supabase as any)
+  const { error } = await supabase
     .from("project_onboarding_tasks")
     .update({
       status: input.status,
@@ -771,7 +771,7 @@ export async function updateProjectBrief(input: ProjectBriefInput) {
   }
 
   const supabase = createServiceSupabaseClient();
-  const { error } = await (supabase as any)
+  const { error } = await supabase
     .from("project_briefs")
     .upsert({
       project_id: input.projectId,
@@ -809,7 +809,7 @@ export async function createOperationalWorkspaceFromProject(projectId: string) {
   }
 
   const supabase = createServiceSupabaseClient();
-  const projectResult = await (supabase as any)
+  const projectResult = await supabase
     .from("implementation_projects")
     .select("id,workspace_id,project_name,client_name,client_email,status")
     .eq("id", projectId)
@@ -819,7 +819,7 @@ export async function createOperationalWorkspaceFromProject(projectId: string) {
     throw new Error("No se pudo encontrar el proyecto.");
   }
 
-  const briefResult = await (supabase as any)
+  const briefResult = await supabase
     .from("project_briefs")
     .select("*")
     .eq("project_id", projectId)
@@ -840,7 +840,7 @@ export async function createOperationalWorkspaceFromProject(projectId: string) {
   const workspaceId = projectResult.data.workspace_id
     ? projectResult.data.workspace_id as string
     : await (async () => {
-        const workspaceResult = await (supabase as any)
+        const workspaceResult = await supabase
           .from("workspaces")
           .upsert({
             name: workspaceName,
@@ -870,7 +870,7 @@ export async function createOperationalWorkspaceFromProject(projectId: string) {
     brief,
   });
 
-  const projectUpdate = await (supabase as any)
+  const projectUpdate = await supabase
     .from("implementation_projects")
     .update({
       workspace_id: workspaceId,
@@ -906,7 +906,7 @@ export async function addProjectTask(input: ProjectTaskInput) {
   }
 
   const supabase = createServiceSupabaseClient();
-  const existingTasks = await (supabase as any)
+  const existingTasks = await supabase
     .from("project_onboarding_tasks")
     .select("sort_order")
     .eq("project_id", input.projectId)
@@ -914,7 +914,7 @@ export async function addProjectTask(input: ProjectTaskInput) {
     .limit(1);
 
   const nextSortOrder = ((existingTasks.data ?? [])[0]?.sort_order ?? 0) + 10;
-  const { error } = await (supabase as any).from("project_onboarding_tasks").insert({
+  const { error } = await supabase.from("project_onboarding_tasks").insert({
     project_id: input.projectId,
     phase: input.phase.trim() || "General",
     title,
@@ -934,7 +934,7 @@ export async function updateImplementationTemplate(input: ImplementationTemplate
   }
 
   const supabase = createServiceSupabaseClient();
-  const { error } = await (supabase as any)
+  const { error } = await supabase
     .from("implementation_templates")
     .update({
       name: input.name.trim(),
@@ -959,7 +959,7 @@ export async function addImplementationTemplateTask(input: ImplementationTemplat
   }
 
   const supabase = createServiceSupabaseClient();
-  const existingTasks = await (supabase as any)
+  const existingTasks = await supabase
     .from("implementation_template_tasks")
     .select("sort_order")
     .eq("template_id", input.templateId)
@@ -967,7 +967,7 @@ export async function addImplementationTemplateTask(input: ImplementationTemplat
     .limit(1);
 
   const nextSortOrder = ((existingTasks.data ?? [])[0]?.sort_order ?? 0) + 10;
-  const { error } = await (supabase as any).from("implementation_template_tasks").insert({
+  const { error } = await supabase.from("implementation_template_tasks").insert({
     template_id: input.templateId,
     phase: input.phase.trim() || "General",
     title,
@@ -987,7 +987,7 @@ export async function updateTemplateBriefDefaults(input: TemplateBriefDefaultsIn
   }
 
   const supabase = createServiceSupabaseClient();
-  const { error } = await (supabase as any)
+  const { error } = await supabase
     .from("implementation_template_brief_defaults")
     .upsert({
       template_id: input.templateId,

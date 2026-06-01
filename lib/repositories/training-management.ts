@@ -1083,7 +1083,7 @@ export async function swapAssignedWorkoutExercise(input: { workspaceId: string; 
     throw new Error("Ese ejercicio no es de tu marca.");
   }
 
-  const { data, error } = await (supabase as any)
+  const { data, error } = await supabase
     .from("assigned_workout_exercises")
     .update({
       exercise_id: exercise.data.id,

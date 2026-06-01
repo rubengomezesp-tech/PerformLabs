@@ -635,7 +635,7 @@ export async function saveMemberOnboarding(input: MemberOnboardingInput) {
     throw new Error(`No se pudo guardar el perfil: ${profileUpdate.error.message}`);
   }
 
-  const preferences = await (supabase as any)
+  const preferences = await supabase
     .from("member_fitness_preferences")
     .upsert({
       member_profile_id: member.id,
@@ -657,7 +657,7 @@ export async function saveMemberOnboarding(input: MemberOnboardingInput) {
     throw new Error(`No se pudieron guardar las preferencias: ${preferences.error.message}`);
   }
 
-  const dietPreferences = await (supabase as any)
+  const dietPreferences = await supabase
     .from("member_diet_preferences")
     .upsert({
       member_profile_id: member.id,
@@ -715,7 +715,7 @@ export async function saveMemberOnboarding(input: MemberOnboardingInput) {
     recommendation,
   };
 
-  const response = await (supabase as any)
+  const response = await supabase
     .from("member_onboarding_responses")
     .upsert({
       workspace_id: input.workspaceId,
@@ -810,7 +810,7 @@ export async function saveOnboardingBriefingReview(input: CoachBriefingReviewInp
   }
 
   const supabase = createServiceSupabaseClient();
-  const response = await (supabase as any)
+  const response = await supabase
     .from("member_onboarding_responses")
     .select("id,member_profile_id,goal,training_days_per_week,meals_per_day,onboarding_payload")
     .eq("workspace_id", input.workspaceId)
@@ -837,7 +837,7 @@ export async function saveOnboardingBriefingReview(input: CoachBriefingReviewInp
   };
   const now = new Date().toISOString();
 
-  const update = await (supabase as any)
+  const update = await supabase
     .from("member_onboarding_responses")
     .update({
       goal: review.goal || null,
@@ -878,7 +878,7 @@ export async function applyOnboardingPlanRecommendation(input: ApplyCoachBriefin
   }
 
   const supabase = createServiceSupabaseClient();
-  const response = await (supabase as any)
+  const response = await supabase
     .from("member_onboarding_responses")
     .select("id,member_profile_id,goal,training_days_per_week,meals_per_day,onboarding_payload")
     .eq("workspace_id", input.workspaceId)
@@ -971,7 +971,7 @@ export async function applyOnboardingPlanRecommendation(input: ApplyCoachBriefin
     },
   };
 
-  const update = await (supabase as any)
+  const update = await supabase
     .from("member_onboarding_responses")
     .update({
       goal: goal || null,
@@ -1035,7 +1035,7 @@ async function getRecentBestSetByExercise(
   const fromDate = new Date();
   fromDate.setDate(fromDate.getDate() - 14);
 
-  const sessions = await (supabase as any)
+  const sessions = await supabase
     .from("workout_session_logs")
     .select("id,session_date")
     .eq("workspace_id", input.workspaceId)
@@ -1048,7 +1048,7 @@ async function getRecentBestSetByExercise(
   if (sessions.error || !sessionRows.length) return result;
 
   const dateBySession = new Map(sessionRows.map((row) => [row.id, row.session_date]));
-  const sets = await (supabase as any)
+  const sets = await supabase
     .from("workout_set_logs")
     .select("session_log_id,exercise_id,actual_reps,weight_kg")
     .in("session_log_id", sessionRows.map((row) => row.id))

@@ -3,7 +3,7 @@ import { createServiceSupabaseClient } from "@/lib/supabase/server";
 
 // Member -> Coach subscriptions (Phase 1 monetization). Mirrors the style of
 // stripe-billing.ts: a getSupabaseServiceEnv() guard so every write no-ops
-// cleanly without Supabase env, snake_case payloads, and `(supabase as any)`
+// cleanly without Supabase env, snake_case payloads, and `supabase`
 // casts because these columns/tables post-date the generated database.types.
 
 /** The subscription status enum on member_profiles (0001_initial_schema.sql). */

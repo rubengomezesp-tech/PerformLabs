@@ -25,13 +25,13 @@ export async function createOutreachDraft(input: {
   if (!isUuid(input.workspaceId) || !isUuid(input.memberProfileId)) return;
   const supabase = createServiceSupabaseClient();
   // Replace any previous draft for this member so the radar stays clean.
-  await (supabase as any)
+  await supabase
     .from("retention_outreach")
     .delete()
     .eq("workspace_id", input.workspaceId)
     .eq("member_profile_id", input.memberProfileId)
     .eq("status", "draft");
-  await (supabase as any).from("retention_outreach").insert({
+  await supabase.from("retention_outreach").insert({
     workspace_id: input.workspaceId,
     member_profile_id: input.memberProfileId,
     risk_score: input.riskScore,
@@ -48,7 +48,7 @@ export async function listOutreachDrafts(workspaceId?: string): Promise<Map<stri
   if (!env.ok || !isUuid(workspaceId)) return map;
 
   const supabase = createServiceSupabaseClient();
-  const { data, error } = await (supabase as any)
+  const { data, error } = await supabase
     .from("retention_outreach")
     .select("id,member_profile_id,risk_score,reason,message,status,created_at")
     .eq("workspace_id", workspaceId)
@@ -81,7 +81,7 @@ export async function getOutreachStats(workspaceId?: string): Promise<OutreachSt
   if (!env.ok || !isUuid(workspaceId)) return empty;
 
   const supabase = createServiceSupabaseClient();
-  const { data, error } = await (supabase as any)
+  const { data, error } = await supabase
     .from("retention_outreach")
     .select("status")
     .eq("workspace_id", workspaceId)
@@ -99,7 +99,7 @@ export async function getOutreachStats(workspaceId?: string): Promise<OutreachSt
 export async function setOutreachStatus(workspaceId: string, outreachId: string, status: "sent" | "dismissed"): Promise<void> {
   if (!isUuid(workspaceId) || !isUuid(outreachId)) return;
   const supabase = createServiceSupabaseClient();
-  await (supabase as any)
+  await supabase
     .from("retention_outreach")
     .update({ status, acted_at: new Date().toISOString() })
     .eq("workspace_id", workspaceId)

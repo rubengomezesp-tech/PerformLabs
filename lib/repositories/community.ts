@@ -31,7 +31,7 @@ export async function listCommunityPosts(workspaceId?: string): Promise<Communit
   const supabase = createServiceSupabaseClient();
   const member = await getDefaultMember(workspaceId);
 
-  const postsResult = await (supabase as any)
+  const postsResult = await supabase
     .from("community_posts")
     .select("id,author_name,body,created_at,member_profile_id,is_coach,pinned")
     .eq("workspace_id", workspaceId)
@@ -43,7 +43,7 @@ export async function listCommunityPosts(workspaceId?: string): Promise<Communit
   if (postsResult.error || !postsResult.data?.length) return [];
 
   const postIds = postsResult.data.map((post: { id: string }) => post.id);
-  const likesResult = await (supabase as any)
+  const likesResult = await supabase
     .from("community_post_likes")
     .select("post_id,member_profile_id")
     .in("post_id", postIds);
@@ -79,7 +79,7 @@ export async function createCommunityPost(workspaceId: string, body: string) {
   // toggleCommunityLike/deleteCommunityPost) — blocks anonymous feed injection.
   if (!member) throw new Error("Todavía no hay perfil de cliente.");
 
-  const { error } = await (supabase as any).from("community_posts").insert({
+  const { error } = await supabase.from("community_posts").insert({
     workspace_id: workspaceId,
     member_profile_id: member.id,
     author_name: member.full_name || "Miembro",
@@ -94,7 +94,7 @@ export async function toggleCommunityLike(workspaceId: string, postId: string) {
   const member = await getDefaultMember(workspaceId);
   if (!member) throw new Error("Todavía no hay perfil de cliente.");
 
-  const existing = await (supabase as any)
+  const existing = await supabase
     .from("community_post_likes")
     .select("id")
     .eq("post_id", postId)
@@ -102,12 +102,12 @@ export async function toggleCommunityLike(workspaceId: string, postId: string) {
     .maybeSingle();
 
   if (existing.data?.id) {
-    const { error } = await (supabase as any).from("community_post_likes").delete().eq("id", existing.data.id).eq("workspace_id", workspaceId);
+    const { error } = await supabase.from("community_post_likes").delete().eq("id", existing.data.id).eq("workspace_id", workspaceId);
     if (error) throw new Error(`No se pudo actualizar el like: ${error.message}`);
     return { liked: false };
   }
 
-  const { error } = await (supabase as any).from("community_post_likes").insert({
+  const { error } = await supabase.from("community_post_likes").insert({
     post_id: postId,
     member_profile_id: member.id,
     workspace_id: workspaceId,
@@ -122,7 +122,7 @@ export async function deleteCommunityPost(workspaceId: string, postId: string) {
   const member = await getDefaultMember(workspaceId);
   if (!member) throw new Error("Todavía no hay perfil de cliente.");
 
-  const { error } = await (supabase as any)
+  const { error } = await supabase
     .from("community_posts")
     .delete()
     .eq("id", postId)
@@ -163,7 +163,7 @@ export async function listCommunityModeration(workspaceId?: string): Promise<{
   if (!env.ok || !isUuid(workspaceId)) return empty;
 
   const supabase = createServiceSupabaseClient();
-  const postsResult = await (supabase as any)
+  const postsResult = await supabase
     .from("community_posts")
     .select("id,author_name,body,created_at,member_profile_id,is_coach,pinned")
     .eq("workspace_id", workspaceId)
@@ -175,7 +175,7 @@ export async function listCommunityModeration(workspaceId?: string): Promise<{
   if (postsResult.error || !postsResult.data?.length) return empty;
 
   const postIds = postsResult.data.map((post: { id: string }) => post.id);
-  const likesResult = await (supabase as any)
+  const likesResult = await supabase
     .from("community_post_likes")
     .select("post_id")
     .in("post_id", postIds);
@@ -224,7 +224,7 @@ export async function createCoachAnnouncement(workspaceId: string, body: string,
   if (!text) throw new Error("Escribe el anuncio antes de publicar.");
 
   const supabase = createServiceSupabaseClient();
-  const { error } = await (supabase as any).from("community_posts").insert({
+  const { error } = await supabase.from("community_posts").insert({
     workspace_id: workspaceId,
     member_profile_id: null,
     author_name: authorName.trim() || "Tu coach",
@@ -238,7 +238,7 @@ export async function toggleCommunityPin(workspaceId: string, postId: string) {
   if (!isUuid(workspaceId) || !isUuid(postId)) throw new Error("Publicación no válida.");
   const supabase = createServiceSupabaseClient();
 
-  const existing = await (supabase as any)
+  const existing = await supabase
     .from("community_posts")
     .select("pinned")
     .eq("id", postId)
@@ -247,7 +247,7 @@ export async function toggleCommunityPin(workspaceId: string, postId: string) {
   if (existing.error || !existing.data) throw new Error("No se encontró la publicación.");
 
   const nextPinned = !existing.data.pinned;
-  const { error } = await (supabase as any)
+  const { error } = await supabase
     .from("community_posts")
     .update({ pinned: nextPinned })
     .eq("id", postId)
@@ -259,7 +259,7 @@ export async function toggleCommunityPin(workspaceId: string, postId: string) {
 export async function moderateDeleteCommunityPost(workspaceId: string, postId: string) {
   if (!isUuid(workspaceId) || !isUuid(postId)) throw new Error("Publicación no válida.");
   const supabase = createServiceSupabaseClient();
-  const { error } = await (supabase as any)
+  const { error } = await supabase
     .from("community_posts")
     .delete()
     .eq("id", postId)

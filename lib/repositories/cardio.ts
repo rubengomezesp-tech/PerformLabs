@@ -116,7 +116,7 @@ export async function listCardioSessions(workspaceId?: string, limit = 8): Promi
   if (!memberProfileId) return empty;
 
   const safeLimit = Math.min(Math.max(Math.trunc(limit) || 8, 1), 50);
-  const result = await (supabase as any)
+  const result = await supabase
     .from("cardio_session_logs")
     .select("id,logged_on,modality,minutes,intensity,distance_km,calories,avg_hr,notes")
     .eq("member_profile_id", memberProfileId)
@@ -156,7 +156,7 @@ export async function logCardioSession(input: LogCardioInput) {
   const minutes = optInt(input.minutes, 600);
   const notes = input.notes?.trim() ? input.notes.trim().slice(0, 500) : null;
 
-  const { error } = await (supabase as any).from("cardio_session_logs").insert({
+  const { error } = await supabase.from("cardio_session_logs").insert({
     workspace_id: input.workspaceId,
     member_profile_id: memberProfileId,
     logged_on: safeDate(input.loggedOn),

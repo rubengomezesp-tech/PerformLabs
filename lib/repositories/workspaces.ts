@@ -274,7 +274,7 @@ async function seedBaseWorkspaceApp(
     updated_at: new Date().toISOString(),
   }));
 
-  const settingsResult = await (supabase as any)
+  const settingsResult = await supabase
     .from("app_settings")
     .upsert(settingsPayload, { onConflict: "workspace_id,key" });
 
@@ -282,7 +282,7 @@ async function seedBaseWorkspaceApp(
     throw new Error(`No se pudo preparar la configuracion base: ${settingsResult.error.message}`);
   }
 
-  const contentResult = await (supabase as any)
+  const contentResult = await supabase
     .from("content_pages")
     .upsert([
       {
@@ -329,7 +329,7 @@ async function seedBaseWorkspaceApp(
         : null,
   }));
 
-  const appPagesResult = await (supabase as any)
+  const appPagesResult = await supabase
     .from("app_pages")
     .upsert(appPages, { onConflict: "workspace_id,route" });
 
@@ -337,7 +337,7 @@ async function seedBaseWorkspaceApp(
     throw new Error(`No se pudo crear la navegacion base: ${appPagesResult.error.message}`);
   }
 
-  const existingProduct = await (supabase as any)
+  const existingProduct = await supabase
     .from("product_catalog_items")
     .select("id")
     .eq("workspace_id", input.workspaceId)
@@ -345,7 +345,7 @@ async function seedBaseWorkspaceApp(
     .maybeSingle();
 
   if (!existingProduct.data?.id) {
-    const productResult = await (supabase as any).from("product_catalog_items").insert({
+    const productResult = await supabase.from("product_catalog_items").insert({
       workspace_id: input.workspaceId,
       name: `Programa ${input.workspaceName}`,
       description: "Oferta principal pendiente de definir.",
@@ -409,7 +409,7 @@ export async function listWorkspaceSummaries(): Promise<{
   if (workspaceIds.length) {
     const [memberRows, subRows] = await Promise.all([
       supabase.from("member_profiles").select("workspace_id").in("workspace_id", workspaceIds),
-      (supabase as any).from("member_subscriptions").select("workspace_id,amount,status").in("workspace_id", workspaceIds),
+      supabase.from("member_subscriptions").select("workspace_id,amount,status").in("workspace_id", workspaceIds),
     ]);
     for (const row of (memberRows.data ?? []) as Array<{ workspace_id: string }>) {
       membersByWorkspace.set(row.workspace_id, (membersByWorkspace.get(row.workspace_id) ?? 0) + 1);
@@ -552,7 +552,7 @@ export async function updateWorkspaceBranding(workspaceId: string, fields: Works
   if (!payload.length) return;
 
   const supabase = createServiceSupabaseClient();
-  const { error } = await (supabase as any).from("app_settings").upsert(payload, { onConflict: "workspace_id,key" });
+  const { error } = await supabase.from("app_settings").upsert(payload, { onConflict: "workspace_id,key" });
   if (error) {
     throw new Error(`No se pudo guardar la marca: ${error.message}`);
   }

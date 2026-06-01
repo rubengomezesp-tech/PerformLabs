@@ -69,7 +69,7 @@ export async function getCoachBrain(workspaceId?: string): Promise<CoachBrain> {
   if (!env.ok || !isUuid(workspaceId)) return defaultBrain(workspaceId ?? "", false);
 
   const supabase = createServiceSupabaseClient();
-  const { data, error } = await (supabase as any)
+  const { data, error } = await supabase
     .from("coach_ai_brains")
     .select("enabled,assistant_name,greeting,persona,tone,specialties,rules,substitutions,forbidden")
     .eq("workspace_id", workspaceId)
@@ -109,7 +109,7 @@ export async function saveCoachBrain(input: SaveCoachBrainInput) {
   if (!isUuid(input.workspaceId)) throw new Error("No se pudo identificar la marca.");
   const supabase = createServiceSupabaseClient();
 
-  const { error } = await (supabase as any)
+  const { error } = await supabase
     .from("coach_ai_brains")
     .upsert(
       {
@@ -136,7 +136,7 @@ export async function listCoachAiMessages(workspaceId: string, memberProfileId: 
   if (!env.ok || !isUuid(workspaceId) || !isUuid(memberProfileId)) return [];
 
   const supabase = createServiceSupabaseClient();
-  const { data, error } = await (supabase as any)
+  const { data, error } = await supabase
     .from("coach_ai_messages")
     .select("id,role,content,created_at")
     .eq("workspace_id", workspaceId)
@@ -161,7 +161,7 @@ export async function appendCoachAiMessage(input: {
 }) {
   if (!isUuid(input.workspaceId)) return;
   const supabase = createServiceSupabaseClient();
-  await (supabase as any).from("coach_ai_messages").insert({
+  await supabase.from("coach_ai_messages").insert({
     workspace_id: input.workspaceId,
     member_profile_id: isUuid(input.memberProfileId) ? input.memberProfileId : null,
     role: input.role,
@@ -175,7 +175,7 @@ export async function listRecentClientQuestions(workspaceId?: string, limit = 8)
   if (!env.ok || !isUuid(workspaceId)) return [];
 
   const supabase = createServiceSupabaseClient();
-  const { data, error } = await (supabase as any)
+  const { data, error } = await supabase
     .from("coach_ai_messages")
     .select("content,created_at,member_profile_id")
     .eq("workspace_id", workspaceId)

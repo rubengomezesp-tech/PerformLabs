@@ -64,22 +64,22 @@ export async function getRetentionRadar(workspaceId?: string): Promise<Retention
       .from("member_profiles")
       .select("id,full_name,goal,subscription_status,onboarding_status,created_at")
       .eq("workspace_id", workspaceId),
-    (supabase as any)
+    supabase
       .from("workout_session_logs")
       .select("member_profile_id,session_date")
       .eq("workspace_id", workspaceId)
       .gte("session_date", sinceActivityDate),
-    (supabase as any)
+    supabase
       .from("member_meal_logs")
       .select("member_profile_id,logged_on")
       .eq("workspace_id", workspaceId)
       .gte("logged_on", sinceActivityDate),
-    (supabase as any)
+    supabase
       .from("customer_checkins")
       .select("member_profile_id,created_at")
       .eq("workspace_id", workspaceId)
       .gte("created_at", sinceCheckin),
-    (supabase as any)
+    supabase
       .from("member_activity_events")
       .select("member_profile_id,occurred_at")
       .eq("workspace_id", workspaceId)

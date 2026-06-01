@@ -65,7 +65,7 @@ export async function recordAiUsage(input: {
 
   try {
     const supabase = createServiceSupabaseClient();
-    await (supabase as any).from("ai_usage_events").insert({
+    await supabase.from("ai_usage_events").insert({
       workspace_id: input.workspaceId,
       feature: input.feature,
       model: input.model,
@@ -94,7 +94,7 @@ export async function getMonthlyAiUsage(workspaceId?: string): Promise<MonthlyAi
   if (!env.ok || !isUuid(workspaceId)) return empty;
 
   const supabase = createServiceSupabaseClient();
-  const { data, error } = await (supabase as any)
+  const { data, error } = await supabase
     .from("ai_usage_events")
     .select("feature,cost_usd")
     .eq("workspace_id", workspaceId)

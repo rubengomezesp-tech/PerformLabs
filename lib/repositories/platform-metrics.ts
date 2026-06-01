@@ -53,7 +53,7 @@ export async function getPlatformMetrics(): Promise<{
     countRows(supabase, "diet_templates"),
   ]);
 
-  const projectResult = await (supabase as any)
+  const projectResult = await supabase
     .from("implementation_projects")
     .select("project_name,client_name,status,launch_target_date,created_at")
     .order("created_at", { ascending: false })

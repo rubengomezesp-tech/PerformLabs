@@ -78,7 +78,7 @@ export async function getMemberHabitDay(workspaceId?: string, dateInput?: string
   const memberProfileId = await getDefaultMemberProfileId(workspaceId);
   if (!memberProfileId) return empty;
 
-  const habitsResult = await (supabase as any)
+  const habitsResult = await supabase
     .from("member_habits")
     .select("id,name,icon,target_per_day,sort_order")
     .eq("member_profile_id", memberProfileId)
@@ -92,12 +92,12 @@ export async function getMemberHabitDay(workspaceId?: string, dateInput?: string
 
   const habitIds = habitsResult.data.map((habit: { id: string }) => habit.id);
   const [todayLogs, streakLogs] = await Promise.all([
-    (supabase as any)
+    supabase
       .from("member_habit_logs")
       .select("habit_id")
       .eq("member_profile_id", memberProfileId)
       .eq("logged_on", date),
-    (supabase as any)
+    supabase
       .from("member_habit_logs")
       .select("logged_on")
       .eq("member_profile_id", memberProfileId)
@@ -140,7 +140,7 @@ export async function activateSuggestedHabits(workspaceId: string) {
     sort_order: index,
   }));
 
-  const { error } = await (supabase as any).from("member_habits").insert(payload);
+  const { error } = await supabase.from("member_habits").insert(payload);
   if (error) throw new Error(`No se pudieron activar los hábitos: ${error.message}`);
 }
 
@@ -152,7 +152,7 @@ export async function activateSuggestedHabits(workspaceId: string) {
 export async function seedSuggestedHabitsForMember(workspaceId: string, memberProfileId: string) {
   if (!isUuid(workspaceId) || !isUuid(memberProfileId)) return;
   const supabase = createServiceSupabaseClient();
-  const existing = await (supabase as any)
+  const existing = await supabase
     .from("member_habits")
     .select("id")
     .eq("member_profile_id", memberProfileId)
@@ -167,7 +167,7 @@ export async function seedSuggestedHabitsForMember(workspaceId: string, memberPr
     is_suggested: true,
     sort_order: index,
   }));
-  const { error } = await (supabase as any).from("member_habits").insert(payload);
+  const { error } = await supabase.from("member_habits").insert(payload);
   if (error) console.error("Unable to seed suggested habits", error.message);
 }
 
@@ -180,7 +180,7 @@ export async function createCustomHabit(workspaceId: string, name: string) {
   const memberProfileId = await getDefaultMemberProfileId(workspaceId);
   if (!memberProfileId) throw new Error("Todavía no hay perfil de cliente.");
 
-  const { error } = await (supabase as any).from("member_habits").insert({
+  const { error } = await supabase.from("member_habits").insert({
     workspace_id: workspaceId,
     member_profile_id: memberProfileId,
     name: cleanName,
@@ -198,7 +198,7 @@ export async function toggleHabitForDay(workspaceId: string, habitId: string, da
   if (!memberProfileId) throw new Error("Todavía no hay perfil de cliente.");
 
   // Guard: the habit must belong to this member.
-  const owned = await (supabase as any)
+  const owned = await supabase
     .from("member_habits")
     .select("id")
     .eq("id", habitId)
@@ -206,7 +206,7 @@ export async function toggleHabitForDay(workspaceId: string, habitId: string, da
     .maybeSingle();
   if (owned.error || !owned.data) throw new Error("Ese hábito no es tuyo.");
 
-  const existing = await (supabase as any)
+  const existing = await supabase
     .from("member_habit_logs")
     .select("id")
     .eq("habit_id", habitId)
@@ -214,12 +214,12 @@ export async function toggleHabitForDay(workspaceId: string, habitId: string, da
     .maybeSingle();
 
   if (existing.data?.id) {
-    const { error } = await (supabase as any).from("member_habit_logs").delete().eq("id", existing.data.id);
+    const { error } = await supabase.from("member_habit_logs").delete().eq("id", existing.data.id);
     if (error) throw new Error(`No se pudo actualizar el hábito: ${error.message}`);
     return { done: false };
   }
 
-  const { error } = await (supabase as any).from("member_habit_logs").insert({
+  const { error } = await supabase.from("member_habit_logs").insert({
     habit_id: habitId,
     member_profile_id: memberProfileId,
     workspace_id: workspaceId,
@@ -236,7 +236,7 @@ export async function archiveHabit(workspaceId: string, habitId: string) {
   const memberProfileId = await getDefaultMemberProfileId(workspaceId);
   if (!memberProfileId) throw new Error("Todavía no hay perfil de cliente.");
 
-  const { error } = await (supabase as any)
+  const { error } = await supabase
     .from("member_habits")
     .update({ archived: true, updated_at: new Date().toISOString() })
     .eq("id", habitId)

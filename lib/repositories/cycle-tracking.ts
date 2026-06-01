@@ -69,7 +69,7 @@ export async function getCycleOverview(workspaceId?: string, limit = 24): Promis
   const scope = await resolveMemberScope(workspaceId);
   if (!scope) return empty;
 
-  const { data, error } = await (supabase as any)
+  const { data, error } = await supabase
     .from("member_cycle_logs")
     .select("id,logged_on,entry_type,flow,symptoms,notes")
     .eq("member_profile_id", scope.memberProfileId)
@@ -127,7 +127,7 @@ export async function upsertCycleLog(input: {
   const flow = input.flow && ["light", "medium", "heavy"].includes(input.flow) ? input.flow : null;
 
   const supabase = createServiceSupabaseClient();
-  const { error } = await (supabase as any)
+  const { error } = await supabase
     .from("member_cycle_logs")
     .upsert(
       {
@@ -155,7 +155,7 @@ export async function deleteCycleLog(workspaceId: string, entryId: string) {
   }
 
   const supabase = createServiceSupabaseClient();
-  const { error } = await (supabase as any)
+  const { error } = await supabase
     .from("member_cycle_logs")
     .delete()
     .eq("id", entryId)

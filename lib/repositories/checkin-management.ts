@@ -343,7 +343,7 @@ export async function getCoachIntelligenceAlerts(workspaceId?: string): Promise<
       .select("id,member_profile_id,next_review_on,review_status,name,member_profiles(full_name)")
       .eq("workspace_id", workspaceId)
       .eq("status", "active"),
-    (supabase as any)
+    supabase
       .from("workout_session_logs")
       .select("id,member_profile_id,session_date,status")
       .eq("workspace_id", workspaceId)

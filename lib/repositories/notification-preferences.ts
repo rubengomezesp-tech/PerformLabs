@@ -1,4 +1,5 @@
 import { getMemberContext } from "@/lib/auth/member-access";
+import type { Database } from "@/lib/supabase/database.types";
 import { getSupabaseServiceEnv } from "@/lib/supabase/env";
 import { createServiceSupabaseClient } from "@/lib/supabase/server";
 
@@ -44,15 +45,18 @@ export async function getMemberNotificationPreferences(workspaceId?: string): Pr
   if (!memberProfileId) return { ...DEFAULTS };
 
   const supabase = createServiceSupabaseClient();
-  const { data } = await (supabase as any)
+  const { data } = await supabase
     .from("member_notification_preferences")
     .select(NOTIFICATION_KEYS.join(","))
     .eq("member_profile_id", memberProfileId)
     .maybeSingle();
 
-  if (!data) return { ...DEFAULTS };
+  // The select list is built from NOTIFICATION_KEYS at runtime, so narrow the row
+  // to the known preference shape rather than letting it widen to a parser error.
+  const row = data as Partial<NotificationPreferences> | null;
+  if (!row) return { ...DEFAULTS };
   return NOTIFICATION_KEYS.reduce((acc, key) => {
-    acc[key] = data[key] === undefined ? DEFAULTS[key] : Boolean(data[key]);
+    acc[key] = row[key] === undefined ? DEFAULTS[key] : Boolean(row[key]);
     return acc;
   }, {} as NotificationPreferences);
 }
@@ -66,11 +70,15 @@ export async function setMemberNotificationPreference(workspaceId: string, key: 
   if (!memberProfileId) throw new Error("Todavía no hay perfil de cliente para guardar la preferencia.");
 
   const supabase = createServiceSupabaseClient();
-  const { error } = await (supabase as any)
+  // `key` is a validated NotificationKey (a real boolean column), but a computed
+  // property key widens the literal, so assert the row to the table's Insert type.
+  const payload = {
+    member_profile_id: memberProfileId,
+    [key]: value,
+    updated_at: new Date().toISOString(),
+  } as Database["public"]["Tables"]["member_notification_preferences"]["Insert"];
+  const { error } = await supabase
     .from("member_notification_preferences")
-    .upsert(
-      { member_profile_id: memberProfileId, [key]: value, updated_at: new Date().toISOString() },
-      { onConflict: "member_profile_id" },
-    );
+    .upsert(payload, { onConflict: "member_profile_id" });
   if (error) throw new Error(`No se pudo guardar la preferencia: ${error.message}`);
 }

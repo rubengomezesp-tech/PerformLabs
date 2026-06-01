@@ -184,7 +184,7 @@ export async function setMemberHideMacros(workspaceId: string, hide: boolean) {
     throw new Error("Todavía no hay perfil de cliente para guardar la preferencia.");
   }
 
-  const { error } = await (supabase as any)
+  const { error } = await supabase
     .from("member_diet_preferences")
     .upsert(
       { member_profile_id: memberProfileId, hide_macros: hide, updated_at: new Date().toISOString() },
@@ -267,7 +267,7 @@ export async function listFoodDiaryEntries(workspaceId?: string, dateInput?: str
   const scope = await resolveMemberScope(workspaceId);
   if (!scope) return [];
 
-  const { data, error } = await (supabase as any)
+  const { data, error } = await supabase
     .from("food_diary_entries")
     .select("id,name,source,protein_g,fat_g,carbs_g,calories")
     .eq("member_profile_id", scope.memberProfileId)
@@ -312,7 +312,7 @@ export async function addFoodDiaryEntry(input: {
   }
 
   const date = input.date && /^\d{4}-\d{2}-\d{2}$/.test(input.date) ? input.date : todayIso();
-  const { error } = await (supabase as any).from("food_diary_entries").insert({
+  const { error } = await supabase.from("food_diary_entries").insert({
     workspace_id: input.workspaceId,
     member_profile_id: memberProfileId,
     logged_on: date,
@@ -340,7 +340,7 @@ export async function deleteFoodDiaryEntry(workspaceId: string, entryId: string)
     throw new Error("Todavía no hay perfil de cliente.");
   }
 
-  const { error } = await (supabase as any)
+  const { error } = await supabase
     .from("food_diary_entries")
     .delete()
     .eq("id", entryId)
@@ -726,15 +726,16 @@ export async function getNutritionDailySummary(workspaceId?: string, dateInput?:
   const scope = await resolveMemberScope(workspaceId);
   const memberProfileId = scope?.memberProfileId ?? null;
   const ws = scope?.workspaceId ?? workspaceId;
+  if (!ws) return empty;
   const date = dateInput && /^\d{4}-\d{2}-\d{2}$/.test(dateInput) ? dateInput : todayIso();
 
-  let mealQuery = (supabase as any)
+  let mealQuery = supabase
     .from("member_meal_logs")
     .select("meal_slot,status,satisfaction,notes")
     .eq("workspace_id", ws)
     .eq("logged_on", date);
 
-  let dailyQuery = (supabase as any)
+  let dailyQuery = supabase
     .from("member_nutrition_daily_logs")
     .select("water_glasses,hunger_level,energy_level,notes")
     .eq("workspace_id", ws)
@@ -808,7 +809,7 @@ export async function upsertMealLog(input: MealLogInput) {
     updated_at: new Date().toISOString(),
   };
 
-  const { error } = await (supabase as any)
+  const { error } = await supabase
     .from("member_meal_logs")
     .upsert(payload, {
       onConflict: "workspace_id,member_profile_id,logged_on,meal_slot",
@@ -855,7 +856,7 @@ export async function logWaterGlass(workspaceId: string, delta = 1) {
 
   const supabase = createServiceSupabaseClient();
   const date = todayIso();
-  const { data: existing } = await (supabase as any)
+  const { data: existing } = await supabase
     .from("member_nutrition_daily_logs")
     .select("water_glasses")
     .eq("workspace_id", ws)
@@ -866,7 +867,7 @@ export async function logWaterGlass(workspaceId: string, delta = 1) {
   const current = typeof existing?.water_glasses === "number" ? existing.water_glasses : 0;
   const next = clampInteger(current + delta, 0, 20) ?? 0;
 
-  const { error } = await (supabase as any)
+  const { error } = await supabase
     .from("member_nutrition_daily_logs")
     .upsert(
       {
@@ -902,7 +903,7 @@ export async function upsertDailyNutritionLog(input: DailyNutritionInput) {
     updated_at: new Date().toISOString(),
   };
 
-  const { error } = await (supabase as any)
+  const { error } = await supabase
     .from("member_nutrition_daily_logs")
     .upsert(payload, {
       onConflict: "workspace_id,member_profile_id,logged_on",

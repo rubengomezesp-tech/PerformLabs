@@ -486,7 +486,7 @@ export async function swapAssignedMealItem(input: { workspaceId: string; itemId:
   if (!member) throw new Error("No se pudo identificar la app del cliente.");
 
   const supabase = createServiceSupabaseClient();
-  const { data, error } = await (supabase as any)
+  const { data, error } = await supabase
     .from("assigned_meal_plan_items")
     .update({
       recipe_id: recipe.id,
