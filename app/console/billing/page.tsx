@@ -1,6 +1,7 @@
 import { CreditCard, Plus } from "lucide-react";
 import { Topbar } from "@/components/topbar";
 import { listManagedPricingPlans, listManagedProducts } from "@/lib/repositories/billing-management";
+import { getPlatformRevenueSummary } from "@/lib/repositories/member-subscriptions";
 import { listWorkspaceSummaries } from "@/lib/repositories/workspaces";
 import { createPricingPlanAction, createProductAction } from "./actions";
 
@@ -21,19 +22,36 @@ export default async function BillingPage({ searchParams }: BillingPageProps) {
   const params = await searchParams;
   const { workspaces } = await listWorkspaceSummaries();
   const selectedWorkspace = workspaces.find((workspace) => workspace.id === params?.brand) ?? workspaces[0];
-  const [products, plans] = await Promise.all([
+  const [products, plans, revenue] = await Promise.all([
     listManagedProducts(selectedWorkspace?.id),
     listManagedPricingPlans(selectedWorkspace?.id),
+    getPlatformRevenueSummary(),
   ]);
 
   return (
     <>
       <Topbar
         eyebrow="Pagos"
-        title="Ofertas, productos y planes de acceso."
-        text="Prepara productos, trials, precios y módulos incluidos antes de conectar checkout real."
+        title="Ingresos de la plataforma, productos y planes."
+        text="La comisión del 25% que PerformLabs cobra de cada pago de miembro (Stripe Connect), más el catálogo de productos y planes por marca."
       />
       <section className="grid">
+        <article className="card span3 motionCard">
+          <p className="metric">Ingreso recurrente<strong>{formatPrice(revenue.grossMrrCents, revenue.currency)}</strong></p>
+          <p>{revenue.activeSubscriptions} suscripción(es) activa(s) en todas las marcas.</p>
+        </article>
+        <article className="card span3 motionCard">
+          <p className="metric">Comisión PerformLabs<strong>{formatPrice(revenue.platformMrrCents, revenue.currency)}</strong></p>
+          <p>~25% recurrente sobre el ingreso de las marcas.</p>
+        </article>
+        <article className="card span3 motionCard">
+          <p className="metric">Fees cobrados<strong>{formatPrice(revenue.feesCollectedCents, revenue.currency)}</strong></p>
+          <p>{formatPrice(revenue.feesThisMonthCents, revenue.currency)} este mes · del ledger de invoices.</p>
+        </article>
+        <article className="card span3 motionCard">
+          <p className="metric">Volumen procesado<strong>{formatPrice(revenue.grossVolumeCents, revenue.currency)}</strong></p>
+          <p>Pagos de miembros acumulados (histórico).</p>
+        </article>
         <article className="card span12">
           <form action="/console/billing" className="formGrid" method="get">
             <label>
