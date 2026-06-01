@@ -20,6 +20,9 @@ export function getStripeEnv(): StripeEnv {
   const webhookSecret = process.env.STRIPE_WEBHOOK_SECRET ?? "";
   const platformPriceId = process.env.STRIPE_PLATFORM_PRICE_ID ?? "";
   const feeRaw = Number(process.env.STRIPE_APPLICATION_FEE_PERCENT ?? "25");
+  // Clamp to a valid percentage: a typo like "250" must never reach Stripe as
+  // application_fee_percent.
+  const applicationFeePercent = Number.isFinite(feeRaw) ? Math.min(100, Math.max(0, feeRaw)) : 25;
 
   return {
     secretKey,
@@ -27,7 +30,7 @@ export function getStripeEnv(): StripeEnv {
     connectClientId,
     webhookSecret,
     platformPriceId,
-    applicationFeePercent: Number.isFinite(feeRaw) ? feeRaw : 25,
+    applicationFeePercent,
     ok: Boolean(secretKey),
   };
 }

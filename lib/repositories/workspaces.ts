@@ -187,6 +187,16 @@ function normalizeWorkspaceReference(value?: string | null) {
     return "";
   }
 
+  // Reject anything outside a slug/domain/uuid charset before it reaches the
+  // PostgREST .or() filter below: commas and parentheses are or() syntax, so a
+  // crafted Host header or `performlabs_workspace_id` cookie like
+  // `x,id.eq.<uuid>` could otherwise inject extra OR conditions. An invalid
+  // reference resolves to the default brand (same as an unknown host), never a
+  // chosen/internal one.
+  if (!/^[a-z0-9.-]+$/.test(reference)) {
+    return "";
+  }
+
   return reference;
 }
 

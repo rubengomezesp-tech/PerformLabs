@@ -1,4 +1,5 @@
 import type { AiRecipeDraft } from "@/lib/ai/nutrition-agent";
+import { getMemberContext } from "@/lib/auth/member-access";
 import { dietTemplateCategories, meals } from "@/lib/data";
 import { getSupabaseServiceEnv } from "@/lib/supabase/env";
 import { createServiceSupabaseClient } from "@/lib/supabase/server";
@@ -478,6 +479,12 @@ export async function swapAssignedMealItem(input: { workspaceId: string; itemId:
     throw new Error("Esa receta no existe.");
   }
 
+  // Scope the swap to the caller's own assigned item: without the member_profile_id
+  // filter a member could rewrite another client's meal via a forged itemId, since
+  // every client in a coach's workspace shares the same workspace_id.
+  const member = await getMemberContext(input.workspaceId);
+  if (!member) throw new Error("No se pudo identificar la app del cliente.");
+
   const supabase = createServiceSupabaseClient();
   const { data, error } = await (supabase as any)
     .from("assigned_meal_plan_items")
@@ -492,6 +499,7 @@ export async function swapAssignedMealItem(input: { workspaceId: string; itemId:
     })
     .eq("id", input.itemId)
     .eq("workspace_id", input.workspaceId)
+    .eq("member_profile_id", member.memberProfileId)
     .select("id");
 
   if (error) {

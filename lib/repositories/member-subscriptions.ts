@@ -210,8 +210,12 @@ export async function recordPlatformFeeEvent(record: {
     currency: record.currency ?? null,
     status: record.status ?? null,
   });
-  // A unique-violation on the primary key means we have seen this invoice before.
-  return !error;
+  if (!error) return true;
+  // A unique-violation (23505) means we already recorded this invoice — benign.
+  if ((error as { code?: string }).code === "23505") return true;
+  // Any other error is transient (pool/timeout): throw so the webhook route
+  // returns 500 and Stripe re-delivers, instead of silently dropping a fee event.
+  throw new Error(`platform_fee_events insert failed: ${error.message ?? "unknown"}`);
 }
 
 function isUuid(value?: string | null): value is string {

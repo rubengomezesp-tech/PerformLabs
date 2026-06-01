@@ -2,7 +2,7 @@
 
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
-import { requireMemberWorkspaceId } from "@/lib/auth/member-access";
+import { getMemberContext, requireMemberWorkspaceId } from "@/lib/auth/member-access";
 import { analyzeMealText } from "@/lib/ai/smart-add";
 import { checkAiQuota, recordAiUsage } from "@/lib/ai/usage";
 import { analyzeMealPhoto } from "@/lib/ai/vision-nutrition";
@@ -24,7 +24,15 @@ export async function smartAddMealPhotoAction(input: {
   date?: string;
 }): Promise<PhotoMealResult> {
   try {
-    const quota = await checkAiQuota(input.workspaceId, "photo");
+    // Resolve the workspace from the verified session, not the client-supplied
+    // value: otherwise any member could spend Claude vision budget and burn a
+    // competitor workspace's monthly photo quota by passing its id. Identity is
+    // checked BEFORE the billed analyzeMealPhoto call.
+    const member = await getMemberContext(input.workspaceId || undefined);
+    if (!member) return { ok: false, error: "Inicia sesión para usar esta función." };
+    const workspaceId = member.workspaceId;
+
+    const quota = await checkAiQuota(workspaceId, "photo");
     if (!quota.allowed) {
       return { ok: false, error: `Has alcanzado el límite de ${quota.limit} análisis por foto de este mes.` };
     }
@@ -32,9 +40,9 @@ export async function smartAddMealPhotoAction(input: {
     const result = await analyzeMealPhoto(input.base64, input.mediaType);
     if (!result.ok) return { ok: false, error: result.error };
 
-    await recordAiUsage({ workspaceId: input.workspaceId, feature: "photo", model: result.model, usage: result.usage });
+    await recordAiUsage({ workspaceId, feature: "photo", model: result.model, usage: result.usage });
     await addFoodDiaryEntry({
-      workspaceId: input.workspaceId,
+      workspaceId,
       name: result.macros.name,
       protein: result.macros.protein,
       fat: result.macros.fat,
