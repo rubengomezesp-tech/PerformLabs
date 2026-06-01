@@ -42,6 +42,7 @@ export function AuthHashBridge() {
     }
 
     const nextPath = validNextPath(queryParams.get("next"));
+    const workspaceRef = queryParams.get("w");
     setMessage("Activando tu sesión segura...");
 
     async function resolveTokens(): Promise<SessionTokens> {
@@ -85,6 +86,7 @@ export function AuthHashBridge() {
         addField("refreshToken", tokens.refreshToken);
         if (tokens.expiresIn) addField("expiresIn", String(tokens.expiresIn));
         if (nextPath) addField("next", nextPath);
+        if (workspaceRef) addField("w", workspaceRef);
         document.body.appendChild(form);
         form.submit();
       })

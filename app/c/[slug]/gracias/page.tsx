@@ -25,12 +25,13 @@ export default async function CheckoutSuccessPage({ params }: { params: Promise<
         <CheckCircle2 size={48} color={accent} aria-hidden="true" />
         <h1 style={{ marginTop: 16 }}>¡Pago confirmado!</h1>
         <p className="muted">
-          Hemos creado tu cuenta{known ? ` en ${brand.name}` : ""}. Escribe tu email y te enviamos un enlace para entrar
-          a tu app.
+          Hemos creado tu cuenta{known ? ` en ${brand.name}` : ""}. Escribe el email con el que pagaste y te enviamos un
+          enlace para entrar a tu app.
         </p>
         <form action={requestMemberAccessLinkAction} style={{ display: "grid", gap: 10, marginTop: 24, textAlign: "left" }}>
+          <input type="hidden" name="w" value={slug} />
           <label style={{ display: "grid", gap: 4, fontSize: 13, opacity: 0.85 }}>
-            Tu email
+            El email con el que pagaste
             <input name="email" type="email" required placeholder="tu@email.com" autoComplete="email" inputMode="email" />
           </label>
           <button className="btn primary" type="submit" style={{ background: accent, borderColor: accent }}>

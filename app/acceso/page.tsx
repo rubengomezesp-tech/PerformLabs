@@ -38,6 +38,7 @@ export default async function MemberAccessPage({ searchParams }: AccesoPageProps
         {params?.error ? <p className="formMessage danger" role="alert">{params.error}</p> : null}
         {params?.success ? <p className="formMessage success" role="status">{params.success}</p> : null}
         <form action={requestMemberAccessLinkAction} className="authForm">
+          <input type="hidden" name="w" value={brand.id} />
           <label>
             Email
             <input name="email" placeholder="tu@email.com" required type="email" autoComplete="email" inputMode="email" />

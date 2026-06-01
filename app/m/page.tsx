@@ -44,6 +44,7 @@ export default async function MemberLandingPage({ searchParams }: MemberLandingP
 
         {params?.error ? <p className="formMessage danger" role="alert">{params.error}</p> : null}
         <form action={requestMemberAccessLinkAction} className="memberAccessForm">
+          <input type="hidden" name="w" value={brand.id} />
           <label>
             Email
             <input name="email" type="email" required placeholder="tu@email.com" autoComplete="email" inputMode="email" />
