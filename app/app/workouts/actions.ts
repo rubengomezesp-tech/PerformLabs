@@ -1,6 +1,8 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
+import { redirect } from "next/navigation";
+import { requireMemberWorkspaceId } from "@/lib/auth/member-access";
 import { createWorkoutIssueRequest, createWorkoutSessionLog, type WorkoutSetLogInput } from "@/lib/repositories/workout-performance";
 import { swapAssignedWorkoutExercise } from "@/lib/repositories/training-management";
 
@@ -21,6 +23,7 @@ function readInteger(value: FormDataEntryValue | null) {
 }
 
 export async function saveWorkoutSessionAction(formData: FormData) {
+  const workspaceId = await requireMemberWorkspaceId(readText(formData, "workspaceId") || undefined);
   const templateExerciseIds = formData.getAll("templateExerciseId");
   const exerciseIds = formData.getAll("exerciseId");
   const setNumbers = formData.getAll("setNumber");
@@ -43,41 +46,56 @@ export async function saveWorkoutSessionAction(formData: FormData) {
     notes: typeof setNotes[index] === "string" ? String(setNotes[index]) : "",
   }));
 
-  await createWorkoutSessionLog({
-    workspaceId: readText(formData, "workspaceId"),
-    templateId: readText(formData, "templateId"),
-    dayId: readText(formData, "dayId"),
-    assignedDayId: readText(formData, "assignedDayId"),
-    perceivedEffort: readInteger(formData.get("perceivedEffort")),
-    durationMinutes: readInteger(formData.get("durationMinutes")),
-    notes: readText(formData, "notes"),
-    sets,
-  });
+  try {
+    await createWorkoutSessionLog({
+      workspaceId,
+      templateId: readText(formData, "templateId"),
+      dayId: readText(formData, "dayId"),
+      assignedDayId: readText(formData, "assignedDayId"),
+      perceivedEffort: readInteger(formData.get("perceivedEffort")),
+      durationMinutes: readInteger(formData.get("durationMinutes")),
+      notes: readText(formData, "notes"),
+      sets,
+    });
+  } catch (error) {
+    console.error("saveWorkoutSessionAction failed", (error as Error).message);
+    redirect("/app/workouts?error=" + encodeURIComponent("No se pudo guardar el entreno. Inténtalo de nuevo."));
+  }
 
   revalidatePath("/app/workouts");
   revalidatePath("/app/progress");
 }
 
 export async function swapWorkoutExerciseAction(formData: FormData) {
-  await swapAssignedWorkoutExercise({
-    workspaceId: readText(formData, "workspaceId"),
-    assignedExerciseId: readText(formData, "assignedExerciseId"),
-    newExerciseId: readText(formData, "newExerciseId"),
-  });
-
+  const workspaceId = await requireMemberWorkspaceId(readText(formData, "workspaceId") || undefined);
+  try {
+    await swapAssignedWorkoutExercise({
+      workspaceId,
+      assignedExerciseId: readText(formData, "assignedExerciseId"),
+      newExerciseId: readText(formData, "newExerciseId"),
+    });
+  } catch (error) {
+    console.error("swapWorkoutExerciseAction failed", (error as Error).message);
+    redirect("/app/workouts?error=" + encodeURIComponent("No se pudo cambiar el ejercicio. Inténtalo de nuevo."));
+  }
   revalidatePath("/app/workouts");
 }
 
 export async function requestWorkoutIssueAction(formData: FormData) {
-  await createWorkoutIssueRequest({
-    workspaceId: readText(formData, "workspaceId"),
-    templateId: readText(formData, "templateId"),
-    dayId: readText(formData, "dayId"),
-    assignedDayId: readText(formData, "assignedDayId"),
-    reason: readText(formData, "issueReason"),
-    notes: readText(formData, "issueNotes"),
-  });
-
+  const workspaceId = await requireMemberWorkspaceId(readText(formData, "workspaceId") || undefined);
+  try {
+    await createWorkoutIssueRequest({
+      workspaceId,
+      templateId: readText(formData, "templateId"),
+      dayId: readText(formData, "dayId"),
+      assignedDayId: readText(formData, "assignedDayId"),
+      reason: readText(formData, "issueReason"),
+      notes: readText(formData, "issueNotes"),
+    });
+  } catch (error) {
+    console.error("requestWorkoutIssueAction failed", (error as Error).message);
+    redirect("/app/workouts?error=" + encodeURIComponent("No se pudo avisar al coach. Inténtalo de nuevo."));
+  }
   revalidatePath("/app/workouts");
   revalidatePath("/coach");
 }

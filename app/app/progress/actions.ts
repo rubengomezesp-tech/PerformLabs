@@ -1,6 +1,8 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
+import { redirect } from "next/navigation";
+import { requireMemberWorkspaceId } from "@/lib/auth/member-access";
 import { createMemberCheckin } from "@/lib/repositories/checkin-management";
 
 function readText(formData: FormData, key: string) {
@@ -9,21 +11,27 @@ function readText(formData: FormData, key: string) {
 }
 
 export async function createMemberCheckinAction(formData: FormData) {
-  await createMemberCheckin({
-    workspaceId: readText(formData, "workspaceId"),
-    weightKg: readText(formData, "weightKg"),
-    bodyFatPercent: readText(formData, "bodyFatPercent"),
-    waistCm: readText(formData, "waistCm"),
-    chestCm: readText(formData, "chestCm"),
-    hipCm: readText(formData, "hipCm"),
-    energy: readText(formData, "energy"),
-    sleepQuality: readText(formData, "sleepQuality"),
-    digestion: readText(formData, "digestion"),
-    trainingAdherence: readText(formData, "trainingAdherence"),
-    nutritionAdherence: readText(formData, "nutritionAdherence"),
-    notes: readText(formData, "notes"),
-    photosAvailable: formData.get("photosAvailable") === "on",
-  });
+  const workspaceId = await requireMemberWorkspaceId(readText(formData, "workspaceId") || undefined);
+  try {
+    await createMemberCheckin({
+      workspaceId,
+      weightKg: readText(formData, "weightKg"),
+      bodyFatPercent: readText(formData, "bodyFatPercent"),
+      waistCm: readText(formData, "waistCm"),
+      chestCm: readText(formData, "chestCm"),
+      hipCm: readText(formData, "hipCm"),
+      energy: readText(formData, "energy"),
+      sleepQuality: readText(formData, "sleepQuality"),
+      digestion: readText(formData, "digestion"),
+      trainingAdherence: readText(formData, "trainingAdherence"),
+      nutritionAdherence: readText(formData, "nutritionAdherence"),
+      notes: readText(formData, "notes"),
+      photosAvailable: formData.get("photosAvailable") === "on",
+    });
+  } catch (error) {
+    console.error("createMemberCheckinAction failed", (error as Error).message);
+    redirect("/app/progress?error=" + encodeURIComponent("No se pudo enviar el check-in. Inténtalo de nuevo."));
+  }
 
   revalidatePath("/app/progress");
   revalidatePath("/coach/checkins");

@@ -1,6 +1,8 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
+import { redirect } from "next/navigation";
+import { requireMemberWorkspaceId } from "@/lib/auth/member-access";
 import { logCardioSession } from "@/lib/repositories/cardio";
 
 function readText(formData: FormData, key: string) {
@@ -16,17 +18,23 @@ function readOptionalNumber(formData: FormData, key: string): number | null {
 }
 
 export async function logCardioSessionAction(formData: FormData) {
-  await logCardioSession({
-    workspaceId: readText(formData, "workspaceId"),
-    modality: readText(formData, "modality"),
-    intensity: readText(formData, "intensity") || null,
-    minutes: readOptionalNumber(formData, "minutes"),
-    distanceKm: readOptionalNumber(formData, "distanceKm"),
-    calories: readOptionalNumber(formData, "calories"),
-    avgHr: readOptionalNumber(formData, "avgHr"),
-    notes: readText(formData, "notes") || null,
-    loggedOn: readText(formData, "loggedOn") || null,
-  });
+  const workspaceId = await requireMemberWorkspaceId(readText(formData, "workspaceId") || undefined);
+  try {
+    await logCardioSession({
+      workspaceId,
+      modality: readText(formData, "modality"),
+      intensity: readText(formData, "intensity") || null,
+      minutes: readOptionalNumber(formData, "minutes"),
+      distanceKm: readOptionalNumber(formData, "distanceKm"),
+      calories: readOptionalNumber(formData, "calories"),
+      avgHr: readOptionalNumber(formData, "avgHr"),
+      notes: readText(formData, "notes") || null,
+      loggedOn: readText(formData, "loggedOn") || null,
+    });
+  } catch (error) {
+    console.error("logCardioSessionAction failed", (error as Error).message);
+    redirect("/app/cardio?error=" + encodeURIComponent("No se pudo guardar la sesión. Inténtalo de nuevo."));
+  }
 
   revalidatePath("/app/cardio");
   revalidatePath("/app");
