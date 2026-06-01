@@ -255,6 +255,12 @@ export async function getWorkoutPerformanceSummary(workspaceId?: string): Promis
   const env = getSupabaseServiceEnv();
   if (!env.ok || !workspaceId) return empty;
 
+  // Scope to the caller's own sessions: this summary renders on the member's
+  // /app/workouts, so a workspace-only filter would leak every other client's
+  // training (sessions, volume, best set) in the same coach workspace.
+  const member = await getMemberContext(workspaceId);
+  if (!member) return empty;
+
   const supabase = createServiceSupabaseClient();
   const fromDate = new Date();
   fromDate.setDate(fromDate.getDate() - 7);
@@ -263,6 +269,7 @@ export async function getWorkoutPerformanceSummary(workspaceId?: string): Promis
     .from("workout_session_logs")
     .select("id,session_date,status")
     .eq("workspace_id", workspaceId)
+    .eq("member_profile_id", member.memberProfileId)
     .gte("session_date", fromDate.toISOString().slice(0, 10))
     .order("session_date", { ascending: false })
     .limit(12);
