@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { Fragment } from "react";
+import { signOutAction } from "@/app/auth/actions";
 import { CommandPalette } from "@/components/command-palette";
 import { NavLink } from "@/components/nav-link";
 import { platformBrand } from "@/lib/brand";
@@ -102,7 +103,11 @@ export function Sidebar({
           <span>{session.mode === "authenticated" ? "Estás dentro" : "Modo local"}</span>
           <strong>{session.email}</strong>
           <small>{session.roleLabel}</small>
-          {session.mode === "authenticated" ? <a href="/logout">Cerrar sesión</a> : null}
+          {session.mode === "authenticated" ? (
+            <form action={signOutAction}>
+              <button type="submit">Cerrar sesión</button>
+            </form>
+          ) : null}
         </div>
       ) : null}
     </aside>
