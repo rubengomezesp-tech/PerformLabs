@@ -4,11 +4,42 @@ import { revalidatePath } from "next/cache";
 import { requirePlatformAccess } from "@/lib/auth/access-control";
 import { entitlementModules, upsertWorkspaceEntitlement, type EntitlementModule, type EntitlementStatus } from "@/lib/repositories/entitlements";
 import { recordSecurityAuditEvent } from "@/lib/repositories/security-management";
-import { createWorkspace, setWorkspaceActive, updateWorkspace } from "@/lib/repositories/workspaces";
+import { createWorkspace, setWorkspaceActive, setWorkspaceCustomDomain, updateWorkspace } from "@/lib/repositories/workspaces";
+import { registerProjectDomain } from "@/lib/vercel/domains";
 
 function readText(formData: FormData, key: string) {
   const value = formData.get(key);
   return typeof value === "string" ? value.trim() : "";
+}
+
+/**
+ * Connect a coach's custom domain: store it on the workspace and (best-effort)
+ * register it on the Vercel project so it's served with TLS. Dark-safe — if the
+ * Vercel API token isn't set the domain is still saved and the operator adds the
+ * host by hand. getWorkspaceBrand already resolves the brand from this host.
+ */
+export async function connectWorkspaceDomainAction(formData: FormData) {
+  const session = await requirePlatformAccess();
+  const id = readText(formData, "id");
+  const domain = readText(formData, "customDomain");
+  if (!id || !domain) return;
+
+  await setWorkspaceCustomDomain(id, domain);
+  const result = await registerProjectDomain(domain);
+
+  await recordSecurityAuditEvent({
+    workspaceId: id,
+    actorUserId: session.mode === "authenticated" ? session.user.id : null,
+    action: "workspace.domain_connected",
+    entityType: "workspace",
+    entityId: id,
+    metadata: {
+      domain,
+      vercel: !result.configured ? "not_configured" : result.ok ? "registered" : `error:${result.error ?? "unknown"}`,
+    },
+  });
+
+  revalidatePath("/console/apps");
 }
 
 export async function createWorkspaceAction(formData: FormData) {

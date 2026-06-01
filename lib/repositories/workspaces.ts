@@ -566,6 +566,18 @@ export async function getWorkspaceSlug(workspaceId: string): Promise<string | nu
   return (data as { slug: string | null } | null)?.slug ?? null;
 }
 
+/** Set (or clear) a workspace's custom domain — the host the coach's clients use. */
+export async function setWorkspaceCustomDomain(workspaceId: string, domain: string): Promise<void> {
+  if (!isUuid(workspaceId)) throw new Error("No se pudo identificar la marca.");
+  const normalized = normalizeDomain(domain);
+  const supabase = createServiceSupabaseClient();
+  const { error } = await supabase
+    .from("workspaces")
+    .update({ custom_domain: normalized || null, updated_at: new Date().toISOString() })
+    .eq("id", workspaceId);
+  if (error) throw new Error(`No se pudo guardar el dominio: ${error.message}`);
+}
+
 export const getWorkspaceBrand = cache(async (workspaceReference?: string): Promise<WorkspaceBrand> => {
   const env = getSupabaseServiceEnv();
 
