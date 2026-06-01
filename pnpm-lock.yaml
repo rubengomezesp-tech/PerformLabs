@@ -24,13 +24,13 @@ importers:
         specifier: ^2.106.2
         version: 2.106.2
       '@types/node':
-        specifier: latest
+        specifier: ^25.9.1
         version: 25.9.1
       '@types/react':
-        specifier: latest
+        specifier: ^19.2.15
         version: 19.2.15
       '@types/react-dom':
-        specifier: latest
+        specifier: ^19.2.3
         version: 19.2.3(@types/react@19.2.15)
       decimal.js:
         specifier: ^10.6.0
@@ -42,22 +42,22 @@ importers:
         specifier: ^1.3.23
         version: 1.3.23(react@19.2.6)
       lucide-react:
-        specifier: latest
+        specifier: ^1.16.0
         version: 1.16.0(react@19.2.6)
       next:
-        specifier: latest
+        specifier: ^16.2.6
         version: 16.2.6(react-dom@19.2.6(react@19.2.6))(react@19.2.6)
       react:
-        specifier: latest
+        specifier: ^19.2.6
         version: 19.2.6
       react-dom:
-        specifier: latest
+        specifier: ^19.2.6
         version: 19.2.6(react@19.2.6)
       three:
         specifier: ^0.184.0
         version: 0.184.0
       typescript:
-        specifier: latest
+        specifier: ^6.0.3
         version: 6.0.3
       web-push:
         specifier: ^3.6.7
