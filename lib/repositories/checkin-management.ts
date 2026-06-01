@@ -16,6 +16,8 @@ export type MemberCheckinInput = {
   nutritionAdherence: string;
   notes: string;
   photosAvailable: boolean;
+  /** Progress photos uploaded with the check-in (server-action File objects). */
+  photos?: File[];
 };
 
 export type CoachCheckinReviewInput = {
@@ -34,6 +36,7 @@ export type ManagedCheckin = {
   status: string;
   resultsStatus: string;
   photosAvailable: boolean;
+  photoPaths: string[];
   submittedAt: string;
   reviewedAt: string;
   values: {
@@ -122,6 +125,13 @@ export async function createMemberCheckin(input: MemberCheckinInput) {
   const memberProfileId = await getDefaultMemberProfileId(input.workspaceId);
   if (!memberProfileId) throw new Error("Crea primero un miembro para guardar check-ins.");
 
+  const supabase = createServiceSupabaseClient();
+
+  // Upload progress photos to the private member-progress bucket, foldered by
+  // workspace/member so the bucket's owner-or-team RLS scopes them. Paths live on
+  // the check-in; the coach views them through short-lived signed URLs.
+  const photoPaths = await uploadCheckinPhotos(supabase, input.workspaceId, memberProfileId, input.photos ?? []);
+
   const keyValues = {
     weightKg: parseNumber(input.weightKg),
     bodyFatPercent: parseNumber(input.bodyFatPercent),
@@ -134,20 +144,58 @@ export async function createMemberCheckin(input: MemberCheckinInput) {
     trainingAdherence: input.trainingAdherence.trim(),
     nutritionAdherence: input.nutritionAdherence.trim(),
     notes: input.notes.trim(),
+    ...(photoPaths.length ? { photoPaths } : {}),
   };
 
-  const supabase = createServiceSupabaseClient();
   const { error } = await supabase.from("customer_checkins").insert({
     workspace_id: input.workspaceId,
     member_profile_id: memberProfileId,
     status: "submitted",
     results_status: "pending_review",
-    photos_available: input.photosAvailable,
+    photos_available: input.photosAvailable || photoPaths.length > 0,
     key_values: keyValues,
     submitted_at: new Date().toISOString(),
   });
 
   if (error) throw new Error(`No se pudo guardar el check-in: ${error.message}`);
+}
+
+async function uploadCheckinPhotos(
+  supabase: ReturnType<typeof createServiceSupabaseClient>,
+  workspaceId: string,
+  memberProfileId: string,
+  photos: File[],
+): Promise<string[]> {
+  const usable = photos.filter((file) => file && typeof file.arrayBuffer === "function" && file.size > 0).slice(0, 5);
+  if (!usable.length) return [];
+  const paths: string[] = [];
+  const stamp = Date.now();
+  for (let index = 0; index < usable.length; index += 1) {
+    const file = usable[index];
+    if (file.size > 8 * 1024 * 1024) continue; // skip > 8 MB
+    const ext = (file.type.split("/")[1] || "jpg").replace(/[^a-z0-9]/gi, "").slice(0, 5) || "jpg";
+    const path = `${workspaceId}/${memberProfileId}/${stamp}-${index}.${ext}`;
+    const buffer = Buffer.from(await file.arrayBuffer());
+    const { error } = await supabase.storage.from("member-progress").upload(path, buffer, {
+      contentType: file.type || "image/jpeg",
+      upsert: true,
+    });
+    if (error) {
+      console.error("Check-in photo upload failed", error.message);
+      continue;
+    }
+    paths.push(path);
+  }
+  return paths;
+}
+
+/** Short-lived signed URLs for a check-in's stored progress photos (coach view). */
+export async function getCheckinPhotoUrls(paths: string[]): Promise<string[]> {
+  if (!getSupabaseServiceEnv().ok || !paths.length) return [];
+  const supabase = createServiceSupabaseClient();
+  const { data, error } = await supabase.storage.from("member-progress").createSignedUrls(paths, 60 * 60);
+  if (error || !data) return [];
+  return data.map((item) => item.signedUrl).filter((url): url is string => Boolean(url));
 }
 
 export async function reviewMemberCheckin(input: CoachCheckinReviewInput) {
@@ -210,6 +258,9 @@ export async function listManagedCheckins(workspaceId?: string): Promise<Managed
     status: checkin.status,
     resultsStatus: checkin.results_status ?? "pending_review",
     photosAvailable: checkin.photos_available,
+    photoPaths: Array.isArray((checkin.key_values as { photoPaths?: unknown })?.photoPaths)
+      ? (checkin.key_values as { photoPaths: unknown[] }).photoPaths.filter((path): path is string => typeof path === "string")
+      : [],
     submittedAt: checkin.submitted_at ?? checkin.created_at,
     reviewedAt: checkin.reviewed_at ?? "",
     values: {

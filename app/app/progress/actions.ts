@@ -12,9 +12,11 @@ function readText(formData: FormData, key: string) {
 
 export async function createMemberCheckinAction(formData: FormData) {
   const workspaceId = await requireMemberWorkspaceId(readText(formData, "workspaceId") || undefined);
+  const photos = formData.getAll("photos").filter((value): value is File => value instanceof File && value.size > 0);
   try {
     await createMemberCheckin({
       workspaceId,
+      photos,
       weightKg: readText(formData, "weightKg"),
       bodyFatPercent: readText(formData, "bodyFatPercent"),
       waistCm: readText(formData, "waistCm"),
