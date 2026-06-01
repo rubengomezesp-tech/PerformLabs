@@ -39,6 +39,40 @@ export function clampMemberStatus(status: string | null | undefined): MemberSubs
   return "expired";
 }
 
+/**
+ * Defense in depth for the connected-webhook path. member_profile_id and
+ * coach_client_plan_id arrive in coach-controllable Stripe metadata (a coach owns
+ * their connected account and can craft events), so before we mirror status onto
+ * a member or attach a plan we confirm the id actually belongs to the workspace
+ * that owns the account. A foreign/forged id is treated as absent — never written
+ * across tenants.
+ */
+export async function isMemberInWorkspace(memberProfileId: string | null | undefined, workspaceId: string): Promise<boolean> {
+  if (!isUuid(memberProfileId) || !isUuid(workspaceId)) return false;
+  if (!getSupabaseServiceEnv().ok) return false;
+  const supabase = createServiceSupabaseClient();
+  const { data } = await supabase
+    .from("member_profiles")
+    .select("id")
+    .eq("id", memberProfileId)
+    .eq("workspace_id", workspaceId)
+    .maybeSingle();
+  return Boolean(data?.id);
+}
+
+export async function isCoachPlanInWorkspace(coachClientPlanId: string | null | undefined, workspaceId: string): Promise<boolean> {
+  if (!isUuid(coachClientPlanId) || !isUuid(workspaceId)) return false;
+  if (!getSupabaseServiceEnv().ok) return false;
+  const supabase = createServiceSupabaseClient();
+  const { data } = await supabase
+    .from("coach_client_plans")
+    .select("id")
+    .eq("id", coachClientPlanId)
+    .eq("workspace_id", workspaceId)
+    .maybeSingle();
+  return Boolean(data?.id);
+}
+
 export type MemberSubscription = {
   id: string;
   workspaceId: string | null;

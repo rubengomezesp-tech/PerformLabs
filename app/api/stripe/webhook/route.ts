@@ -1,5 +1,7 @@
 import { NextResponse, type NextRequest } from "next/server";
 import {
+  isCoachPlanInWorkspace,
+  isMemberInWorkspace,
   recordPlatformFeeEvent,
   setMemberStripeCustomer,
   setMemberSubscriptionStatus,
@@ -160,7 +162,19 @@ async function handleConnectedEvent(event: StripeEvent, account: string) {
   switch (event.type) {
     case "checkout.session.completed": {
       if (object.metadata?.kind !== "member_subscription") return;
-      const memberProfileId = (object.metadata?.member_profile_id as string) || null;
+      // The metadata is coach-controllable; never trust it to point at another
+      // tenant's member/plan. A foreign/forged id is dropped (the checkout path
+      // then falls back to provisioning by the paid customer's email, which is
+      // workspace-scoped).
+      let memberProfileId = (object.metadata?.member_profile_id as string) || null;
+      if (memberProfileId && !(await isMemberInWorkspace(memberProfileId, workspaceId))) {
+        console.error("stripe webhook: checkout member_profile_id not in workspace; ignoring", { event: event.id });
+        memberProfileId = null;
+      }
+      let coachClientPlanId = (object.metadata?.coach_client_plan_id as string) || null;
+      if (coachClientPlanId && !(await isCoachPlanInWorkspace(coachClientPlanId, workspaceId))) {
+        coachClientPlanId = null;
+      }
       const subscriptionId = (object.subscription as string) || null;
       // The Checkout Session object only exposes its own status ("complete"); the
       // authoritative subscription status/price/period live on the subscription,
@@ -186,7 +200,7 @@ async function handleConnectedEvent(event: StripeEvent, account: string) {
       await upsertMemberSubscription({
         workspaceId,
         memberProfileId,
-        coachClientPlanId: (object.metadata?.coach_client_plan_id as string) ?? null,
+        coachClientPlanId,
         stripeAccountId: account,
         stripeCustomerId: (object.customer as string) ?? null,
         stripeSubscriptionId: subscriptionId ?? "",
@@ -234,13 +248,16 @@ async function handleConnectedEvent(event: StripeEvent, account: string) {
     case "customer.subscription.deleted": {
       const subscriptionId = object.id as string | undefined;
       if (!subscriptionId) return;
-      const memberProfileId = (object.metadata?.member_profile_id as string) || null;
+      let memberProfileId = (object.metadata?.member_profile_id as string) || null;
+      if (memberProfileId && !(await isMemberInWorkspace(memberProfileId, workspaceId))) memberProfileId = null;
+      let coachClientPlanId = (object.metadata?.coach_client_plan_id as string) || null;
+      if (coachClientPlanId && !(await isCoachPlanInWorkspace(coachClientPlanId, workspaceId))) coachClientPlanId = null;
       const status =
         event.type === "customer.subscription.deleted" ? "cancelled" : ((object.status as string) ?? "active");
       await upsertMemberSubscription({
         workspaceId,
         memberProfileId,
-        coachClientPlanId: (object.metadata?.coach_client_plan_id as string) ?? null,
+        coachClientPlanId,
         stripeAccountId: account,
         stripeCustomerId: (object.customer as string) ?? null,
         stripeSubscriptionId: subscriptionId,
@@ -261,10 +278,12 @@ async function handleConnectedEvent(event: StripeEvent, account: string) {
     case "invoice.payment_succeeded": {
       const invoiceId = object.id as string | undefined;
       if (!invoiceId) return;
+      let feeMemberProfileId = (object.subscription_details?.metadata?.member_profile_id as string) || null;
+      if (feeMemberProfileId && !(await isMemberInWorkspace(feeMemberProfileId, workspaceId))) feeMemberProfileId = null;
       await recordPlatformFeeEvent({
         id: invoiceId,
         workspaceId,
-        memberProfileId: (object.subscription_details?.metadata?.member_profile_id as string) ?? null,
+        memberProfileId: feeMemberProfileId,
         stripeAccountId: account,
         stripeSubscriptionId: (object.subscription as string) ?? null,
         amountTotal: typeof object.amount_paid === "number" ? object.amount_paid : null,
@@ -276,7 +295,8 @@ async function handleConnectedEvent(event: StripeEvent, account: string) {
     }
 
     case "invoice.payment_failed": {
-      const memberProfileId = (object.subscription_details?.metadata?.member_profile_id as string) || null;
+      let memberProfileId = (object.subscription_details?.metadata?.member_profile_id as string) || null;
+      if (memberProfileId && !(await isMemberInWorkspace(memberProfileId, workspaceId))) memberProfileId = null;
       if (memberProfileId) await setMemberSubscriptionStatus(memberProfileId, "past_due");
       await fireMemberEventNotification({ workspaceId, memberProfileId, eventKey: "payment.failed" });
       return;
