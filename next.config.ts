@@ -1,24 +1,9 @@
 import type { NextConfig } from "next";
 
-const contentSecurityPolicy = [
-  "default-src 'self'",
-  "base-uri 'self'",
-  "object-src 'none'",
-  "frame-ancestors 'none'",
-  "form-action 'self'",
-  "img-src 'self' blob: data: https:",
-  "font-src 'self' data:",
-  "style-src 'self' 'unsafe-inline'",
-  "script-src 'self' 'unsafe-inline' 'unsafe-eval'",
-  "connect-src 'self' https: wss: ws: data:",
-  "media-src 'self' blob: data: https:",
-].join("; ");
-
 const securityHeaders = [
-  {
-    key: "Content-Security-Policy",
-    value: contentSecurityPolicy,
-  },
+  // Content-Security-Policy is set per-request in proxy.ts (nonce-based) — a static
+  // header here cannot carry the per-response nonce that lets us drop
+  // 'unsafe-inline'/'unsafe-eval' from script-src.
   {
     key: "Referrer-Policy",
     value: "strict-origin-when-cross-origin",
