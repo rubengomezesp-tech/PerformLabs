@@ -1,6 +1,8 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
+import { redirect } from "next/navigation";
+import { requireMemberWorkspaceId } from "@/lib/auth/member-access";
 import { analyzeMealText } from "@/lib/ai/smart-add";
 import { checkAiQuota, recordAiUsage } from "@/lib/ai/usage";
 import { analyzeMealPhoto } from "@/lib/ai/vision-nutrition";
@@ -57,34 +59,61 @@ export async function smartAddMealPhotoAction(input: {
   }
 }
 
+/**
+ * Text Smart-Add. Resolves the workspace from the session, enforces the monthly AI
+ * quota, and NEVER throws to the error boundary: an unconfigured/over-quota/failed
+ * AI estimate redirects back with a notice so the member can add the meal manually.
+ */
 export async function smartAddMealAction(formData: FormData) {
-  const workspaceId = readText(formData, "workspaceId");
+  const workspaceId = await requireMemberWorkspaceId(readText(formData, "workspaceId") || undefined);
   const description = readText(formData, "description");
   const date = readText(formData, "date") || undefined;
+  if (!description) {
+    redirect("/app/diary?error=" + encodeURIComponent("Escribe qué comiste para estimarlo."));
+  }
 
-  const macros = await analyzeMealText(description);
+  const quota = await checkAiQuota(workspaceId, "photo");
+  if (!quota.allowed) {
+    redirect("/app/diary?error=" + encodeURIComponent(`Has alcanzado el límite de ${quota.limit} estimaciones con IA este mes.`));
+  }
 
-  await addFoodDiaryEntry({
-    workspaceId,
-    name: macros.name,
-    protein: macros.protein,
-    fat: macros.fat,
-    carbs: macros.carbs,
-    calories: macros.calories,
-    source: "smart_add",
-    date,
-  });
+  try {
+    const macros = await analyzeMealText(description);
+    await addFoodDiaryEntry({
+      workspaceId,
+      name: macros.name,
+      protein: macros.protein,
+      fat: macros.fat,
+      carbs: macros.carbs,
+      calories: macros.calories,
+      source: "smart_add",
+      date,
+    });
+    // analyzeMealText doesn't return token usage; a nominal estimate keeps the
+    // per-workspace monthly counter moving (recordAiUsage counts one row per call).
+    await recordAiUsage({
+      workspaceId,
+      feature: "photo",
+      model: "claude-opus-4-8",
+      usage: { input_tokens: 320, output_tokens: 80 },
+    });
+  } catch (error) {
+    console.error("smartAddMealAction failed", (error as Error).message);
+    redirect("/app/diary?error=" + encodeURIComponent("La estimación con IA no está disponible ahora. Añade la comida a mano."));
+  }
 
   revalidatePath("/app/diary");
   revalidatePath("/app");
 }
 
 export async function deleteFoodEntryAction(formData: FormData) {
-  const workspaceId = readText(formData, "workspaceId");
-  const entryId = readText(formData, "entryId");
-
-  await deleteFoodDiaryEntry(workspaceId, entryId);
-
+  const workspaceId = await requireMemberWorkspaceId(readText(formData, "workspaceId") || undefined);
+  try {
+    await deleteFoodDiaryEntry(workspaceId, readText(formData, "entryId"));
+  } catch (error) {
+    console.error("deleteFoodEntryAction failed", (error as Error).message);
+    redirect("/app/diary?error=" + encodeURIComponent("No se pudo borrar la entrada. Inténtalo de nuevo."));
+  }
   revalidatePath("/app/diary");
   revalidatePath("/app");
 }
