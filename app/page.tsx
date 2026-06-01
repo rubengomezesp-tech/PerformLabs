@@ -44,6 +44,7 @@ export default async function Home() {
         items={navItems}
         locale={locale}
         ctaLabel={dict.nav.requestProposal}
+        accessLabel={dict.nav.access}
         switcherLabel={dict.switcher.label}
         switcherChange={dict.switcher.change}
       />

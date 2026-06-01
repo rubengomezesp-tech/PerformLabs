@@ -3,6 +3,7 @@ import type { Dictionary } from "./es";
 export const fr: Dictionary = {
   switcher: { label: "Langue", change: "Changer de langue" },
   nav: {
+    access: "Se connecter",
     app: "L’app",
     process: "Processus",
     demo: "Démo",

@@ -3,6 +3,7 @@ import type { Dictionary } from "./es";
 export const zh: Dictionary = {
   switcher: { label: "语言", change: "切换语言" },
   nav: {
+    access: "登录",
     app: "应用",
     process: "流程",
     demo: "演示",

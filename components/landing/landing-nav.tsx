@@ -14,6 +14,7 @@ export function LandingNav({
   items,
   locale,
   ctaLabel,
+  accessLabel,
   switcherLabel,
   switcherChange,
 }: {
@@ -22,6 +23,7 @@ export function LandingNav({
   items: NavItem[];
   locale: Locale;
   ctaLabel: string;
+  accessLabel: string;
   switcherLabel: string;
   switcherChange: string;
 }) {
@@ -50,6 +52,9 @@ export function LandingNav({
         </nav>
         <div className="landingNavRight">
           <LocaleSwitcher current={locale} label={switcherLabel} changeLabel={switcherChange} />
+          <Link className="btn ghost sm landingNavLogin" href="/acceso">
+            {accessLabel}
+          </Link>
           <a className="btn primary sm landingNavCta" href="#consulta">
             {ctaLabel} <ArrowRight size={16} />
           </a>
