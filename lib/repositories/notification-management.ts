@@ -218,3 +218,19 @@ export async function setScheduledNotificationStatus(workspaceId: string, id: st
     .eq("id", id);
   if (error) throw new Error(`No se pudo actualizar el aviso: ${error.message}`);
 }
+
+/** The enabled push template for a workspace event, if any (for event-fired pushes). */
+export async function getEnabledPushTemplate(workspaceId: string, eventKey: string): Promise<{ subject: string; body: string } | null> {
+  if (!getSupabaseServiceEnv().ok || !workspaceId || !eventKey) return null;
+  const supabase = createServiceSupabaseClient();
+  const { data, error } = await supabase
+    .from("notification_templates")
+    .select("subject,body,is_enabled,channel,event_key")
+    .eq("workspace_id", workspaceId)
+    .eq("event_key", eventKey)
+    .eq("channel", "push")
+    .eq("is_enabled", true)
+    .maybeSingle();
+  if (error || !data) return null;
+  return { subject: data.subject ?? "", body: jsonText(data.body, "message") };
+}
