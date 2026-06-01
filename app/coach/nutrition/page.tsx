@@ -56,7 +56,7 @@ export default async function CoachNutritionPage() {
   return (
     <>
       <Topbar
-        eyebrow="Nutricion"
+        eyebrow="Nutrición"
         title="Comidas, recetas y planes."
         text="Crea recetas, móntalas en planes por día y asígnalas. La IA puede generarte recetas con macros."
         actions={
@@ -80,11 +80,11 @@ export default async function CoachNutritionPage() {
                 </label>
                 <label>
                   Kcal min
-                  <input name="caloriesMin" placeholder="1800" type="number" />
+                  <input name="caloriesMin" placeholder="1800" type="number" inputMode="numeric" />
                 </label>
                 <label>
                   Kcal max
-                  <input name="caloriesMax" placeholder="2200" type="number" />
+                  <input name="caloriesMax" placeholder="2200" type="number" inputMode="numeric" />
                 </label>
                 <label className="spanFull">
                   Proteina %
@@ -125,6 +125,10 @@ export default async function CoachNutritionPage() {
                 <label className="spanFull">
                   Tags
                   <input name="tags" placeholder="alta proteina, sin lactosa" />
+                </label>
+                <label className="spanFull">
+                  Foto (URL, opcional)
+                  <input name="imageUrl" type="url" inputMode="url" placeholder="https://… (si la dejas vacía, se usa el placeholder de marca)" />
                 </label>
                 <button className="btn primary spanFull" type="submit">Crear receta</button>
               </form>
@@ -173,7 +177,7 @@ export default async function CoachNutritionPage() {
         <article className="card span12 motionCard">
           <div className="sectionHeader">
             <div>
-              <UtensilsCrossed color="var(--accent)" />
+              <UtensilsCrossed color="var(--accent)" aria-hidden="true" />
               <h2>Cómo montar una dieta.</h2>
               <p>Cuatro pasos. Usa los alimentos y recetas base (con macros), o crea los tuyos.</p>
             </div>
@@ -189,7 +193,7 @@ export default async function CoachNutritionPage() {
         <article className="card span12 motionCard">
           <div className="sectionHeader">
             <div>
-              <UtensilsCrossed color="var(--accent)" />
+              <UtensilsCrossed color="var(--accent)" aria-hidden="true" />
               <h2>Planes de comidas.</h2>
               <p>Monta cada plantilla con recetas por día y momento. Al asignarla a un miembro, estas comidas aparecen en su app.</p>
             </div>
@@ -215,7 +219,7 @@ export default async function CoachNutritionPage() {
           return (
             <article className="card span6 motionCard" key={template.id}>
               <div className="appCardHeader">
-                <Apple color="var(--accent)" />
+                <Apple color="var(--accent)" aria-hidden="true" />
                 <div>
                   <h3>{template.name}</h3>
                   <p>{template.goal || "Objetivo pendiente"}</p>
@@ -244,14 +248,21 @@ export default async function CoachNutritionPage() {
                             {recipe ? ` · ${Math.round(recipe.calories * meal.servingMultiplier)} kcal` : ""}
                           </p>
                         </div>
-                        <form action={removeCoachDietTemplateMealAction}>
-                          <input name="workspaceId" type="hidden" value={brand.id} />
-                          <input name="dietTemplateId" type="hidden" value={template.id} />
-                          <input name="mealId" type="hidden" value={meal.id} />
-                          <button className="btn ghost sm" type="submit" aria-label="Quitar comida">
-                            <Trash2 size={14} />
-                          </button>
-                        </form>
+                        <Dialog
+                          triggerClassName="btn ghost sm"
+                          triggerAriaLabel="Quitar comida"
+                          trigger={<Trash2 size={14} />}
+                          title="Quitar comida"
+                          description="Esta acción no se puede deshacer."
+                        >
+                          <form action={removeCoachDietTemplateMealAction} className="editForm">
+                            <input name="workspaceId" type="hidden" value={brand.id} />
+                            <input name="dietTemplateId" type="hidden" value={template.id} />
+                            <input name="mealId" type="hidden" value={meal.id} />
+                            <p className="spanFull">¿Seguro que quieres quitar <strong>{meal.recipeName}</strong> (Día {meal.dayNumber} · {meal.mealSlot}) del plan? Esta acción no se puede deshacer.</p>
+                            <button className="btn danger spanFull" type="submit">Sí, quitar</button>
+                          </form>
+                        </Dialog>
                       </li>
                     );
                   })}
@@ -280,7 +291,7 @@ export default async function CoachNutritionPage() {
                     </label>
                     <label>
                       Día
-                      <input name="dayNumber" type="number" min="1" step="1" defaultValue="1" />
+                      <input name="dayNumber" type="number" inputMode="numeric" min="1" step="1" defaultValue="1" />
                     </label>
                     <label>
                       Momento
@@ -292,7 +303,7 @@ export default async function CoachNutritionPage() {
                     </label>
                     <label>
                       Raciones
-                      <input name="servingMultiplier" type="number" min="0.25" step="0.25" defaultValue="1" />
+                      <input name="servingMultiplier" type="number" inputMode="decimal" min="0.25" step="0.25" defaultValue="1" />
                     </label>
                     <button className="btn primary spanFull" type="submit">Añadir comida</button>
                   </form>
@@ -307,7 +318,7 @@ export default async function CoachNutritionPage() {
         <article className="card span12 motionCard">
           <div className="sectionHeader">
             <div>
-              <Soup color="var(--accent)" />
+              <Soup color="var(--accent)" aria-hidden="true" />
               <h2>Recetas.</h2>
               <p>Añade ingredientes con gramos y los macros se calculan solos. Estas recetas alimentan los planes.</p>
             </div>
@@ -365,7 +376,7 @@ export default async function CoachNutritionPage() {
                   </label>
                   <label>
                     Gramos
-                    <input name="grams" type="number" min="1" step="1" defaultValue="100" />
+                    <input name="grams" type="number" inputMode="decimal" min="1" step="1" defaultValue="100" />
                   </label>
                   <button className="btn primary spanFull" type="submit">Añadir ingrediente</button>
                 </form>
@@ -383,7 +394,7 @@ export default async function CoachNutritionPage() {
         <article className="card span12 motionCard">
           <div className="sectionHeader">
             <div>
-              <Apple color="var(--accent)" />
+              <Apple color="var(--accent)" aria-hidden="true" />
               <h2>Alimentos.</h2>
               <p>Valores por 100 g. La librería base es compartida; los tuyos se añaden con “Nuevo ingrediente”.</p>
             </div>
@@ -417,7 +428,7 @@ export default async function CoachNutritionPage() {
               <article className="card nutritionLabCard">
                 <div className="sectionHeader">
                   <div>
-                    <Calculator color="var(--accent)" />
+                    <Calculator color="var(--accent)" aria-hidden="true" />
                     <h2>MacroLab profesional.</h2>
                     <p>Calcula BMR, gasto diario, calorias objetivo, proteina, grasas, carbohidratos, fibra, agua y reparto por comidas.</p>
                   </div>
@@ -440,15 +451,15 @@ export default async function CoachNutritionPage() {
                     </label>
                     <label>
                       Edad
-                      <input name="age" defaultValue="32" min="12" type="number" />
+                      <input name="age" defaultValue="32" min="12" type="number" inputMode="numeric" />
                     </label>
                     <label>
                       Altura cm
-                      <input name="heightCm" defaultValue="178" min="120" type="number" />
+                      <input name="heightCm" defaultValue="178" min="120" type="number" inputMode="decimal" />
                     </label>
                     <label>
                       Peso kg
-                      <input name="weightKg" defaultValue="82" min="35" step="0.1" type="number" />
+                      <input name="weightKg" defaultValue="82" min="35" step="0.1" type="number" inputMode="decimal" />
                     </label>
                     <label>
                       Actividad
@@ -470,19 +481,19 @@ export default async function CoachNutritionPage() {
                     </label>
                     <label>
                       Proteina g/kg
-                      <input name="proteinPerKg" defaultValue="2.2" min="1.2" max="3" step="0.1" type="number" />
+                      <input name="proteinPerKg" defaultValue="2.2" min="1.2" max="3" step="0.1" type="number" inputMode="decimal" />
                     </label>
                     <label>
                       Grasas %
-                      <input name="fatRatio" defaultValue="25" min="15" max="40" type="number" />
+                      <input name="fatRatio" defaultValue="25" min="15" max="40" type="number" inputMode="numeric" />
                     </label>
                     <label>
                       Comidas/dia
-                      <input name="mealsPerDay" defaultValue="4" min="3" max="5" type="number" />
+                      <input name="mealsPerDay" defaultValue="4" min="3" max="5" type="number" inputMode="numeric" />
                     </label>
                     <label>
                       Entrenos/semana
-                      <input name="trainingDaysPerWeek" defaultValue="5" min="0" max="7" type="number" />
+                      <input name="trainingDaysPerWeek" defaultValue="5" min="0" max="7" type="number" inputMode="numeric" />
                     </label>
                     <button className="btn primary" type="submit">Generar plantilla macro</button>
                   </form>
@@ -515,7 +526,7 @@ export default async function CoachNutritionPage() {
               <article className="card nutritionStrategyCard">
                 <div className="sectionHeader">
                   <div>
-                    <Flame color="var(--accent)" />
+                    <Flame color="var(--accent)" aria-hidden="true" />
                     <h2>Motor de ajuste semanal.</h2>
                     <p>El coach no solo calcula macros: decide si mantener, recortar, subir calorías, hacer refeed o simplificar por adherencia.</p>
                   </div>
@@ -524,7 +535,7 @@ export default async function CoachNutritionPage() {
                 <div className="nutritionDecisionGrid">
                   <section className="moduleGroup">
                     <div className="appCardHeader">
-                      <TrendingUp color="var(--accent)" />
+                      <TrendingUp color="var(--accent)" aria-hidden="true" />
                       <h3>Decisión recomendada</h3>
                     </div>
                     <p>{adjustment.reason}</p>

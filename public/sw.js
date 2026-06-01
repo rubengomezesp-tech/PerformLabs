@@ -1,8 +1,16 @@
 // Minimal service worker for installability + offline shell fallback.
-const CACHE = "performlabs-shell-v2";
+const CACHE = "performlabs-shell-v3";
+const OFFLINE_URL = "/offline.html";
 
-self.addEventListener("install", () => {
-  self.skipWaiting();
+self.addEventListener("install", (event) => {
+  // Precache the offline shell so a failed navigation has something to show.
+  event.waitUntil(
+    caches
+      .open(CACHE)
+      .then((cache) => cache.add(OFFLINE_URL))
+      .catch(() => {})
+      .then(() => self.skipWaiting()),
+  );
 });
 
 self.addEventListener("activate", (event) => {
@@ -26,6 +34,17 @@ self.addEventListener("fetch", (event) => {
 
   const url = new URL(request.url);
   if (url.origin !== self.location.origin) return;
+
+  // Top-level navigations: network-first so auth, redirects, RSC and Server
+  // Actions are never served stale; fall back to the offline shell only when
+  // the network is unreachable. Server Actions are POST (returned above) and
+  // RSC fetches aren't mode === "navigate", so neither path is affected.
+  if (request.mode === "navigate") {
+    event.respondWith(
+      fetch(request).catch(() => caches.match(OFFLINE_URL).then((cached) => cached || Response.error())),
+    );
+    return;
+  }
 
   const isStaticAsset =
     url.pathname.startsWith("/_next/static/") ||

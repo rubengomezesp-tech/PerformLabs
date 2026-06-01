@@ -113,6 +113,15 @@ export async function replyToSupportConversation(input: CoachSupportReplyInput) 
   if (!message) throw new Error("El mensaje es obligatorio.");
 
   const supabase = createServiceSupabaseClient();
+  // Verify the conversation belongs to this workspace before inserting, so a
+  // forged conversationId can't graft a coach reply onto another tenant's thread.
+  const conversation = await supabase
+    .from("support_conversations")
+    .select("id")
+    .eq("id", input.conversationId)
+    .eq("workspace_id", input.workspaceId)
+    .maybeSingle();
+  if (conversation.error || !conversation.data) throw new Error("Conversación no encontrada.");
   const result = await supabase.from("support_messages").insert({
     workspace_id: input.workspaceId,
     conversation_id: input.conversationId,

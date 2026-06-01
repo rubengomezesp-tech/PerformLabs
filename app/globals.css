@@ -2622,6 +2622,68 @@ a.card:hover {
   color: var(--muted);
 }
 
+.membersFilters {
+  display: grid;
+  grid-template-columns: minmax(220px, 1.4fr) minmax(180px, 1fr) auto;
+  gap: 12px;
+  align-items: end;
+}
+
+.membersFilters label {
+  display: grid;
+  gap: 6px;
+  margin: 0;
+}
+
+.membersSearchField {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.membersSearchField svg {
+  position: absolute;
+  left: 12px;
+  color: var(--muted);
+  pointer-events: none;
+}
+
+.membersSearchField input {
+  width: 100%;
+  padding-left: 36px;
+}
+
+.membersCount {
+  margin: 0;
+  color: var(--muted);
+  font-size: 0.85rem;
+  white-space: nowrap;
+  padding-bottom: 10px;
+}
+
+.memberQuickLinks {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 12px;
+}
+
+.memberQuickLinks .btn {
+  flex: 1 1 auto;
+  justify-content: center;
+}
+
+@media (max-width: 640px) {
+  .membersFilters {
+    grid-template-columns: 1fr;
+    align-items: stretch;
+  }
+
+  .membersCount {
+    padding-bottom: 0;
+  }
+}
+
 /* Canonical app hero shared by the member workout & meal surfaces. */
 .workoutAppHero,
 .mealAppHero {
@@ -3112,6 +3174,98 @@ a.card:hover {
 .setLogGrid {
   display: grid;
   gap: 10px;
+}
+
+.restTimer {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin: 12px 0;
+  padding: 8px 10px;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  background: var(--surface-2);
+  transition: border-color 0.2s ease, background 0.2s ease;
+}
+.restTimer[data-running="true"] {
+  border-color: color-mix(in srgb, var(--accent) 45%, var(--line));
+}
+.restTimer[data-done="true"] {
+  border-color: color-mix(in srgb, var(--success) 55%, var(--line));
+  background: color-mix(in srgb, var(--success) 12%, var(--surface-2));
+}
+.restTimerToggle,
+.restTimerReset {
+  flex: 0 0 auto;
+  display: grid;
+  place-items: center;
+  width: 36px;
+  height: 36px;
+  border-radius: 10px;
+  border: 1px solid var(--line);
+  background: var(--surface);
+  color: var(--text);
+  cursor: pointer;
+}
+.restTimerToggle {
+  background: var(--accent);
+  border-color: var(--accent);
+  color: var(--accent-contrast, #04121f);
+}
+.restTimerReset {
+  color: var(--text-muted);
+}
+.restTimerBody {
+  flex: 1 1 auto;
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  min-width: 0;
+}
+.restTimerTop {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+.restTimerLabel {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 12.5px;
+  font-weight: 600;
+  color: var(--text-muted);
+}
+.restTimerTime {
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--text);
+  font-variant-numeric: tabular-nums;
+}
+.restTimer[data-done="true"] .restTimerTime {
+  color: var(--success);
+}
+.restTimerTrack {
+  display: block;
+  height: 6px;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--text) 12%, transparent);
+  overflow: hidden;
+}
+.restTimerTrack > span {
+  display: block;
+  height: 100%;
+  border-radius: inherit;
+  background: var(--accent);
+  transition: width 1s linear;
+}
+.restTimer[data-done="true"] .restTimerTrack > span {
+  background: var(--success);
+}
+@media (prefers-reduced-motion: reduce) {
+  .restTimerTrack > span {
+    transition: none;
+  }
 }
 
 .setLogRow {
@@ -5494,13 +5648,73 @@ input[type="color"] {
   margin: 0;
 }
 
+/* Canonical member-app empty state (components/member-empty.tsx). */
+.memberEmpty {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  align-items: start;
+  gap: 14px;
+}
+.memberEmptyIcon {
+  width: 52px;
+  height: 52px;
+  border-radius: 16px;
+}
+.memberEmptyBody {
+  display: grid;
+  gap: 8px;
+  min-width: 0;
+}
+.memberEmptyBody strong {
+  font-size: 16px;
+}
+.memberEmptyBody p {
+  margin: 0;
+  color: var(--text-muted);
+  line-height: 1.5;
+}
+.memberEmptyActions {
+  margin-top: 4px;
+}
+
 .authPage {
+  position: relative;
+  isolation: isolate;
+  overflow: hidden;
   display: grid;
   min-height: 100vh;
   grid-template-columns: minmax(320px, 520px) 1fr;
   background:
-    linear-gradient(90deg, rgba(8, 9, 9, 0.96), rgba(8, 9, 9, 0.72)),
-    url("https://images.unsplash.com/photo-1517836357463-d25dfeac3438?auto=format&fit=crop&w=1800&q=80") center/cover;
+    radial-gradient(120% 130% at 82% 0%, color-mix(in srgb, var(--accent) 9%, transparent), transparent 60%),
+    var(--bg);
+}
+
+/* Brand-tinted aurora + grain — cohesive with the landing hero and white-label by
+   --accent (no hardcoded stock photo; acceso/m pass the coach's accent). The drift
+   is neutralised by the global prefers-reduced-motion reset. */
+.authPage::before {
+  content: "";
+  position: absolute;
+  inset: -25% -10% auto -10%;
+  z-index: -2;
+  height: 95%;
+  pointer-events: none;
+  background:
+    radial-gradient(40% 50% at 78% 22%, color-mix(in srgb, var(--accent) 34%, transparent), transparent 70%),
+    radial-gradient(34% 44% at 92% 70%, color-mix(in srgb, var(--accent) 20%, transparent), transparent 72%);
+  filter: blur(72px);
+  opacity: 0.55;
+  animation: auroraDrift 18s ease-in-out infinite alternate;
+  will-change: transform;
+}
+.authPage::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+  opacity: 0.05;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
 }
 
 .authPanel,
@@ -5512,8 +5726,11 @@ input[type="color"] {
 }
 
 .authPanel {
-  border-right: 1px solid var(--line);
-  background: rgba(5, 6, 6, 0.84);
+  border-right: 1px solid rgba(255, 255, 255, 0.08);
+  background: linear-gradient(180deg, rgba(10, 11, 12, 0.84), rgba(5, 6, 6, 0.9));
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.05);
+  backdrop-filter: blur(20px) saturate(1.15);
+  -webkit-backdrop-filter: blur(20px) saturate(1.15);
 }
 
 .authPanel h1,
@@ -7129,6 +7346,37 @@ input[type="color"] {
   border-radius: inherit;
   background: linear-gradient(90deg, var(--accent), var(--accent-strong));
 }
+.diaryRemaining {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 8px 16px;
+  margin-top: 14px;
+  padding-top: 14px;
+  border-top: 1px solid color-mix(in srgb, var(--text) 12%, transparent);
+}
+.diaryRemainingLabel {
+  font-size: 12.5px;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+  margin-right: 2px;
+}
+.diaryRemainingItem {
+  font-size: 13.5px;
+  color: var(--text-muted);
+  font-variant-numeric: tabular-nums;
+}
+.diaryRemainingItem strong {
+  font-size: 16px;
+  color: var(--text);
+  margin-right: 3px;
+}
+.diaryRemainingKcal strong {
+  color: var(--accent);
+}
+
 .diaryStats {
   display: flex;
   flex-wrap: wrap;
@@ -7771,8 +8019,48 @@ a.diaryEntryTitle:hover {
 }
 .progressSpark {
   width: 100%;
-  height: 96px;
+  height: auto;
+  aspect-ratio: 324 / 120;
   display: block;
+}
+.progressChartGrid {
+  stroke: var(--line);
+  stroke-dasharray: 2 6;
+  stroke-width: 1;
+  opacity: 0.55;
+}
+.progressChartAxis {
+  fill: var(--text-muted);
+  font-size: 9px;
+  font-variant-numeric: tabular-nums;
+}
+.progressChartLine {
+  fill: none;
+  stroke: var(--accent);
+  stroke-width: 2.4;
+  stroke-linejoin: round;
+  stroke-linecap: round;
+}
+.progressChartDot {
+  fill: color-mix(in srgb, var(--bg) 60%, #0b0e14);
+  stroke: var(--accent);
+  stroke-width: 1.4;
+}
+.progressChartHalo {
+  fill: var(--accent);
+  opacity: 0.18;
+}
+.progressChartLast {
+  fill: var(--accent);
+  stroke: var(--bg);
+  stroke-width: 1.5;
+}
+.progressMiniSpark {
+  width: 100%;
+  height: 30px;
+  display: block;
+  margin-top: 4px;
+  opacity: 0.9;
 }
 .progressSparkAxis {
   display: flex;
@@ -11609,6 +11897,198 @@ button[aria-busy="true"] {
   gap: 12px;
 }
 
+.cardioWeekStrip {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 6px;
+  margin-top: 12px;
+}
+.cardioDay {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 5px;
+}
+.cardioDayDot {
+  display: grid;
+  place-items: center;
+  width: 100%;
+  aspect-ratio: 1 / 1;
+  max-width: 40px;
+  border-radius: 12px;
+  border: 1px solid var(--line);
+  background: var(--surface-2);
+  color: var(--text-muted);
+}
+.cardioDay.is-active .cardioDayDot {
+  background: color-mix(in srgb, var(--accent) 18%, var(--surface-2));
+  border-color: color-mix(in srgb, var(--accent) 55%, var(--line));
+  color: var(--accent);
+}
+.cardioDayLabel {
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--text-muted);
+  text-transform: uppercase;
+}
+.cardioDay.is-active .cardioDayLabel {
+  color: var(--text);
+}
+
+/* ---- Descanso / Recuperación ---- */
+.recoveryHero {
+  display: flex;
+  align-items: center;
+  gap: 24px;
+  padding: 22px;
+  flex-wrap: wrap;
+}
+.recoveryHero .progressRing {
+  flex: 0 0 auto;
+}
+.recoveryHeroBody {
+  flex: 1 1 280px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.recoveryHeroBody h2 {
+  margin: 0;
+  font-size: clamp(1.3rem, 3vw, 1.7rem);
+}
+.recoveryHeroBody p {
+  margin: 0;
+  color: var(--text-muted);
+}
+.recoveryHeroEyebrow {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+.recoveryFactors {
+  margin-top: 6px;
+}
+.recoveryStale {
+  font-size: 13px;
+}
+.recoveryStale a {
+  color: var(--accent);
+}
+.recoveryHeroEmpty .btn {
+  align-self: flex-start;
+  margin-top: 8px;
+}
+.recoveryTargetRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin: 4px 0 12px;
+}
+.recoveryTipList {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 9px;
+}
+.recoveryTipList li {
+  display: flex;
+  align-items: flex-start;
+  gap: 9px;
+  font-size: 14px;
+  color: var(--text-muted);
+  line-height: 1.45;
+}
+.recoveryTipList li svg {
+  color: var(--accent);
+  flex: 0 0 auto;
+  margin-top: 2px;
+}
+.recoveryTipList li strong {
+  color: var(--text);
+}
+.recoverySigns {
+  margin-top: 14px;
+  padding-top: 14px;
+  border-top: 1px solid var(--line);
+  display: flex;
+  flex-direction: column;
+  gap: 9px;
+}
+.recoverySigns > strong {
+  font-size: 13.5px;
+}
+.recoveryMoves {
+  list-style: none;
+  margin: 4px 0 0;
+  padding: 0;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+  gap: 10px;
+}
+.recoveryMove {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 14px;
+  border-radius: 14px;
+  border: 1px solid var(--line);
+  background: var(--surface-2);
+}
+.recoveryMoveIcon {
+  flex: 0 0 auto;
+}
+.recoveryMove > div {
+  flex: 1 1 auto;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+.recoveryMove > div strong {
+  font-size: 14px;
+  color: var(--text);
+}
+.recoveryMove > div span {
+  font-size: 12.5px;
+  color: var(--text-muted);
+  line-height: 1.4;
+}
+.recoveryMoveTime {
+  flex: 0 0 auto;
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--accent);
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+.recoveryActive {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+.recoveryActive > div {
+  flex: 1 1 280px;
+}
+.recoveryActive strong {
+  display: block;
+  margin-bottom: 2px;
+}
+.recoveryActive p {
+  margin: 0;
+  color: var(--text-muted);
+}
+.recoveryActive .btn {
+  flex: 0 0 auto;
+}
+
+
 .cardioStat {
   display: flex;
   flex-direction: column;
@@ -13132,6 +13612,128 @@ button[aria-busy="true"] {
   overflow: hidden;
 }
 .profileInfoCard h2 { margin: 0; }
+.profileHero {
+  display: flex;
+  align-items: center;
+  gap: 18px;
+  flex-wrap: wrap;
+}
+.profileHeroAvatar {
+  flex: 0 0 auto;
+  width: 60px;
+  height: 60px;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  font-size: 24px;
+  font-weight: 800;
+  color: #07121f;
+  background: linear-gradient(135deg, var(--accent), color-mix(in srgb, var(--accent) 55%, #9fd6ff));
+}
+.profileHeroBody {
+  flex: 1 1 220px;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+.profileHeroBody h2 {
+  margin: 0;
+}
+.profileHeroEmail {
+  margin: 0;
+  color: var(--text-muted);
+  font-size: 13.5px;
+}
+.profileHeroMeta {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+.notifList {
+  display: flex;
+  flex-direction: column;
+}
+.notifRow {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 2px;
+}
+.notifRow + .notifRow {
+  border-top: 1px solid var(--line);
+}
+.notifRowIcon {
+  flex: 0 0 auto;
+}
+.notifRowBody {
+  flex: 1 1 auto;
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+  min-width: 0;
+}
+.notifRowBody strong {
+  font-size: 14px;
+  color: var(--text);
+}
+.notifRowBody span {
+  font-size: 12.5px;
+  color: var(--text-muted);
+}
+.notifRowToggle {
+  flex: 0 0 auto;
+  margin: 0;
+}
+.notifSwitch {
+  appearance: none;
+  border: 0;
+  background: none;
+  padding: 9px 2px;
+  margin: 0;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 44px;
+}
+.notifSwitchTrack {
+  position: relative;
+  width: 46px;
+  height: 26px;
+  border-radius: 999px;
+  border: 1px solid var(--line);
+  background: var(--surface-2);
+  transition: background 0.18s ease, border-color 0.18s ease;
+}
+.notifSwitch.on .notifSwitchTrack {
+  background: var(--accent);
+  border-color: var(--accent);
+}
+.notifSwitchKnob {
+  position: absolute;
+  top: 50%;
+  left: 3px;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background: #fff;
+  transform: translateY(-50%);
+  transition: left 0.18s ease;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.35);
+}
+.notifSwitch.on .notifSwitchKnob {
+  left: calc(100% - 23px);
+}
+.notifSwitch:focus-visible .notifSwitchTrack {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+@media (prefers-reduced-motion: reduce) {
+  .notifSwitchTrack,
+  .notifSwitchKnob {
+    transition: none;
+  }
+}
 .dangerZoneChip {
   display: inline-grid;
   place-items: center;
@@ -13169,3 +13771,345 @@ button[aria-busy="true"] {
   .guideCard:hover { transform: none; }
 }
 /* ===== END UI UPLIFT C ===== */
+
+/* ===== Exercise demo preview (platform-default animated frames) ===== */
+.exercisePreview {
+  position: relative;
+  display: block;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  background: var(--surface-3);
+}
+.exercisePreviewFrame {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  opacity: 0;
+  transition: opacity 0.55s var(--ease);
+}
+.exercisePreviewFrame.is-current {
+  opacity: 1;
+}
+.exercisePreviewBadge {
+  position: absolute;
+  left: 10px;
+  bottom: 10px;
+  z-index: 2;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 4px 9px;
+  border-radius: var(--radius-pill);
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  background: color-mix(in srgb, var(--bg) 60%, transparent);
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
+  color: var(--text);
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+}
+@media (prefers-reduced-motion: reduce) {
+  .exercisePreviewFrame {
+    transition: none;
+  }
+}
+/* ===== END Exercise demo preview ===== */
+
+/* ===== Coach analytics (distribution bars + KPI tiles) ===== */
+.analyticsBars {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+.analyticsBar {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.analyticsBarHead {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  font-size: 0.86rem;
+  color: var(--text-muted);
+}
+.analyticsBarHead strong {
+  color: var(--text);
+  font-variant-numeric: tabular-nums;
+}
+.analyticsBarTrack {
+  height: 8px;
+  border-radius: 999px;
+  background: var(--surface-3);
+  overflow: hidden;
+}
+.analyticsBarFill {
+  height: 100%;
+  border-radius: 999px;
+  min-width: 2px;
+  transition: width 0.4s cubic-bezier(0.22, 1, 0.36, 1);
+}
+.analyticsBig {
+  margin: 0 0 4px;
+  font-family: var(--font-display, inherit);
+  font-size: 1.7rem;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  color: var(--text);
+  font-variant-numeric: tabular-nums;
+}
+.analyticsBig span {
+  font-size: 0.9rem;
+  font-weight: 500;
+  color: var(--text-soft);
+  letter-spacing: 0;
+}
+.analyticsKpiRow {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 22px;
+}
+.analyticsKpi {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+.analyticsKpi strong {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: var(--text);
+  font-variant-numeric: tabular-nums;
+}
+.analyticsKpi strong.isWarning {
+  color: var(--warning);
+}
+.analyticsKpi span {
+  font-size: 0.82rem;
+  color: var(--text-muted);
+}
+.analyticsFoot {
+  margin: 4px 0 0;
+  font-size: 0.86rem;
+  color: var(--text-muted);
+}
+.analyticsInlineLink {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  color: var(--accent);
+  font-weight: 600;
+}
+.analyticsInlineLink:hover {
+  text-decoration: underline;
+}
+.coachActivityList {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+/* ===== END Coach analytics ===== */
+
+/* ===== Member guide reader ===== */
+.guideReader {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  max-width: 68ch;
+}
+.guideReader p {
+  margin: 0;
+  color: var(--text-muted);
+  line-height: 1.7;
+}
+.guideReader .uiIconChip {
+  margin-bottom: 4px;
+}
+/* ===== END Member guide reader ===== */
+
+/* ===== Coach members: bulk selection ===== */
+.memberCard {
+  position: relative;
+}
+.memberSelect {
+  position: absolute;
+  top: 14px;
+  right: 14px;
+  display: inline-flex;
+}
+.memberSelect input,
+.membersSelectAll input {
+  width: 18px;
+  height: 18px;
+  accent-color: var(--accent);
+  cursor: pointer;
+}
+.memberCardSelected {
+  outline: 2px solid var(--accent);
+  outline-offset: -2px;
+}
+.membersSelectAll {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.86rem;
+  color: var(--text-muted);
+  cursor: pointer;
+}
+.membersBulkBar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+.membersBulkBar .bulkActions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+.membersBulkHint {
+  margin: 0;
+  font-size: 0.82rem;
+  color: var(--text-soft);
+}
+/* ===== END Coach members ===== */
+
+/* ===== Coach messages: two-panel inbox ===== */
+.inbox {
+  display: grid;
+  grid-template-columns: minmax(240px, 320px) 1fr;
+  padding: 0;
+  overflow: hidden;
+  min-height: 460px;
+}
+.inboxList {
+  overflow-y: auto;
+  max-height: 72vh;
+  border-right: 1px solid var(--border);
+}
+.inboxItem {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  padding: 12px 14px;
+  text-align: left;
+  cursor: pointer;
+  color: var(--text);
+  background: transparent;
+  border: 0;
+  border-bottom: 1px solid var(--border);
+}
+.inboxItem:hover,
+.inboxItem.active {
+  background: var(--surface-2);
+}
+.inboxAvatar {
+  display: grid;
+  place-items: center;
+  width: 34px;
+  height: 34px;
+  flex-shrink: 0;
+  border-radius: 50%;
+  font-size: 0.82rem;
+  font-weight: 600;
+  color: var(--accent-contrast);
+  background: var(--accent);
+}
+.inboxItemBody {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  flex: 1;
+  min-width: 0;
+}
+.inboxItemBody small {
+  color: var(--text-muted);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.inboxDot {
+  width: 8px;
+  height: 8px;
+  flex-shrink: 0;
+  border-radius: 50%;
+  background: var(--danger);
+}
+.inboxThread {
+  display: flex;
+  flex-direction: column;
+  min-height: 460px;
+  max-height: 72vh;
+}
+.inboxThreadHead {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 14px;
+  border-bottom: 1px solid var(--border);
+}
+.inboxThreadTitle {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  flex: 1;
+  min-width: 0;
+}
+.inboxThreadTitle small {
+  color: var(--text-muted);
+}
+.inboxMessages {
+  flex: 1;
+  overflow-y: auto;
+  padding: 16px 14px;
+}
+.inboxThread .chatComposer {
+  border-top: 1px solid var(--border);
+  padding: 12px 14px;
+}
+.inboxBack {
+  display: none;
+  align-items: center;
+  justify-content: center;
+  background: transparent;
+  border: 0;
+  color: var(--text);
+  cursor: pointer;
+  padding: 4px;
+}
+.inboxEmpty {
+  flex: 1;
+  display: grid;
+  place-items: center;
+  gap: 8px;
+  padding: 24px;
+  text-align: center;
+  color: var(--text-soft);
+}
+@media (max-width: 760px) {
+  .inbox {
+    grid-template-columns: 1fr;
+  }
+  .inboxList {
+    border-right: 0;
+  }
+  .inboxThread {
+    display: none;
+  }
+  .inbox[data-thread-open="true"] .inboxList {
+    display: none;
+  }
+  .inbox[data-thread-open="true"] .inboxThread {
+    display: flex;
+  }
+  .inboxBack {
+    display: inline-flex;
+  }
+}
+/* ===== END Coach messages ===== */

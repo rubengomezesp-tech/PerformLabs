@@ -1,6 +1,8 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
+import { redirect } from "next/navigation";
+import { requireMemberWorkspaceId } from "@/lib/auth/member-access";
 import { joinChallenge } from "@/lib/repositories/challenges";
 
 function readText(formData: FormData, key: string) {
@@ -9,7 +11,13 @@ function readText(formData: FormData, key: string) {
 }
 
 export async function joinChallengeAction(formData: FormData) {
-  await joinChallenge(readText(formData, "workspaceId"), readText(formData, "challengeId"));
+  const workspaceId = await requireMemberWorkspaceId(readText(formData, "workspaceId") || undefined);
+  try {
+    await joinChallenge(workspaceId, readText(formData, "challengeId"));
+  } catch (error) {
+    console.error("joinChallengeAction failed", (error as Error).message);
+    redirect("/app/challenges?error=" + encodeURIComponent("No se pudo unir al reto. Inténtalo de nuevo."));
+  }
   revalidatePath("/app/challenges");
   revalidatePath("/app");
 }

@@ -44,6 +44,7 @@ export default async function Home() {
         items={navItems}
         locale={locale}
         ctaLabel={dict.nav.requestProposal}
+        accessLabel={dict.nav.access}
         switcherLabel={dict.switcher.label}
         switcherChange={dict.switcher.change}
       />
@@ -174,11 +175,11 @@ export default async function Home() {
           </MotionReveal>
           <MotionReveal className="v2FormCard" delay={0.1}>
             <form action={submitLeadAction} className="leadForm">
-              <label>{dict.lead.fields.name}<input name="fullName" placeholder={dict.lead.fields.namePlaceholder} required /></label>
-              <label>{dict.lead.fields.email}<input name="email" placeholder="tu@email.com" required type="email" /></label>
-              <label>{dict.lead.fields.phone}<input name="phone" placeholder="+34..." /></label>
-              <label>{dict.lead.fields.brand}<input name="brandName" placeholder={dict.lead.fields.brandPlaceholder} /></label>
-              <label>{dict.lead.fields.site}<input name="websiteUrl" placeholder="https://..." /></label>
+              <label>{dict.lead.fields.name}<input name="fullName" placeholder={dict.lead.fields.namePlaceholder} required autoComplete="name" /></label>
+              <label>{dict.lead.fields.email}<input name="email" placeholder="tu@email.com" required type="email" autoComplete="email" /></label>
+              <label>{dict.lead.fields.phone}<input name="phone" placeholder="+34..." type="tel" inputMode="tel" autoComplete="tel" /></label>
+              <label>{dict.lead.fields.brand}<input name="brandName" placeholder={dict.lead.fields.brandPlaceholder} autoComplete="organization" /></label>
+              <label>{dict.lead.fields.site}<input name="websiteUrl" placeholder="https://..." type="url" inputMode="url" autoComplete="url" /></label>
               <label>
                 {dict.lead.fields.clients}
                 <select name="monthlyClients" defaultValue="">

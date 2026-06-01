@@ -72,7 +72,7 @@ export default async function CoachNotificationsPage() {
         <article className="card span12 nutritionLabCard">
           <div className="sectionHeader">
             <div>
-              <Sparkles color="var(--gold)" />
+              <Sparkles color="var(--gold)" aria-hidden="true" />
               <h2>Playbooks de retención.</h2>
               <p>La experiencia premium no es mandar ruido: es tocar al cliente en el momento correcto con contexto útil.</p>
             </div>
@@ -82,7 +82,7 @@ export default async function CoachNotificationsPage() {
             {automationPlaybooks.map((playbook) => (
               <section className="moduleGroup" key={playbook.title}>
                 <div className="appCardHeader">
-                  <Radio color="var(--gold)" />
+                  <Radio color="var(--gold)" aria-hidden="true" />
                   <h3>{playbook.title}</h3>
                 </div>
                 <p>{playbook.text}</p>
@@ -95,7 +95,7 @@ export default async function CoachNotificationsPage() {
         <article className="card span7" id="nuevo-aviso">
           <div className="sectionHeader">
             <div>
-              <CalendarClock color="var(--gold)" />
+              <CalendarClock color="var(--gold)" aria-hidden="true" />
               <h2>Programar aviso.</h2>
               <p>Mensaje puntual para todos los miembros activos. Queda en draft hasta conectar envío real o revisión final.</p>
             </div>
@@ -131,7 +131,7 @@ export default async function CoachNotificationsPage() {
         <article className="card span5">
           <div className="sectionHeader">
             <div>
-              <Users color="var(--gold)" />
+              <Users color="var(--gold)" aria-hidden="true" />
               <h2>Audiencia inteligente.</h2>
               <p>Segmentos preparados para que el coach no tenga que pensar desde cero cada vez.</p>
             </div>
@@ -148,7 +148,7 @@ export default async function CoachNotificationsPage() {
         <article className="card span12">
           <div className="sectionHeader">
             <div>
-              <MessageSquareText color="var(--gold)" />
+              <MessageSquareText color="var(--gold)" aria-hidden="true" />
               <h2>Plantilla por evento.</h2>
               <p>Edita el mensaje que se dispara cuando pasa algo importante en la app del cliente.</p>
             </div>
@@ -231,7 +231,7 @@ export default async function CoachNotificationsPage() {
         <article className="card span12">
           <div className="sectionHeader">
             <div>
-              <Smartphone color="var(--gold)" />
+              <Smartphone color="var(--gold)" aria-hidden="true" />
               <h2>Checklist para push real.</h2>
               <p>Queda preparado el producto; la capa de envío se conecta cuando definamos proveedor y publicación.</p>
             </div>

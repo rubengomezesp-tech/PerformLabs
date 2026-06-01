@@ -161,11 +161,11 @@ export default async function CoachProgramsPage({ searchParams }: CoachProgramsP
                 </label>
                 <label>
                   Días/semana
-                  <input name="daysPerWeek" defaultValue="4" min="3" max="7" type="number" />
+                  <input name="daysPerWeek" defaultValue="4" min="3" max="7" type="number" inputMode="numeric" />
                 </label>
                 <label>
                   Min/sesión
-                  <input name="sessionMinutes" defaultValue="60" min="35" max="120" type="number" />
+                  <input name="sessionMinutes" defaultValue="60" min="35" max="120" type="number" inputMode="numeric" />
                 </label>
                 <fieldset className="injuryPicker spanFull">
                   <legend>Lesiones / límites (opcional) — se evitarán esos músculos</legend>
@@ -205,7 +205,7 @@ export default async function CoachProgramsPage({ searchParams }: CoachProgramsP
                 </label>
                 <label>
                   Días/semana
-                  <input name="daysPerWeek" defaultValue="3" min="1" max="7" type="number" />
+                  <input name="daysPerWeek" defaultValue="3" min="1" max="7" type="number" inputMode="numeric" />
                 </label>
                 <button className="btn primary spanFull" type="submit">Crear programa</button>
               </form>
@@ -218,7 +218,7 @@ export default async function CoachProgramsPage({ searchParams }: CoachProgramsP
         <article className="card span12 coachProgramGuide motionCard">
           <div className="sectionHeader">
             <div>
-              <Dumbbell color="var(--accent)" />
+              <Dumbbell color="var(--accent)" aria-hidden="true" />
               <h2>Cómo crear una rutina.</h2>
               <p>Usa “Generar 12 semanas” para una base con ejercicios, o “Nuevo programa” para empezar de cero.</p>
             </div>
@@ -234,7 +234,7 @@ export default async function CoachProgramsPage({ searchParams }: CoachProgramsP
         <article className="card span12 motionCard">
           <div className="sectionHeader">
             <div>
-              <Dumbbell color="var(--accent)" />
+              <Dumbbell color="var(--accent)" aria-hidden="true" />
               <h2>Plantillas base · empieza en 1 clic.</h2>
               <p>Genera un programa completo de 12 semanas por objetivo y luego ajústalo. (Necesita la librería de ejercicios cargada.)</p>
             </div>
@@ -261,7 +261,7 @@ export default async function CoachProgramsPage({ searchParams }: CoachProgramsP
         <details className="card span12 trainingIntelligenceCard advancedProgramPanel">
           <summary>
             <div>
-              <Gauge color="var(--gold)" />
+              <Gauge color="var(--gold)" aria-hidden="true" />
               <span>
                 <h2>Herramienta avanzada de progresión.</h2>
                 <p>Úsala cuando quieras revisar carga, recuperación, semanas de descarga y ajustes del bloque.</p>
@@ -272,7 +272,7 @@ export default async function CoachProgramsPage({ searchParams }: CoachProgramsP
           <div className="trainingDecisionGrid">
             <section className="moduleGroup">
               <div className="appCardHeader">
-                <Activity color="var(--gold)" />
+                <Activity color="var(--gold)" aria-hidden="true" />
                 <h3>Decisión del bloque</h3>
               </div>
               <p>{workoutAdjustment.reason}</p>
@@ -307,7 +307,7 @@ export default async function CoachProgramsPage({ searchParams }: CoachProgramsP
         <article className="card span12 coachProgramCommand" id="editar-rutinas">
           <div className="sectionHeader">
             <div>
-              <Dumbbell color="var(--accent)" />
+              <Dumbbell color="var(--accent)" aria-hidden="true" />
               <h2>Tus rutinas.</h2>
               <p>Cada programa son 12 semanas (3 meses). Abre un mes y una semana para ajustar ejercicios, series, reps, descanso y notas. Publícalo cuando esté listo y asígnalo en Miembros.</p>
             </div>
@@ -330,7 +330,7 @@ export default async function CoachProgramsPage({ searchParams }: CoachProgramsP
           <article className="card motionCard" key={template.id}>
             <div className="sectionHeader">
               <div>
-                <Dumbbell color="var(--gold)" />
+                <Dumbbell color="var(--gold)" aria-hidden="true" />
                 <h2>{template.name}</h2>
                 <p>Plan {template.daysPerWeek} días/semana · {template.goal || "objetivo libre"}</p>
               </div>
@@ -448,10 +448,10 @@ export default async function CoachProgramsPage({ searchParams }: CoachProgramsP
                                         <input name="templateExerciseId" type="hidden" value={exercise.id} />
                                         <input name="dayId" type="hidden" value={day.id} />
                                         <input name="exerciseId" type="hidden" value={exercise.exerciseId} />
-                                        <label>Series<input name="sets" defaultValue={String(exercise.sets ?? 3)} min="1" type="number" /></label>
+                                        <label>Series<input name="sets" defaultValue={String(exercise.sets ?? 3)} min="1" type="number" inputMode="numeric" /></label>
                                         <label>Reps<input name="reps" defaultValue={exercise.reps || "8-12"} /></label>
                                         <label>Tempo<input name="tempo" defaultValue={exercise.tempo || "3-1-1"} placeholder="3-1-1" /></label>
-                                        <label>Descanso (s)<input name="restSeconds" defaultValue={String(exercise.restSeconds ?? 90)} min="0" type="number" /></label>
+                                        <label>Descanso (s)<input name="restSeconds" defaultValue={String(exercise.restSeconds ?? 90)} min="0" type="number" inputMode="numeric" /></label>
                                         <label>RIR objetivo<input name="targetRir" defaultValue={exercise.targetRir || "2"} placeholder="0-3" /></label>
                                         <label>Técnica
                                           <select name="intensityTechnique" defaultValue={exercise.intensityTechnique}>
@@ -468,11 +468,20 @@ export default async function CoachProgramsPage({ searchParams }: CoachProgramsP
                                         <button className="btn primary spanFull" type="submit">Guardar cambios</button>
                                       </form>
                                     </Dialog>
-                                    <form action={deleteCoachWorkoutExerciseAction}>
-                                      <input name="workspaceId" type="hidden" value={brand.id} />
-                                      <input name="templateExerciseId" type="hidden" value={exercise.id} />
-                                      <button className="btn ghost sm coachExerciseDelete" type="submit" title={`Quitar ${exercise.exerciseName}`} aria-label={`Quitar ${exercise.exerciseName}`}><Trash2 size={15} /></button>
-                                    </form>
+                                    <Dialog
+                                      triggerClassName="btn ghost sm coachExerciseDelete"
+                                      triggerAriaLabel={`Quitar ${exercise.exerciseName}`}
+                                      trigger={<Trash2 size={15} />}
+                                      title={`Quitar ${exercise.exerciseName}`}
+                                      description="Esta acción no se puede deshacer."
+                                    >
+                                      <form action={deleteCoachWorkoutExerciseAction} className="editForm">
+                                        <input name="workspaceId" type="hidden" value={brand.id} />
+                                        <input name="templateExerciseId" type="hidden" value={exercise.id} />
+                                        <p className="spanFull">¿Seguro que quieres quitar <strong>{exercise.exerciseName}</strong> de este día? Esta acción no se puede deshacer.</p>
+                                        <button className="btn danger spanFull" type="submit">Sí, quitar</button>
+                                      </form>
+                                    </Dialog>
                                     </div>
                                   </li>
                                 ))}
@@ -499,10 +508,10 @@ export default async function CoachProgramsPage({ searchParams }: CoachProgramsP
                                     ))}
                                   </select>
                                 </label>
-                                <label>Series<input name="sets" defaultValue="3" min="1" type="number" /></label>
+                                <label>Series<input name="sets" defaultValue="3" min="1" type="number" inputMode="numeric" /></label>
                                 <label>Reps<input name="reps" defaultValue="8-12" /></label>
                                 <label>Tempo<input name="tempo" defaultValue="3-1-1" placeholder="3-1-1" /></label>
-                                <label>Descanso (s)<input name="restSeconds" defaultValue="90" min="0" type="number" /></label>
+                                <label>Descanso (s)<input name="restSeconds" defaultValue="90" min="0" type="number" inputMode="numeric" /></label>
                                 <label>RIR objetivo<input name="targetRir" defaultValue="2" placeholder="0-3" /></label>
                                 <label>Técnica
                                   <select name="intensityTechnique" defaultValue="">
@@ -547,11 +556,11 @@ export default async function CoachProgramsPage({ searchParams }: CoachProgramsP
               <input name="templateId" type="hidden" value={template.id} />
               <label>
                 Semana
-                <input name="weekNumber" defaultValue="1" min="1" type="number" />
+                <input name="weekNumber" defaultValue="1" min="1" type="number" inputMode="numeric" />
               </label>
               <label>
                 Dia
-                <input name="dayNumber" defaultValue={String(template.days.length + 1)} min="1" type="number" />
+                <input name="dayNumber" defaultValue={String(template.days.length + 1)} min="1" type="number" inputMode="numeric" />
               </label>
               <label>
                 Titulo

@@ -1,6 +1,8 @@
+import { Suspense } from "react";
 import type { Metadata, Viewport } from "next";
 import { EntitlementGate } from "@/components/entitlement-gate";
 import { PageShell } from "@/components/page-shell";
+import { FlashToaster } from "@/components/ui";
 import { requireMemberContext } from "@/lib/auth/member-access";
 import { getSelectedMemberAppBrand, getSelectedMemberAppShell } from "@/lib/member-app";
 import { getWorkspaceEntitlement } from "@/lib/repositories/entitlements";
@@ -35,6 +37,9 @@ export default async function MemberAppLayout({
 
   return (
     <PageShell brand={brand} nav={nav} active="/app" productLabel="App cliente" variant="app">
+      <Suspense fallback={null}>
+        <FlashToaster />
+      </Suspense>
       <EntitlementGate brand={brand} entitlement={entitlement} module="member_app">
         {children}
       </EntitlementGate>

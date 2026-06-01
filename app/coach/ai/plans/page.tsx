@@ -1,6 +1,6 @@
 import { AlertTriangle, CheckCircle2, Dumbbell, Sparkles, Trash2, Wand2 } from "lucide-react";
 import Link from "next/link";
-import { SubmitButton } from "@/components/submit-button";
+import { SubmitButton } from "@/components/ui";
 import { Topbar } from "@/components/topbar";
 import { isPlanGeneratorConfigured } from "@/lib/ai/plan-generator";
 import { getSelectedMemberAppBrand } from "@/lib/member-app";
@@ -43,7 +43,7 @@ export default async function CoachAiPlansPage({ searchParams }: PageProps) {
         {!brain.persona && !brain.rules ? (
           <article className="card span12 aiStatus">
             <div>
-              <Sparkles color="var(--accent)" />
+              <Sparkles color="var(--accent)" aria-hidden="true" />
               <div>
                 <strong>Afina primero tu cerebro de IA.</strong>
                 <p>Cuanto más definas tu metodología y tus reglas, más se parecerán los planes a los que harías tú.</p>
@@ -57,7 +57,7 @@ export default async function CoachAiPlansPage({ searchParams }: PageProps) {
           <input name="workspaceId" type="hidden" value={brand.id} />
           <div className="sectionHeader">
             <div>
-              <Wand2 color="var(--accent)" />
+              <Wand2 color="var(--accent)" aria-hidden="true" />
               <h2>Brief del cliente</h2>
               <p>Dame el contexto y genero el borrador con tus reglas.</p>
             </div>
@@ -86,11 +86,11 @@ export default async function CoachAiPlansPage({ searchParams }: PageProps) {
             </label>
             <label>
               Días/semana
-              <input name="daysPerWeek" type="number" min={1} max={7} defaultValue={4} />
+              <input name="daysPerWeek" type="number" inputMode="numeric" min={1} max={7} defaultValue={4} />
             </label>
             <label>
               Min/sesión
-              <input name="sessionMinutes" type="number" min={20} max={150} defaultValue={60} />
+              <input name="sessionMinutes" type="number" inputMode="numeric" min={20} max={150} defaultValue={60} />
             </label>
           </div>
           <label>
@@ -102,7 +102,7 @@ export default async function CoachAiPlansPage({ searchParams }: PageProps) {
             <textarea name="focusNotes" rows={3} placeholder="Quiere enfocar glúteo, viaja 1 semana al mes, prefiere mancuernas…" />
           </label>
 
-          <SubmitButton className="btn primary" pendingLabel="Generando plan…"><Sparkles size={18} /> Generar borrador</SubmitButton>
+          <SubmitButton variant="primary" successToast="Borrador generado"><Sparkles size={18} /> Generar borrador</SubmitButton>
           {!aiReady ? <p className="coachChatHint">El motor de IA se activará cuando la plataforma conecte la clave. Tus briefs quedarán listos.</p> : null}
         </form>
 
@@ -153,12 +153,12 @@ export default async function CoachAiPlansPage({ searchParams }: PageProps) {
                     <form action={approvePlanDraftAction}>
                       <input name="workspaceId" type="hidden" value={brand.id} />
                       <input name="draftId" type="hidden" value={draft.id} />
-                      <SubmitButton className="btn primary" pendingLabel="Aprobando…"><CheckCircle2 size={16} /> Aprobar y crear programa</SubmitButton>
+                      <SubmitButton variant="primary" successToast="Programa creado"><CheckCircle2 size={16} /> Aprobar y crear programa</SubmitButton>
                     </form>
                     <form action={discardPlanDraftAction}>
                       <input name="workspaceId" type="hidden" value={brand.id} />
                       <input name="draftId" type="hidden" value={draft.id} />
-                      <SubmitButton className="btn ghost" pendingLabel="Descartando…"><Trash2 size={16} /> Descartar</SubmitButton>
+                      <SubmitButton variant="ghost" successToast="Borrador descartado"><Trash2 size={16} /> Descartar</SubmitButton>
                     </form>
                   </div>
                 )}
@@ -166,7 +166,7 @@ export default async function CoachAiPlansPage({ searchParams }: PageProps) {
             ))
           ) : (
             <article className="card inlineEmpty">
-              <Sparkles color="var(--accent)" />
+              <Sparkles color="var(--accent)" aria-hidden="true" />
               <strong>Genera tu primer plan.</strong>
               <p>Rellena el brief y la IA redactará un borrador con tu metodología para que lo revises.</p>
             </article>

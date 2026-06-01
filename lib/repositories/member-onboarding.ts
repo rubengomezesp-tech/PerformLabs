@@ -4,7 +4,28 @@ import { getSupabaseServiceEnv } from "@/lib/supabase/env";
 import { createServiceSupabaseClient } from "@/lib/supabase/server";
 import { assignDietTemplateToMember, assignWorkoutTemplateToMember } from "@/lib/repositories/member-management";
 import { listManagedDietTemplates, type ManagedDietTemplate } from "@/lib/repositories/nutrition-management";
+import { seedSuggestedHabitsForMember } from "@/lib/repositories/habit-tracking";
 import { listManagedWorkoutTemplates, type ManagedWorkoutTemplate } from "@/lib/repositories/training-management";
+import {
+  selectProgram,
+  normalizeGoal,
+  normalizeLevel,
+  normalizeSex as toProgramSex,
+  normalizePlace,
+  bucketMinutes,
+  type MatchTemplate,
+  type QuizAnswers,
+} from "@/lib/domain/program-matcher";
+import {
+  selectDietTemplate,
+  normalizeGoal as normalizeDietGoal,
+  normalizeDietStyle,
+  isHalalLabel,
+  isKetoLabel,
+  bucketMeals,
+  type DietQuizAnswers,
+  type DietMatchTemplate,
+} from "@/lib/domain/diet-matcher";
 
 export type MemberExerciseProgression = {
   /** Best set (by reps × weight) logged for this exercise in the prior 14 days. */
@@ -22,6 +43,8 @@ export type MemberAssignedWorkoutExercise = {
   videoUrl: string;
   thumbnailUrl: string;
   imageUrl: string;
+  /** Ordered demo frames (start→end) for the animated preview when no real video. */
+  frames: string[];
   muscleGroups: string[];
   equipment: string[];
   difficulty: string;
@@ -278,6 +301,54 @@ async function buildOnboardingRecommendation(input: {
   };
 }
 
+/**
+ * Diet sibling of matchQuarterlyTemplate: builds DietQuizAnswers from the saved diet
+ * preferences + the same canonical goal as the chosen program, scores the tagged diet
+ * templates (brand + base-library matrix), and returns the matched id. Style/allergies
+ * are hard exclusions. Returns null → caller falls back to the legacy lookup.
+ */
+async function matchDietTemplate(
+  supabase: ReturnType<typeof createServiceSupabaseClient>,
+  workspaceId: string,
+  memberProfileId: string,
+  goal: string,
+): Promise<string | null> {
+  try {
+    const sb = supabase as unknown as { from: (table: string) => any };
+    const [prefs, tpls] = await Promise.all([
+      sb.from("member_diet_preferences").select("diet_style,allergies,meals_per_day").eq("member_profile_id", memberProfileId).maybeSingle(),
+      sb.from("diet_templates").select("id,status,goal_tag,diet_style,meals_per_day,tags").or(`workspace_id.eq.${workspaceId},is_base_library.eq.true`),
+    ]);
+    const p = prefs?.data ?? null;
+    const rows = (tpls?.data ?? []) as any[];
+    if (!rows.length) return null;
+    // diet_style is the quiz's comma-joined multi-select (e.g. "Pescetariana, Sin gluten,
+    // Keto"). The protein-source style comes from the most-restrictive token; halal/keto
+    // are orthogonal flags read from the same string. See docs/diet-types.md.
+    const dietStyleRaw = String(p?.diet_style ?? "");
+    const quiz: DietQuizAnswers = {
+      goal: normalizeDietGoal(goal),
+      dietStyle: normalizeDietStyle(dietStyleRaw),
+      mealsPerDay: bucketMeals(p?.meals_per_day),
+      allergies: Array.isArray(p?.allergies) ? p.allergies : [],
+      halal: isHalalLabel(dietStyleRaw),
+      keto: isKetoLabel(dietStyleRaw),
+    };
+    const matchTemplates: DietMatchTemplate[] = rows.map((t) => ({
+      id: t.id,
+      status: t.status,
+      goalTag: t.goal_tag ?? null,
+      dietStyle: t.diet_style ?? null,
+      mealsPerDay: t.meals_per_day ?? null,
+      tags: Array.isArray(t.tags) ? t.tags : [],
+    }));
+    return selectDietTemplate(quiz, matchTemplates).templateId ?? null;
+  } catch (error) {
+    console.error("Diet match failed, falling back to legacy lookup", error);
+    return null;
+  }
+}
+
 async function assignRecommendedDietPlan(input: {
   workspaceId: string;
   memberProfileId: string;
@@ -287,26 +358,33 @@ async function assignRecommendedDietPlan(input: {
   dietTemplateId?: string;
   assignedBy?: string | null;
 }) {
-  const templates = await listManagedDietTemplates(input.workspaceId);
-  const template = input.dietTemplateId
-    ? templates.find((item) => item.id === input.dietTemplateId) ?? null
-    : findRecommendedDietTemplate(templates, input.goal);
+  const supabase = createServiceSupabaseClient();
+  let templateId: string | null = null;
+  if (input.dietTemplateId) {
+    templateId = input.dietTemplateId;
+  } else {
+    templateId = await matchDietTemplate(supabase, input.workspaceId, input.memberProfileId, input.goal);
+    if (!templateId) {
+      const templates = await listManagedDietTemplates(input.workspaceId);
+      templateId = findRecommendedDietTemplate(templates, input.goal)?.id ?? null;
+    }
+  }
 
-  if (!template) {
+  if (!templateId) {
     return { dietTemplateId: null, mealAssignmentCreated: false };
   }
 
   const assignment = await assignDietTemplateToMember({
     workspaceId: input.workspaceId,
     memberProfileId: input.memberProfileId,
-    dietTemplateId: template.id,
+    dietTemplateId: templateId,
     mealsPerDay: String(input.mealsPerDay),
     hideMacros: input.hideMacros,
     assignedBy: input.assignedBy,
   });
 
   return {
-    dietTemplateId: template.id,
+    dietTemplateId: templateId,
     mealAssignmentCreated: Boolean(assignment?.assignedMealPlanId),
   };
 }
@@ -377,6 +455,61 @@ function findQuarterlyTemplate(templates: ManagedWorkoutTemplate[], daysPerWeek:
     ?? null;
 }
 
+/**
+ * Pick the member's program with the matching engine (lib/domain/program-matcher):
+ * builds QuizAnswers from the saved onboarding prefs, scores the tagged templates,
+ * and falls back to the legacy days-based lookup when nothing matches (or on any
+ * error), so behaviour is unchanged until the tagged matrix is populated.
+ */
+async function matchQuarterlyTemplate(
+  supabase: ReturnType<typeof createServiceSupabaseClient>,
+  workspaceId: string,
+  memberProfileId: string,
+  daysPerWeek: number,
+): Promise<{ id: string; goal: string } | null> {
+  try {
+    const sb = supabase as unknown as { from: (table: string) => any };
+    const [prefs, profile, tpls] = await Promise.all([
+      sb.from("member_fitness_preferences").select("location,available_equipment,session_minutes,experience_level,training_goal,days_per_week").eq("member_profile_id", memberProfileId).maybeSingle(),
+      sb.from("member_profiles").select("sex,goal").eq("id", memberProfileId).maybeSingle(),
+      // The brand's own templates + the platform base-library matrix.
+      sb.from("workout_templates").select("id,goal,level,status,days_per_week,goal_tag,target_sex,location,session_minutes,required_equipment").or(`workspace_id.eq.${workspaceId},is_base_library.eq.true`),
+    ]);
+    const p = prefs?.data ?? null;
+    const pr = profile?.data ?? null;
+    const rows = (tpls?.data ?? []) as any[];
+    if (!rows.length) return null;
+    const quiz: QuizAnswers = {
+      sex: toProgramSex(pr?.sex),
+      goal: normalizeGoal(p?.training_goal ?? pr?.goal),
+      place: normalizePlace(p?.location),
+      daysPerWeek: Number(p?.days_per_week) || daysPerWeek,
+      sessionMinutes: bucketMinutes(p?.session_minutes),
+      experience: normalizeLevel(p?.experience_level),
+      equipment: Array.isArray(p?.available_equipment) ? p.available_equipment : [],
+    };
+    const matchTemplates: MatchTemplate[] = rows.map((t) => ({
+      id: t.id,
+      status: t.status,
+      daysPerWeek: t.days_per_week,
+      level: t.level,
+      goalTag: t.goal_tag ?? null,
+      targetSex: t.target_sex ?? null,
+      location: t.location ?? null,
+      sessionMinutes: t.session_minutes ?? null,
+      requiredEquipment: t.required_equipment ?? null,
+    }));
+    const match = selectProgram(quiz, matchTemplates);
+    if (match.templateId) {
+      const chosen = rows.find((t) => t.id === match.templateId);
+      if (chosen) return { id: chosen.id, goal: chosen.goal ?? "" };
+    }
+  } catch (error) {
+    console.error("Program match failed, falling back to days-based lookup", error);
+  }
+  return null;
+}
+
 export async function assignQuarterlyWorkoutModule(input: {
   workspaceId: string;
   memberProfileId: string;
@@ -387,12 +520,23 @@ export async function assignQuarterlyWorkoutModule(input: {
   assignedBy?: string | null;
 }) {
   const supabase = createServiceSupabaseClient();
-  const templates = await listManagedWorkoutTemplates(input.workspaceId);
-  const template = input.workoutTemplateId
-    ? templates.find((item) => item.id === input.workoutTemplateId) ?? null
-    : findQuarterlyTemplate(templates, input.daysPerWeek);
+  let selected: { id: string; goal: string } | null = null;
+  if (input.workoutTemplateId) {
+    const templates = await listManagedWorkoutTemplates(input.workspaceId);
+    const t = templates.find((item) => item.id === input.workoutTemplateId);
+    selected = t ? { id: t.id, goal: t.goal } : { id: input.workoutTemplateId, goal: "" };
+  } else {
+    // Engine match against brand + base-library matrix; fall back to the legacy
+    // days-based lookup over the brand's own templates.
+    selected = await matchQuarterlyTemplate(supabase, input.workspaceId, input.memberProfileId, input.daysPerWeek);
+    if (!selected) {
+      const templates = await listManagedWorkoutTemplates(input.workspaceId);
+      const t = findQuarterlyTemplate(templates, input.daysPerWeek);
+      selected = t ? { id: t.id, goal: t.goal } : null;
+    }
+  }
 
-  if (!template) {
+  if (!selected) {
     throw new Error(`No existe todavia el modulo de ${input.daysPerWeek} dias/semana. Crealo desde Programas antes de asignarlo.`);
   }
 
@@ -409,22 +553,22 @@ export async function assignQuarterlyWorkoutModule(input: {
     throw new Error(`No se pudo revisar la asignacion actual: ${latest.error.message}`);
   }
 
-  if (latest.data?.source_template_id === template.id && latest.data.status === "active") {
-    return { templateId: template.id, assignmentCreated: false };
+  if (latest.data?.source_template_id === selected.id && latest.data.status === "active") {
+    return { templateId: selected.id, assignmentCreated: false };
   }
 
   const assignment = await assignWorkoutTemplateToMember({
     workspaceId: input.workspaceId,
     memberProfileId: input.memberProfileId,
-    workoutTemplateId: template.id,
-    assignmentGoal: input.assignmentGoal || template.goal,
+    workoutTemplateId: selected.id,
+    assignmentGoal: input.assignmentGoal || selected.goal,
     assignmentNotes: input.assignmentNotes,
     currentMonth: "1",
     currentWeek: "1",
     assignedBy: input.assignedBy,
   });
 
-  return { templateId: template.id, assignmentCreated: Boolean(assignment?.assignmentId) };
+  return { templateId: selected.id, assignmentCreated: Boolean(assignment?.assignmentId) };
 }
 
 export async function saveMemberOnboarding(input: MemberOnboardingInput) {
@@ -790,6 +934,14 @@ export async function applyOnboardingPlanRecommendation(input: ApplyCoachBriefin
     assignedBy: input.approvedBy ?? null,
   });
 
+  // Recovery: seed the suggested habits (sleep/steps/water…) so the quiz yields a
+  // ready recovery plan. Best-effort — never blocks plan application.
+  try {
+    await seedSuggestedHabitsForMember(input.workspaceId, response.data.member_profile_id);
+  } catch (error) {
+    console.error("Unable to seed recovery habits during onboarding", error);
+  }
+
   const now = new Date().toISOString();
   const coachReview = {
     ...currentReview,
@@ -1064,6 +1216,7 @@ export async function getMemberTrainingContext(workspaceId?: string): Promise<Me
     type BaseExerciseDetail = {
       thumbnailUrl: string;
       imageUrl: string;
+      frames: string[];
       muscleGroups: string[];
       equipment: string[];
       difficulty: string;
@@ -1088,6 +1241,7 @@ export async function getMemberTrainingContext(workspaceId?: string): Promise<Me
         baseDetailByExercise.set(row.id, {
           thumbnailUrl: exerciseCardImage(urls),
           imageUrl: urls[0] ? cloudinaryFetch(urls[0], { width: 960, height: 640 }) : "",
+          frames: urls.slice(0, 4).map((url) => cloudinaryFetch(url, { width: 960, height: 640 })),
           muscleGroups: Array.isArray(row.muscle_groups) ? row.muscle_groups.filter(Boolean) : [],
           equipment: Array.isArray(row.equipment) ? row.equipment.filter(Boolean) : [],
           difficulty: typeof row.difficulty === "string" ? row.difficulty : "",
@@ -1116,6 +1270,7 @@ export async function getMemberTrainingContext(workspaceId?: string): Promise<Me
         videoUrl: exercise.video_url ?? "",
         thumbnailUrl: detail?.thumbnailUrl ?? "",
         imageUrl: detail?.imageUrl ?? "",
+        frames: detail?.frames ?? [],
         muscleGroups: detail?.muscleGroups ?? [],
         equipment: detail?.equipment ?? [],
         difficulty: detail?.difficulty ?? "",

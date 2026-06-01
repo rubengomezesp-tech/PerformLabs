@@ -39,8 +39,8 @@ export default async function CoachHomePage() {
             <span className="eyebrow">Hoy</span>
             <h2>Resuelve primero lo que mueve resultados.</h2>
             <p>
-              El coach no necesita buscar por toda la consola: aqui aparecen los clientes que
-              esperan revision, las incidencias de comida y las senales de adherencia.
+              El coach no necesita buscar por toda la consola: aquí aparecen los clientes que
+              esperan revisión, las incidencias de comida y las señales de adherencia.
             </p>
             <div className="actions">
               <Link className="btn primary" href="/coach/checkins">
@@ -52,9 +52,9 @@ export default async function CoachHomePage() {
             </div>
           </div>
           <div className="coachCommandPanel">
-            <Badge tone={hasAttention ? "danger" : "accent"}>{hasAttention ? "Requiere accion" : "Todo en orden"}</Badge>
+            <Badge tone={hasAttention ? "danger" : "accent"}>{hasAttention ? "Requiere acción" : "Todo en orden"}</Badge>
             <strong>{dashboard.attentionQueue.length}</strong>
-            <p>tareas de coach priorizadas para proteger entreno, nutricion y retencion.</p>
+            <p>tareas de coach priorizadas para proteger entreno, nutrición y retención.</p>
           </div>
         </article>
 
@@ -72,7 +72,7 @@ export default async function CoachHomePage() {
         <article className="card span7 motionCard coachAttentionCard">
           <div className="sectionHeader">
             <div>
-              <ClipboardCheck color="var(--accent)" />
+              <ClipboardCheck color="var(--accent)" aria-hidden="true" />
               <h2>Prioridad de hoy</h2>
               <p>Lo que el entrenador debe resolver antes de tocar detalles secundarios.</p>
             </div>
@@ -84,7 +84,7 @@ export default async function CoachHomePage() {
               <div className="coachEmptyPanel">
                 <CheckCircle2 color="var(--success)" />
                 <strong>Sin bloqueos abiertos.</strong>
-                <p>Cuando un cliente mande briefing, check-in o una incidencia concreta, aparecera aqui.</p>
+                <p>Cuando un cliente mande briefing, check-in o una incidencia concreta, aparecerá aquí.</p>
               </div>
             }
           />
@@ -93,9 +93,9 @@ export default async function CoachHomePage() {
         <article className="card span5 motionCard coachActivityCard">
           <div className="sectionHeader">
             <div>
-              <Activity color="var(--gold)" />
+              <Activity color="var(--gold)" aria-hidden="true" />
               <h2>Actividad reciente</h2>
-              <p>Senales de clientes sin abrir pantalla por pantalla.</p>
+              <p>Señales de clientes sin abrir pantalla por pantalla.</p>
             </div>
           </div>
           <div className="coachActivityTimeline">
@@ -111,8 +111,8 @@ export default async function CoachHomePage() {
             )) : (
               <div className="coachEmptyPanel compact">
                 <MessageSquareText color="var(--soft)" />
-                <strong>Aun no hay actividad.</strong>
-                <p>La app empezara a llenar esta zona cuando el cliente registre entrenos, comidas o formularios.</p>
+                <strong>Aún no hay actividad.</strong>
+                <p>La app empezará a llenar esta zona cuando el cliente registre entrenos, comidas o formularios.</p>
               </div>
             )}
           </div>
@@ -121,9 +121,9 @@ export default async function CoachHomePage() {
         <article className="span12 coachBriefingsSection">
           <div className="sectionHeader">
             <div>
-              <MessageSquareText color="var(--gold)" />
+              <MessageSquareText color="var(--gold)" aria-hidden="true" />
               <h2>Briefings de nuevos clientes</h2>
-              <p>Datos de registro convertidos en decisiones practicas para entreno y nutricion.</p>
+              <p>Datos de registro convertidos en decisiones prácticas para entreno y nutrición.</p>
             </div>
             <Link className="btn" href="/coach/members">Abrir miembros <ArrowRight size={16} /></Link>
           </div>
@@ -160,7 +160,7 @@ export default async function CoachHomePage() {
                         <strong>{briefing.recommendation.trainingTemplate}</strong>
                       </span>
                       <span>
-                        <small>Nutricion</small>
+                        <small>Nutrición</small>
                         <strong>{briefing.recommendation.nutritionTemplate}</strong>
                       </span>
                     </div>
@@ -212,8 +212,8 @@ export default async function CoachHomePage() {
           ) : (
             <div className="coachEmptyPanel">
               <MessageSquareText color="var(--soft)" />
-              <strong>No hay briefings todavia.</strong>
-              <p>Cuando un cliente complete su formulario inicial, el entrenador lo vera aqui resumido.</p>
+              <strong>No hay briefings todavía.</strong>
+              <p>Cuando un cliente complete su formulario inicial, el entrenador lo verá aquí resumido.</p>
             </div>
           )}
         </article>

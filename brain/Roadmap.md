@@ -34,6 +34,19 @@ Base estilo [[Mercado y competencia|MacroActive]] **completada**:
 Siguiente foco sugerido: pulir la gamificación (avisos de ranking) y seguir el
 i18n por fases hacia login/registro y consola.
 
+## Auditoría UI/UX 2026-05-31 (ver [[../docs/ux-audit-2026]])
+
+Repaso completo de las 3 superficies + acceso. Fundación sólida; el trabajo restante
+es **terminación y consistencia**, no visión.
+- ✅ **P0 a11y de fundación** aplicado: `scope="col"` en tablas (primitivo + crudas),
+  `role="alert"`/`status` en mensajes de auth, `autoComplete`+tipos en login/registro/
+  lead form, labels en `<select>` de tabla, `aria-hidden` en `EmptyState`.
+- Pendiente P1 (wow): `loading.tsx`/skeletons en **`/coach` (0 hoy)**, ambiente aurora
+  en login/registro, `EmptyState` unificado en la member app.
+- Pendiente P2 (deuda): `inputMode` en numéricos, `aria-label` en botones-icono,
+  consolidar `globals.css` (13k líneas con capas "(agent)"/"UI UPLIFT").
+- Regla del CEO formalizada en **`CLAUDE.md`**: usar siempre tools + MCP disponibles.
+
 ## Necesita infra del fundador
 
 - **Fotos de progreso** → bucket de Supabase Storage.

@@ -196,12 +196,18 @@ export async function requestMemberAccessLinkAction(formData: FormData) {
   const proto = headerStore.get("x-forwarded-proto") || (process.env.NODE_ENV === "production" ? "https" : "http");
 
   if (host) {
+    // Carry the workspace into the magic link so the member lands in THEIR coach's
+    // app even opening the email on another device (cookie-independent).
+    const workspaceRef = readText(formData, "w");
+    const callback = new URL(`${proto}://${host}/auth/callback`);
+    if (workspaceRef) callback.searchParams.set("w", workspaceRef);
+    callback.searchParams.set("next", "/app");
     const supabase = createAuthClient();
     await supabase.auth.signInWithOtp({
       email,
       options: {
         shouldCreateUser: false,
-        emailRedirectTo: `${proto}://${host}/auth/callback`,
+        emailRedirectTo: callback.toString(),
       },
     });
   }

@@ -1,6 +1,8 @@
 import { CalendarClock, CheckCircle2, ChevronRight, Dumbbell, Play, Repeat2, Target, Timer, TrendingUp, Video, Wrench } from "lucide-react";
 import Link from "next/link";
 import { Dialog } from "@/components/dialog";
+import { ExercisePreview } from "@/components/exercise-preview";
+import { RestTimer } from "@/components/rest-timer";
 import { Topbar } from "@/components/topbar";
 import { getSelectedMemberAppBrand } from "@/lib/member-app";
 import { getMemberTrainingContext, type MemberAssignedWorkoutDay, type MemberAssignedWorkoutExercise } from "@/lib/repositories/member-onboarding";
@@ -73,10 +75,11 @@ function techniqueCue(instructions: string) {
 /** Coach-prescribed images + base-library detail used in the exercise card. */
 function exerciseDetail(exercise: WorkoutExerciseView) {
   if (!isAssignedExercise(exercise)) {
-    return { imageUrl: "", muscleGroups: [] as string[], equipment: [] as string[], difficulty: "", cue: "", progression: null as MemberAssignedWorkoutExercise["progression"] };
+    return { imageUrl: "", frames: [] as string[], muscleGroups: [] as string[], equipment: [] as string[], difficulty: "", cue: "", progression: null as MemberAssignedWorkoutExercise["progression"] };
   }
   return {
     imageUrl: exercise.imageUrl || exercise.thumbnailUrl,
+    frames: exercise.frames,
     muscleGroups: exercise.muscleGroups,
     equipment: exercise.equipment,
     difficulty: exercise.difficulty,
@@ -301,6 +304,7 @@ export default async function WorkoutsPage() {
                   const detail = exerciseDetail(exercise);
                   const rawCover = detail.imageUrl || exercise.thumbnailUrl;
                   const cover = rawCover ? cloudinaryFetch(rawCover, { width: 280, height: 280 }) : "";
+                  const previewFrames = detail.frames.map((frame) => cloudinaryFetch(frame, { width: 560, height: 560 }));
 
                   return (
                     <details className={index === 0 ? "sessionExerciseAccordion isCurrentExercise" : "sessionExerciseAccordion"} key={exercise.id} open={index === 0}>
@@ -312,8 +316,10 @@ export default async function WorkoutsPage() {
                         <b>{exercise.sets ?? "-"}x{exercise.reps || "-"}</b>
                       </summary>
                       <div className="sessionExercise">
-                        <div className={cover ? "sessionExerciseMedia trnExerciseMedia" : "sessionExerciseMedia trnExerciseMedia sessionExerciseMediaEmpty"}>
-                          {cover ? (
+                        <div className={cover || previewFrames.length ? "sessionExerciseMedia trnExerciseMedia" : "sessionExerciseMedia trnExerciseMedia sessionExerciseMediaEmpty"}>
+                          {previewFrames.length > 1 ? (
+                            <ExercisePreview frames={previewFrames} name={exercise.exerciseName} />
+                          ) : cover ? (
                             <img alt={exercise.exerciseName} loading="lazy" src={cover} />
                           ) : (
                             <Dumbbell size={28} aria-hidden />
@@ -358,8 +364,8 @@ export default async function WorkoutsPage() {
                               <input name="setNumber" type="hidden" value={setIndex + 1} />
                               <input name="plannedReps" type="hidden" value={exercise.reps} />
                               <strong>Serie {setIndex + 1}</strong>
-                              <label>Reps hechas<input name="actualReps" placeholder={detail.progression?.lastReps ? String(detail.progression.lastReps) : exercise.reps || "10"} type="number" min="0" /></label>
-                              <label>Peso kg<input name="weightKg" placeholder={detail.progression?.lastWeightKg ? String(detail.progression.lastWeightKg) : "0"} type="number" min="0" step="0.5" /></label>
+                              <label>Reps hechas<input name="actualReps" placeholder={detail.progression?.lastReps ? String(detail.progression.lastReps) : exercise.reps || "10"} type="number" inputMode="numeric" min="0" /></label>
+                              <label>Peso kg<input name="weightKg" placeholder={detail.progression?.lastWeightKg ? String(detail.progression.lastWeightKg) : "0"} type="number" inputMode="decimal" min="0" step="0.5" /></label>
                               <input name="rir" type="hidden" value="" />
                               <input name="rpe" type="hidden" value="" />
                               <label>Cómo fue<select name="setNotes" defaultValue="">
@@ -371,6 +377,7 @@ export default async function WorkoutsPage() {
                             </div>
                           ))}
                         </div>
+                        <RestTimer seconds={exercise.restSeconds ?? 90} />
                         <div className="actions">
                           {exercise.videoUrl ? (
                             <a className="btn primary" href={exercise.videoUrl} target="_blank" rel="noreferrer">
@@ -389,8 +396,8 @@ export default async function WorkoutsPage() {
                 })}
               </div>
               <div className="sessionSavePanel">
-                <label>Tiempo<input name="durationMinutes" placeholder="60 min" type="number" min="0" /></label>
-                <label>Sensación<input name="perceivedEffort" placeholder="1-10" type="number" min="1" max="10" /></label>
+                <label>Tiempo<input name="durationMinutes" placeholder="60 min" type="number" inputMode="numeric" min="0" /></label>
+                <label>Sensación<input name="perceivedEffort" placeholder="1-10" type="number" inputMode="numeric" min="1" max="10" /></label>
                 <label className="spanFull">Nota del entreno<textarea name="notes" rows={2} placeholder="Energía, molestias durante la sesión, cargas que se sintieron altas o bajas..." /></label>
                 <div className="sessionIssueBox">
                   <div>

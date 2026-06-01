@@ -13,7 +13,10 @@
     "typecheck": "next typegen && tsc --noEmit",
     "admin:ensure-owner": "node scripts/ensure-platform-owner.mjs",
     "import:exercises": "node scripts/import-free-exercise-db.mjs",
-    "import:nutrition": "node scripts/seed-nutrition-library.mjs"
+    "import:nutrition": "node scripts/seed-nutrition-library.mjs",
+    "import:foods-off": "node scripts/import-open-food-facts.mjs",
+    "import:foods-usda": "node scripts/import-usda-foundation.mjs",
+    "media:images": "node scripts/generate-product-images.mjs"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.100.1",
@@ -36,8 +39,10 @@
     "zod": "^4.4.3"
   },
   "devDependencies": {
+    "@google/genai": "^2.7.0",
     "@types/three": "^0.184.1",
     "@types/web-push": "^3.6.4",
+    "sharp": "^0.34.5",
     "vitest": "^4.1.7"
   },
   "pnpm": {

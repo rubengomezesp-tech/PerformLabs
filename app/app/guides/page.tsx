@@ -1,4 +1,6 @@
-import { BookOpen } from "lucide-react";
+import { ArrowRight, BookOpen } from "lucide-react";
+import Link from "next/link";
+import { MemberEmpty } from "@/components/member-empty";
 import { Topbar } from "@/components/topbar";
 import { getSelectedMemberAppBrand } from "@/lib/member-app";
 import { listWorkspaceContentPages } from "@/lib/repositories/member-experience";
@@ -16,18 +18,21 @@ export default async function GuidesPage() {
       />
       <section className="grid">
         {pages.length ? pages.map((page, idx) => (
-          <article className="card span4 guideCard uiSheen uiFadeUp" style={{ ["--i" as string]: idx }} key={page.id}>
+          <Link className="card span4 guideCard uiSheen uiFadeUp" style={{ ["--i" as string]: idx }} key={page.id} href={`/app/guides/${page.id}`}>
             <span className="uiIconChip"><BookOpen size={18} /></span>
             <h3>{page.heading}</h3>
-            <p>{page.notes}</p>
-            <span className={page.status === "active" ? "tag" : "tag profileTagMuted"}>{page.status === "active" ? "Activo" : "Preparando"}</span>
-          </article>
+            <p style={{ display: "-webkit-box", WebkitLineClamp: 3, WebkitBoxOrient: "vertical", overflow: "hidden" }}>{page.notes}</p>
+            <span style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 8, marginTop: "auto" }}>
+              <span className={page.status === "active" ? "tag" : "tag profileTagMuted"}>{page.status === "active" ? "Activo" : "Preparando"}</span>
+              <span style={{ display: "inline-flex", alignItems: "center", gap: 4, color: "var(--accent)", fontWeight: 600, fontSize: "0.85rem" }}>Leer guía <ArrowRight size={14} aria-hidden="true" /></span>
+            </span>
+          </Link>
         )) : (
-          <article className="card span12 inlineEmpty uiGlass">
-            <span className="uiIconChip" style={{ width: 52, height: 52, borderRadius: 16 }}><BookOpen size={24} /></span>
-            <strong>Aún no hay guías publicadas.</strong>
-            <p>Cuando tu coach publique sus guías y recursos, los verás aquí.</p>
-          </article>
+          <MemberEmpty
+            icon={BookOpen}
+            title="Aún no hay guías publicadas."
+            text="Cuando tu coach publique sus guías y recursos, los verás aquí."
+          />
         )}
       </section>
     </>

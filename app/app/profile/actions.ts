@@ -2,9 +2,11 @@
 
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
+import { requireMemberWorkspaceId } from "@/lib/auth/member-access";
 import { clearAuthCookies } from "@/lib/auth/session";
 import { deleteMemberAccount } from "@/lib/repositories/member-account";
 import { setMemberHideMacros } from "@/lib/repositories/nutrition-tracking";
+import { NOTIFICATION_KEYS, setMemberNotificationPreference, type NotificationKey } from "@/lib/repositories/notification-preferences";
 
 function readText(formData: FormData, key: string) {
   const value = formData.get(key);
@@ -12,20 +14,38 @@ function readText(formData: FormData, key: string) {
 }
 
 export async function setMemberMacroVisibilityAction(formData: FormData) {
-  const workspaceId = readText(formData, "workspaceId");
+  const workspaceId = await requireMemberWorkspaceId(readText(formData, "workspaceId") || undefined);
   const hide = readText(formData, "hideMacros") === "on";
-
-  await setMemberHideMacros(workspaceId, hide);
-
+  try {
+    await setMemberHideMacros(workspaceId, hide);
+  } catch (error) {
+    console.error("setMemberMacroVisibilityAction failed", (error as Error).message);
+    redirect("/app/profile?error=" + encodeURIComponent("No se pudo guardar. Inténtalo de nuevo."));
+  }
   revalidatePath("/app/profile");
   revalidatePath("/app/meals");
   revalidatePath("/app/recipes");
   revalidatePath("/app/diary");
 }
 
+export async function setMemberNotificationAction(formData: FormData) {
+  const workspaceId = await requireMemberWorkspaceId(readText(formData, "workspaceId") || undefined);
+  const key = readText(formData, "key") as NotificationKey;
+  const value = readText(formData, "value") === "on";
+  if (!NOTIFICATION_KEYS.includes(key)) return;
+
+  try {
+    await setMemberNotificationPreference(workspaceId, key, value);
+  } catch (error) {
+    console.error("setMemberNotificationAction failed", (error as Error).message);
+    redirect("/app/profile?error=" + encodeURIComponent("No se pudo guardar la preferencia. Inténtalo de nuevo."));
+  }
+  revalidatePath("/app/profile");
+}
+
 /** GDPR account deletion: irreversible, requires typing the confirmation word. */
 export async function deleteMemberAccountAction(formData: FormData) {
-  const workspaceId = readText(formData, "workspaceId");
+  const workspaceId = await requireMemberWorkspaceId(readText(formData, "workspaceId") || undefined);
   const confirm = readText(formData, "confirm");
 
   if (confirm.toUpperCase() !== "ELIMINAR") {

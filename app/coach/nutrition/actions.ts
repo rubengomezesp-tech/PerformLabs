@@ -135,6 +135,7 @@ export async function createCoachRecipeAction(formData: FormData) {
     name: readText(formData, "name"),
     mealSlot: readText(formData, "mealSlot"),
     instructions: readText(formData, "instructions"),
+    imageUrl: readText(formData, "imageUrl"),
     tags: readText(formData, "tags"),
   });
 

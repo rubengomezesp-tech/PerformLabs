@@ -1,5 +1,6 @@
 import { Salad, Sparkles, Trash2 } from "lucide-react";
-import { SubmitButton } from "@/components/submit-button";
+import { Dialog } from "@/components/dialog";
+import { SubmitButton } from "@/components/ui";
 import { Topbar } from "@/components/topbar";
 import { getSelectedMemberAppBrand } from "@/lib/member-app";
 import { CATEGORY_LABEL, CATEGORY_ORDER, listFoodLibrary, type FoodCategory } from "@/lib/repositories/food-library";
@@ -29,7 +30,7 @@ export default async function CoachFoodsPage() {
         <article className="card span5">
           <div className="sectionHeader">
             <div>
-              <Salad color="var(--accent)" />
+              <Salad color="var(--accent)" aria-hidden="true" />
               <h2>Nuevo alimento</h2>
               <p>Macros por la ración indicada. Si no pones calorías, las calculamos.</p>
             </div>
@@ -50,19 +51,20 @@ export default async function CoachFoodsPage() {
               </select>
             </label>
             <div className="foodMacroGrid">
-              <label>Proteína (g)<input name="protein" type="number" min="0" step="0.1" placeholder="31" /></label>
-              <label>Carbos (g)<input name="carbs" type="number" min="0" step="0.1" placeholder="0" /></label>
-              <label>Grasas (g)<input name="fat" type="number" min="0" step="0.1" placeholder="3.6" /></label>
-              <label>Kcal<input name="calories" type="number" min="0" step="1" placeholder="165" /></label>
+              <label>Proteína (g)<input name="protein" type="number" inputMode="decimal" min="0" step="0.1" placeholder="31" /></label>
+              <label>Carbos (g)<input name="carbs" type="number" inputMode="decimal" min="0" step="0.1" placeholder="0" /></label>
+              <label>Grasas (g)<input name="fat" type="number" inputMode="decimal" min="0" step="0.1" placeholder="3.6" /></label>
+              <label>Kcal<input name="calories" type="number" inputMode="numeric" min="0" step="1" placeholder="165" /></label>
             </div>
-            <SubmitButton className="btn primary" pendingLabel="Añadiendo…"><Salad size={16} /> Añadir a la biblioteca</SubmitButton>
+            <label>Foto del producto (URL, opcional)<input name="imageUrl" type="url" inputMode="url" placeholder="https://… (si la dejas vacía, se usa el icono de marca)" /></label>
+            <SubmitButton variant="primary" successToast="Alimento añadido"><Salad size={16} /> Añadir a la biblioteca</SubmitButton>
           </form>
         </article>
 
         <article className="card span7">
           <div className="sectionHeader">
             <div>
-              <Salad color="var(--accent)" />
+              <Salad color="var(--accent)" aria-hidden="true" />
               <h2>Biblioteca</h2>
               <p>{isFallback ? "Mostrando alimentos base de ejemplo." : `${realCount} alimento(s) en tu biblioteca.`}</p>
             </div>
@@ -70,14 +72,14 @@ export default async function CoachFoodsPage() {
 
           {isFallback ? (
             <div className="foodSeed">
-              <Sparkles size={18} color="var(--accent)" />
+              <Sparkles size={18} color="var(--accent)" aria-hidden="true" />
               <div>
                 <strong>Empieza con {items.length} alimentos comunes.</strong>
                 <p>Cárgalos como base editable y ajústalos a tu marca, o añade los tuyos a la izquierda.</p>
               </div>
               <form action={seedStarterFoodsAction}>
                 <input name="workspaceId" type="hidden" value={brand.id} />
-                <SubmitButton className="btn" pendingLabel="Cargando…"><Sparkles size={15} /> Cargar alimentos base</SubmitButton>
+                <SubmitButton successToast="Alimentos base cargados"><Sparkles size={15} /> Cargar alimentos base</SubmitButton>
               </form>
             </div>
           ) : null}
@@ -98,12 +100,25 @@ export default async function CoachFoodsPage() {
                         <span className="catalogChip">{food.fat} G</span>
                       </div>
                     </div>
-                    {food.isStarter ? null : (
-                      <form action={deleteFoodItemAction}>
-                        <input name="workspaceId" type="hidden" value={brand.id} />
-                        <input name="foodId" type="hidden" value={food.id} />
-                        <button type="submit" className="btn ghost sm" aria-label="Eliminar"><Trash2 size={14} /></button>
-                      </form>
+                    {food.isStarter || food.isBase ? (
+                      // Base-library foods are shared by the platform; coaches can
+                      // hide/duplicate but not delete them from their own library.
+                      food.isBase ? <span className="catalogChip" title="Alimento base de la plataforma">Base</span> : null
+                    ) : (
+                      <Dialog
+                        triggerClassName="btn ghost sm"
+                        triggerAriaLabel={`Eliminar ${food.name}`}
+                        trigger={<Trash2 size={14} />}
+                        title={`Eliminar ${food.name}`}
+                        description="Esta acción no se puede deshacer."
+                      >
+                        <form action={deleteFoodItemAction} className="editForm">
+                          <input name="workspaceId" type="hidden" value={brand.id} />
+                          <input name="foodId" type="hidden" value={food.id} />
+                          <p className="spanFull">¿Seguro que quieres eliminar <strong>{food.name}</strong>? Esta acción no se puede deshacer.</p>
+                          <button className="btn danger spanFull" type="submit">Sí, eliminar</button>
+                        </form>
+                      </Dialog>
                     )}
                   </li>
                 ))}

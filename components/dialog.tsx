@@ -13,12 +13,14 @@ import { useModalA11y } from "@/components/use-modal-a11y";
 export function Dialog({
   trigger,
   triggerClassName = "btn",
+  triggerAriaLabel,
   title,
   description,
   children,
 }: {
   trigger: React.ReactNode;
   triggerClassName?: string;
+  triggerAriaLabel?: string;
   title: string;
   description?: string;
   children: React.ReactNode;
@@ -31,7 +33,7 @@ export function Dialog({
 
   return (
     <>
-      <button ref={triggerRef} type="button" className={triggerClassName} onClick={() => setOpen(true)}>
+      <button ref={triggerRef} type="button" className={triggerClassName} aria-label={triggerAriaLabel} onClick={() => setOpen(true)}>
         {trigger}
       </button>
       {open ? (

@@ -1,5 +1,5 @@
 import { CalendarDays, Trophy, Users } from "lucide-react";
-import { SubmitButton } from "@/components/submit-button";
+import { SubmitButton } from "@/components/ui";
 import { Topbar } from "@/components/topbar";
 import { getSelectedMemberAppBrand } from "@/lib/member-app";
 import { listCoachChallenges, metricLabel } from "@/lib/repositories/challenges";
@@ -31,7 +31,7 @@ export default async function CoachChallengesPage() {
         <article className="card span5 coachBrainForm">
           <div className="sectionHeader">
             <div>
-              <Trophy color="var(--accent)" />
+              <Trophy color="var(--accent)" aria-hidden="true" />
               <h2>Nuevo reto</h2>
               <p>La clasificación se calcula con datos reales de tus clientes.</p>
             </div>
@@ -49,11 +49,11 @@ export default async function CoachChallengesPage() {
                   <option value="checkins">Check-ins enviados</option>
                 </select>
               </label>
-              <label>Objetivo<input name="goal" type="number" min={1} max={1000} defaultValue={12} /></label>
+              <label>Objetivo<input name="goal" type="number" inputMode="numeric" min={1} max={1000} defaultValue={12} /></label>
               <label>Empieza<input name="startsOn" type="date" defaultValue={today} /></label>
               <label>Termina<input name="endsOn" type="date" defaultValue={in28} /></label>
             </div>
-            <SubmitButton className="btn primary" pendingLabel="Creando…"><Trophy size={16} /> Lanzar reto</SubmitButton>
+            <SubmitButton variant="primary" successToast="Reto lanzado"><Trophy size={16} /> Lanzar reto</SubmitButton>
           </form>
         </article>
 
@@ -86,14 +86,14 @@ export default async function CoachChallengesPage() {
                   <form action={endChallengeAction} className="challengeJoin">
                     <input name="workspaceId" type="hidden" value={brand.id} />
                     <input name="challengeId" type="hidden" value={c.id} />
-                    <SubmitButton className="btn ghost" pendingLabel="…">Finalizar reto</SubmitButton>
+                    <SubmitButton variant="ghost" successToast="Reto finalizado">Finalizar reto</SubmitButton>
                   </form>
                 ) : null}
               </article>
             ))
           ) : (
             <article className="card inlineEmpty">
-              <Trophy color="var(--accent)" />
+              <Trophy color="var(--accent)" aria-hidden="true" />
               <strong>Lanza tu primer reto.</strong>
               <p>Un reto de entrenos o hábitos del mes dispara la participación y la retención.</p>
             </article>

@@ -1,7 +1,7 @@
 import { Activity, ArrowRight, HeartPulse, Send, ShieldAlert, ShieldCheck, Sparkles, Trash2, TrendingDown } from "lucide-react";
 import Link from "next/link";
 import { CopyButton } from "@/components/copy-button";
-import { SubmitButton } from "@/components/submit-button";
+import { SubmitButton } from "@/components/ui";
 import { Topbar } from "@/components/topbar";
 import { isRetentionCopilotConfigured } from "@/lib/ai/retention-copilot";
 import { getSelectedMemberAppBrand } from "@/lib/member-app";
@@ -63,7 +63,7 @@ export default async function CoachRetentionPage() {
           <article className="card span12 retentionPanel">
             <div className="sectionHeader">
               <div>
-                <HeartPulse color="var(--accent)" />
+                <HeartPulse color="var(--accent)" aria-hidden="true" />
                 <h2>Radar de clientes</h2>
                 <p>Ordenado por riesgo. Lo más urgente, arriba.</p>
               </div>
@@ -103,7 +103,7 @@ export default async function CoachRetentionPage() {
                             <input name="memberName" type="hidden" value={member.fullName} />
                             <input name="reason" type="hidden" value={reasonStr} />
                             <input name="riskScore" type="hidden" value={member.riskScore} />
-                            <SubmitButton className="btn primary" pendingLabel="Redactando…"><Sparkles size={14} /> Mensaje IA</SubmitButton>
+                            <SubmitButton variant="primary" successToast="Mensaje redactado"><Sparkles size={14} /> Mensaje IA</SubmitButton>
                           </form>
                         ) : (
                           <Link className="btn" href="/coach/members">Abrir <ArrowRight size={14} /></Link>
@@ -122,12 +122,12 @@ export default async function CoachRetentionPage() {
                           <form action={markOutreachSentAction}>
                             <input name="workspaceId" type="hidden" value={brand.id} />
                             <input name="outreachId" type="hidden" value={draft.id} />
-                            <SubmitButton className="btn primary" pendingLabel="Guardando…"><Send size={14} /> Marcar enviado</SubmitButton>
+                            <SubmitButton variant="primary" successToast="Marcado como enviado"><Send size={14} /> Marcar enviado</SubmitButton>
                           </form>
                           <form action={dismissOutreachAction}>
                             <input name="workspaceId" type="hidden" value={brand.id} />
                             <input name="outreachId" type="hidden" value={draft.id} />
-                            <SubmitButton className="btn ghost" pendingLabel="…"><Trash2 size={14} /> Descartar</SubmitButton>
+                            <SubmitButton variant="ghost" successToast="Descartado"><Trash2 size={14} /> Descartar</SubmitButton>
                           </form>
                         </div>
                       </div>
@@ -142,7 +142,7 @@ export default async function CoachRetentionPage() {
           </article>
         ) : (
           <article className="card span12 inlineEmpty">
-            <HeartPulse color="var(--accent)" />
+            <HeartPulse color="var(--accent)" aria-hidden="true" />
             <strong>Aún no hay datos de retención.</strong>
             <p>Cuando tus clientes empiecen a entrenar, registrar comidas y hacer check-ins, aquí verás quién necesita tu atención antes de que sea tarde.</p>
           </article>

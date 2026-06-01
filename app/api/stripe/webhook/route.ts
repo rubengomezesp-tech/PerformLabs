@@ -1,5 +1,13 @@
 import { NextResponse, type NextRequest } from "next/server";
 import {
+  recordPlatformFeeEvent,
+  setMemberStripeCustomer,
+  setMemberSubscriptionStatus,
+  upsertMemberSubscription,
+} from "@/lib/repositories/member-subscriptions";
+import { provisionPaidMember } from "@/lib/repositories/member-management";
+import {
+  deleteWebhookEvent,
   findWorkspaceByStripeAccount,
   recordWebhookEvent,
   upsertPlatformSubscription,
@@ -44,13 +52,26 @@ export async function POST(request: NextRequest) {
   try {
     await handleEvent(event);
   } catch (error) {
-    // The event is already recorded; swallow handler bugs so Stripe does not retry forever.
+    // We claimed this event id before processing. Since the handler failed,
+    // release the claim and return 500 so Stripe re-delivers and we reprocess
+    // (downstream upserts/inserts are idempotent). Without this, a transient
+    // failure would permanently drop a paid event.
     console.error("stripe webhook handler failed", (error as Error).message);
+    await deleteWebhookEvent(event.id);
+    return NextResponse.json({ ok: false, error: "handler_failed" }, { status: 500 });
   }
   return NextResponse.json({ received: true });
 }
 
 async function handleEvent(event: StripeEvent) {
+  // Member/connected events (Direct charges on a coach's account) carry
+  // `event.account`. Platform events (the coach's own PerformLabs subscription)
+  // do not — those keep the existing handling below, untouched.
+  if (event.account) {
+    await handleConnectedEvent(event, event.account);
+    return;
+  }
+
   const object = event.data.object;
 
   switch (event.type) {
@@ -110,6 +131,139 @@ async function handleEvent(event: StripeEvent) {
         currentPeriodEnd: toIso(object.current_period_end),
         cancelAtPeriodEnd: Boolean(object.cancel_at_period_end),
       });
+      return;
+    }
+
+    default:
+      return;
+  }
+}
+
+// Member -> Coach billing on the connected account. We read every field
+// defensively from the webhook payload (no extra Stripe round-trips), gate on a
+// resolvable workspace, and only mirror status onto member_profiles when the
+// member_profile_id is known (Phase 1 does not create member profiles here).
+async function handleConnectedEvent(event: StripeEvent, account: string) {
+  const object = event.data.object;
+  const workspaceId = await findWorkspaceByStripeAccount(account);
+  if (!workspaceId) return;
+  const { applicationFeePercent } = getStripeEnv();
+
+  switch (event.type) {
+    case "checkout.session.completed": {
+      if (object.metadata?.kind !== "member_subscription") return;
+      const memberProfileId = (object.metadata?.member_profile_id as string) || null;
+      const subscriptionId = (object.subscription as string) || null;
+      // The Checkout Session object only exposes its own status ("complete"); the
+      // authoritative subscription status/price/period live on the subscription,
+      // which sits on the coach's connected account.
+      let status = "active";
+      let stripePriceId: string | null = null;
+      let currentPeriodStart: string | null = null;
+      let currentPeriodEnd: string | null = null;
+      let cancelAtPeriodEnd = false;
+      if (subscriptionId) {
+        const sub = (await retrieveSubscription(subscriptionId, { stripeAccount: account })) as Record<string, any>;
+        status = (sub.status as string) || "active";
+        stripePriceId = sub.items?.data?.[0]?.price?.id ?? null;
+        currentPeriodStart = toIso(sub.current_period_start);
+        currentPeriodEnd = toIso(sub.current_period_end);
+        cancelAtPeriodEnd = Boolean(sub.cancel_at_period_end);
+      }
+      await upsertMemberSubscription({
+        workspaceId,
+        memberProfileId,
+        coachClientPlanId: (object.metadata?.coach_client_plan_id as string) ?? null,
+        stripeAccountId: account,
+        stripeCustomerId: (object.customer as string) ?? null,
+        stripeSubscriptionId: subscriptionId ?? "",
+        stripePriceId,
+        status,
+        applicationFeePercent,
+        amount: typeof object.amount_total === "number" ? object.amount_total : null,
+        currency: (object.currency as string) ?? null,
+        currentPeriodStart,
+        currentPeriodEnd,
+        cancelAtPeriodEnd,
+      });
+      let resolvedMemberProfileId = memberProfileId;
+      if (!resolvedMemberProfileId) {
+        // Fase 2 self-serve funnel: no member yet. Provision one from the paid
+        // customer's email, then back-patch the subscription row we upserted.
+        const email = (object.customer_details?.email as string) || "";
+        if (email) {
+          resolvedMemberProfileId = await provisionPaidMember({
+            workspaceId,
+            email,
+            fullName: (object.customer_details?.name as string) ?? null,
+            status,
+          });
+          if (resolvedMemberProfileId && subscriptionId) {
+            await upsertMemberSubscription({
+              stripeSubscriptionId: subscriptionId,
+              memberProfileId: resolvedMemberProfileId,
+              status,
+            });
+          }
+        }
+      }
+      if (resolvedMemberProfileId) {
+        const customerId = object.customer as string | undefined;
+        if (customerId) await setMemberStripeCustomer(resolvedMemberProfileId, customerId);
+        await setMemberSubscriptionStatus(resolvedMemberProfileId, status);
+      }
+      return;
+    }
+
+    case "customer.subscription.created":
+    case "customer.subscription.updated":
+    case "customer.subscription.deleted": {
+      const subscriptionId = object.id as string | undefined;
+      if (!subscriptionId) return;
+      const memberProfileId = (object.metadata?.member_profile_id as string) || null;
+      const status =
+        event.type === "customer.subscription.deleted" ? "cancelled" : ((object.status as string) ?? "active");
+      await upsertMemberSubscription({
+        workspaceId,
+        memberProfileId,
+        coachClientPlanId: (object.metadata?.coach_client_plan_id as string) ?? null,
+        stripeAccountId: account,
+        stripeCustomerId: (object.customer as string) ?? null,
+        stripeSubscriptionId: subscriptionId,
+        stripePriceId: object.items?.data?.[0]?.price?.id ?? null,
+        status,
+        applicationFeePercent,
+        amount: object.items?.data?.[0]?.price?.unit_amount ?? null,
+        currency: (object.currency as string) ?? null,
+        currentPeriodStart: toIso(object.current_period_start),
+        currentPeriodEnd: toIso(object.current_period_end),
+        cancelAtPeriodEnd: Boolean(object.cancel_at_period_end),
+      });
+      if (memberProfileId) await setMemberSubscriptionStatus(memberProfileId, status);
+      return;
+    }
+
+    case "invoice.paid":
+    case "invoice.payment_succeeded": {
+      const invoiceId = object.id as string | undefined;
+      if (!invoiceId) return;
+      await recordPlatformFeeEvent({
+        id: invoiceId,
+        workspaceId,
+        memberProfileId: (object.subscription_details?.metadata?.member_profile_id as string) ?? null,
+        stripeAccountId: account,
+        stripeSubscriptionId: (object.subscription as string) ?? null,
+        amountTotal: typeof object.amount_paid === "number" ? object.amount_paid : null,
+        applicationFeeAmount: typeof object.application_fee_amount === "number" ? object.application_fee_amount : null,
+        currency: (object.currency as string) ?? null,
+        status: "paid",
+      });
+      return;
+    }
+
+    case "invoice.payment_failed": {
+      const memberProfileId = (object.subscription_details?.metadata?.member_profile_id as string) || null;
+      if (memberProfileId) await setMemberSubscriptionStatus(memberProfileId, "past_due");
       return;
     }
 

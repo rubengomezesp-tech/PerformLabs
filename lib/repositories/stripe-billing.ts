@@ -169,8 +169,23 @@ export async function recordWebhookEvent(event: { id: string; type: string; acco
     account_id: event.accountId ?? null,
     processed_at: new Date().toISOString(),
   });
-  // A unique-violation means we have seen this event before.
-  return !error;
+  if (!error) return true;
+  // A unique-violation (23505) means we already processed this event → skip it.
+  if ((error as { code?: string }).code === "23505") return false;
+  // Any other error is transient (pool/timeout): surface it so the webhook route
+  // returns 500 and Stripe re-delivers, instead of silently dropping a paid event.
+  throw new Error(`stripe_webhook_events insert failed: ${error.message ?? "unknown"}`);
+}
+
+/**
+ * Releases a previously-recorded event id so a Stripe retry can reprocess it.
+ * Used when the handler fails AFTER the event was claimed, so a transient error
+ * doesn't permanently drop a paid event.
+ */
+export async function deleteWebhookEvent(id: string): Promise<void> {
+  if (!getSupabaseServiceEnv().ok || !id) return;
+  const supabase = createServiceSupabaseClient() as any;
+  await supabase.from("stripe_webhook_events").delete().eq("id", id);
 }
 
 export async function findWorkspaceByStripeAccount(stripeUserId: string): Promise<string | null> {

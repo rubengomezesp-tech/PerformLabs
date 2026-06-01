@@ -2,7 +2,7 @@
 
 import { useRef } from "react";
 import { Send } from "lucide-react";
-import { SubmitButton } from "@/components/submit-button";
+import { SubmitButton } from "@/components/ui";
 import { sendMemberSupportMessageAction } from "./actions";
 
 /**
@@ -40,7 +40,7 @@ export function ChatComposer({ workspaceId }: { workspaceId: string }) {
           }
         }}
       />
-      <SubmitButton className="btn primary chatSend" pendingLabel="">
+      <SubmitButton variant="primary" className="chatSend" aria-label="Enviar mensaje">
         <Send size={16} />
       </SubmitButton>
     </form>

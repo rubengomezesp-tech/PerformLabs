@@ -1,9 +1,19 @@
-import { describe, expect, it } from "vitest";
+import { afterEach, beforeEach, describe, expect, it } from "vitest";
 import { cloudinaryFetch, exerciseCardImage } from "./cloudinary";
 
 const GH = "https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/3_4_Sit-Up/0.jpg";
+const ENV_KEY = "NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME";
 
 describe("cloudinaryFetch", () => {
+  const original = process.env[ENV_KEY];
+  beforeEach(() => {
+    process.env[ENV_KEY] = "demo";
+  });
+  afterEach(() => {
+    if (original === undefined) delete process.env[ENV_KEY];
+    else process.env[ENV_KEY] = original;
+  });
+
   it("wraps a remote URL with f_auto/q_auto optimization", () => {
     const url = cloudinaryFetch(GH);
     expect(url).toContain("/image/fetch/");
@@ -30,9 +40,24 @@ describe("cloudinaryFetch", () => {
     expect(cloudinaryFetch(null)).toBe("");
     expect(cloudinaryFetch("not-a-url")).toBe("not-a-url");
   });
+
+  it("returns the original URL when no cloud is configured", () => {
+    delete process.env[ENV_KEY];
+    expect(cloudinaryFetch(GH)).toBe(GH);
+    expect(cloudinaryFetch(GH, { width: 640 })).toBe(GH);
+  });
 });
 
 describe("exerciseCardImage", () => {
+  const original = process.env[ENV_KEY];
+  beforeEach(() => {
+    process.env[ENV_KEY] = "demo";
+  });
+  afterEach(() => {
+    if (original === undefined) delete process.env[ENV_KEY];
+    else process.env[ENV_KEY] = original;
+  });
+
   it("optimizes the first usable image at card size", () => {
     const url = exerciseCardImage(["", "  ", GH]);
     expect(url).toContain("/image/fetch/");

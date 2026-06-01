@@ -1,5 +1,6 @@
 import { Pill, Trash2 } from "lucide-react";
-import { SubmitButton } from "@/components/submit-button";
+import { Dialog } from "@/components/dialog";
+import { SubmitButton } from "@/components/ui";
 import { Topbar } from "@/components/topbar";
 import { getSelectedMemberAppBrand } from "@/lib/member-app";
 import { listSupplements, TIMING_LABEL, TIMING_ORDER, type SupplementTiming } from "@/lib/repositories/supplements";
@@ -22,7 +23,7 @@ export default async function CoachSupplementsPage() {
         <article className="card span5">
           <div className="sectionHeader">
             <div>
-              <Pill color="var(--accent)" />
+              <Pill color="var(--accent)" aria-hidden="true" />
               <h2>Nuevo suplemento</h2>
               <p>Nombre, dosis y cuándo tomarlo.</p>
             </div>
@@ -42,14 +43,14 @@ export default async function CoachSupplementsPage() {
               </label>
             </div>
             <label>Notas<input name="notes" placeholder="Con agua o zumo." maxLength={300} /></label>
-            <SubmitButton className="btn primary" pendingLabel="Añadiendo…"><Pill size={16} /> Añadir al protocolo</SubmitButton>
+            <SubmitButton variant="primary" successToast="Añadido al protocolo"><Pill size={16} /> Añadir al protocolo</SubmitButton>
           </form>
         </article>
 
         <article className="card span7">
           <div className="sectionHeader">
             <div>
-              <Pill color="var(--accent)" />
+              <Pill color="var(--accent)" aria-hidden="true" />
               <h2>Protocolo actual</h2>
               <p>{supplements.length} suplemento(s) pautado(s).</p>
             </div>
@@ -63,11 +64,20 @@ export default async function CoachSupplementsPage() {
                     <strong>{s.name}{s.dose ? <span className="suppDose"> · {s.dose}</span> : null}</strong>
                     {s.notes ? <small>{s.notes}</small> : null}
                   </div>
-                  <form action={deleteSupplementAction}>
-                    <input name="workspaceId" type="hidden" value={brand.id} />
-                    <input name="supplementId" type="hidden" value={s.id} />
-                    <button type="submit" className="btn ghost sm" aria-label="Eliminar"><Trash2 size={14} /></button>
-                  </form>
+                  <Dialog
+                    triggerClassName="btn ghost sm"
+                    triggerAriaLabel={`Eliminar ${s.name}`}
+                    trigger={<Trash2 size={14} />}
+                    title={`Eliminar ${s.name}`}
+                    description="Esta acción no se puede deshacer."
+                  >
+                    <form action={deleteSupplementAction} className="editForm">
+                      <input name="workspaceId" type="hidden" value={brand.id} />
+                      <input name="supplementId" type="hidden" value={s.id} />
+                      <p className="spanFull">¿Seguro que quieres eliminar <strong>{s.name}</strong>? Esta acción no se puede deshacer.</p>
+                      <button className="btn danger spanFull" type="submit">Sí, eliminar</button>
+                    </form>
+                  </Dialog>
                 </li>
               ))}
             </ul>

@@ -44,22 +44,22 @@ export default async function CoachBriefingDetailPage({ params }: CoachBriefingD
 
       <section className="grid">
         <article className="card span3">
-          <ClipboardCheck color="var(--gold)" />
+          <ClipboardCheck color="var(--gold)" aria-hidden="true" />
           <p className="metric">Estado<strong>{briefing.status}</strong></p>
           <p>Enviado {prettyDate(briefing.submittedAt)}</p>
         </article>
         <article className="card span3">
-          <Dumbbell color="var(--gold)" />
+          <Dumbbell color="var(--gold)" aria-hidden="true" />
           <p className="metric">Entreno<strong>{briefing.trainingDaysPerWeek ?? "-"} días</strong></p>
           <p>{briefing.sessionMinutes ?? "-"} minutos · {briefing.trainingLocation}</p>
         </article>
         <article className="card span3">
-          <Soup color="var(--gold)" />
+          <Soup color="var(--gold)" aria-hidden="true" />
           <p className="metric">Nutrición<strong>{briefing.mealsPerDay ?? "-"} comidas</strong></p>
           <p>{briefing.hideMacros ? "Macros ocultos" : "Macros visibles"}</p>
         </article>
         <article className="card span3">
-          <AlertTriangle color="var(--gold)" />
+          <AlertTriangle color="var(--gold)" aria-hidden="true" />
           <p className="metric">Bloqueos<strong>{briefing.recommendation.blockers.length}</strong></p>
           <p>{briefing.recommendation.blockers.length ? "Revisar antes de publicar" : "Sin bloqueos automáticos"}</p>
         </article>
@@ -67,7 +67,7 @@ export default async function CoachBriefingDetailPage({ params }: CoachBriefingD
         <article className="card span5 coachBriefingDetailPanel">
           <div className="sectionHeader">
             <div>
-              <ClipboardCheck color="var(--gold)" />
+              <ClipboardCheck color="var(--gold)" aria-hidden="true" />
               <h2>Datos recibidos</h2>
               <p>Contexto original del onboarding del cliente.</p>
             </div>
@@ -90,7 +90,7 @@ export default async function CoachBriefingDetailPage({ params }: CoachBriefingD
         <article className="card span7 coachBriefingDetailPanel">
           <div className="sectionHeader">
             <div>
-              <Rocket color="var(--gold)" />
+              <Rocket color="var(--gold)" aria-hidden="true" />
               <h2>Aplicación de planes</h2>
               <p>Revisión interna editable antes de publicar en la app cliente.</p>
             </div>
@@ -104,11 +104,11 @@ export default async function CoachBriefingDetailPage({ params }: CoachBriefingD
             </label>
             <label>
               Días por semana
-              <input name="daysPerWeek" defaultValue={briefing.trainingDaysPerWeek ?? ""} min="1" max="7" type="number" />
+              <input name="daysPerWeek" defaultValue={briefing.trainingDaysPerWeek ?? ""} min="1" max="7" type="number" inputMode="numeric" />
             </label>
             <label>
               Comidas al día
-              <input name="mealsPerDay" defaultValue={briefing.mealsPerDay ?? ""} min="1" max="8" type="number" />
+              <input name="mealsPerDay" defaultValue={briefing.mealsPerDay ?? ""} min="1" max="8" type="number" inputMode="numeric" />
             </label>
             <label className="toggleRow">
               <input name="hideMacros" type="checkbox" defaultChecked={briefing.hideMacros} />

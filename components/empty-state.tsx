@@ -14,7 +14,7 @@ export function EmptyState({
 }) {
   return (
     <Card span={12} className="emptyState">
-      <Icon color="var(--accent)" />
+      <Icon color="var(--accent)" aria-hidden="true" />
       <h2>{title}</h2>
       <p>{text}</p>
       {action}

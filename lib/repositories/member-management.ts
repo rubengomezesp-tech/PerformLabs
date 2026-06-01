@@ -1,7 +1,27 @@
 import { calculateNutritionTargets, type ActivityLevel, type NutritionGoal } from "@/lib/domain/nutrition-engine";
 import { members } from "@/lib/data";
+import { clampMemberStatus } from "@/lib/repositories/member-subscriptions";
 import { getSupabaseServiceEnv } from "@/lib/supabase/env";
 import { createServiceSupabaseClient } from "@/lib/supabase/server";
+
+/**
+ * Guard: confirm `memberProfileId` belongs to `workspaceId` before a coach/console
+ * action writes plan rows onto it. The data layer uses the service-role client
+ * (RLS bypassed), so this app-level check is the real cross-tenant control.
+ */
+async function assertMemberInWorkspace(
+  supabase: ReturnType<typeof createServiceSupabaseClient>,
+  workspaceId: string,
+  memberProfileId: string,
+): Promise<void> {
+  const { data, error } = await supabase
+    .from("member_profiles")
+    .select("id")
+    .eq("id", memberProfileId)
+    .eq("workspace_id", workspaceId)
+    .maybeSingle();
+  if (error || !data) throw new Error("Ese cliente no pertenece a tu marca.");
+}
 
 export type ManagedMember = {
   id: string;
@@ -270,12 +290,13 @@ export async function assignWorkoutTemplateToMember(input: {
   if (!input.workoutTemplateId) return null;
 
   const supabase = createServiceSupabaseClient();
+  await assertMemberInWorkspace(supabase, input.workspaceId, input.memberProfileId);
   const nowDate = new Date();
   const now = nowDate.toISOString().slice(0, 10);
   const workout = await supabase
     .from("workout_templates")
     .select("id,name,days_per_week,duration_weeks,goal,level")
-    .eq("workspace_id", input.workspaceId)
+    .or(`workspace_id.eq.${input.workspaceId},is_base_library.eq.true`)
     .eq("id", input.workoutTemplateId)
     .maybeSingle();
 
@@ -506,6 +527,7 @@ export async function assignDietTemplateToMember(input: {
   if (!input.dietTemplateId) return null;
 
   const supabase = createServiceSupabaseClient();
+  await assertMemberInWorkspace(supabase, input.workspaceId, input.memberProfileId);
   const member = await supabase
     .from("member_profiles")
     .select("sex,height_cm,starting_weight_kg,birth_date,activity_level,goal")
@@ -515,7 +537,7 @@ export async function assignDietTemplateToMember(input: {
   const diet = await supabase
     .from("diet_templates")
     .select("id,name,goal,protein_ratio,fat_ratio")
-    .eq("workspace_id", input.workspaceId)
+    .or(`workspace_id.eq.${input.workspaceId},is_base_library.eq.true`)
     .eq("id", input.dietTemplateId)
     .maybeSingle();
 
@@ -539,7 +561,7 @@ export async function assignDietTemplateToMember(input: {
         activityLevel: normalizeActivityLevel(Number(member.data.activity_level)),
         goal: normalizeNutritionGoal(diet.data.goal ?? member.data.goal),
         proteinPerKg: diet.data.protein_ratio ? Math.max(1.2, Math.min(3, Number(diet.data.protein_ratio) * 10)) : undefined,
-        fatRatio: diet.data.fat_ratio ? Number(diet.data.fat_ratio) : undefined,
+        fatRatio: diet.data.fat_ratio ? Math.max(0.15, Math.min(0.8, Number(diet.data.fat_ratio))) : undefined,
         mealsPerDay,
         trainingDaysPerWeek: preferences.data?.days_per_week ?? 4,
       })
@@ -746,6 +768,74 @@ export async function createManagedMember(input: MemberInput) {
   }
 }
 
+async function findAuthUserIdByEmail(
+  supabase: ReturnType<typeof createServiceSupabaseClient>,
+  email: string,
+): Promise<string | null> {
+  // Pre-launch scale: scan the first pages of users for a case-insensitive match.
+  // TODO: replace with a by-email index/RPC once the user base grows.
+  for (let page = 1; page <= 10; page++) {
+    const { data, error } = await supabase.auth.admin.listUsers({ page, perPage: 200 });
+    if (error || !data?.users?.length) break;
+    const match = data.users.find((user) => (user.email || "").toLowerCase() === email);
+    if (match) return match.id;
+    if (data.users.length < 200) break;
+  }
+  return null;
+}
+
+/**
+ * Find-or-create an active member from a CONFIRMED payment (Fase 2 self-serve
+ * funnel). Called by the Stripe webhook after `checkout.session.completed`, so an
+ * account only ever exists for a paying member — there is still no open signup.
+ * Idempotent on (workspace_id, user_id): a repeat purchase or a coach-precreated
+ * member is reused, not duplicated. Returns the member_profiles id (or null).
+ */
+export async function provisionPaidMember(input: {
+  workspaceId: string;
+  email: string;
+  fullName?: string | null;
+  status?: string;
+}): Promise<string | null> {
+  if (!getSupabaseServiceEnv().ok) return null;
+  const email = input.email.trim().toLowerCase();
+  if (!input.workspaceId || !email.includes("@")) return null;
+
+  const supabase = createServiceSupabaseClient();
+  const fullName = (input.fullName?.trim() || email.split("@")[0] || "Cliente").slice(0, 120);
+
+  let userId: string | null = null;
+  const created = await supabase.auth.admin.createUser({
+    email,
+    email_confirm: true,
+    user_metadata: { full_name: fullName },
+  });
+  if (created.data?.user) {
+    userId = created.data.user.id;
+  } else {
+    // Email already registered (coach pre-created, or a repeat purchase): reuse it.
+    userId = await findAuthUserIdByEmail(supabase, email);
+  }
+  if (!userId) return null;
+
+  const profile = await supabase
+    .from("member_profiles")
+    .upsert(
+      {
+        workspace_id: input.workspaceId,
+        user_id: userId,
+        full_name: fullName,
+        subscription_status: clampMemberStatus(input.status),
+        onboarding_status: "invited",
+        timezone: "Europe/Madrid",
+      },
+      { onConflict: "workspace_id,user_id" },
+    )
+    .select("id")
+    .maybeSingle();
+  return profile.data?.id ?? null;
+}
+
 export async function assignPlansToMember(input: MemberAssignmentInput) {
   if (!input.workspaceId || !input.memberProfileId) throw new Error("Falta marca o cliente.");
 
@@ -792,6 +882,7 @@ export async function advanceMemberWorkoutPlan(input: {
   }
 
   const supabase = createServiceSupabaseClient();
+  await assertMemberInWorkspace(supabase, input.workspaceId, input.memberProfileId);
   const { data: plan } = await supabase
     .from("assigned_workout_plans")
     .select("id,current_week,current_month")

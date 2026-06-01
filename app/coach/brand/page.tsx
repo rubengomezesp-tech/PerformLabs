@@ -21,7 +21,7 @@ export default async function CoachBrandPage() {
       />
       <section className="grid">
         <article className="card span7 motionCard">
-          <Palette color="var(--gold)" />
+          <Palette color="var(--gold)" aria-hidden="true" />
           <h2>Editable por ti</h2>
           <form action={updateBrandingAction} className="editForm brandForm">
             <input name="workspaceId" type="hidden" value={brand.id} />
@@ -51,7 +51,7 @@ export default async function CoachBrandPage() {
         <article className="card span5 motionCard">
           <div className="sectionHeader">
             <div>
-              <Eye color="var(--gold)" />
+              <Eye color="var(--gold)" aria-hidden="true" />
               <h2>Vista previa</h2>
             </div>
             <Link className="tag" href="/m">Ver landing</Link>

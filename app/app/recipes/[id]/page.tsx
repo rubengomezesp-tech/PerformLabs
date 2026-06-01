@@ -33,7 +33,7 @@ export default async function MemberRecipeDetailPage({ params }: RecipeDetailPag
 
   const totalGrams = recipe.ingredients.reduce((sum, ingredient) => sum + (ingredient.grams || 0), 0);
   // Serve a curated recipe photo through Cloudinary fetch (f_auto/q_auto, CDN,
-  // zero storage). Fallback photos resolve inside RecipeImage untouched.
+  // zero storage). With no curated photo, RecipeImage shows the on-brand placeholder.
   const heroImageUrl = recipe.imageUrl
     ? cloudinaryFetch(recipe.imageUrl, { width: 960, height: 660 })
     : recipe.imageUrl;

@@ -46,6 +46,7 @@ export function SubmitButton({
       type="submit"
       className={cx("btn", variant !== "secondary" ? variant : null, size !== "md" ? size : null, className)}
       data-loading={pending || undefined}
+      aria-busy={pending || undefined}
       disabled={pending || disabled}
       {...rest}
     >

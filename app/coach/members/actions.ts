@@ -2,7 +2,7 @@
 
 import { revalidatePath } from "next/cache";
 import { requireWorkspaceMutationAccess } from "@/lib/auth/access-control";
-import { assignPlansToMember, createManagedMember } from "@/lib/repositories/member-management";
+import { assignPlansToMember, createManagedMember, listManagedMembers } from "@/lib/repositories/member-management";
 import { recordSecurityAuditEvent } from "@/lib/repositories/security-management";
 
 function readText(formData: FormData, key: string) {
@@ -64,6 +64,62 @@ export async function assignCoachMemberPlansAction(formData: FormData) {
       workoutTemplateId: readText(formData, "workoutTemplateId"),
       dietTemplateId: readText(formData, "dietTemplateId"),
     },
+  });
+
+  revalidatePath("/coach/members");
+  revalidatePath("/app/workouts");
+  revalidatePath("/app/meals");
+}
+
+/**
+ * Assign the same workout and/or diet template to several members at once.
+ * Ids come from the bulk form (one hidden `memberProfileIds` per selected card);
+ * they're intersected with the workspace's own member list before any write, so
+ * a tampered form can't touch a member outside this coach's tenant.
+ */
+export async function bulkAssignCoachMemberPlansAction(formData: FormData) {
+  const workspaceId = readText(formData, "workspaceId");
+  const session = await requireWorkspaceMutationAccess(workspaceId);
+
+  const requestedIds = formData
+    .getAll("memberProfileIds")
+    .map((value) => (typeof value === "string" ? value.trim() : ""))
+    .filter(Boolean);
+  const workoutTemplateId = readText(formData, "workoutTemplateId");
+  const dietTemplateId = readText(formData, "dietTemplateId");
+  const assignmentGoal = readText(formData, "assignmentGoal");
+
+  if (!requestedIds.length || (!workoutTemplateId && !dietTemplateId)) {
+    return;
+  }
+
+  const members = await listManagedMembers(workspaceId);
+  const ownIds = new Set(members.map((member) => member.id));
+  const targetIds = requestedIds.filter((id) => ownIds.has(id));
+  if (!targetIds.length) return;
+
+  const assignedBy = session.mode === "authenticated" ? session.user.id : null;
+  for (const memberProfileId of targetIds) {
+    await assignPlansToMember({
+      workspaceId,
+      memberProfileId,
+      workoutTemplateId,
+      dietTemplateId,
+      assignmentGoal,
+      assignmentNotes: "",
+      currentMonth: "1",
+      currentWeek: "1",
+      nextReviewOn: "",
+      assignedBy,
+    });
+  }
+
+  await recordSecurityAuditEvent({
+    workspaceId,
+    actorUserId: assignedBy,
+    action: "coach.member.plan_assigned_bulk",
+    entityType: "member_profile",
+    metadata: { count: targetIds.length, workoutTemplateId, dietTemplateId },
   });
 
   revalidatePath("/coach/members");

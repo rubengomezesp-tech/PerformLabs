@@ -4,6 +4,7 @@
 export const es = {
   switcher: { label: "Idioma", change: "Cambiar idioma" },
   nav: {
+    access: "Acceder",
     app: "La app",
     process: "Proceso",
     demo: "Demo",

@@ -31,6 +31,20 @@ export type MemberContext = {
 const ACTIVE_STATUSES = new Set(["active", "trialing"]);
 
 /**
+ * The authenticated member's REAL workspace id, for member write actions.
+ * Member write forms historically posted the host-resolved brand id, which can be
+ * the zero-UUID fallback brand (wrong host / missing cookie) and made repositories
+ * throw a 500 on the first tap. Resolving from the session here is the safe source
+ * of truth; the optional hint only helps pick the right profile when a member
+ * belongs to several workspaces. Redirects to /acceso when there is no member.
+ */
+export async function requireMemberWorkspaceId(hint?: string): Promise<string> {
+  const context = await getMemberContext(hint);
+  if (!context) redirect("/acceso");
+  return context.workspaceId;
+}
+
+/**
  * Find-or-create the admin's own comped member profile in a workspace they are
  * previewing. Lets the owner open and fully use any brand's app (including
  * brand-new ones with no clients) without hand-creating a member. Idempotent via

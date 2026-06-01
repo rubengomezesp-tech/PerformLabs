@@ -1,5 +1,5 @@
 import { ArrowRight, CheckCircle2, ClipboardList, Mail, MessageSquareText, Phone, Plus, Radar, Save, Sparkles, UserRound } from "lucide-react";
-import { SubmitButton } from "@/components/submit-button";
+import { SubmitButton } from "@/components/ui";
 import type { CSSProperties } from "react";
 import { EmptyState } from "@/components/empty-state";
 import { Topbar } from "@/components/topbar";
@@ -141,7 +141,7 @@ export default async function LeadsPage({ searchParams }: LeadsPageProps) {
               Resumen de la oportunidad
               <textarea name="notes" placeholder="Qué quiere vender, urgencia, objeciones, estilo de marca y próximos pasos..." rows={4} />
             </label>
-            <SubmitButton className="btn primary" pendingLabel="Creando…">
+            <SubmitButton variant="primary" successToast="Consulta creada">
               Crear consulta <Plus size={16} />
             </SubmitButton>
           </form>

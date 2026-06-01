@@ -460,6 +460,7 @@ export function OnboardingQuiz({ workspaceId, appName }: { workspaceId: string; 
             O edad exacta
             <input
               type="number"
+              inputMode="numeric"
               min={12}
               max={99}
               value={answers.ageExact}
@@ -482,6 +483,7 @@ export function OnboardingQuiz({ workspaceId, appName }: { workspaceId: string; 
             Peso actual (kg)
             <input
               type="number"
+              inputMode="decimal"
               min={30}
               max={300}
               value={answers.weightKg}
@@ -494,6 +496,7 @@ export function OnboardingQuiz({ workspaceId, appName }: { workspaceId: string; 
             Altura (cm)
             <input
               type="number"
+              inputMode="decimal"
               min={120}
               max={230}
               value={answers.heightCm}

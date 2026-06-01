@@ -104,11 +104,11 @@ export default async function DietTemplatesPage({ searchParams }: DietTemplatesP
                 </label>
                 <label>
                   Kcal min
-                  <input name="caloriesMin" placeholder="1800" type="number" />
+                  <input name="caloriesMin" placeholder="1800" type="number" inputMode="numeric" />
                 </label>
                 <label>
                   Kcal max
-                  <input name="caloriesMax" placeholder="2200" type="number" />
+                  <input name="caloriesMax" placeholder="2200" type="number" inputMode="numeric" />
                 </label>
                 <label>
                   Proteína %

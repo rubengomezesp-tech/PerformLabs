@@ -1,11 +1,14 @@
 import { CheckCircle2, CreditCard, Link2, Plus, ShieldCheck, Trash2, Unplug } from "lucide-react";
+import { headers } from "next/headers";
 import Link from "next/link";
+import { CopyButton } from "@/components/copy-button";
 import { Topbar } from "@/components/topbar";
 import { getSelectedMemberAppBrand } from "@/lib/member-app";
 import { listCoachPlans } from "@/lib/repositories/coach-plans";
 import { getPlatformSubscription, getStripeAccount } from "@/lib/repositories/stripe-billing";
+import { getWorkspaceSlug } from "@/lib/repositories/workspaces";
 import { getStripeEnv, isPlatformBillingConfigured, isStripeConnectConfigured } from "@/lib/stripe/env";
-import { archiveCoachPlanAction, createCoachPlanAction, disconnectStripeAction, subscribePlatformAction } from "./actions";
+import { archiveCoachPlanAction, createCoachPlanAction, createMemberCheckoutLinkAction, disconnectStripeAction, subscribePlatformAction } from "./actions";
 
 export const dynamic = "force-dynamic";
 
@@ -19,6 +22,8 @@ const STATUS_MESSAGES: Record<string, { tone: "ok" | "err"; text: string }> = {
   not_configured: { tone: "err", text: "Stripe aún no está configurado en la plataforma." },
   connect_first: { tone: "err", text: "Conecta tu Stripe y activa los cobros antes de crear planes." },
   invalid_plan: { tone: "err", text: "Revisa el nombre y el importe del plan (mínimo 0,50)." },
+  member_checkout_ok: { tone: "ok", text: "Pago de prueba completado. Revisa Stripe y tu suscripción de cliente." },
+  member_checkout_error: { tone: "err", text: "No se pudo generar el enlace de pago. Revisa el plan y tu cuenta de Stripe." },
 };
 
 type BillingPageProps = { searchParams?: Promise<{ status?: string }> };
@@ -30,11 +35,16 @@ export default async function CoachBillingPage({ searchParams }: BillingPageProp
   const brand = await getSelectedMemberAppBrand();
   const connectReady = isStripeConnectConfigured();
   const billingReady = isPlatformBillingConfigured();
-  const [account, subscription, plans] = await Promise.all([
+  const headerStore = await headers();
+  const host = headerStore.get("x-forwarded-host") || headerStore.get("host") || "www.performlabs.app";
+  const proto = headerStore.get("x-forwarded-proto") || "https";
+  const [account, subscription, plans, slug] = await Promise.all([
     getStripeAccount(brand.id),
     getPlatformSubscription(brand.id),
     listCoachPlans(brand.id),
+    getWorkspaceSlug(brand.id),
   ]);
+  const salesUrl = slug ? `${proto}://${host}/c/${slug}` : null;
   const { applicationFeePercent } = getStripeEnv();
   const subscriptionActive = subscription?.status === "active" || subscription?.status === "trialing";
 
@@ -56,7 +66,7 @@ export default async function CoachBillingPage({ searchParams }: BillingPageProp
           <article className="card span12">
             <div className="sectionHeader">
               <div>
-                <CreditCard color="var(--accent)" />
+                <CreditCard color="var(--accent)" aria-hidden="true" />
                 <h2>Pagos en preparación.</h2>
                 <p>La conexión con Stripe se activará en cuanto la plataforma termine de configurar las claves. No necesitas hacer nada todavía.</p>
               </div>
@@ -68,7 +78,7 @@ export default async function CoachBillingPage({ searchParams }: BillingPageProp
             <article className="card span6">
               <div className="sectionHeader">
                 <div>
-                  <Link2 color="var(--accent)" />
+                  <Link2 color="var(--accent)" aria-hidden="true" />
                   <h2>Tu cuenta de Stripe.</h2>
                   <p>Con Connect (Standard) los cobros van directos a tu cuenta y tú mantienes el control.</p>
                 </div>
@@ -97,7 +107,7 @@ export default async function CoachBillingPage({ searchParams }: BillingPageProp
             <article className="card span6">
               <div className="sectionHeader">
                 <div>
-                  <ShieldCheck color="var(--accent)" />
+                  <ShieldCheck color="var(--accent)" aria-hidden="true" />
                   <h2>Tu plan en PerformLabs.</h2>
                   <p>La suscripción que mantiene tu app de marca operativa.</p>
                 </div>
@@ -123,7 +133,7 @@ export default async function CoachBillingPage({ searchParams }: BillingPageProp
             <article className="card span12">
               <div className="sectionHeader">
                 <div>
-                  <CreditCard color="var(--accent)" />
+                  <CreditCard color="var(--accent)" aria-hidden="true" />
                   <h2>Planes para tus clientes.</h2>
                   <p>Define lo que cobras a tus clientes. El precio se crea en tu cuenta de Stripe; PerformLabs retiene el {applicationFeePercent}%.</p>
                 </div>
@@ -147,6 +157,16 @@ export default async function CoachBillingPage({ searchParams }: BillingPageProp
                         <span className="catalogChip">/{plan.interval === "year" ? "año" : "mes"}</span>
                         {plan.stripePriceId ? <span className="catalogChip muted">Stripe</span> : null}
                       </div>
+                      {account?.chargesEnabled && plan.stripePriceId ? (
+                        <form action={createMemberCheckoutLinkAction} className="editForm">
+                          <input type="hidden" name="planId" value={plan.id} />
+                          <label className="spanFull">
+                            Email del cliente (opcional)
+                            <input name="email" type="email" inputMode="email" autoComplete="email" placeholder="cliente@email.com" maxLength={200} />
+                          </label>
+                          <button className="btn ghost sm spanFull" type="submit"><Link2 size={14} /> Generar enlace de pago de prueba</button>
+                        </form>
+                      ) : null}
                     </article>
                   ))}
                 </div>
@@ -162,7 +182,7 @@ export default async function CoachBillingPage({ searchParams }: BillingPageProp
                   </label>
                   <label>
                     Precio
-                    <input name="amount" type="number" min="0.5" step="0.5" placeholder="49.90" required />
+                    <input name="amount" type="number" inputMode="decimal" min="0.5" step="0.5" placeholder="49.90" required />
                   </label>
                   <label>
                     Periodicidad
@@ -179,6 +199,43 @@ export default async function CoachBillingPage({ searchParams }: BillingPageProp
                 </form>
               ) : (
                 <p className="muted">Conecta tu Stripe y activa los cobros para crear planes.</p>
+              )}
+            </article>
+
+            <article className="card span12">
+              <div className="sectionHeader">
+                <div>
+                  <Link2 color="var(--accent)" aria-hidden="true" />
+                  <h2>Tu página de ventas.</h2>
+                  <p>Comparte este enlace para que tus clientes se suscriban a tus planes. El cobro va directo a tu Stripe y PerformLabs retiene el {applicationFeePercent}%.</p>
+                </div>
+                {account?.chargesEnabled && plans.length ? (
+                  <span className="tag">Lista para vender</span>
+                ) : (
+                  <span className="tag danger">{!account?.chargesEnabled ? "Activa cobros" : "Crea un plan"}</span>
+                )}
+              </div>
+              {salesUrl ? (
+                <>
+                  <ul className="list">
+                    <li className="row">
+                      <code style={{ wordBreak: "break-all" }}>{salesUrl}</code>
+                      <span style={{ display: "inline-flex", gap: 8 }}>
+                        <CopyButton text={salesUrl} className="btn ghost sm" label="Copiar" />
+                        <Link className="btn ghost sm" href={salesUrl} target="_blank" rel="noopener noreferrer">
+                          <Link2 size={14} /> Abrir
+                        </Link>
+                      </span>
+                    </li>
+                  </ul>
+                  {!plans.length ? (
+                    <p className="muted">Crea al menos un plan arriba para que tu página tenga algo que vender.</p>
+                  ) : !account?.chargesEnabled ? (
+                    <p className="muted">Activa los cobros en tu Stripe para que los clientes puedan pagar desde aquí.</p>
+                  ) : null}
+                </>
+              ) : (
+                <p className="muted">Conecta tu Stripe para obtener tu página de ventas.</p>
               )}
             </article>
           </>

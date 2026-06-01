@@ -22,6 +22,7 @@ export { AttentionQueue } from "./attention-queue";
 export type { AttentionQueueProps, AttentionItem, AttentionSeverity } from "./attention-queue";
 export { ToastProvider, useToast } from "./toast";
 export type { ToastTone, ToastOptions } from "./toast";
+export { FlashToaster } from "./flash-toaster";
 export { SubmitButton } from "./submit-button";
 export type { SubmitButtonProps } from "./submit-button";
 export { Skeleton, SkeletonText } from "./skeleton";

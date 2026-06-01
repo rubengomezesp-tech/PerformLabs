@@ -526,6 +526,14 @@ export async function updateWorkspaceBranding(workspaceId: string, fields: Works
   }
 }
 
+/** The workspace's public slug — used to build the /c/[slug] sales-page URL. */
+export async function getWorkspaceSlug(workspaceId: string): Promise<string | null> {
+  if (!getSupabaseServiceEnv().ok || !workspaceId) return null;
+  const supabase = createServiceSupabaseClient();
+  const { data } = await supabase.from("workspaces").select("slug").eq("id", workspaceId).maybeSingle();
+  return (data as { slug: string | null } | null)?.slug ?? null;
+}
+
 export const getWorkspaceBrand = cache(async (workspaceReference?: string): Promise<WorkspaceBrand> => {
   const env = getSupabaseServiceEnv();
 

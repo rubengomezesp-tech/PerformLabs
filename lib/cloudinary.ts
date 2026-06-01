@@ -13,7 +13,15 @@
  * resolver: callers ask for an optimized URL and never see the provider.
  */
 
-const CLOUD_NAME = process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME?.trim() || "dxyl7od6t";
+/**
+ * Read the configured cloud at call time. When no cloud is set we return the
+ * remote URL untouched rather than routing it through a hardcoded foreign
+ * account — so an unconfigured deploy serves images from their origin instead
+ * of a Cloudinary cloud nobody owns.
+ */
+function cloudName(): string {
+  return process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME?.trim() ?? "";
+}
 
 export type CloudinaryFetchOptions = {
   /** Target width in pixels. */
@@ -41,7 +49,8 @@ function isHttpUrl(value: string): boolean {
 export function cloudinaryFetch(remoteUrl: string | null | undefined, options: CloudinaryFetchOptions = {}): string {
   const url = remoteUrl?.trim() ?? "";
   if (!url || !isHttpUrl(url)) return url;
-  if (!CLOUD_NAME || url.includes("res.cloudinary.com")) return url;
+  const cloud = cloudName();
+  if (!cloud || url.includes("res.cloudinary.com")) return url;
 
   const { width, height, crop = "fill", gravity = "auto" } = options;
 
@@ -55,7 +64,7 @@ export function cloudinaryFetch(remoteUrl: string | null | undefined, options: C
   // Serve crisp images on retina screens.
   transforms.push("dpr_auto");
 
-  return `https://res.cloudinary.com/${CLOUD_NAME}/image/fetch/${transforms.join(",")}/${encodeURI(url)}`;
+  return `https://res.cloudinary.com/${cloud}/image/fetch/${transforms.join(",")}/${encodeURI(url)}`;
 }
 
 /**
@@ -71,4 +80,4 @@ export function exerciseCardImage(
   return cloudinaryFetch(first, { width: 640, height: 480, ...options });
 }
 
-export const cloudinaryCloudName = CLOUD_NAME;
+export const cloudinaryCloudName = cloudName();

@@ -1,6 +1,8 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
+import { redirect } from "next/navigation";
+import { requireMemberWorkspaceId } from "@/lib/auth/member-access";
 import { createSupportConversation, sendMemberSupportMessage } from "@/lib/repositories/support-management";
 
 function readText(formData: FormData, key: string) {
@@ -9,13 +11,19 @@ function readText(formData: FormData, key: string) {
 }
 
 export async function createSupportConversationAction(formData: FormData) {
-  await createSupportConversation({
-    workspaceId: readText(formData, "workspaceId"),
-    subject: readText(formData, "subject"),
-    category: readText(formData, "category"),
-    priority: readText(formData, "priority"),
-    message: readText(formData, "message"),
-  });
+  const workspaceId = await requireMemberWorkspaceId(readText(formData, "workspaceId") || undefined);
+  try {
+    await createSupportConversation({
+      workspaceId,
+      subject: readText(formData, "subject"),
+      category: readText(formData, "category"),
+      priority: readText(formData, "priority"),
+      message: readText(formData, "message"),
+    });
+  } catch (error) {
+    console.error("createSupportConversationAction failed", (error as Error).message);
+    redirect("/app/support?error=" + encodeURIComponent("No se pudo abrir la conversación. Inténtalo de nuevo."));
+  }
 
   revalidatePath("/app/support");
   revalidatePath("/coach/content");
@@ -25,11 +33,14 @@ export async function createSupportConversationAction(formData: FormData) {
 export async function sendMemberSupportMessageAction(formData: FormData) {
   const body = readText(formData, "body");
   if (!body) return;
+  const workspaceId = await requireMemberWorkspaceId(readText(formData, "workspaceId") || undefined);
 
-  await sendMemberSupportMessage({
-    workspaceId: readText(formData, "workspaceId"),
-    body,
-  });
+  try {
+    await sendMemberSupportMessage({ workspaceId, body });
+  } catch (error) {
+    console.error("sendMemberSupportMessageAction failed", (error as Error).message);
+    redirect("/app/support?error=" + encodeURIComponent("No se pudo enviar el mensaje. Inténtalo de nuevo."));
+  }
 
   revalidatePath("/app/support");
   revalidatePath("/coach/messages");

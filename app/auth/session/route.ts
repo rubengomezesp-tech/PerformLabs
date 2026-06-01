@@ -7,6 +7,7 @@ import { acceptPendingTeamInvitationsForUser, recordSecurityAuditEvent } from "@
 import type { Database } from "@/lib/supabase/database.types";
 import { getSupabasePublicEnv, getSupabaseServiceEnv } from "@/lib/supabase/env";
 import { createServiceSupabaseClient } from "@/lib/supabase/server";
+import { getWorkspaceBrand } from "@/lib/repositories/workspaces";
 
 function explicitNextPath(value: unknown) {
   if (typeof value !== "string" || !value.startsWith("/") || value.startsWith("//") || value.includes("://")) {
@@ -121,6 +122,22 @@ export async function POST(request: Request) {
     path: "/",
     maxAge: 60 * 60 * 24 * 30,
   });
+
+  // Brand-safe magic link: when the link carried a workspace ref (?w=<slug|id>),
+  // pin the member's workspace cookie so /app resolves THEIR coach's brand even
+  // when the email is opened on another device/browser (no prior cookie).
+  const workspaceRef = field("w");
+  if (workspaceRef) {
+    const workspaceId = (await getWorkspaceBrand(workspaceRef)).id;
+    if (workspaceId && workspaceId !== "00000000-0000-0000-0000-000000000000") {
+      response.cookies.set("performlabs_workspace_id", workspaceId, {
+        sameSite: "lax",
+        secure,
+        path: "/",
+        maxAge: 60 * 60 * 24 * 30,
+      });
+    }
+  }
 
   return response;
 }

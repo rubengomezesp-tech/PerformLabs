@@ -144,6 +144,33 @@ export async function activateSuggestedHabits(workspaceId: string) {
   if (error) throw new Error(`No se pudieron activar los hábitos: ${error.message}`);
 }
 
+/**
+ * Idempotently seed the recovery/habit set for a specific member at the end of
+ * onboarding, so the quiz produces a ready recovery plan (sueño/pasos/agua…) with no
+ * manual activation. No-op if the member already has habits.
+ */
+export async function seedSuggestedHabitsForMember(workspaceId: string, memberProfileId: string) {
+  if (!isUuid(workspaceId) || !isUuid(memberProfileId)) return;
+  const supabase = createServiceSupabaseClient();
+  const existing = await (supabase as any)
+    .from("member_habits")
+    .select("id")
+    .eq("member_profile_id", memberProfileId)
+    .limit(1);
+  if (existing.data?.length) return;
+
+  const payload = SUGGESTED_HABITS.map((habit, index) => ({
+    workspace_id: workspaceId,
+    member_profile_id: memberProfileId,
+    name: habit.name,
+    icon: habit.icon,
+    is_suggested: true,
+    sort_order: index,
+  }));
+  const { error } = await (supabase as any).from("member_habits").insert(payload);
+  if (error) console.error("Unable to seed suggested habits", error.message);
+}
+
 export async function createCustomHabit(workspaceId: string, name: string) {
   if (!isUuid(workspaceId)) throw new Error("No se pudo identificar la app del cliente.");
   const cleanName = name.trim();

@@ -1,5 +1,6 @@
 import { BookOpen, MessageSquare, Plus, Send } from "lucide-react";
 import { Topbar } from "@/components/topbar";
+import { SubmitButton } from "@/components/ui";
 import { getSelectedMemberAppBrand } from "@/lib/member-app";
 import { listManagedContentPages } from "@/lib/repositories/content-management";
 import { listSupportConversations } from "@/lib/repositories/support-management";
@@ -66,13 +67,13 @@ export default async function CoachContentPage() {
               Contenido
               <textarea name="notes" rows={4} placeholder="Instrucciones, pasos, criterios y enlaces internos..." />
             </label>
-            <button className="btn primary" type="submit">Publicar guía</button>
+            <SubmitButton variant="primary" successToast="Guía publicada">Publicar guía</SubmitButton>
           </form>
         </article>
 
         {pages.map((page) => (
           <article className="card span4 motionCard" key={page.id}>
-            <BookOpen color="var(--gold)" />
+            <BookOpen color="var(--gold)" aria-hidden="true" />
             <h2>{page.heading}</h2>
             <p>{page.notes || page.title}</p>
             <span className="tag">{page.status}</span>
@@ -82,7 +83,7 @@ export default async function CoachContentPage() {
         <article className="card span12">
           <div className="sectionHeader">
             <div>
-              <MessageSquare color="var(--gold)" />
+              <MessageSquare color="var(--gold)" aria-hidden="true" />
               <h2>Bandeja de soporte.</h2>
               <p>Conversaciones abiertas desde la app del cliente, con respuesta del coach.</p>
             </div>
@@ -114,9 +115,9 @@ export default async function CoachContentPage() {
                     Respuesta
                     <textarea name="message" rows={3} placeholder="Respuesta clara, acción concreta y siguiente paso..." />
                   </label>
-                  <button className="btn primary" type="submit">
+                  <SubmitButton variant="primary" successToast="Respuesta enviada">
                     Responder <Send size={16} />
-                  </button>
+                  </SubmitButton>
                 </form>
               </section>
             )) : <p className="muted">Sin conversaciones abiertas.</p>}

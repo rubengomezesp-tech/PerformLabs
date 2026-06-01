@@ -1,7 +1,8 @@
 import { Heart, NotebookPen, Plus, Salad, Search } from "lucide-react";
 import Link from "next/link";
+import { MemberEmpty } from "@/components/member-empty";
 import { RecipeImage } from "@/components/recipe-image";
-import { SubmitButton } from "@/components/submit-button";
+import { SubmitButton } from "@/components/ui";
 import { Topbar } from "@/components/topbar";
 import { getSelectedMemberAppBrand } from "@/lib/member-app";
 import {
@@ -55,6 +56,7 @@ function FoodRow({
         className="foodThumb"
         id={food.id}
         name={food.name}
+        imageUrl={food.imageUrl}
         keyword={FOOD_KEYWORD[food.category]}
       />
       <div className="foodInfo">
@@ -86,12 +88,13 @@ function FoodRow({
             className="foodQty"
             name="quantity"
             type="number"
+            inputMode="decimal"
             min="0.25"
             step="0.25"
             defaultValue="1"
             aria-label="Raciones"
           />
-          <SubmitButton className="btn sm primary" pendingLabel="…"><Plus size={14} /> Añadir</SubmitButton>
+          <SubmitButton variant="primary" size="sm"><Plus size={14} /> Añadir</SubmitButton>
         </form>
       </div>
     </li>
@@ -195,11 +198,11 @@ export default async function MemberFoodsPage({ searchParams }: FoodsPageProps) 
             </article>
           ))
         ) : (
-          <article className="card span12 inlineEmpty">
-            <Salad color="var(--accent)" />
-            <strong>{query ? "Sin resultados para tu búsqueda." : "Aún no hay alimentos en tu biblioteca."}</strong>
-            <p>{query ? "Prueba con otro nombre o pídele a tu coach que lo añada." : "Tu coach irá añadiendo los alimentos de tu plan aquí."}</p>
-          </article>
+          <MemberEmpty
+            icon={Salad}
+            title={query ? "Sin resultados para tu búsqueda." : "Aún no hay alimentos en tu biblioteca."}
+            text={query ? "Prueba con otro nombre o pídele a tu coach que lo añada." : "Tu coach irá añadiendo los alimentos de tu plan aquí."}
+          />
         )}
 
         {isFallback ? (

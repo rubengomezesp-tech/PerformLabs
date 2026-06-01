@@ -1,6 +1,6 @@
 import { UserPlus, Users } from "lucide-react";
 import { EmptyState } from "@/components/empty-state";
-import { SubmitButton } from "@/components/submit-button";
+import { SubmitButton } from "@/components/ui";
 import { Topbar } from "@/components/topbar";
 import { listManagedDietTemplates } from "@/lib/repositories/nutrition-management";
 import { listManagedMembers } from "@/lib/repositories/member-management";
@@ -71,7 +71,7 @@ export default async function MembersPage({ searchParams }: MembersPageProps) {
               </label>
               <label>
                 Altura cm
-                <input name="heightCm" placeholder="178" type="number" />
+                <input name="heightCm" placeholder="178" type="number" inputMode="decimal" />
               </label>
               <label>
                 Peso inicial kg
@@ -90,7 +90,7 @@ export default async function MembersPage({ searchParams }: MembersPageProps) {
                 Zona horaria
                 <input name="timezone" defaultValue="Europe/Madrid" />
               </label>
-              <SubmitButton className="btn primary" pendingLabel="Creando…">Crear cliente <UserPlus size={18} /></SubmitButton>
+              <SubmitButton variant="primary" successToast="Cliente creado">Crear cliente <UserPlus size={18} /></SubmitButton>
             </form>
           </article>
         ) : null}
@@ -100,12 +100,12 @@ export default async function MembersPage({ searchParams }: MembersPageProps) {
             <table className="table">
               <thead>
                 <tr>
-                  <th>Nombre</th>
-                  <th>Email</th>
-                  <th>Objetivo</th>
-                  <th>Estado</th>
-                  <th>Onboarding</th>
-                  <th>Asignar planes</th>
+                  <th scope="col">Nombre</th>
+                  <th scope="col">Email</th>
+                  <th scope="col">Objetivo</th>
+                  <th scope="col">Estado</th>
+                  <th scope="col">Onboarding</th>
+                  <th scope="col">Asignar planes</th>
                 </tr>
               </thead>
               <tbody>
@@ -120,13 +120,13 @@ export default async function MembersPage({ searchParams }: MembersPageProps) {
                       <form action={assignMemberPlansAction} className="tableInlineForm">
                         <input name="workspaceId" type="hidden" value={selectedWorkspace?.id ?? ""} />
                         <input name="memberProfileId" type="hidden" value={member.id} />
-                        <select name="workoutTemplateId" defaultValue="">
+                        <select name="workoutTemplateId" defaultValue="" aria-label={`Asignar entreno a ${member.fullName}`}>
                           <option value="">Entreno</option>
                           {workoutTemplates.map((template) => (
                             <option key={template.id} value={template.id}>{template.name}</option>
                           ))}
                         </select>
-                        <select name="dietTemplateId" defaultValue="">
+                        <select name="dietTemplateId" defaultValue="" aria-label={`Asignar dieta a ${member.fullName}`}>
                           <option value="">Dieta</option>
                           {dietTemplates.map((template) => (
                             <option key={template.id} value={template.id}>{template.name}</option>

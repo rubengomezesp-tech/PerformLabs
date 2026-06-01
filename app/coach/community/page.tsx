@@ -1,5 +1,6 @@
 import { Heart, Megaphone, MessageSquare, Pin, PinOff, Sparkles, Trash2, Users } from "lucide-react";
-import { SubmitButton } from "@/components/submit-button";
+import { Dialog } from "@/components/dialog";
+import { SubmitButton } from "@/components/ui";
 import { Topbar } from "@/components/topbar";
 import { getSelectedMemberAppBrand } from "@/lib/member-app";
 import { listCommunityModeration } from "@/lib/repositories/community";
@@ -59,7 +60,7 @@ export default async function CoachCommunityPage() {
         <article className="card span12 communityComposer">
           <div className="sectionHeader">
             <div>
-              <Megaphone color="var(--accent)" />
+              <Megaphone color="var(--accent)" aria-hidden="true" />
               <h2>Publicar anuncio oficial.</h2>
               <p>Aparece destacado y fijado arriba en la app de tus clientes. Úsalo para retos, novedades o motivación de la semana.</p>
             </div>
@@ -69,7 +70,7 @@ export default async function CoachCommunityPage() {
             <input name="workspaceId" type="hidden" value={brand.id} />
             <input name="authorName" type="hidden" value={brand.name} />
             <textarea name="body" rows={3} required placeholder="Escribe tu anuncio para toda la comunidad…" />
-            <SubmitButton className="btn primary" pendingLabel="Publicando…"><Megaphone size={16} /> Publicar anuncio</SubmitButton>
+            <SubmitButton variant="primary" successToast="Anuncio publicado"><Megaphone size={16} /> Publicar anuncio</SubmitButton>
           </form>
         </article>
 
@@ -97,11 +98,20 @@ export default async function CoachCommunityPage() {
                         {post.pinned ? <PinOff size={15} /> : <Pin size={15} />}
                       </button>
                     </form>
-                    <form action={moderateDeleteCommunityPostAction}>
-                      <input name="workspaceId" type="hidden" value={brand.id} />
-                      <input name="postId" type="hidden" value={post.id} />
-                      <button type="submit" aria-label="Eliminar" title="Eliminar publicación" className="danger"><Trash2 size={15} /></button>
-                    </form>
+                    <Dialog
+                      triggerClassName="danger"
+                      triggerAriaLabel="Eliminar publicación"
+                      trigger={<Trash2 size={15} />}
+                      title="Eliminar publicación"
+                      description="Esta acción no se puede deshacer."
+                    >
+                      <form action={moderateDeleteCommunityPostAction} className="editForm">
+                        <input name="workspaceId" type="hidden" value={brand.id} />
+                        <input name="postId" type="hidden" value={post.id} />
+                        <p className="spanFull">¿Seguro que quieres eliminar esta publicación de <strong>{post.authorName}</strong>? Esta acción no se puede deshacer.</p>
+                        <button className="btn danger spanFull" type="submit">Sí, eliminar</button>
+                      </form>
+                    </Dialog>
                   </div>
                 </div>
                 <p className="communityBody">{post.body}</p>
@@ -111,7 +121,7 @@ export default async function CoachCommunityPage() {
           </div>
         ) : (
           <article className="card span12 inlineEmpty">
-            <MessageSquare color="var(--accent)" />
+            <MessageSquare color="var(--accent)" aria-hidden="true" />
             <strong>Aún no hay actividad en tu comunidad.</strong>
             <p>Publica el primer anuncio para arrancar la conversación con tus clientes.</p>
           </article>

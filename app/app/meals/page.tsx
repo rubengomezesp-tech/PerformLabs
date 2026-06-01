@@ -301,7 +301,7 @@ export default async function MealsPage() {
           </div>
           <form action={saveNutritionDayAction} className="mealDailyForm">
             <input name="workspaceId" type="hidden" value={brand.id} />
-            <label>Vasos de agua<input name="waterGlasses" defaultValue={dailySummary.waterGlasses || 8} min="0" max="20" type="number" /></label>
+            <label>Vasos de agua<input name="waterGlasses" defaultValue={dailySummary.waterGlasses || 8} min="0" max="20" type="number" inputMode="numeric" /></label>
             <label>Hambre<select name="hungerLevel" defaultValue={dailySummary.hungerLevel ?? ""}>
               <option value="">Elige</option>
               <option value="1">Muy poca</option>

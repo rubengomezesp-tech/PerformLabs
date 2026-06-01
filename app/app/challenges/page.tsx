@@ -1,5 +1,6 @@
 import { CalendarDays, Flame, Trophy, Users } from "lucide-react";
-import { SubmitButton } from "@/components/submit-button";
+import { MemberEmpty } from "@/components/member-empty";
+import { SubmitButton } from "@/components/ui";
 import { Topbar } from "@/components/topbar";
 import { getSelectedMemberAppBrand } from "@/lib/member-app";
 import { listMemberChallenges, metricLabel } from "@/lib/repositories/challenges";
@@ -62,7 +63,7 @@ export default async function MemberChallengesPage() {
                   <form action={joinChallengeAction} className="challengeJoin">
                     <input name="workspaceId" type="hidden" value={brand.id} />
                     <input name="challengeId" type="hidden" value={c.id} />
-                    <SubmitButton className="btn primary" pendingLabel="Uniéndote…"><Trophy size={16} /> Unirme al reto</SubmitButton>
+                    <SubmitButton variant="primary"><Trophy size={16} /> Unirme al reto</SubmitButton>
                     <span className="challengeMeta"><Users size={13} /> {c.participants} participando</span>
                   </form>
                 )}
@@ -82,11 +83,11 @@ export default async function MemberChallengesPage() {
             );
           })
         ) : (
-          <article className="card span12 inlineEmpty uiGlass">
-            <span className="uiIconChip" style={{ width: 52, height: 52, borderRadius: 16 }}><Trophy size={24} /></span>
-            <strong>Aún no hay retos activos.</strong>
-            <p>Cuando tu coach lance un reto, aquí podrás unirte y ver la clasificación en directo.</p>
-          </article>
+          <MemberEmpty
+            icon={Trophy}
+            title="Aún no hay retos activos."
+            text="Cuando tu coach lance un reto, aquí podrás unirte y ver la clasificación en directo."
+          />
         )}
       </section>
     </>
