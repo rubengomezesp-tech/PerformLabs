@@ -1,9 +1,16 @@
 import { Bell, CalendarClock, CheckCircle2, Mail, MessageSquareText, Radio, Send, Smartphone, Sparkles, Users } from "lucide-react";
 import { Topbar } from "@/components/topbar";
+import { SubmitButton } from "@/components/ui";
+import { isPushConfigured } from "@/lib/notifications/push";
 import { notificationEvents } from "@/lib/domain/platform-logic";
 import { getSelectedMemberAppBrand } from "@/lib/member-app";
 import { listManagedNotificationTemplates, listManagedScheduledNotifications } from "@/lib/repositories/notification-management";
-import { createCoachScheduledNotificationAction, saveCoachNotificationTemplateAction } from "./actions";
+import {
+  activateCoachScheduledNotificationAction,
+  cancelCoachScheduledNotificationAction,
+  createCoachScheduledNotificationAction,
+  saveCoachNotificationTemplateAction,
+} from "./actions";
 
 export const dynamic = "force-dynamic";
 
@@ -11,6 +18,14 @@ const channelMeta = {
   push: { label: "Push", icon: Smartphone },
   in_app: { label: "In-app", icon: Bell },
   email: { label: "Email", icon: Mail },
+};
+
+const scheduledStatusLabel: Record<string, string> = {
+  draft: "Borrador",
+  scheduled: "Programado",
+  sending: "Enviando",
+  sent: "Enviado",
+  failed: "Falló",
 };
 
 const automationPlaybooks = [
@@ -42,6 +57,7 @@ export default async function CoachNotificationsPage() {
   const pushTemplates = templates.filter((template) => template.channel === "push" && template.isEnabled).length;
   const defaultEvent = notificationEvents.find((event) => event.key === "progress.update_due") ?? notificationEvents[0];
   const defaultTemplate = templates.find((template) => template.eventKey === defaultEvent?.key && template.channel === "push");
+  const pushReady = isPushConfigured();
 
   return (
     <>
@@ -97,7 +113,7 @@ export default async function CoachNotificationsPage() {
             <div>
               <CalendarClock color="var(--gold)" aria-hidden="true" />
               <h2>Programar aviso.</h2>
-              <p>Mensaje puntual para todos los miembros activos. Queda en draft hasta conectar envío real o revisión final.</p>
+              <p>Mensaje puntual por push a todos los miembros activos. Se guarda como borrador; al activarlo, el sistema lo envía a la hora indicada.</p>
             </div>
           </div>
           <form action={createCoachScheduledNotificationAction} className="notificationComposer">
@@ -110,8 +126,6 @@ export default async function CoachNotificationsPage() {
               Canal
               <select name="channel" defaultValue="push">
                 <option value="push">Push</option>
-                <option value="in_app">In-app</option>
-                <option value="email">Email</option>
               </select>
             </label>
             <label>
@@ -219,9 +233,26 @@ export default async function CoachNotificationsPage() {
                 <li className="row" key={item.id}>
                   <div>
                     <strong><Icon size={15} /> {item.name}</strong>
-                    <p>{item.message || "Sin mensaje"} · {item.deliveryAt || "Sin fecha"}</p>
+                    <p>{item.message || "Sin mensaje"} · {item.deliveryAt || "Inmediato"}</p>
                   </div>
-                  <span className="tag">{item.status}</span>
+                  <span style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                    <span className={item.status === "failed" ? "tag danger" : item.status === "draft" ? "tag profileTagMuted" : "tag"}>
+                      {scheduledStatusLabel[item.status] ?? item.status}
+                    </span>
+                    {item.status === "draft" ? (
+                      <form action={activateCoachScheduledNotificationAction}>
+                        <input type="hidden" name="workspaceId" value={brand.id} />
+                        <input type="hidden" name="scheduledId" value={item.id} />
+                        <SubmitButton variant="primary" size="sm" successToast="Aviso activado">Activar</SubmitButton>
+                      </form>
+                    ) : item.status === "scheduled" ? (
+                      <form action={cancelCoachScheduledNotificationAction}>
+                        <input type="hidden" name="workspaceId" value={brand.id} />
+                        <input type="hidden" name="scheduledId" value={item.id} />
+                        <SubmitButton variant="ghost" size="sm" successToast="Aviso cancelado">Cancelar</SubmitButton>
+                      </form>
+                    ) : null}
+                  </span>
                 </li>
               );
             }) : <li className="row">Sin avisos programados <span className="tag">Crear arriba</span></li>}
@@ -233,21 +264,21 @@ export default async function CoachNotificationsPage() {
             <div>
               <Smartphone color="var(--gold)" aria-hidden="true" />
               <h2>Checklist para push real.</h2>
-              <p>Queda preparado el producto; la capa de envío se conecta cuando definamos proveedor y publicación.</p>
+              <p>El dispatcher de campañas ya envía push automáticamente (cron cada 15 min). {pushReady ? "Proveedor VAPID activo." : "Solo faltan las claves VAPID para encenderlo."}</p>
             </div>
           </div>
           <div className="notificationReadinessGrid">
             {[
-              "Permiso en app del miembro",
-              "Preferencias por canal",
-              "Plantillas por evento",
-              "Cola de mensajes programados",
-              "Segmentos de audiencia",
-              "Proveedor push/web push",
-            ].map((item, index) => (
-              <span key={item}>
-                <CheckCircle2 color={index < 5 ? "var(--green)" : "var(--soft)"} size={16} />
-                {item}
+              { label: "Permiso en app del miembro", done: true },
+              { label: "Preferencias por canal", done: true },
+              { label: "Plantillas por evento", done: true },
+              { label: "Cola de mensajes programados", done: true },
+              { label: "Segmentos de audiencia", done: false },
+              { label: "Proveedor push/web push", done: pushReady },
+            ].map((item) => (
+              <span key={item.label}>
+                <CheckCircle2 color={item.done ? "var(--green)" : "var(--soft)"} size={16} />
+                {item.label}
               </span>
             ))}
           </div>

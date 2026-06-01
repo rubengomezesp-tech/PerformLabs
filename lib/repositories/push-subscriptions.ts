@@ -69,6 +69,27 @@ export async function listNudgeableSubscriptions(workspaceId: string, cooldownDa
     }));
 }
 
+/** All enabled push subscriptions for a workspace (audience = its members who opted in). */
+export async function listActiveSubscriptions(workspaceId: string): Promise<PushSubscriptionRow[]> {
+  const env = getSupabaseServiceEnv();
+  if (!env.ok || !isUuid(workspaceId)) return [];
+  const supabase = createServiceSupabaseClient();
+  const { data, error } = await (supabase as any)
+    .from("push_subscriptions")
+    .select("id,member_profile_id,endpoint,p256dh,auth")
+    .eq("workspace_id", workspaceId)
+    .eq("enabled", true)
+    .limit(5000);
+  if (error || !data) return [];
+  return (data as Array<any>).map((row) => ({
+    id: row.id,
+    memberProfileId: row.member_profile_id,
+    endpoint: row.endpoint,
+    p256dh: row.p256dh,
+    auth: row.auth,
+  }));
+}
+
 export async function markSubscriptionNotified(id: string): Promise<void> {
   if (!isUuid(id)) return;
   const supabase = createServiceSupabaseClient();
