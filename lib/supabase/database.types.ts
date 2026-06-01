@@ -5609,7 +5609,6 @@ export type Database = {
         Args: { target_workspace_id: string }
         Returns: boolean
       }
-      unaccent: { Args: { "": string }; Returns: string }
     }
     Enums: {
       delivery_status: "queued" | "sent" | "delivered" | "failed" | "cancelled"
