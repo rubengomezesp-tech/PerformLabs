@@ -13912,3 +13912,20 @@ button[aria-busy="true"] {
   gap: 2px;
 }
 /* ===== END Coach analytics ===== */
+
+/* ===== Member guide reader ===== */
+.guideReader {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  max-width: 68ch;
+}
+.guideReader p {
+  margin: 0;
+  color: var(--text-muted);
+  line-height: 1.7;
+}
+.guideReader .uiIconChip {
+  margin-bottom: 4px;
+}
+/* ===== END Member guide reader ===== */
