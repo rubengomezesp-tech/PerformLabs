@@ -912,6 +912,66 @@ export type Database = {
           },
         ]
       }
+      cardio_session_logs: {
+        Row: {
+          avg_hr: number | null
+          calories: number | null
+          created_at: string
+          distance_km: number | null
+          id: string
+          intensity: string | null
+          logged_on: string
+          member_profile_id: string
+          minutes: number | null
+          modality: string
+          notes: string | null
+          workspace_id: string
+        }
+        Insert: {
+          avg_hr?: number | null
+          calories?: number | null
+          created_at?: string
+          distance_km?: number | null
+          id?: string
+          intensity?: string | null
+          logged_on?: string
+          member_profile_id: string
+          minutes?: number | null
+          modality: string
+          notes?: string | null
+          workspace_id: string
+        }
+        Update: {
+          avg_hr?: number | null
+          calories?: number | null
+          created_at?: string
+          distance_km?: number | null
+          id?: string
+          intensity?: string | null
+          logged_on?: string
+          member_profile_id?: string
+          minutes?: number | null
+          modality?: string
+          notes?: string | null
+          workspace_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "cardio_session_logs_member_profile_id_fkey"
+            columns: ["member_profile_id"]
+            isOneToOne: false
+            referencedRelation: "member_profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "cardio_session_logs_workspace_id_fkey"
+            columns: ["workspace_id"]
+            isOneToOne: false
+            referencedRelation: "workspaces"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       challenge_participants: {
         Row: {
           challenge_id: string
@@ -1690,16 +1750,20 @@ export type Database = {
           category_id: string | null
           created_at: string
           created_by: string | null
+          diet_style: string
           fat_ratio: number | null
           formula_id: string | null
           goal: string | null
+          goal_tag: string | null
           id: string
+          is_base_library: boolean
+          meals_per_day: number | null
           name: string
           protein_ratio: number | null
           status: Database["public"]["Enums"]["plan_status"]
           tags: string[]
           updated_at: string
-          workspace_id: string
+          workspace_id: string | null
         }
         Insert: {
           calories_max?: number | null
@@ -1708,16 +1772,20 @@ export type Database = {
           category_id?: string | null
           created_at?: string
           created_by?: string | null
+          diet_style?: string
           fat_ratio?: number | null
           formula_id?: string | null
           goal?: string | null
+          goal_tag?: string | null
           id?: string
+          is_base_library?: boolean
+          meals_per_day?: number | null
           name: string
           protein_ratio?: number | null
           status?: Database["public"]["Enums"]["plan_status"]
           tags?: string[]
           updated_at?: string
-          workspace_id: string
+          workspace_id?: string | null
         }
         Update: {
           calories_max?: number | null
@@ -1726,16 +1794,20 @@ export type Database = {
           category_id?: string | null
           created_at?: string
           created_by?: string | null
+          diet_style?: string
           fat_ratio?: number | null
           formula_id?: string | null
           goal?: string | null
+          goal_tag?: string | null
           id?: string
+          is_base_library?: boolean
+          meals_per_day?: number | null
           name?: string
           protein_ratio?: number | null
           status?: Database["public"]["Enums"]["plan_status"]
           tags?: string[]
           updated_at?: string
-          workspace_id?: string
+          workspace_id?: string | null
         }
         Relationships: [
           {
@@ -2006,12 +2078,14 @@ export type Database = {
           created_at: string
           fat_g: number
           id: string
+          image_url: string | null
+          is_base_library: boolean
           name: string
           protein_g: number
           serving_label: string
           sort_order: number
           verified: boolean
-          workspace_id: string
+          workspace_id: string | null
         }
         Insert: {
           brand?: string | null
@@ -2021,12 +2095,14 @@ export type Database = {
           created_at?: string
           fat_g?: number
           id?: string
+          image_url?: string | null
+          is_base_library?: boolean
           name: string
           protein_g?: number
           serving_label?: string
           sort_order?: number
           verified?: boolean
-          workspace_id: string
+          workspace_id?: string | null
         }
         Update: {
           brand?: string | null
@@ -2036,12 +2112,14 @@ export type Database = {
           created_at?: string
           fat_g?: number
           id?: string
+          image_url?: string | null
+          is_base_library?: boolean
           name?: string
           protein_g?: number
           serving_label?: string
           sort_order?: number
           verified?: boolean
-          workspace_id?: string
+          workspace_id?: string | null
         }
         Relationships: [
           {
@@ -2493,6 +2571,60 @@ export type Database = {
           },
           {
             foreignKeyName: "member_activity_events_workspace_id_fkey"
+            columns: ["workspace_id"]
+            isOneToOne: false
+            referencedRelation: "workspaces"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      member_cycle_logs: {
+        Row: {
+          created_at: string
+          entry_type: string
+          flow: string | null
+          id: string
+          logged_on: string
+          member_profile_id: string
+          notes: string | null
+          symptoms: string[]
+          updated_at: string
+          workspace_id: string
+        }
+        Insert: {
+          created_at?: string
+          entry_type?: string
+          flow?: string | null
+          id?: string
+          logged_on?: string
+          member_profile_id: string
+          notes?: string | null
+          symptoms?: string[]
+          updated_at?: string
+          workspace_id: string
+        }
+        Update: {
+          created_at?: string
+          entry_type?: string
+          flow?: string | null
+          id?: string
+          logged_on?: string
+          member_profile_id?: string
+          notes?: string | null
+          symptoms?: string[]
+          updated_at?: string
+          workspace_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "member_cycle_logs_member_profile_id_fkey"
+            columns: ["member_profile_id"]
+            isOneToOne: false
+            referencedRelation: "member_profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "member_cycle_logs_workspace_id_fkey"
             columns: ["workspace_id"]
             isOneToOne: false
             referencedRelation: "workspaces"
@@ -2979,6 +3111,47 @@ export type Database = {
           },
         ]
       }
+      member_notification_preferences: {
+        Row: {
+          checkin_reminders: boolean
+          coach_changes: boolean
+          in_app_messages: boolean
+          meal_reminders: boolean
+          member_profile_id: string
+          quiet_mode: boolean
+          updated_at: string
+          workout_reminders: boolean
+        }
+        Insert: {
+          checkin_reminders?: boolean
+          coach_changes?: boolean
+          in_app_messages?: boolean
+          meal_reminders?: boolean
+          member_profile_id: string
+          quiet_mode?: boolean
+          updated_at?: string
+          workout_reminders?: boolean
+        }
+        Update: {
+          checkin_reminders?: boolean
+          coach_changes?: boolean
+          in_app_messages?: boolean
+          meal_reminders?: boolean
+          member_profile_id?: string
+          quiet_mode?: boolean
+          updated_at?: string
+          workout_reminders?: boolean
+        }
+        Relationships: [
+          {
+            foreignKeyName: "member_notification_preferences_member_profile_id_fkey"
+            columns: ["member_profile_id"]
+            isOneToOne: true
+            referencedRelation: "member_profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       member_nutrition_daily_logs: {
         Row: {
           created_at: string
@@ -3116,6 +3289,7 @@ export type Database = {
           phone: string | null
           sex: string | null
           starting_weight_kg: number | null
+          stripe_customer_id: string | null
           subscription_status: Database["public"]["Enums"]["subscription_status"]
           timezone: string
           updated_at: string
@@ -3135,6 +3309,7 @@ export type Database = {
           phone?: string | null
           sex?: string | null
           starting_weight_kg?: number | null
+          stripe_customer_id?: string | null
           subscription_status?: Database["public"]["Enums"]["subscription_status"]
           timezone?: string
           updated_at?: string
@@ -3154,6 +3329,7 @@ export type Database = {
           phone?: string | null
           sex?: string | null
           starting_weight_kg?: number | null
+          stripe_customer_id?: string | null
           subscription_status?: Database["public"]["Enums"]["subscription_status"]
           timezone?: string
           updated_at?: string
@@ -3172,42 +3348,73 @@ export type Database = {
       }
       member_subscriptions: {
         Row: {
+          amount: number | null
+          application_fee_percent: number | null
+          cancel_at_period_end: boolean
+          coach_client_plan_id: string | null
           created_at: string
+          currency: string | null
           current_period_end: string | null
+          current_period_start: string | null
           id: string
           member_profile_id: string
           pricing_plan_id: string | null
           status: Database["public"]["Enums"]["subscription_status"]
+          stripe_account_id: string | null
           stripe_customer_id: string | null
+          stripe_price_id: string | null
           stripe_subscription_id: string | null
           updated_at: string
           workspace_id: string
         }
         Insert: {
+          amount?: number | null
+          application_fee_percent?: number | null
+          cancel_at_period_end?: boolean
+          coach_client_plan_id?: string | null
           created_at?: string
+          currency?: string | null
           current_period_end?: string | null
+          current_period_start?: string | null
           id?: string
           member_profile_id: string
           pricing_plan_id?: string | null
           status: Database["public"]["Enums"]["subscription_status"]
+          stripe_account_id?: string | null
           stripe_customer_id?: string | null
+          stripe_price_id?: string | null
           stripe_subscription_id?: string | null
           updated_at?: string
           workspace_id: string
         }
         Update: {
+          amount?: number | null
+          application_fee_percent?: number | null
+          cancel_at_period_end?: boolean
+          coach_client_plan_id?: string | null
           created_at?: string
+          currency?: string | null
           current_period_end?: string | null
+          current_period_start?: string | null
           id?: string
           member_profile_id?: string
           pricing_plan_id?: string | null
           status?: Database["public"]["Enums"]["subscription_status"]
+          stripe_account_id?: string | null
           stripe_customer_id?: string | null
+          stripe_price_id?: string | null
           stripe_subscription_id?: string | null
           updated_at?: string
           workspace_id?: string
         }
         Relationships: [
+          {
+            foreignKeyName: "member_subscriptions_coach_client_plan_id_fkey"
+            columns: ["coach_client_plan_id"]
+            isOneToOne: false
+            referencedRelation: "coach_client_plans"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "member_subscriptions_member_profile_id_fkey"
             columns: ["member_profile_id"]
@@ -3578,6 +3785,45 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      platform_fee_events: {
+        Row: {
+          amount_total: number | null
+          application_fee_amount: number | null
+          created_at: string
+          currency: string | null
+          id: string
+          member_profile_id: string | null
+          status: string | null
+          stripe_account_id: string | null
+          stripe_subscription_id: string | null
+          workspace_id: string | null
+        }
+        Insert: {
+          amount_total?: number | null
+          application_fee_amount?: number | null
+          created_at?: string
+          currency?: string | null
+          id: string
+          member_profile_id?: string | null
+          status?: string | null
+          stripe_account_id?: string | null
+          stripe_subscription_id?: string | null
+          workspace_id?: string | null
+        }
+        Update: {
+          amount_total?: number | null
+          application_fee_amount?: number | null
+          created_at?: string
+          currency?: string | null
+          id?: string
+          member_profile_id?: string | null
+          status?: string | null
+          stripe_account_id?: string | null
+          stripe_subscription_id?: string | null
+          workspace_id?: string | null
+        }
+        Relationships: []
       }
       platform_subscriptions: {
         Row: {
@@ -5039,14 +5285,20 @@ export type Database = {
           days_per_week: number
           duration_weeks: number
           goal: string | null
+          goal_tag: string | null
           id: string
+          is_base_library: boolean
           level: string | null
+          location: string | null
           name: string
           phase_structure: Json
+          required_equipment: string[]
           rotation_rules: Json
+          session_minutes: number | null
           status: Database["public"]["Enums"]["plan_status"]
+          target_sex: string
           updated_at: string
-          workspace_id: string
+          workspace_id: string | null
         }
         Insert: {
           created_at?: string
@@ -5054,14 +5306,20 @@ export type Database = {
           days_per_week: number
           duration_weeks?: number
           goal?: string | null
+          goal_tag?: string | null
           id?: string
+          is_base_library?: boolean
           level?: string | null
+          location?: string | null
           name: string
           phase_structure?: Json
+          required_equipment?: string[]
           rotation_rules?: Json
+          session_minutes?: number | null
           status?: Database["public"]["Enums"]["plan_status"]
+          target_sex?: string
           updated_at?: string
-          workspace_id: string
+          workspace_id?: string | null
         }
         Update: {
           created_at?: string
@@ -5069,14 +5327,20 @@ export type Database = {
           days_per_week?: number
           duration_weeks?: number
           goal?: string | null
+          goal_tag?: string | null
           id?: string
+          is_base_library?: boolean
           level?: string | null
+          location?: string | null
           name?: string
           phase_structure?: Json
+          required_equipment?: string[]
           rotation_rules?: Json
+          session_minutes?: number | null
           status?: Database["public"]["Enums"]["plan_status"]
+          target_sex?: string
           updated_at?: string
-          workspace_id?: string
+          workspace_id?: string | null
         }
         Relationships: [
           {
@@ -5329,6 +5593,10 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      exercise_library_facets: {
+        Args: { p_workspace_id: string }
+        Returns: Json
+      }
       has_workspace_role: {
         Args: {
           allowed_roles: Database["public"]["Enums"]["workspace_role"][]
@@ -5341,6 +5609,7 @@ export type Database = {
         Args: { target_workspace_id: string }
         Returns: boolean
       }
+      unaccent: { Args: { "": string }; Returns: string }
     }
     Enums: {
       delivery_status: "queued" | "sent" | "delivered" | "failed" | "cancelled"
