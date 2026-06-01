@@ -5,6 +5,11 @@
 > pública. Next.js (App Router) · React · TypeScript · Supabase · CSS global como
 > design system · Lucide. Lee también `PRODUCT.md` (principios y objetivo WCAG AA) y
 > el knowledge base en `brain/`.
+>
+> **🗣️ Idioma — habla SIEMPRE en español** con el equipo (chat, resúmenes,
+> explicaciones y preguntas), en todas las sesiones. Petición expresa del CEO. El
+> código, los nombres de símbolos y los mensajes de commit siguen las convenciones
+> del repo; el texto dirigido a la persona va en español salvo que pidan otro idioma.
 
 ---
 
