@@ -15,6 +15,7 @@ import {
 } from "@/lib/repositories/stripe-billing";
 import { retrieveSubscription, verifyStripeSignature } from "@/lib/stripe/client";
 import { getStripeEnv, isStripeConfigured } from "@/lib/stripe/env";
+import { getSupabaseServiceEnv } from "@/lib/supabase/env";
 
 export const dynamic = "force-dynamic";
 
@@ -33,6 +34,12 @@ export async function POST(request: NextRequest) {
   const { webhookSecret } = getStripeEnv();
   if (!isStripeConfigured() || !webhookSecret) {
     return NextResponse.json({ ok: false, error: "stripe_not_configured" }, { status: 503 });
+  }
+  // Without the service-role DB we'd verify the signature, no-op every downstream
+  // write, and still ACK 200 — silently dropping paid events. 503 makes Stripe
+  // retry later (when the env is fixed) instead of losing the event.
+  if (!getSupabaseServiceEnv().ok) {
+    return NextResponse.json({ ok: false, error: "database_not_configured" }, { status: 503 });
   }
 
   const payload = await request.text();
@@ -159,6 +166,7 @@ async function handleConnectedEvent(event: StripeEvent, account: string) {
       // which sits on the coach's connected account.
       let status = "active";
       let stripePriceId: string | null = null;
+      let recurringAmount: number | null = null;
       let currentPeriodStart: string | null = null;
       let currentPeriodEnd: string | null = null;
       let cancelAtPeriodEnd = false;
@@ -166,6 +174,10 @@ async function handleConnectedEvent(event: StripeEvent, account: string) {
         const sub = (await retrieveSubscription(subscriptionId, { stripeAccount: account })) as Record<string, any>;
         status = (sub.status as string) || "active";
         stripePriceId = sub.items?.data?.[0]?.price?.id ?? null;
+        // Recurring unit price (not the session amount_total, which can include
+        // proration/tax) so MRR matches the subscription.* events that also store
+        // unit_amount — the same row gets a consistent `amount` whichever lands last.
+        recurringAmount = sub.items?.data?.[0]?.price?.unit_amount ?? null;
         currentPeriodStart = toIso(sub.current_period_start);
         currentPeriodEnd = toIso(sub.current_period_end);
         cancelAtPeriodEnd = Boolean(sub.cancel_at_period_end);
@@ -180,7 +192,7 @@ async function handleConnectedEvent(event: StripeEvent, account: string) {
         stripePriceId,
         status,
         applicationFeePercent,
-        amount: typeof object.amount_total === "number" ? object.amount_total : null,
+        amount: recurringAmount,
         currency: (object.currency as string) ?? null,
         currentPeriodStart,
         currentPeriodEnd,

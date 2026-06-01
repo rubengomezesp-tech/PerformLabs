@@ -166,8 +166,11 @@ export async function getWorkspaceEntitlement(workspaceId?: string): Promise<Wor
     .maybeSingle();
 
   if (error) {
+    // Fail CLOSED: an active fallback on a transient read error would grant a
+    // suspended/revoked workspace full access to /coach and /app. A suspended
+    // status is denied by entitlementAllows.
     console.error("Unable to load workspace entitlement", error.message);
-    return fallbackEntitlement(workspaceId);
+    return { ...fallbackEntitlement(workspaceId), status: "suspended", reason: "No se pudo verificar la licencia." };
   }
 
   if (data) {
@@ -185,8 +188,9 @@ export async function getWorkspaceEntitlement(workspaceId?: string): Promise<Wor
     .single();
 
   if (created.error || !created.data) {
+    // Fail CLOSED for the same reason as the read path above.
     console.error("Unable to create workspace entitlement", created.error?.message);
-    return fallbackEntitlement(workspaceId);
+    return { ...fallbackEntitlement(workspaceId), status: "suspended", reason: "No se pudo verificar la licencia." };
   }
 
   return mapEntitlement(created.data);
