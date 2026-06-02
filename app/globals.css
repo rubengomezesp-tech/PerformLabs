@@ -14170,7 +14170,7 @@ button[aria-busy="true"] {
   font-weight: 800;
   letter-spacing: -0.01em;
   text-wrap: balance;
-  text-shadow: 0 2px 30px rgba(0, 0, 0, 0.5);
+  text-shadow: 0 0 42px color-mix(in srgb, var(--accent) 30%, transparent), 0 2px 30px rgba(0, 0, 0, 0.55);
 }
 .salesHeroSub {
   margin: 0 auto 30px;
@@ -14252,6 +14252,9 @@ button[aria-busy="true"] {
   background: rgba(255, 255, 255, 0.025);
 }
 .salesFeatureCard strong { font-size: 16px; }
+.salesShowcase { text-align: center; }
+.salesShowcase .salesSectionTitle { margin-bottom: 10px; }
+.salesShowcaseSub { margin: 0 auto clamp(24px, 5vw, 40px); max-width: 580px; opacity: 0.82; font-size: clamp(15px, 2vw, 17px); }
 .salesAbout {
   display: grid;
   gap: clamp(24px, 5vw, 56px);
