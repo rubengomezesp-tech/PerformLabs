@@ -13,7 +13,6 @@ dist
 supabase/.temp
 .vercel
 .agents
-.claude/skills
 skills-lock.json
 .DS_Store
 *.log
