@@ -1,5 +1,7 @@
 import type { CSSProperties } from "react";
-import { ShieldCheck } from "lucide-react";
+import { ArrowRight, Camera, Dumbbell, LineChart, MessageSquare, Salad, ShieldCheck, Smartphone } from "lucide-react";
+import { ScreensGallery } from "@/components/landing/screens-gallery";
+import { MotionReveal, SmoothScroll } from "@/components/motion-reveal";
 import type { CoachPlan } from "@/lib/repositories/coach-plans";
 import type { WorkspaceBrand } from "@/lib/repositories/workspaces";
 
@@ -12,11 +14,45 @@ function formatPrice(amountCents: number, currency: string, interval: string): s
   return `${amount}/${interval === "year" ? "año" : "mes"}`;
 }
 
+// Template copy shared by every coach's page. The brand-specific parts (name, headline,
+// subtext, hero image, accent, about text, plans) come from the workspace; this fixed
+// structure is what makes it an elite, conversion-shaped landing instead of a list.
+const BARRIERS = [
+  { title: "Falta de confianza", body: "¿Te intimida el gimnasio? Sin una guía clara, hasta los más motivados dudan de su técnica y abandonan antes de ver resultados." },
+  { title: "Falta de tiempo", body: "Las agendas llenas sabotean la constancia. Saltarse sesiones «hasta que todo se calme» deja tus metas siempre fuera de alcance." },
+  { title: "Desinformación", body: "Cansado de consejos contradictorios y de la bro-science que solo te hace perder el tiempo —y la motivación—." },
+];
+
+const PILLARS = [
+  {
+    icon: Dumbbell,
+    title: "Entrenamiento personalizado",
+    body: "Un plan creado para ti y tu nivel. Cada ejercicio grabado en vídeo para que lo hagas con técnica perfecta.",
+    points: ["Vídeo en cada ejercicio", "Registra reps y kilos", "Cambia ejercicios si te lesionas"],
+  },
+  {
+    icon: Salad,
+    title: "Nutrición flexible",
+    body: "Come bien sin renunciar a lo que te gusta. Plan adaptado a tus objetivos, tu horario y tus preferencias.",
+    points: ["Macros y calorías claras", "Lista de la compra", "General, vegetariano o vegano"],
+  },
+];
+
+const FEATURES = [
+  { icon: Dumbbell, title: "Entrenamiento a medida", body: "Tu rutina, tu nivel, tu progresión." },
+  { icon: Salad, title: "Nutrición a tu vida", body: "Plan flexible con macros y recetas." },
+  { icon: Camera, title: "Fotos de progreso", body: "Compara tu evolución semana a semana." },
+  { icon: LineChart, title: "Registro de medidas", body: "Peso, grasa y perímetros en un sitio." },
+  { icon: MessageSquare, title: "Tu coach contigo", body: "Revisiones, ajustes y apoyo real." },
+  { icon: Smartphone, title: "Todo en tu móvil", body: "Tu app, tu marca, siempre encima." },
+];
+
 /**
- * Public, brand-skinned sales page for a coach: brand lockup + active plans with a
- * working subscribe form. Presentational only — the parent route resolves the
- * brand/plans and passes the server checkout action. Reskins per coach via the
- * inline `--accent` var, same pattern as app/m/page.tsx.
+ * Public, brand-skinned sales landing for a coach: an elite, conversion-shaped page
+ * (hero → barriers → pillars → app showcase → benefits → about → plans) that reskins per
+ * coach via `--accent`/`--sales-bg` and the brand's hero/logo/about copy. Reuses the
+ * landing's ScreensGallery (app mockups) + MotionReveal/SmoothScroll for life. The route
+ * resolves brand/plans and passes the server checkout action (untouched).
  */
 export function SalesPage({
   brand,
@@ -35,75 +71,142 @@ export function SalesPage({
 }) {
   const accent = brand.accentColor || "#078df2";
   const background = brand.backgroundColor || "#0d0d10";
-  const headline = brand.heroHeadline || `Entrena con ${brand.name}`;
+  const headline = brand.heroHeadline || `Transforma tu cuerpo con ${brand.name}`;
   const subtext =
-    brand.heroSubtext || "Elige tu plan y empieza hoy: entrenamiento, nutrición y seguimiento con tu coach.";
-  const heroStyle: CSSProperties = brand.heroImageUrl
-    ? { background: `linear-gradient(160deg, rgba(0,0,0,.35), rgba(0,0,0,.72)), url(${brand.heroImageUrl}) center/cover` }
-    : { background: `radial-gradient(130% 130% at 100% 0%, ${accent}33, ${background})` };
+    brand.heroSubtext ||
+    "Entrena con fuerza, come con libertad y construye un cuerpo que se vea —y se sienta— increíble. Con un plan hecho para ti.";
+  const heroBg: string | undefined = brand.heroImageUrl
+    ? `linear-gradient(180deg, rgba(0,0,0,.45), rgba(0,0,0,.82)), url(${brand.heroImageUrl})`
+    : undefined;
 
   return (
-    <main style={{ "--accent": accent, background, minHeight: "100vh", color: "#e9eaec" } as CSSProperties}>
-      <div style={{ maxWidth: 980, margin: "0 auto", padding: "clamp(40px, 6vw, 72px) 24px 64px" }}>
-        <section style={{ ...heroStyle, borderRadius: 20, padding: "clamp(28px, 5vw, 48px)" }}>
-          <div className="memberBrandLockup">
-            <span className="memberBrandMark" style={{ borderColor: accent, color: accent }}>
-              {brand.logoUrl ? <img alt="" src={brand.logoUrl} /> : brand.appName.slice(0, 3).toUpperCase()}
-            </span>
-            <strong>{brand.name}</strong>
-          </div>
-          <h1 style={{ fontSize: "clamp(28px, 5vw, 44px)", margin: "20px 0 10px", lineHeight: 1.05 }}>{headline}</h1>
-          <p style={{ maxWidth: 560, opacity: 0.85, fontSize: 17 }}>{subtext}</p>
-        </section>
+    <main className="salesPage" style={{ "--accent": accent, "--sales-bg": background } as CSSProperties}>
+      <SmoothScroll />
 
-        <section style={{ marginTop: 36 }}>
-          <span className="eyebrow" style={{ color: accent }}>Planes</span>
-          <h2 style={{ margin: "6px 0 18px" }}>Elige tu plan</h2>
-          {notice ? (
-            <p className="formMessage danger" role="alert" style={{ marginBottom: 16 }}>
-              {notice}
-            </p>
+      <header className="salesNav">
+        <span className="memberBrandLockup">
+          <span className="memberBrandMark" style={{ borderColor: accent, color: accent }}>
+            {brand.logoUrl ? <img alt="" src={brand.logoUrl} /> : brand.appName.slice(0, 3).toUpperCase()}
+          </span>
+          <strong>{brand.name}</strong>
+        </span>
+        <nav className="salesNavLinks" aria-label="Secciones del sitio">
+          <a href="#planes">Membresías</a>
+          <a href={`/c/${slug}/1-1-coaching`}>1-1 Coaching</a>
+          <a href={`/c/${slug}/contacto`}>Contacto</a>
+        </nav>
+        <a className="salesNavCta" href="#planes">Únete ahora</a>
+      </header>
+
+      <section className={brand.heroImageUrl ? "salesHero salesHeroImage" : "salesHero"} style={heroBg ? { backgroundImage: heroBg } : undefined}>
+        <div className="salesHeroInner">
+          <h1 className="salesHeroTitle">{headline}</h1>
+          <p className="salesHeroSub">{subtext}</p>
+          <a className="salesCta" href="#planes">Transfórmate ahora <ArrowRight size={18} aria-hidden="true" /></a>
+        </div>
+      </section>
+
+      <section className="salesSection salesBarriers" aria-labelledby="sales-barriers-title">
+        <MotionReveal>
+          <h2 id="sales-barriers-title" className="salesSectionTitle">Rompiendo barreras</h2>
+          <div className="salesBarrierGrid">
+            {BARRIERS.map((barrier) => (
+              <article className="salesBarrierCard" key={barrier.title}>
+                <h3>{barrier.title}</h3>
+                <p>{barrier.body}</p>
+              </article>
+            ))}
+          </div>
+        </MotionReveal>
+      </section>
+
+      <section className="salesSection salesPillars" aria-labelledby="sales-pillars-title">
+        <MotionReveal>
+          <h2 id="sales-pillars-title" className="salesSectionTitle">Lo que vas a conseguir</h2>
+          <div className="salesPillarGrid">
+            {PILLARS.map((pillar) => (
+              <article className="salesPillarCard uiGlass" key={pillar.title}>
+                <span className="uiIconChip" aria-hidden="true"><pillar.icon size={20} /></span>
+                <h3>{pillar.title}</h3>
+                <p>{pillar.body}</p>
+                <ul className="salesPillarList">
+                  {pillar.points.map((point) => <li key={point}>{point}</li>)}
+                </ul>
+              </article>
+            ))}
+          </div>
+        </MotionReveal>
+      </section>
+
+      <section className="salesSection salesShowcase" aria-labelledby="sales-showcase-title">
+        <MotionReveal>
+          <h2 id="sales-showcase-title" className="salesSectionTitle">Mira la app por dentro</h2>
+          <p className="salesShowcaseSub">Entreno, comida, progreso y tu coach —todo en un sitio, con la marca de {brand.name}.</p>
+        </MotionReveal>
+        <ScreensGallery />
+      </section>
+
+      <section className="salesSection salesFeatures" aria-labelledby="sales-features-title">
+        <MotionReveal>
+          <h2 id="sales-features-title" className="salesSectionTitle">Todo incluido en tu membresía</h2>
+          <div className="salesFeatureGrid">
+            {FEATURES.map((feature) => (
+              <article className="salesFeatureCard" key={feature.title}>
+                <span className="uiIconChip" aria-hidden="true"><feature.icon size={18} /></span>
+                <strong>{feature.title}</strong>
+                <span className="muted">{feature.body}</span>
+              </article>
+            ))}
+          </div>
+        </MotionReveal>
+      </section>
+
+      {brand.welcomeMessage ? (
+        <section className="salesSection salesAbout" aria-labelledby="sales-about-title">
+          {brand.heroImageUrl ? (
+            // eslint-disable-next-line @next/next/no-img-element
+            <img className="salesAboutPhoto" src={brand.heroImageUrl} alt={`Tu coach, ${brand.name}`} />
           ) : null}
+          <MotionReveal className="salesAboutBody">
+            <h2 id="sales-about-title" className="salesSectionTitle">Hola, soy {brand.name}</h2>
+            <p>{brand.welcomeMessage}</p>
+          </MotionReveal>
+        </section>
+      ) : null}
+
+      <section id="planes" className="salesSection salesPlans" aria-labelledby="sales-plans-title">
+        <MotionReveal>
+          <span className="eyebrow" style={{ color: accent }}>Membresías</span>
+          <h2 id="sales-plans-title" className="salesSectionTitle">Elige tu plan y empieza hoy</h2>
+
+          {notice ? <p className="formMessage danger" role="alert">{notice}</p> : null}
 
           {plans.length === 0 ? (
             <p className="muted">Este coach todavía no ha publicado planes. Vuelve pronto.</p>
           ) : (
-            <div
-              style={{
-                display: "grid",
-                gap: 16,
-                gridTemplateColumns: "repeat(auto-fit, minmax(248px, 1fr))",
-              }}
-            >
+            <div className="salesPlanGrid">
               {plans.map((plan) => (
-                <article key={plan.id} className="card" style={{ display: "flex", flexDirection: "column", gap: 10 }}>
-                  <strong style={{ fontSize: 18 }}>{plan.name}</strong>
+                <article key={plan.id} className="salesPlanCard uiGlass">
+                  <strong className="salesPlanName">{plan.name}</strong>
                   {plan.description ? <span className="muted">{plan.description}</span> : null}
-                  <span style={{ fontSize: 24, fontWeight: 700, color: accent }}>
+                  <span className="salesPlanPrice" style={{ color: accent }}>
                     {formatPrice(plan.amountCents, plan.currency, plan.interval)}
                   </span>
-                  <form action={checkoutAction} style={{ display: "grid", gap: 8, marginTop: "auto" }}>
+                  <form action={checkoutAction} className="salesPlanForm">
                     <input type="hidden" name="workspaceId" value={brand.id} />
                     <input type="hidden" name="planId" value={plan.id} />
                     <input type="hidden" name="slug" value={slug} />
-                    <label style={{ display: "grid", gap: 4, fontSize: 13, opacity: 0.85 }}>
+                    <label className="salesPlanField">
                       Tu email
-                      <input
-                        name="email"
-                        type="email"
-                        required
-                        placeholder="tu@email.com"
-                        autoComplete="email"
-                        inputMode="email"
-                      />
+                      <input name="email" type="email" required placeholder="tu@email.com" autoComplete="email" inputMode="email" />
                     </label>
                     <button
-                      className="btn primary"
+                      className="btn primary salesPlanCta"
                       type="submit"
                       disabled={!canCheckout}
                       style={{ background: accent, borderColor: accent }}
                     >
-                      {canCheckout ? "Suscribirme" : "No disponible aún"}
+                      {canCheckout ? "Únete ahora" : "No disponible aún"}
                     </button>
                   </form>
                 </article>
@@ -111,11 +214,16 @@ export function SalesPage({
             </div>
           )}
 
-          <p className="muted" style={{ marginTop: 20, display: "inline-flex", gap: 6, alignItems: "center" }}>
-            <ShieldCheck size={15} aria-hidden="true" /> Pago seguro con Stripe · cancela cuando quieras.
+          <p className="salesTrust">
+            <ShieldCheck size={15} aria-hidden="true" /> Pago seguro con Stripe · cancela cuando quieras
           </p>
-        </section>
-      </div>
+        </MotionReveal>
+      </section>
+
+      <footer className="salesFooter">
+        <span>{brand.name}</span>
+        {brand.supportEmail ? <a href={`mailto:${brand.supportEmail}`}>{brand.supportEmail}</a> : null}
+      </footer>
     </main>
   );
 }
