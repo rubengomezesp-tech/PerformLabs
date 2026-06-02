@@ -2767,6 +2767,30 @@ a.card:hover {
   gap: 14px;
 }
 
+/* On phones/tablets the three status cards become a compact horizontal carousel
+   instead of stacking into a tall scroll. grid-auto-flow keeps them one deslizable
+   row; each card peeks the next (76%) to signal it scrolls. Native scroll respects
+   the OS reduce-motion setting, so no scroll-behavior override is forced. */
+@media (max-width: 980px) {
+  .workoutMenuGrid {
+    grid-template-columns: none;
+    grid-auto-flow: column;
+    grid-auto-columns: 76%;
+    gap: 10px;
+    overflow-x: auto;
+    scroll-snap-type: x proximity;
+    overscroll-behavior-x: contain;
+    -webkit-overflow-scrolling: touch;
+    padding-bottom: 6px;
+    scrollbar-width: thin;
+    scrollbar-color: color-mix(in srgb, var(--accent) 38%, transparent) transparent;
+  }
+  .workoutMenuGrid > .workoutStatusCard {
+    scroll-snap-align: start;
+    min-width: 0;
+  }
+}
+
 .workoutStatusCard {
   display: grid;
   gap: 14px;
@@ -5950,11 +5974,9 @@ input[type="color"] {
   .memberTrainingLoadPanel,
   .memberWeekLoadStrip,
   .memberCarbDayGrid,
-  .workoutMenuGrid,
   .mealStatusGrid,
   .workoutLibraryGrid,
   .coachProgramGroupGrid,
-  .workoutMetrics,
   .sessionExerciseList,
   .sessionExercise,
   .setLogRow,
@@ -8102,13 +8124,22 @@ a.diaryEntryTitle:hover {
 
 /* ---- Entreno — weekly plan day cards ---- */
 .workoutDayCards {
-  display: grid;
+  display: flex;
   gap: 10px;
+  overflow-x: auto;
+  scroll-snap-type: x proximity;
+  overscroll-behavior-x: contain;
+  -webkit-overflow-scrolling: touch;
+  padding-bottom: 6px;
+  scrollbar-width: thin;
+  scrollbar-color: color-mix(in srgb, var(--accent) 38%, transparent) transparent;
 }
 .workoutDayCard {
+  flex: 0 0 220px;
+  scroll-snap-align: start;
   display: flex;
   align-items: center;
-  gap: 14px;
+  gap: 12px;
   padding: 10px;
   border: 1px solid var(--line);
   border-radius: var(--radius);
@@ -8116,6 +8147,12 @@ a.diaryEntryTitle:hover {
   text-decoration: none;
   color: inherit;
   transition: border-color 0.15s ease;
+}
+/* Phones: wider basis so the next day card peeks, inviting the swipe. */
+@media (max-width: 980px) {
+  .workoutDayCard {
+    flex-basis: 72%;
+  }
 }
 .workoutDayCard:hover {
   border-color: color-mix(in srgb, var(--accent) 45%, var(--border));

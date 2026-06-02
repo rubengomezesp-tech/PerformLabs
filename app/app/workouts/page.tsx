@@ -169,7 +169,7 @@ export default async function WorkoutsPage() {
           </div>
         </article>
 
-        <div className="span12 workoutMenuGrid">
+        <div className="span12 workoutMenuGrid" role="group" aria-label="Resumen de tu entrenamiento (desliza horizontalmente)" tabIndex={0}>
           <article className="card workoutStatusCard uiSheen uiFadeUp" style={{ ['--i' as string]: 1 }}>
             <div className="workoutStatusTop">
               <span className="uiIconChip"><CalendarClock size={17} /></span>
@@ -215,7 +215,7 @@ export default async function WorkoutsPage() {
               </div>
               <span className="tag">{weeklyGoal} días por semana</span>
             </div>
-            <div className="workoutDayCards">
+            <div className="workoutDayCards" role="group" aria-label="Plan semanal — desliza para ver los días">
               {planDays.map((day, index) => {
                 const rawCover = day.exercises.find((exercise) => exercise.thumbnailUrl)?.thumbnailUrl;
                 const cover = rawCover ? cloudinaryFetch(rawCover, { width: 160, height: 160 }) : "";
