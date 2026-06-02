@@ -90,6 +90,11 @@ export function SalesPage({
           </span>
           <strong>{brand.name}</strong>
         </span>
+        <nav className="salesNavLinks" aria-label="Secciones del sitio">
+          <a href="#planes">Membresías</a>
+          <a href={`/c/${slug}/1-1-coaching`}>1-1 Coaching</a>
+          <a href={`/c/${slug}/contacto`}>Contacto</a>
+        </nav>
         <a className="salesNavCta" href="#planes">Únete ahora</a>
       </header>
 

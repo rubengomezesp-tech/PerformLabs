@@ -14323,4 +14323,22 @@ button[aria-busy="true"] {
 }
 .salesThanksTitle { margin: 4px 0 0; font-size: clamp(26px, 5vw, 38px); font-weight: 800; }
 .salesThanksForm { display: grid; gap: 10px; width: 100%; max-width: 360px; text-align: left; margin-top: 10px; }
+.salesNavBrand { text-decoration: none; color: inherit; }
+.salesNavLinks { display: flex; gap: 22px; font-size: 14px; }
+.salesNavLinks a { color: var(--sales-fg); opacity: 0.78; text-decoration: none; }
+.salesNavLinks a:hover { opacity: 1; }
+@media (max-width: 760px) { .salesNavLinks { display: none; } }
+.salesContact { max-width: 640px; }
+.salesContactLead { margin: -14px 0 22px; opacity: 0.82; font-size: clamp(15px, 2vw, 17px); }
+.salesContactForm { display: grid; gap: 12px; max-width: 520px; }
+.salesContactForm textarea {
+  resize: vertical;
+  min-height: 120px;
+  font: inherit;
+  color: inherit;
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  border-radius: 12px;
+  padding: 12px 14px;
+}
 /* ===== END Coach sales landing ===== */
