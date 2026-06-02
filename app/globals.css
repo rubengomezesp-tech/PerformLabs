@@ -14299,4 +14299,25 @@ button[aria-busy="true"] {
   font-size: 14px;
 }
 .salesFooter a { color: inherit; }
+.salesThanks {
+  max-width: 520px;
+  margin: 0 auto;
+  padding: clamp(64px, 12vw, 120px) 24px;
+  text-align: center;
+  display: grid;
+  gap: 14px;
+  justify-items: center;
+}
+.salesThanksMark {
+  display: grid;
+  place-items: center;
+  width: 78px;
+  height: 78px;
+  border-radius: 50%;
+  color: var(--accent);
+  background: color-mix(in srgb, var(--accent) 14%, transparent);
+  box-shadow: 0 0 40px color-mix(in srgb, var(--accent) 30%, transparent);
+}
+.salesThanksTitle { margin: 4px 0 0; font-size: clamp(26px, 5vw, 38px); font-weight: 800; }
+.salesThanksForm { display: grid; gap: 10px; width: 100%; max-width: 360px; text-align: left; margin-top: 10px; }
 /* ===== END Coach sales landing ===== */
