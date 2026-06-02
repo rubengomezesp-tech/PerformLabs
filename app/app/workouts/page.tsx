@@ -4,6 +4,7 @@ import { Dialog } from "@/components/dialog";
 import { ExercisePreview } from "@/components/exercise-preview";
 import { RestTimer } from "@/components/rest-timer";
 import { Topbar } from "@/components/topbar";
+import { WorkoutSessionCarousel } from "@/components/workout-session-carousel";
 import { getSelectedMemberAppBrand } from "@/lib/member-app";
 import { getMemberTrainingContext, type MemberAssignedWorkoutDay, type MemberAssignedWorkoutExercise } from "@/lib/repositories/member-onboarding";
 import { listManagedExercises, type ManagedWorkoutTemplate } from "@/lib/repositories/training-management";
@@ -298,7 +299,7 @@ export default async function WorkoutsPage() {
               <input name="templateId" type="hidden" value={templateIdForLog} />
               <input name="dayId" type="hidden" value={dayIdForLog} />
               <input name="assignedDayId" type="hidden" value={assignedDay?.id ?? ""} />
-              <div className="sessionExerciseList">
+              <WorkoutSessionCarousel count={activeDay.exercises.length}>
                 {activeDay.exercises.map((exercise, index) => {
                   const plannedSets = Math.max(1, Math.min(exercise.sets ?? 3, 6));
                   const detail = exerciseDetail(exercise);
@@ -307,14 +308,14 @@ export default async function WorkoutsPage() {
                   const previewFrames = detail.frames.map((frame) => cloudinaryFetch(frame, { width: 560, height: 560 }));
 
                   return (
-                    <details className={index === 0 ? "sessionExerciseAccordion isCurrentExercise" : "sessionExerciseAccordion"} key={exercise.id} open={index === 0}>
-                      <summary>
+                    <section className="sessionExerciseSlide" data-slide aria-label={`Ejercicio ${index + 1}: ${exercise.exerciseName}`} key={exercise.id}>
+                      <div className="sessionSlideHead">
                         <span>
                           <small>Ejercicio {index + 1}</small>
                           {exercise.exerciseName}
                         </span>
                         <b>{exercise.sets ?? "-"}x{exercise.reps || "-"}</b>
-                      </summary>
+                      </div>
                       <div className="sessionExercise">
                         <div className={cover || previewFrames.length ? "sessionExerciseMedia trnExerciseMedia" : "sessionExerciseMedia trnExerciseMedia sessionExerciseMediaEmpty"}>
                           {previewFrames.length > 1 ? (
@@ -329,7 +330,6 @@ export default async function WorkoutsPage() {
                           </span>
                         </div>
                       <div className="sessionExerciseBody">
-                        <span className="eyebrow">Ejercicio {index + 1}</span>
                         <h3>{exercise.exerciseName}</h3>
                         {detail.muscleGroups.length || detail.equipment.length || detail.difficulty ? (
                           <div className="trnExerciseTags">
@@ -391,10 +391,10 @@ export default async function WorkoutsPage() {
                         </div>
                       </div>
                       </div>
-                    </details>
+                    </section>
                   );
                 })}
-              </div>
+              </WorkoutSessionCarousel>
               <div className="sessionSavePanel">
                 <label>Tiempo<input name="durationMinutes" placeholder="60 min" type="number" inputMode="numeric" min="0" /></label>
                 <label>Sensación<input name="perceivedEffort" placeholder="1-10" type="number" inputMode="numeric" min="1" max="10" /></label>
