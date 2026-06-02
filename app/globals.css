@@ -3019,6 +3019,166 @@ a.card:hover {
   gap: 14px;
 }
 
+/* In-session exercises as a horizontal, swipeable carousel (one exercise per
+   screen) — the MacroActive-style flow, so a session is a swipe across exercises
+   instead of one long vertical scroll. Presentational only; the set inputs stay
+   inside the session <form>. */
+.sessionCarousel {
+  display: grid;
+  gap: 12px;
+}
+
+.sessionCarouselBar {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.sessionCarouselCount {
+  font-size: 13px;
+  color: var(--muted);
+}
+
+.sessionCarouselCount strong {
+  color: var(--text);
+  font-variant-numeric: tabular-nums;
+}
+
+.sessionCarouselDots {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex: 1;
+  min-width: 0;
+  flex-wrap: wrap;
+}
+
+.sessionCarouselDots span {
+  width: 7px;
+  height: 7px;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--accent) 24%, transparent);
+  transition: width 0.22s ease, background 0.22s ease;
+}
+
+.sessionCarouselDots span.isActive {
+  width: 22px;
+  background: var(--accent);
+}
+
+.sessionCarouselNav {
+  display: flex;
+  gap: 8px;
+  margin-left: auto;
+}
+
+.sessionCarouselNav button {
+  display: grid;
+  place-items: center;
+  width: 40px;
+  height: 40px;
+  border-radius: 12px;
+  border: 1px solid var(--line);
+  background: rgba(255, 255, 255, 0.03);
+  color: var(--text);
+  cursor: pointer;
+  transition: border-color 0.15s ease, opacity 0.15s ease;
+}
+
+.sessionCarouselNav button:hover:not(:disabled) {
+  border-color: color-mix(in srgb, var(--accent) 45%, var(--border));
+}
+
+.sessionCarouselNav button:disabled {
+  opacity: 0.38;
+  cursor: not-allowed;
+}
+
+.sessionCarouselTrack {
+  display: grid;
+  grid-auto-flow: column;
+  grid-auto-columns: 100%;
+  gap: 14px;
+  overflow-x: auto;
+  scroll-snap-type: x proximity;
+  overscroll-behavior-x: contain;
+  -webkit-overflow-scrolling: touch;
+  padding-bottom: 6px;
+  scrollbar-width: thin;
+  scrollbar-color: color-mix(in srgb, var(--accent) 38%, transparent) transparent;
+}
+
+.sessionCarouselTrack:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 3px;
+  border-radius: 12px;
+}
+
+.sessionExerciseSlide {
+  scroll-snap-align: start;
+  min-width: 0;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.025);
+  overflow: hidden;
+}
+
+/* The compact slide header replaces the old accordion summary (same content, no
+   toggle): "Ejercicio N" + name on the left, prescribed sets×reps on the right. */
+.sessionSlideHead {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 12px;
+  padding: 16px;
+  background:
+    linear-gradient(135deg, color-mix(in srgb, var(--accent) 10%, transparent), color-mix(in srgb, var(--accent) 7%, transparent)),
+    rgba(255, 255, 255, 0.025);
+}
+
+.sessionSlideHead span {
+  display: grid;
+  gap: 3px;
+  min-width: 0;
+}
+
+.sessionSlideHead small {
+  color: var(--muted);
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.02em;
+}
+
+.sessionSlideHead b {
+  justify-self: end;
+  border: 1px solid color-mix(in srgb, var(--accent) 28%, transparent);
+  border-radius: 8px;
+  color: var(--gold);
+  padding: 7px 9px;
+  white-space: nowrap;
+}
+
+/* Inside a slide the exercise body sits directly under the header — drop the
+   leading divider it carried when it followed an accordion summary. */
+.sessionExerciseSlide .sessionExercise {
+  border-top: none;
+}
+
+/* Desktop: a comfortable single-exercise width with the next slide peeking, so
+   the swipe affordance reads even on wide screens (coach previewing the app). */
+@media (min-width: 981px) {
+  .sessionCarouselTrack {
+    grid-auto-columns: min(560px, 84%);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .sessionCarouselDots span {
+    transition: none;
+  }
+}
+
 .sessionExerciseAccordion {
   overflow: hidden;
   border: 1px solid var(--line);
