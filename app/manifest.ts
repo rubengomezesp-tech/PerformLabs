@@ -24,7 +24,9 @@ export default async function manifest(): Promise<MetadataRoute.Manifest> {
       { src: "/icon-192.png", sizes: "192x192", type: "image/png", purpose: "any" },
       { src: "/icon.png", sizes: "512x512", type: "image/png", purpose: "any" },
       { src: "/icon-maskable.png", sizes: "512x512", type: "image/png", purpose: "maskable" },
-      { src: "/apple-icon.png", sizes: "180x180", type: "image/png" },
+      // El apple-touch-icon (app/apple-icon.png) lo expone Next como <link rel="apple-touch-icon">;
+      // no va en el array del manifest. Declararlo aquí como 180x180 cuando el PNG real es 512x512
+      // hacía que Chrome lo rechazara ("resource isn't a valid image").
     ],
   };
 }
