@@ -14113,3 +14113,190 @@ button[aria-busy="true"] {
   }
 }
 /* ===== END Coach messages ===== */
+
+/* ===== Coach sales landing (/c/[slug]) — premium, brand-skinned ===== */
+.salesPage {
+  --sales-fg: #eceef0;
+  background: var(--sales-bg, #0d0d10);
+  color: var(--sales-fg);
+  min-height: 100vh;
+  scroll-behavior: smooth;
+}
+@media (prefers-reduced-motion: reduce) {
+  .salesPage { scroll-behavior: auto; }
+}
+.salesNav {
+  position: sticky;
+  top: 0;
+  z-index: 10;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 13px clamp(16px, 5vw, 40px);
+  background: color-mix(in srgb, var(--sales-bg, #0d0d10) 82%, transparent);
+  backdrop-filter: blur(12px);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.07);
+}
+.salesNavCta {
+  flex-shrink: 0;
+  padding: 9px 18px;
+  border-radius: 999px;
+  background: var(--accent);
+  color: #0a0a0a;
+  font-weight: 700;
+  font-size: 14px;
+  text-decoration: none;
+}
+.salesHero {
+  display: grid;
+  place-items: center;
+  text-align: center;
+  min-height: min(78vh, 720px);
+  padding: clamp(56px, 12vw, 120px) clamp(20px, 5vw, 40px);
+  background: radial-gradient(120% 120% at 50% 0%, color-mix(in srgb, var(--accent) 22%, transparent), var(--sales-bg, #0d0d10) 62%);
+}
+.salesHeroImage {
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+}
+.salesHeroInner { max-width: 760px; }
+.salesHeroTitle {
+  margin: 0 0 18px;
+  font-family: var(--font-display, inherit);
+  font-size: clamp(34px, 7vw, 72px);
+  line-height: 1.02;
+  font-weight: 800;
+  letter-spacing: -0.01em;
+  text-wrap: balance;
+  text-shadow: 0 2px 30px rgba(0, 0, 0, 0.5);
+}
+.salesHeroSub {
+  margin: 0 auto 30px;
+  max-width: 620px;
+  font-size: clamp(16px, 2.3vw, 20px);
+  line-height: 1.5;
+  opacity: 0.9;
+}
+/* Big primary CTAs sit on the accent; dark text reads on the vivid accents coaches use. */
+.salesCta {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  padding: 16px 30px;
+  border-radius: 999px;
+  background: var(--accent);
+  color: #0a0a0a;
+  font-weight: 700;
+  font-size: clamp(15px, 2vw, 18px);
+  text-decoration: none;
+  box-shadow: 0 10px 36px color-mix(in srgb, var(--accent) 40%, transparent);
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
+}
+.salesCta:hover { transform: translateY(-2px); box-shadow: 0 14px 44px color-mix(in srgb, var(--accent) 52%, transparent); }
+.salesPlanCta { width: 100%; justify-content: center; color: #0a0a0a; font-weight: 700; margin-top: 4px; }
+@media (prefers-reduced-motion: reduce) {
+  .salesCta { transition: none; }
+  .salesCta:hover { transform: none; }
+}
+.salesSection {
+  max-width: 1080px;
+  margin: 0 auto;
+  padding: clamp(52px, 9vw, 104px) clamp(20px, 5vw, 40px);
+}
+.salesSectionTitle {
+  margin: 0 0 clamp(24px, 4vw, 44px);
+  font-family: var(--font-display, inherit);
+  font-size: clamp(26px, 4.4vw, 44px);
+  line-height: 1.08;
+  font-weight: 800;
+  text-wrap: balance;
+}
+.salesBarrierGrid {
+  display: grid;
+  gap: 16px;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+}
+.salesBarrierCard {
+  padding: 22px;
+  border-radius: 16px;
+  border: 1px solid rgba(255, 255, 255, 0.09);
+  border-left: 3px solid var(--accent);
+  background: rgba(255, 255, 255, 0.025);
+}
+.salesBarrierCard h3 { margin: 0 0 8px; font-size: 19px; }
+.salesBarrierCard p { margin: 0; opacity: 0.82; line-height: 1.5; }
+.salesPillarGrid {
+  display: grid;
+  gap: 18px;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+}
+.salesPillarCard { padding: 26px; border-radius: 18px; }
+.salesPillarCard h3 { margin: 14px 0 8px; font-size: 21px; }
+.salesPillarCard p { margin: 0 0 14px; opacity: 0.85; line-height: 1.5; }
+.salesPillarList { margin: 0; padding: 0; list-style: none; display: grid; gap: 8px; }
+.salesPillarList li { position: relative; padding-left: 26px; opacity: 0.9; }
+.salesPillarList li::before { content: "✓"; position: absolute; left: 0; color: var(--accent); font-weight: 700; }
+.salesFeatureGrid {
+  display: grid;
+  gap: 14px;
+  grid-template-columns: repeat(auto-fit, minmax(190px, 1fr));
+}
+.salesFeatureCard {
+  display: grid;
+  gap: 6px;
+  padding: 20px;
+  border-radius: 16px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  background: rgba(255, 255, 255, 0.025);
+}
+.salesFeatureCard strong { font-size: 16px; }
+.salesAbout {
+  display: grid;
+  gap: clamp(24px, 5vw, 56px);
+  grid-template-columns: minmax(0, 0.8fr) minmax(0, 1.2fr);
+  align-items: center;
+}
+.salesAboutPhoto {
+  width: 100%;
+  border-radius: 20px;
+  object-fit: cover;
+  aspect-ratio: 4 / 5;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+.salesAboutBody p { margin: 0; line-height: 1.6; opacity: 0.88; font-size: 17px; white-space: pre-line; }
+@media (max-width: 720px) { .salesAbout { grid-template-columns: 1fr; } }
+.salesPlanGrid {
+  display: grid;
+  gap: 16px;
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+}
+.salesPlanCard { display: flex; flex-direction: column; gap: 10px; padding: 26px; border-radius: 18px; }
+.salesPlanName { font-size: 20px; }
+.salesPlanPrice { font-size: 30px; font-weight: 800; }
+.salesPlanForm { display: grid; gap: 10px; margin-top: auto; }
+.salesPlanField { display: grid; gap: 5px; font-size: 13px; opacity: 0.85; }
+.salesTrust {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  margin: 22px 0 0;
+  opacity: 0.7;
+  font-size: 14px;
+}
+.salesFooter {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  flex-wrap: wrap;
+  max-width: 1080px;
+  margin: 0 auto;
+  padding: 28px clamp(20px, 5vw, 40px) 48px;
+  border-top: 1px solid rgba(255, 255, 255, 0.08);
+  opacity: 0.7;
+  font-size: 14px;
+}
+.salesFooter a { color: inherit; }
+/* ===== END Coach sales landing ===== */
