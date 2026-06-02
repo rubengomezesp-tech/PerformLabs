@@ -1,4 +1,5 @@
 import { CalendarDays, Trophy, Users } from "lucide-react";
+import { DAY_MS } from "@/lib/utils/dates";
 import { SubmitButton } from "@/components/ui";
 import { Topbar } from "@/components/topbar";
 import { getSelectedMemberAppBrand } from "@/lib/member-app";
@@ -18,7 +19,7 @@ export default async function CoachChallengesPage() {
   const brand = await getSelectedMemberAppBrand();
   const challenges = await listCoachChallenges(brand.id);
   const today = new Date().toISOString().slice(0, 10);
-  const in28 = new Date(Date.now() + 28 * 86_400_000).toISOString().slice(0, 10);
+  const in28 = new Date(Date.now() + 28 * DAY_MS).toISOString().slice(0, 10);
 
   return (
     <>

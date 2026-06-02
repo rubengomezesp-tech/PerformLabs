@@ -1,4 +1,5 @@
 import { CalendarHeart, CalendarRange, Droplet, Plus, Sparkles, Trash2 } from "lucide-react";
+import { DAY_MS } from "@/lib/utils/dates";
 import { Topbar } from "@/components/topbar";
 import { getSelectedMemberAppBrand } from "@/lib/member-app";
 import { getCycleOverview, type CycleLogEntry } from "@/lib/repositories/cycle-tracking";
@@ -32,7 +33,7 @@ export default async function MemberCyclePage() {
 
   const todayStr = new Date().toISOString().slice(0, 10);
   const daysUntilNext = overview.nextPredictedStart
-    ? Math.round((new Date(`${overview.nextPredictedStart}T00:00:00.000Z`).getTime() - new Date(`${todayStr}T00:00:00.000Z`).getTime()) / 86_400_000)
+    ? Math.round((new Date(`${overview.nextPredictedStart}T00:00:00.000Z`).getTime() - new Date(`${todayStr}T00:00:00.000Z`).getTime()) / DAY_MS)
     : null;
 
   return (

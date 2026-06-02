@@ -1,4 +1,5 @@
 import { getMemberContext } from "@/lib/auth/member-access";
+import { DAY_MS } from "@/lib/utils/dates";
 import { cloudinaryFetch, exerciseCardImage } from "@/lib/cloudinary";
 import { getSupabaseServiceEnv } from "@/lib/supabase/env";
 import { createServiceSupabaseClient } from "@/lib/supabase/server";
@@ -394,7 +395,7 @@ function daysBetween(fromIso?: string | null, toIso = new Date().toISOString().s
   const from = new Date(`${fromIso}T00:00:00.000Z`).getTime();
   const to = new Date(`${toIso}T00:00:00.000Z`).getTime();
   if (!Number.isFinite(from) || !Number.isFinite(to)) return 0;
-  return Math.max(0, Math.floor((to - from) / 86_400_000));
+  return Math.max(0, Math.floor((to - from) / DAY_MS));
 }
 
 async function getDefaultMemberProfile(workspaceId: string) {

@@ -1,4 +1,5 @@
 import { Activity, BedDouble, CalendarOff, Footprints, Gauge, HeartPulse, Moon, RefreshCcw, Sparkles, StretchHorizontal, Timer, TrendingDown, Waves } from "lucide-react";
+import { DAY_MS } from "@/lib/utils/dates";
 import Link from "next/link";
 import { Topbar } from "@/components/topbar";
 import { ProgressRing } from "@/components/ui/progress-ring";
@@ -57,7 +58,7 @@ export default async function RecoveryPage() {
   const band = readiness !== null ? readinessBand(readiness) : null;
 
   const daysSince = latest?.submittedAt
-    ? Math.floor((Date.now() - new Date(latest.submittedAt).getTime()) / 86_400_000)
+    ? Math.floor((Date.now() - new Date(latest.submittedAt).getTime()) / DAY_MS)
     : null;
   const stale = daysSince !== null && daysSince > 10;
 
