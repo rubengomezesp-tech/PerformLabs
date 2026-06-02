@@ -10,6 +10,7 @@ const eslintConfig = [
       "scripts/**",
       "supabase/**",
       "public/**",
+      ".claude/**",
       "next-env.d.ts",
     ],
   },
