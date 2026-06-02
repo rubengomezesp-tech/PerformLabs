@@ -1,0 +1,65 @@
+# Fastlane lanes for the PerformLabs App Factory.
+# Each lane publishes ONE coach's app under THAT coach's store account, so
+# credentials are resolved per coach (passed as env by CI from per-coach secrets).
+#
+#   fastlane ios     coach:marca-blanca-fitness
+#   fastlane android coach:marca-blanca-fitness
+#
+# Required env (set by CI from the coach's secrets — see stores.*Ref in the registry):
+#   iOS  : ASC_KEY_ID, ASC_ISSUER_ID, ASC_KEY_CONTENT (App Store Connect API key, .p8 contents)
+#   Android: PLAY_JSON_PATH (path to the coach's Play service-account JSON)
+
+require "json"
+
+def coach_registry(options)
+  slug = options[:coach] or UI.user_error!("Pass coach:<slug>")
+  path = File.expand_path("../coaches/#{slug}.json", __dir__)
+  UI.user_error!("No registry at coaches/#{slug}.json — run the generator first") unless File.exist?(path)
+  JSON.parse(File.read(path))
+end
+
+platform :ios do
+  desc "Build + upload one coach's iOS app to App Store Connect (coach's account)"
+  lane :ios do |options|
+    coach = coach_registry(options)
+    api_key = app_store_connect_api_key(
+      key_id: ENV.fetch("ASC_KEY_ID"),
+      issuer_id: ENV.fetch("ASC_ISSUER_ID"),
+      key_content: ENV.fetch("ASC_KEY_CONTENT"),
+      is_key_content_base64: true,
+    )
+    # The generated Xcode project lives under generated/<slug>/ios after `cap add ios && cap sync`.
+    build_app(
+      project: "generated/#{coach['slug']}/ios/App/App.xcodeproj",
+      scheme: "App",
+      export_method: "app-store",
+    )
+    upload_to_app_store(
+      api_key: api_key,
+      app_identifier: coach["appId"],
+      submit_for_review: false,
+      precheck_include_in_app_purchases: false,
+      run_precheck_before_submit: false,
+      force: true,
+    )
+  end
+end
+
+platform :android do
+  desc "Build + upload one coach's Android app to Google Play (coach's account)"
+  lane :android do |options|
+    coach = coach_registry(options)
+    gradle(
+      task: "bundle",
+      build_type: "Release",
+      project_dir: "generated/#{coach['slug']}/android",
+    )
+    upload_to_play_store(
+      package_name: coach["appId"],
+      json_key: ENV.fetch("PLAY_JSON_PATH"),
+      track: ENV.fetch("PLAY_TRACK", "internal"),
+      release_status: "draft",
+      aab: "generated/#{coach['slug']}/android/app/build/outputs/bundle/release/app-release.aab",
+    )
+  end
+end

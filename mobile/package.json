@@ -1,0 +1,26 @@
+{
+  "name": "performlabs-app-factory",
+  "private": true,
+  "version": "0.1.0",
+  "description": "White-label native app factory: generate + publish one branded Capacitor app per coach to the App Store and Google Play. Isolated from the Next.js product workspace (its own deps; excluded from product tsconfig/eslint).",
+  "type": "module",
+  "scripts": {
+    "sync": "node scripts/sync-coaches.mjs",
+    "generate": "node scripts/generate-app.mjs",
+    "cap:add": "cap add ios && cap add android",
+    "cap:sync": "cap sync"
+  },
+  "dependencies": {
+    "@capacitor/cli": "^6.2.0",
+    "@capacitor/core": "^6.2.0",
+    "@capacitor/ios": "^6.2.0",
+    "@capacitor/android": "^6.2.0",
+    "@capacitor/push-notifications": "^6.0.3",
+    "@capacitor/splash-screen": "^6.0.3",
+    "@capacitor/status-bar": "^6.0.2",
+    "@capacitor/haptics": "^6.0.2"
+  },
+  "devDependencies": {
+    "@capacitor/assets": "^3.0.5"
+  }
+}
