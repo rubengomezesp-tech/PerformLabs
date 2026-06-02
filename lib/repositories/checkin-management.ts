@@ -234,17 +234,23 @@ export async function reviewMemberCheckin(input: CoachCheckinReviewInput) {
   if (error) throw new Error(`No se pudo revisar el check-in: ${error.message}`);
 }
 
-export async function listManagedCheckins(workspaceId?: string): Promise<ManagedCheckin[]> {
+export async function listManagedCheckins(workspaceId?: string, memberProfileId?: string): Promise<ManagedCheckin[]> {
   const env = getSupabaseServiceEnv();
   if (!env.ok || !workspaceId) return [];
 
   const supabase = createServiceSupabaseClient();
-  const { data, error } = await supabase
+  let query = supabase
     .from("customer_checkins")
     .select("id,member_profile_id,status,photos_available,results_status,key_values,submitted_at,reviewed_at,created_at,member_profiles(full_name)")
-    .eq("workspace_id", workspaceId)
-    .order("created_at", { ascending: false })
-    .limit(24);
+    .eq("workspace_id", workspaceId);
+
+  // Member-scoped read for the member app: a member only ever sees their OWN
+  // check-ins and photos, never the whole workspace's. Coach surfaces omit this.
+  if (memberProfileId) {
+    query = query.eq("member_profile_id", memberProfileId);
+  }
+
+  const { data, error } = await query.order("created_at", { ascending: false }).limit(24);
 
   if (error) {
     console.error("Unable to load check-ins", error.message);
@@ -280,8 +286,7 @@ export async function listManagedCheckins(workspaceId?: string): Promise<Managed
   }));
 }
 
-export async function getMemberCheckinSummary(workspaceId?: string) {
-  const checkins = await listManagedCheckins(workspaceId);
+export function buildCheckinSummary(checkins: ManagedCheckin[]) {
   const latest = checkins[0] ?? null;
 
   // listManagedCheckins is newest-first. For each tracked measurement build an
@@ -318,6 +323,29 @@ export async function getMemberCheckinSummary(workspaceId?: string) {
     weightTrend,
     measurements,
   };
+}
+
+/** Workspace-wide check-in summary for the coach analytics surface. */
+export async function getMemberCheckinSummary(workspaceId?: string) {
+  return buildCheckinSummary(await listManagedCheckins(workspaceId));
+}
+
+/**
+ * Member-scoped progress for /app: the member's OWN check-in summary plus signed URLs
+ * for the photos on their most recent check-in that carries any. Unlike
+ * getMemberCheckinSummary (workspace-wide, for coach analytics), this filters by
+ * member_profile_id so a member never sees another member's measurements or photos.
+ */
+export async function getMemberOwnProgress(workspaceId: string, memberProfileId: string) {
+  // No resolved member → empty progress, never a workspace-wide fallback.
+  if (!memberProfileId) {
+    return { ...buildCheckinSummary([]), photoUrls: [] as string[], photosTakenAt: null as string | null };
+  }
+  const checkins = await listManagedCheckins(workspaceId, memberProfileId);
+  const summary = buildCheckinSummary(checkins);
+  const latestWithPhotos = checkins.find((checkin) => checkin.photoPaths.length > 0) ?? null;
+  const photoUrls = latestWithPhotos ? await getCheckinPhotoUrls(latestWithPhotos.photoPaths) : [];
+  return { ...summary, photoUrls, photosTakenAt: latestWithPhotos?.submittedAt ?? null };
 }
 
 export async function getCoachIntelligenceAlerts(workspaceId?: string): Promise<CoachAlert[]> {

@@ -5,7 +5,8 @@ import { Topbar } from "@/components/topbar";
 import { ProgressRing } from "@/components/ui/progress-ring";
 import { getSelectedMemberAppBrand } from "@/lib/member-app";
 import { getMemberCardioContext } from "@/lib/repositories/member-onboarding";
-import { getMemberCheckinSummary } from "@/lib/repositories/checkin-management";
+import { getMemberOwnProgress } from "@/lib/repositories/checkin-management";
+import { getMemberContext } from "@/lib/auth/member-access";
 
 export const dynamic = "force-dynamic";
 
@@ -45,7 +46,9 @@ const MOBILITY: Array<{ name: string; detail: string; time: string; icon: typeof
 
 export default async function RecoveryPage() {
   const brand = await getSelectedMemberAppBrand();
-  const summary = await getMemberCheckinSummary(brand.id);
+  // Member-scoped: readiness must come from THIS member's latest check-in, not any.
+  const context = await getMemberContext(brand.id);
+  const summary = await getMemberOwnProgress(brand.id, context?.memberProfileId ?? "");
   const cardio = await getMemberCardioContext(brand.id);
 
   const latest = summary.latest;
