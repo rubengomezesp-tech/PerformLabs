@@ -1,7 +1,7 @@
 import { Send, Sparkles } from "lucide-react";
 import { SubmitButton } from "@/components/ui";
 import { Topbar } from "@/components/topbar";
-import { isCoachBrainAiConfigured } from "@/lib/ai/coach-brain";
+import { isCoachBrainAiConfigured } from "@/lib/ai/coach-chat";
 import { getSelectedMemberAppBrand } from "@/lib/member-app";
 import { getCoachBrain, getDefaultMember, listCoachAiMessages } from "@/lib/repositories/coach-brain";
 import { askCoachAiAction } from "./actions";
