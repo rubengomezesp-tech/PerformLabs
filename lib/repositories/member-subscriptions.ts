@@ -276,7 +276,15 @@ export type WorkspaceBillingSummary = {
  * module. `amount` is the recurring price unit_amount in cents (see the Stripe
  * webhook); MRR sums it across active subscriptions only.
  */
-export async function getWorkspaceBillingSummary(workspaceId?: string): Promise<WorkspaceBillingSummary> {
+/** Row shape the workspace billing summary reads from member_subscriptions. */
+export type WorkspaceBillingRow = { status: string | null; amount: number | null; currency: string | null };
+
+/**
+ * Pure aggregation behind getWorkspaceBillingSummary: counts by clamped status,
+ * sums active MRR, derives ARPU and the dominant currency. Extracted so the money
+ * math is unit-tested without a DB.
+ */
+export function summarizeWorkspaceBilling(rows: WorkspaceBillingRow[]): WorkspaceBillingSummary {
   const empty: WorkspaceBillingSummary = {
     total: 0,
     active: 0,
@@ -287,15 +295,6 @@ export async function getWorkspaceBillingSummary(workspaceId?: string): Promise<
     arpuCents: 0,
     currency: "EUR",
   };
-  if (!getSupabaseServiceEnv().ok || !isUuid(workspaceId)) return empty;
-
-  const supabase = createServiceSupabaseClient();
-  const { data } = await supabase
-    .from("member_subscriptions")
-    .select("status,amount,currency")
-    .eq("workspace_id", workspaceId);
-
-  const rows = (data ?? []) as Array<{ status: string | null; amount: number | null; currency: string | null }>;
   if (!rows.length) return empty;
 
   const summary: WorkspaceBillingSummary = { ...empty, total: rows.length };
@@ -322,6 +321,18 @@ export async function getWorkspaceBillingSummary(workspaceId?: string): Promise<
   return summary;
 }
 
+export async function getWorkspaceBillingSummary(workspaceId?: string): Promise<WorkspaceBillingSummary> {
+  if (!getSupabaseServiceEnv().ok || !isUuid(workspaceId)) return summarizeWorkspaceBilling([]);
+
+  const supabase = createServiceSupabaseClient();
+  const { data } = await supabase
+    .from("member_subscriptions")
+    .select("status,amount,currency")
+    .eq("workspace_id", workspaceId);
+
+  return summarizeWorkspaceBilling((data ?? []) as WorkspaceBillingRow[]);
+}
+
 export type PlatformRevenueSummary = {
   activeSubscriptions: number;
   /** Gross recurring revenue members pay across all coaches (cents). */
@@ -341,8 +352,22 @@ export type PlatformRevenueSummary = {
  * PerformLabs 25% share, and fees actually collected from the platform_fee_events
  * ledger. Service-role only, like the rest of this module.
  */
-export async function getPlatformRevenueSummary(): Promise<PlatformRevenueSummary> {
-  const empty: PlatformRevenueSummary = {
+/** Row shapes the platform revenue read aggregates. */
+export type PlatformRevenueSubRow = { amount: number | null; status: string | null; application_fee_percent: number | null; currency: string | null };
+export type PlatformRevenueFeeRow = { amount_total: number | null; application_fee_amount: number | null; currency: string | null; created_at: string };
+
+/**
+ * Pure aggregation behind getPlatformRevenueSummary: gross member MRR, the platform
+ * share via application_fee_percent (default 25), and fees from the ledger (all-time
+ * + this calendar month, UTC). `now` is injectable so the month split is deterministic
+ * in tests.
+ */
+export function summarizePlatformRevenue(
+  subs: PlatformRevenueSubRow[],
+  fees: PlatformRevenueFeeRow[],
+  now: Date = new Date(),
+): PlatformRevenueSummary {
+  const summary: PlatformRevenueSummary = {
     activeSubscriptions: 0,
     grossMrrCents: 0,
     platformMrrCents: 0,
@@ -351,21 +376,12 @@ export async function getPlatformRevenueSummary(): Promise<PlatformRevenueSummar
     grossVolumeCents: 0,
     currency: "EUR",
   };
-  if (!getSupabaseServiceEnv().ok) return empty;
-
-  const supabase = createServiceSupabaseClient();
-  const [subsRes, feesRes] = await Promise.all([
-    supabase.from("member_subscriptions").select("amount,status,application_fee_percent,currency"),
-    supabase.from("platform_fee_events").select("amount_total,application_fee_amount,currency,created_at"),
-  ]);
-
-  const summary: PlatformRevenueSummary = { ...empty };
   const currencyCounts = new Map<string, number>();
-  const startOfMonth = new Date();
+  const startOfMonth = new Date(now);
   startOfMonth.setUTCDate(1);
   startOfMonth.setUTCHours(0, 0, 0, 0);
 
-  for (const row of (subsRes.data ?? []) as Array<{ amount: number | null; status: string | null; application_fee_percent: number | null; currency: string | null }>) {
+  for (const row of subs) {
     if (clampMemberStatus(row.status) !== "active") continue;
     summary.activeSubscriptions += 1;
     const amount = row.amount ?? 0;
@@ -375,7 +391,7 @@ export async function getPlatformRevenueSummary(): Promise<PlatformRevenueSummar
     if (currency) currencyCounts.set(currency, (currencyCounts.get(currency) ?? 0) + 1);
   }
 
-  for (const row of (feesRes.data ?? []) as Array<{ amount_total: number | null; application_fee_amount: number | null; currency: string | null; created_at: string }>) {
+  for (const row of fees) {
     summary.grossVolumeCents += row.amount_total ?? 0;
     const fee = row.application_fee_amount ?? 0;
     summary.feesCollectedCents += fee;
@@ -387,4 +403,19 @@ export async function getPlatformRevenueSummary(): Promise<PlatformRevenueSummar
   const dominant = [...currencyCounts.entries()].sort((a, b) => b[1] - a[1])[0]?.[0];
   summary.currency = dominant || "EUR";
   return summary;
+}
+
+export async function getPlatformRevenueSummary(): Promise<PlatformRevenueSummary> {
+  if (!getSupabaseServiceEnv().ok) return summarizePlatformRevenue([], []);
+
+  const supabase = createServiceSupabaseClient();
+  const [subsRes, feesRes] = await Promise.all([
+    supabase.from("member_subscriptions").select("amount,status,application_fee_percent,currency"),
+    supabase.from("platform_fee_events").select("amount_total,application_fee_amount,currency,created_at"),
+  ]);
+
+  return summarizePlatformRevenue(
+    (subsRes.data ?? []) as PlatformRevenueSubRow[],
+    (feesRes.data ?? []) as PlatformRevenueFeeRow[],
+  );
 }
