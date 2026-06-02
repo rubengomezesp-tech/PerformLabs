@@ -7,7 +7,6 @@ import {
   canManageWorkspace,
   consoleRoles,
   formatRole,
-  highestRole,
   platformRoles,
   roleAllowed,
   workspaceManagerRoles,
@@ -16,39 +15,11 @@ import {
 import type { Database } from "@/lib/supabase/database.types";
 import { getSupabasePublicEnv, getSupabaseServiceEnv } from "@/lib/supabase/env";
 import { createServiceSupabaseClient } from "@/lib/supabase/server";
+import { localOpenSession, resolveConsoleSession, type ConsoleMembership, type ConsoleSession } from "@/lib/auth/console-session";
 
 export type { WorkspaceRole } from "@/lib/auth/role-access";
 
-export type ConsoleMembership = {
-  id: string;
-  workspaceId: string;
-  workspaceName: string;
-  workspaceSlug: string;
-  workspaceAppName: string;
-  role: WorkspaceRole;
-};
-
-export type ConsoleSession = {
-  mode: "open" | "authenticated";
-  user: {
-    id: string;
-    email: string;
-  };
-  topRole: WorkspaceRole;
-  memberships: ConsoleMembership[];
-};
-
-function localOpenSession(): ConsoleSession {
-  return {
-    mode: "open",
-    user: {
-      id: "local-development",
-      email: "local@performlabs.dev",
-    },
-    topRole: "platform_owner",
-    memberships: [],
-  };
-}
+export type { ConsoleMembership, ConsoleSession };
 
 export async function getVerifiedUser() {
   const cookieStore = await cookies();
@@ -130,34 +101,7 @@ export async function getConsoleSession(): Promise<ConsoleSession | null> {
   }
 
   const memberships = await listMembershipsForUser(user.id);
-  const ownerEmail = process.env.COACHOS_OWNER_EMAIL?.trim().toLowerCase();
-  const email = user.email?.toLowerCase() ?? "";
-
-  if (!memberships.length && ownerEmail && email === ownerEmail) {
-    return {
-      mode: "authenticated",
-      user: {
-        id: user.id,
-        email,
-      },
-      topRole: "platform_owner",
-      memberships: [],
-    };
-  }
-
-  if (!memberships.length) {
-    return null;
-  }
-
-  return {
-    mode: "authenticated",
-    user: {
-      id: user.id,
-      email,
-    },
-    topRole: highestRole(memberships.map((membership) => membership.role)),
-    memberships,
-  };
+  return resolveConsoleSession({ id: user.id, email: user.email }, memberships, process.env.COACHOS_OWNER_EMAIL);
 }
 
 export async function requireConsoleAccess(allowedRoles: WorkspaceRole[] = consoleRoles) {

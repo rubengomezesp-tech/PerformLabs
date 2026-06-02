@@ -1,10 +1,11 @@
 import { getSupabaseServiceEnv } from "@/lib/supabase/env";
 import { createServiceSupabaseClient } from "@/lib/supabase/server";
+import type { TablesInsert } from "@/lib/supabase/types";
+import { isUuid } from "@/lib/utils/uuid";
 
 // Member -> Coach subscriptions (Phase 1 monetization). Mirrors the style of
 // stripe-billing.ts: a getSupabaseServiceEnv() guard so every write no-ops
-// cleanly without Supabase env, snake_case payloads, and `(supabase as any)`
-// casts because these columns/tables post-date the generated database.types.
+// cleanly without Supabase env, and snake_case payloads.
 
 /** The subscription status enum on member_profiles (0001_initial_schema.sql). */
 export type MemberSubscriptionStatus =
@@ -36,6 +37,40 @@ export function clampMemberStatus(status: string | null | undefined): MemberSubs
   if (value === "incomplete") return "past_due";
   if (value === "unpaid" || value === "incomplete_expired") return "expired";
   return "expired";
+}
+
+/**
+ * Defense in depth for the connected-webhook path. member_profile_id and
+ * coach_client_plan_id arrive in coach-controllable Stripe metadata (a coach owns
+ * their connected account and can craft events), so before we mirror status onto
+ * a member or attach a plan we confirm the id actually belongs to the workspace
+ * that owns the account. A foreign/forged id is treated as absent — never written
+ * across tenants.
+ */
+export async function isMemberInWorkspace(memberProfileId: string | null | undefined, workspaceId: string): Promise<boolean> {
+  if (!isUuid(memberProfileId) || !isUuid(workspaceId)) return false;
+  if (!getSupabaseServiceEnv().ok) return false;
+  const supabase = createServiceSupabaseClient();
+  const { data } = await supabase
+    .from("member_profiles")
+    .select("id")
+    .eq("id", memberProfileId)
+    .eq("workspace_id", workspaceId)
+    .maybeSingle();
+  return Boolean(data?.id);
+}
+
+export async function isCoachPlanInWorkspace(coachClientPlanId: string | null | undefined, workspaceId: string): Promise<boolean> {
+  if (!isUuid(coachClientPlanId) || !isUuid(workspaceId)) return false;
+  if (!getSupabaseServiceEnv().ok) return false;
+  const supabase = createServiceSupabaseClient();
+  const { data } = await supabase
+    .from("coach_client_plans")
+    .select("id")
+    .eq("id", coachClientPlanId)
+    .eq("workspace_id", workspaceId)
+    .maybeSingle();
+  return Boolean(data?.id);
 }
 
 export type MemberSubscription = {
@@ -117,9 +152,7 @@ export async function upsertMemberSubscription(record: {
   cancelAtPeriodEnd?: boolean;
 }): Promise<void> {
   if (!getSupabaseServiceEnv().ok || !record.stripeSubscriptionId) return;
-  // Tables/columns post-date the generated database.types; cast to reach them,
-  // same pattern used elsewhere in the repo until types are regenerated.
-  const supabase = createServiceSupabaseClient() as any;
+  const supabase = createServiceSupabaseClient();
 
   const payload: Record<string, unknown> = {
     stripe_subscription_id: record.stripeSubscriptionId,
@@ -139,13 +172,17 @@ export async function upsertMemberSubscription(record: {
   if (record.currentPeriodEnd !== undefined) payload.current_period_end = record.currentPeriodEnd;
   if (record.cancelAtPeriodEnd !== undefined) payload.cancel_at_period_end = record.cancelAtPeriodEnd;
 
-  await supabase.from("member_subscriptions").upsert(payload, { onConflict: "stripe_subscription_id" });
+  // Partial upsert: only provided fields are written (a later event patches an
+  // earlier row), so the dynamic payload is asserted to the table's Insert type.
+  await supabase
+    .from("member_subscriptions")
+    .upsert(payload as TablesInsert<"member_subscriptions">, { onConflict: "stripe_subscription_id" });
 }
 
 /** The most recent member subscription for a member profile, if any. */
 export async function getMemberSubscriptionByMember(memberProfileId: string): Promise<MemberSubscription | null> {
   if (!getSupabaseServiceEnv().ok || !memberProfileId) return null;
-  const supabase = createServiceSupabaseClient() as any;
+  const supabase = createServiceSupabaseClient();
   const { data } = await supabase
     .from("member_subscriptions")
     .select("*")
@@ -159,7 +196,7 @@ export async function getMemberSubscriptionByMember(memberProfileId: string): Pr
 /** Store the member's Stripe customer id (on the coach's connected account). */
 export async function setMemberStripeCustomer(memberProfileId: string, stripeCustomerId: string): Promise<void> {
   if (!getSupabaseServiceEnv().ok || !memberProfileId || !stripeCustomerId) return;
-  const supabase = createServiceSupabaseClient() as any;
+  const supabase = createServiceSupabaseClient();
   await supabase
     .from("member_profiles")
     .update({ stripe_customer_id: stripeCustomerId, updated_at: new Date().toISOString() })
@@ -173,7 +210,7 @@ export async function setMemberStripeCustomer(memberProfileId: string, stripeCus
  */
 export async function setMemberSubscriptionStatus(memberProfileId: string, status: string): Promise<void> {
   if (!getSupabaseServiceEnv().ok || !memberProfileId) return;
-  const supabase = createServiceSupabaseClient() as any;
+  const supabase = createServiceSupabaseClient();
   await supabase
     .from("member_profiles")
     .update({ subscription_status: clampMemberStatus(status), updated_at: new Date().toISOString() })
@@ -198,7 +235,7 @@ export async function recordPlatformFeeEvent(record: {
 }): Promise<boolean> {
   if (!getSupabaseServiceEnv().ok) return true;
   if (!record.id) return false;
-  const supabase = createServiceSupabaseClient() as any;
+  const supabase = createServiceSupabaseClient();
   const { error } = await supabase.from("platform_fee_events").insert({
     id: record.id,
     workspace_id: record.workspaceId ?? null,
@@ -216,10 +253,6 @@ export async function recordPlatformFeeEvent(record: {
   // Any other error is transient (pool/timeout): throw so the webhook route
   // returns 500 and Stripe re-delivers, instead of silently dropping a fee event.
   throw new Error(`platform_fee_events insert failed: ${error.message ?? "unknown"}`);
-}
-
-function isUuid(value?: string | null): value is string {
-  return !!value && /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(value);
 }
 
 export type WorkspaceBillingSummary = {
@@ -243,7 +276,15 @@ export type WorkspaceBillingSummary = {
  * module. `amount` is the recurring price unit_amount in cents (see the Stripe
  * webhook); MRR sums it across active subscriptions only.
  */
-export async function getWorkspaceBillingSummary(workspaceId?: string): Promise<WorkspaceBillingSummary> {
+/** Row shape the workspace billing summary reads from member_subscriptions. */
+export type WorkspaceBillingRow = { status: string | null; amount: number | null; currency: string | null };
+
+/**
+ * Pure aggregation behind getWorkspaceBillingSummary: counts by clamped status,
+ * sums active MRR, derives ARPU and the dominant currency. Extracted so the money
+ * math is unit-tested without a DB.
+ */
+export function summarizeWorkspaceBilling(rows: WorkspaceBillingRow[]): WorkspaceBillingSummary {
   const empty: WorkspaceBillingSummary = {
     total: 0,
     active: 0,
@@ -254,15 +295,6 @@ export async function getWorkspaceBillingSummary(workspaceId?: string): Promise<
     arpuCents: 0,
     currency: "EUR",
   };
-  if (!getSupabaseServiceEnv().ok || !isUuid(workspaceId)) return empty;
-
-  const supabase = createServiceSupabaseClient() as any;
-  const { data } = await supabase
-    .from("member_subscriptions")
-    .select("status,amount,currency")
-    .eq("workspace_id", workspaceId);
-
-  const rows = (data ?? []) as Array<{ status: string | null; amount: number | null; currency: string | null }>;
   if (!rows.length) return empty;
 
   const summary: WorkspaceBillingSummary = { ...empty, total: rows.length };
@@ -289,6 +321,18 @@ export async function getWorkspaceBillingSummary(workspaceId?: string): Promise<
   return summary;
 }
 
+export async function getWorkspaceBillingSummary(workspaceId?: string): Promise<WorkspaceBillingSummary> {
+  if (!getSupabaseServiceEnv().ok || !isUuid(workspaceId)) return summarizeWorkspaceBilling([]);
+
+  const supabase = createServiceSupabaseClient();
+  const { data } = await supabase
+    .from("member_subscriptions")
+    .select("status,amount,currency")
+    .eq("workspace_id", workspaceId);
+
+  return summarizeWorkspaceBilling((data ?? []) as WorkspaceBillingRow[]);
+}
+
 export type PlatformRevenueSummary = {
   activeSubscriptions: number;
   /** Gross recurring revenue members pay across all coaches (cents). */
@@ -308,8 +352,22 @@ export type PlatformRevenueSummary = {
  * PerformLabs 25% share, and fees actually collected from the platform_fee_events
  * ledger. Service-role only, like the rest of this module.
  */
-export async function getPlatformRevenueSummary(): Promise<PlatformRevenueSummary> {
-  const empty: PlatformRevenueSummary = {
+/** Row shapes the platform revenue read aggregates. */
+export type PlatformRevenueSubRow = { amount: number | null; status: string | null; application_fee_percent: number | null; currency: string | null };
+export type PlatformRevenueFeeRow = { amount_total: number | null; application_fee_amount: number | null; currency: string | null; created_at: string };
+
+/**
+ * Pure aggregation behind getPlatformRevenueSummary: gross member MRR, the platform
+ * share via application_fee_percent (default 25), and fees from the ledger (all-time
+ * + this calendar month, UTC). `now` is injectable so the month split is deterministic
+ * in tests.
+ */
+export function summarizePlatformRevenue(
+  subs: PlatformRevenueSubRow[],
+  fees: PlatformRevenueFeeRow[],
+  now: Date = new Date(),
+): PlatformRevenueSummary {
+  const summary: PlatformRevenueSummary = {
     activeSubscriptions: 0,
     grossMrrCents: 0,
     platformMrrCents: 0,
@@ -318,21 +376,12 @@ export async function getPlatformRevenueSummary(): Promise<PlatformRevenueSummar
     grossVolumeCents: 0,
     currency: "EUR",
   };
-  if (!getSupabaseServiceEnv().ok) return empty;
-
-  const supabase = createServiceSupabaseClient() as any;
-  const [subsRes, feesRes] = await Promise.all([
-    supabase.from("member_subscriptions").select("amount,status,application_fee_percent,currency"),
-    supabase.from("platform_fee_events").select("amount_total,application_fee_amount,currency,created_at"),
-  ]);
-
-  const summary: PlatformRevenueSummary = { ...empty };
   const currencyCounts = new Map<string, number>();
-  const startOfMonth = new Date();
+  const startOfMonth = new Date(now);
   startOfMonth.setUTCDate(1);
   startOfMonth.setUTCHours(0, 0, 0, 0);
 
-  for (const row of (subsRes.data ?? []) as Array<{ amount: number | null; status: string | null; application_fee_percent: number | null; currency: string | null }>) {
+  for (const row of subs) {
     if (clampMemberStatus(row.status) !== "active") continue;
     summary.activeSubscriptions += 1;
     const amount = row.amount ?? 0;
@@ -342,7 +391,7 @@ export async function getPlatformRevenueSummary(): Promise<PlatformRevenueSummar
     if (currency) currencyCounts.set(currency, (currencyCounts.get(currency) ?? 0) + 1);
   }
 
-  for (const row of (feesRes.data ?? []) as Array<{ amount_total: number | null; application_fee_amount: number | null; currency: string | null; created_at: string }>) {
+  for (const row of fees) {
     summary.grossVolumeCents += row.amount_total ?? 0;
     const fee = row.application_fee_amount ?? 0;
     summary.feesCollectedCents += fee;
@@ -354,4 +403,19 @@ export async function getPlatformRevenueSummary(): Promise<PlatformRevenueSummar
   const dominant = [...currencyCounts.entries()].sort((a, b) => b[1] - a[1])[0]?.[0];
   summary.currency = dominant || "EUR";
   return summary;
+}
+
+export async function getPlatformRevenueSummary(): Promise<PlatformRevenueSummary> {
+  if (!getSupabaseServiceEnv().ok) return summarizePlatformRevenue([], []);
+
+  const supabase = createServiceSupabaseClient();
+  const [subsRes, feesRes] = await Promise.all([
+    supabase.from("member_subscriptions").select("amount,status,application_fee_percent,currency"),
+    supabase.from("platform_fee_events").select("amount_total,application_fee_amount,currency,created_at"),
+  ]);
+
+  return summarizePlatformRevenue(
+    (subsRes.data ?? []) as PlatformRevenueSubRow[],
+    (feesRes.data ?? []) as PlatformRevenueFeeRow[],
+  );
 }

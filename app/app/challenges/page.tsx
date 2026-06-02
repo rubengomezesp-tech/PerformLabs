@@ -1,4 +1,5 @@
 import { CalendarDays, Flame, Trophy, Users } from "lucide-react";
+import { DAY_MS } from "@/lib/utils/dates";
 import { MemberEmpty } from "@/components/member-empty";
 import { SubmitButton } from "@/components/ui";
 import { Topbar } from "@/components/topbar";
@@ -16,7 +17,7 @@ function fmt(d: string) {
 function daysLeft(end: string) {
   const ms = new Date(end).getTime() - Date.now();
   if (!Number.isFinite(ms)) return "";
-  const days = Math.ceil(ms / 86_400_000);
+  const days = Math.ceil(ms / DAY_MS);
   if (days < 0) return "Finalizado";
   if (days === 0) return "Último día";
   return `Quedan ${days} día${days === 1 ? "" : "s"}`;

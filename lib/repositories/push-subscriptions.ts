@@ -1,5 +1,7 @@
 import { getSupabaseServiceEnv } from "@/lib/supabase/env";
 import { createServiceSupabaseClient } from "@/lib/supabase/server";
+import { daysAgoIso } from "@/lib/utils/dates";
+import { isUuid } from "@/lib/utils/uuid";
 
 export type PushSubscriptionRow = {
   id: string;
@@ -8,10 +10,6 @@ export type PushSubscriptionRow = {
   p256dh: string;
   auth: string;
 };
-
-function isUuid(value?: string | null): value is string {
-  return !!value && /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(value);
-}
 
 export async function savePushSubscription(input: {
   workspaceId: string;
@@ -23,7 +21,7 @@ export async function savePushSubscription(input: {
 }): Promise<void> {
   if (!isUuid(input.workspaceId) || !input.endpoint || !input.p256dh || !input.auth) return;
   const supabase = createServiceSupabaseClient();
-  await (supabase as any).from("push_subscriptions").upsert(
+  await supabase.from("push_subscriptions").upsert(
     {
       workspace_id: input.workspaceId,
       member_profile_id: isUuid(input.memberProfileId) ? input.memberProfileId : null,
@@ -40,7 +38,7 @@ export async function savePushSubscription(input: {
 export async function deletePushSubscription(endpoint: string): Promise<void> {
   if (!endpoint) return;
   const supabase = createServiceSupabaseClient();
-  await (supabase as any).from("push_subscriptions").delete().eq("endpoint", endpoint);
+  await supabase.from("push_subscriptions").delete().eq("endpoint", endpoint);
 }
 
 /** Active subscriptions for a workspace that haven't been notified within `cooldownDays`. */
@@ -48,9 +46,9 @@ export async function listNudgeableSubscriptions(workspaceId: string, cooldownDa
   const env = getSupabaseServiceEnv();
   if (!env.ok || !isUuid(workspaceId)) return [];
   const supabase = createServiceSupabaseClient();
-  const cutoff = new Date(Date.now() - cooldownDays * 86_400_000).toISOString();
+  const cutoff = daysAgoIso(cooldownDays);
 
-  const { data, error } = await (supabase as any)
+  const { data, error } = await supabase
     .from("push_subscriptions")
     .select("id,member_profile_id,endpoint,p256dh,auth,last_notified_at")
     .eq("workspace_id", workspaceId)
@@ -74,7 +72,7 @@ export async function listActiveSubscriptions(workspaceId: string): Promise<Push
   const env = getSupabaseServiceEnv();
   if (!env.ok || !isUuid(workspaceId)) return [];
   const supabase = createServiceSupabaseClient();
-  const { data, error } = await (supabase as any)
+  const { data, error } = await supabase
     .from("push_subscriptions")
     .select("id,member_profile_id,endpoint,p256dh,auth")
     .eq("workspace_id", workspaceId)
@@ -95,7 +93,7 @@ export async function listMemberSubscriptions(workspaceId: string, memberProfile
   const env = getSupabaseServiceEnv();
   if (!env.ok || !isUuid(workspaceId) || !isUuid(memberProfileId)) return [];
   const supabase = createServiceSupabaseClient();
-  const { data, error } = await (supabase as any)
+  const { data, error } = await supabase
     .from("push_subscriptions")
     .select("id,member_profile_id,endpoint,p256dh,auth")
     .eq("workspace_id", workspaceId)
@@ -114,14 +112,14 @@ export async function listMemberSubscriptions(workspaceId: string, memberProfile
 export async function markSubscriptionNotified(id: string): Promise<void> {
   if (!isUuid(id)) return;
   const supabase = createServiceSupabaseClient();
-  await (supabase as any).from("push_subscriptions").update({ last_notified_at: new Date().toISOString() }).eq("id", id);
+  await supabase.from("push_subscriptions").update({ last_notified_at: new Date().toISOString() }).eq("id", id);
 }
 
 export async function countActiveSubscriptions(workspaceId?: string): Promise<number> {
   const env = getSupabaseServiceEnv();
   if (!env.ok || !isUuid(workspaceId)) return 0;
   const supabase = createServiceSupabaseClient();
-  const { count } = await (supabase as any)
+  const { count } = await supabase
     .from("push_subscriptions")
     .select("id", { count: "exact", head: true })
     .eq("workspace_id", workspaceId)

@@ -1,7 +1,10 @@
+import { scoreMemberRetention, type RetentionTier } from "@/lib/domain/retention-scoring";
 import { getSupabaseServiceEnv } from "@/lib/supabase/env";
 import { createServiceSupabaseClient } from "@/lib/supabase/server";
+import { DAY_MS, daysAgoIso } from "@/lib/utils/dates";
+import { isUuid } from "@/lib/utils/uuid";
 
-export type RetentionTier = "high" | "medium" | "low";
+export type { RetentionTier };
 
 export type RetentionMember = {
   id: string;
@@ -32,21 +35,11 @@ function emptyRadar(): RetentionRadar {
   return { members: [], summary: { activeMembers: 0, atRisk: 0, watch: 0, healthy: 0, avgAdherence: 0 } };
 }
 
-function isUuid(value?: string | null): value is string {
-  return !!value && /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(value);
-}
-
 function daysBetween(fromIso: string | null, now: number): number | null {
   if (!fromIso) return null;
   const then = new Date(fromIso).getTime();
   if (!Number.isFinite(then)) return null;
-  return Math.max(0, Math.floor((now - then) / 86_400_000));
-}
-
-function tierFor(score: number): RetentionTier {
-  if (score >= 60) return "high";
-  if (score >= 30) return "medium";
-  return "low";
+  return Math.max(0, Math.floor((now - then) / DAY_MS));
 }
 
 export async function getRetentionRadar(workspaceId?: string): Promise<RetentionRadar> {
@@ -55,31 +48,31 @@ export async function getRetentionRadar(workspaceId?: string): Promise<Retention
 
   const supabase = createServiceSupabaseClient();
   const now = Date.now();
-  const sinceActivity = new Date(now - 45 * 86_400_000).toISOString();
+  const sinceActivity = daysAgoIso(45, now);
   const sinceActivityDate = sinceActivity.slice(0, 10);
-  const sinceCheckin = new Date(now - 120 * 86_400_000).toISOString();
+  const sinceCheckin = daysAgoIso(120, now);
 
   const [membersResult, sessionsResult, mealsResult, checkinsResult, activityResult] = await Promise.all([
     supabase
       .from("member_profiles")
       .select("id,full_name,goal,subscription_status,onboarding_status,created_at")
       .eq("workspace_id", workspaceId),
-    (supabase as any)
+    supabase
       .from("workout_session_logs")
       .select("member_profile_id,session_date")
       .eq("workspace_id", workspaceId)
       .gte("session_date", sinceActivityDate),
-    (supabase as any)
+    supabase
       .from("member_meal_logs")
       .select("member_profile_id,logged_on")
       .eq("workspace_id", workspaceId)
       .gte("logged_on", sinceActivityDate),
-    (supabase as any)
+    supabase
       .from("customer_checkins")
       .select("member_profile_id,created_at")
       .eq("workspace_id", workspaceId)
       .gte("created_at", sinceCheckin),
-    (supabase as any)
+    supabase
       .from("member_activity_events")
       .select("member_profile_id,occurred_at")
       .eq("workspace_id", workspaceId)
@@ -100,7 +93,7 @@ export async function getRetentionRadar(workspaceId?: string): Promise<Retention
   const lastActivityMs = new Map<string, number>();
   const workouts14 = new Map<string, number>();
   const lastCheckinMs = new Map<string, number>();
-  const fortnightAgo = now - 14 * 86_400_000;
+  const fortnightAgo = now - 14 * DAY_MS;
 
   const noteActivity = (memberId: string | null, iso: string | null) => {
     if (!memberId || !iso) return;
@@ -137,81 +130,28 @@ export async function getRetentionRadar(workspaceId?: string): Promise<Retention
   const scored: RetentionMember[] = members
     .filter((member) => !cancelledStatuses.has((member.subscription_status ?? "").toLowerCase()))
     .map((member) => {
-      const status = (member.subscription_status ?? "").toLowerCase();
       const lastMs = lastActivityMs.get(member.id) ?? null;
-      const daysSinceActivity = lastMs ? Math.max(0, Math.floor((now - lastMs) / 86_400_000)) : null;
+      const daysSinceActivity = lastMs ? Math.max(0, Math.floor((now - lastMs) / DAY_MS)) : null;
       const workoutsLast14 = workouts14.get(member.id) ?? 0;
-      const lastCheckinDays = daysBetween(lastCheckinMs.get(member.id) ? new Date(lastCheckinMs.get(member.id)!).toISOString() : null, now);
+      const lastCheckinTs = lastCheckinMs.get(member.id);
+      const lastCheckinDays = daysBetween(lastCheckinTs ? new Date(lastCheckinTs).toISOString() : null, now);
       const memberAgeDays = daysBetween(member.created_at, now) ?? 0;
 
-      let score = 0;
-      const reasons: string[] = [];
-
-      // Inactivity (strongest churn signal)
-      if (daysSinceActivity === null || daysSinceActivity >= 14) {
-        score += 40;
-        reasons.push(daysSinceActivity === null ? "Sin actividad reciente" : `Sin actividad hace ${daysSinceActivity} días`);
-      } else if (daysSinceActivity >= 7) {
-        score += 25;
-        reasons.push(`Sin actividad hace ${daysSinceActivity} días`);
-      } else if (daysSinceActivity >= 3) {
-        score += 10;
-      }
-
-      // Training adherence
-      if (memberAgeDays >= 7) {
-        if (workoutsLast14 === 0) {
-          score += 20;
-          reasons.push("0 entrenos en 2 semanas");
-        } else if (workoutsLast14 <= 2) {
-          score += 10;
-          reasons.push(`Solo ${workoutsLast14} entreno(s) en 2 semanas`);
-        }
-      }
-
-      // Check-in cadence
-      if (memberAgeDays >= 14) {
-        if (lastCheckinDays === null) {
-          score += 15;
-          reasons.push("Nunca ha hecho check-in");
-        } else if (lastCheckinDays >= 21) {
-          score += 15;
-          reasons.push(`Check-in atrasado ${lastCheckinDays} días`);
-        } else if (lastCheckinDays >= 14) {
-          score += 8;
-        }
-      }
-
-      // Billing
-      if (status === "past_due" || status === "unpaid") {
-        score += 25;
-        reasons.push("Pago pendiente");
-      } else if (status === "trialing") {
-        score += 5;
-      }
-
-      // Onboarding never completed
-      if (memberAgeDays >= 7 && member.onboarding_status && !["complete", "completed", "applied", "reviewed"].includes(member.onboarding_status.toLowerCase())) {
-        score += 15;
-        reasons.push("Onboarding sin completar");
-      }
-
-      score = Math.min(100, score);
-      const tier = tierFor(score);
-
-      let recommendedAction = "Todo en orden, mantén el contacto.";
-      if (status === "past_due" || status === "unpaid") recommendedAction = "Resuelve el pago y contacta hoy.";
-      else if (daysSinceActivity === null || daysSinceActivity >= 14) recommendedAction = "Mensaje de reactivación urgente.";
-      else if (workoutsLast14 === 0 && memberAgeDays >= 7) recommendedAction = "Pregúntale qué le frena a entrenar.";
-      else if (lastCheckinDays !== null && lastCheckinDays >= 21) recommendedAction = "Programa un check-in esta semana.";
-      else if (tier === "medium") recommendedAction = "Mándale un mensaje de seguimiento.";
+      const { riskScore, tier, reasons, recommendedAction } = scoreMemberRetention({
+        subscriptionStatus: member.subscription_status ?? "",
+        daysSinceActivity,
+        workoutsLast14,
+        lastCheckinDays,
+        memberAgeDays,
+        onboardingStatus: member.onboarding_status,
+      });
 
       return {
         id: member.id,
         fullName: member.full_name || "Cliente",
         goal: member.goal || "",
         subscriptionStatus: member.subscription_status || "",
-        riskScore: score,
+        riskScore,
         tier,
         daysSinceActivity,
         workoutsLast14,

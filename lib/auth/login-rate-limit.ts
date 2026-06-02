@@ -1,75 +1,80 @@
-export type LoginRateLimitResult = {
-  allowed: boolean;
-  remaining: number;
-  retryAfterSeconds: number;
-};
+import { getSupabaseServiceEnv } from "@/lib/supabase/env";
+import { createServiceSupabaseClient } from "@/lib/supabase/server";
+import {
+  evaluateRateLimit,
+  MAX_ATTEMPTS,
+  registerFailure,
+  type AttemptState,
+  type LoginRateLimitResult,
+} from "@/lib/auth/login-rate-limit-policy";
 
-type LoginAttemptRecord = {
-  count: number;
-  resetAt: number;
-  blockedUntil: number;
-};
+export type { LoginRateLimitResult };
 
-const windowMs = 15 * 60 * 1000;
-const blockMs = 15 * 60 * 1000;
-const maxAttempts = 5;
-const attempts = new Map<string, LoginAttemptRecord>();
+// Shared (Supabase-backed) login rate limiter. Every operation FAILS OPEN: if the
+// store is unconfigured or errors, we allow the attempt rather than risk locking a
+// legitimate operator out. The worst case on an outage is the previous behaviour
+// (no cross-instance limiting), never a lockout.
+const ALLOW: LoginRateLimitResult = { allowed: true, remaining: MAX_ATTEMPTS, retryAfterSeconds: 0 };
 
-function cleanExpired(now: number) {
-  for (const [key, record] of attempts.entries()) {
-    if (record.resetAt <= now && record.blockedUntil <= now) {
-      attempts.delete(key);
-    }
-  }
-}
+type Row = { attempts: number | null; window_started_at: string | null; blocked_until: string | null };
 
-function getRecord(key: string, now: number) {
-  cleanExpired(now);
-  const existing = attempts.get(key);
-  if (existing && existing.resetAt > now) return existing;
-
-  const record = {
-    count: 0,
-    resetAt: now + windowMs,
-    blockedUntil: 0,
-  };
-  attempts.set(key, record);
-  return record;
-}
-
-export function checkLoginRateLimit(key: string, now = Date.now()): LoginRateLimitResult {
-  const record = getRecord(key, now);
-
-  if (record.blockedUntil > now) {
-    return {
-      allowed: false,
-      remaining: 0,
-      retryAfterSeconds: Math.ceil((record.blockedUntil - now) / 1000),
-    };
-  }
-
+function rowToState(row: Row | null): AttemptState | null {
+  if (!row) return null;
   return {
-    allowed: true,
-    remaining: Math.max(0, maxAttempts - record.count),
-    retryAfterSeconds: 0,
+    attempts: row.attempts ?? 0,
+    windowStartedAt: row.window_started_at ? Date.parse(row.window_started_at) : 0,
+    blockedUntil: row.blocked_until ? Date.parse(row.blocked_until) : 0,
   };
 }
 
-export function recordFailedLogin(key: string, now = Date.now()): LoginRateLimitResult {
-  const record = getRecord(key, now);
-  record.count += 1;
+async function readState(key: string): Promise<AttemptState | null> {
+  const supabase = createServiceSupabaseClient();
+  const { data } = await supabase
+    .from("auth_rate_limits")
+    .select("attempts,window_started_at,blocked_until")
+    .eq("key", key)
+    .maybeSingle();
+  return rowToState(data);
+}
 
-  if (record.count >= maxAttempts) {
-    record.blockedUntil = now + blockMs;
+export async function checkLoginRateLimit(key: string, now = Date.now()): Promise<LoginRateLimitResult> {
+  if (!getSupabaseServiceEnv().ok) return ALLOW;
+  try {
+    return evaluateRateLimit(await readState(key), now);
+  } catch (error) {
+    console.error("login rate-limit check failed; allowing", (error as Error).message);
+    return ALLOW;
   }
-
-  return checkLoginRateLimit(key, now);
 }
 
-export function clearLoginRateLimit(key: string) {
-  attempts.delete(key);
+export async function recordFailedLogin(key: string, now = Date.now()): Promise<LoginRateLimitResult> {
+  if (!getSupabaseServiceEnv().ok) return ALLOW;
+  try {
+    const supabase = createServiceSupabaseClient();
+    const next = registerFailure(await readState(key), now);
+    await supabase.from("auth_rate_limits").upsert(
+      {
+        key,
+        attempts: next.attempts,
+        window_started_at: new Date(next.windowStartedAt).toISOString(),
+        blocked_until: next.blockedUntil ? new Date(next.blockedUntil).toISOString() : null,
+        updated_at: new Date(now).toISOString(),
+      },
+      { onConflict: "key" },
+    );
+    return evaluateRateLimit(next, now);
+  } catch (error) {
+    console.error("login rate-limit record failed; allowing", (error as Error).message);
+    return ALLOW;
+  }
 }
 
-export function resetLoginRateLimitForTests() {
-  attempts.clear();
+export async function clearLoginRateLimit(key: string): Promise<void> {
+  if (!getSupabaseServiceEnv().ok) return;
+  try {
+    const supabase = createServiceSupabaseClient();
+    await supabase.from("auth_rate_limits").delete().eq("key", key);
+  } catch (error) {
+    console.error("login rate-limit clear failed", (error as Error).message);
+  }
 }

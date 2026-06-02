@@ -1,6 +1,7 @@
 import { getMemberContext } from "@/lib/auth/member-access";
 import { getSupabaseServiceEnv } from "@/lib/supabase/env";
 import { createServiceSupabaseClient } from "@/lib/supabase/server";
+import { isUuid } from "@/lib/utils/uuid";
 
 export type SupplementTiming = "morning" | "pre" | "post" | "meal" | "night" | "anytime";
 
@@ -25,10 +26,6 @@ export const TIMING_LABEL: Record<SupplementTiming, string> = {
 
 export const TIMING_ORDER: SupplementTiming[] = ["morning", "pre", "post", "meal", "night", "anytime"];
 
-function isUuid(value?: string | null): value is string {
-  return !!value && /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(value);
-}
-
 function normalizeTiming(value: unknown): SupplementTiming {
   return TIMING_ORDER.includes(value as SupplementTiming) ? (value as SupplementTiming) : "anytime";
 }
@@ -47,7 +44,7 @@ export async function listSupplements(workspaceId?: string): Promise<Supplement[
   const env = getSupabaseServiceEnv();
   if (!env.ok || !isUuid(workspaceId)) return [];
   const supabase = createServiceSupabaseClient();
-  const { data, error } = await (supabase as any)
+  const { data, error } = await supabase
     .from("supplements")
     .select("id,name,dose,timing,notes,sort_order")
     .eq("workspace_id", workspaceId)
@@ -68,7 +65,7 @@ export async function getMemberSupplementsToday(workspaceId?: string): Promise<M
 
   const supabase = createServiceSupabaseClient();
   const today = new Date().toISOString().slice(0, 10);
-  const { data } = await (supabase as any)
+  const { data } = await supabase
     .from("supplement_logs")
     .select("supplement_id")
     .eq("member_profile_id", memberId)
@@ -87,7 +84,7 @@ export async function createSupplement(input: {
   if (!isUuid(input.workspaceId)) throw new Error("No se pudo identificar la marca.");
   if (!input.name.trim()) throw new Error("El suplemento necesita un nombre.");
   const supabase = createServiceSupabaseClient();
-  const { error } = await (supabase as any).from("supplements").insert({
+  const { error } = await supabase.from("supplements").insert({
     workspace_id: input.workspaceId,
     name: input.name.trim().slice(0, 120),
     dose: input.dose.trim().slice(0, 80),
@@ -101,7 +98,7 @@ export async function createSupplement(input: {
 export async function deleteSupplement(workspaceId: string, supplementId: string): Promise<void> {
   if (!isUuid(workspaceId) || !isUuid(supplementId)) return;
   const supabase = createServiceSupabaseClient();
-  await (supabase as any).from("supplements").delete().eq("workspace_id", workspaceId).eq("id", supplementId);
+  await supabase.from("supplements").delete().eq("workspace_id", workspaceId).eq("id", supplementId);
 }
 
 export async function toggleSupplementLog(workspaceId: string, supplementId: string): Promise<void> {
@@ -111,7 +108,7 @@ export async function toggleSupplementLog(workspaceId: string, supplementId: str
   const supabase = createServiceSupabaseClient();
   const today = new Date().toISOString().slice(0, 10);
 
-  const existing = await (supabase as any)
+  const existing = await supabase
     .from("supplement_logs")
     .select("id")
     .eq("supplement_id", supplementId)
@@ -120,10 +117,10 @@ export async function toggleSupplementLog(workspaceId: string, supplementId: str
     .maybeSingle();
 
   if (existing.data?.id) {
-    await (supabase as any).from("supplement_logs").delete().eq("id", existing.data.id);
+    await supabase.from("supplement_logs").delete().eq("id", existing.data.id);
     return;
   }
-  await (supabase as any).from("supplement_logs").insert({
+  await supabase.from("supplement_logs").insert({
     workspace_id: workspaceId,
     supplement_id: supplementId,
     member_profile_id: memberId,

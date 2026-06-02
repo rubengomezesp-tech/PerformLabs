@@ -1,6 +1,8 @@
 import { getMemberContext } from "@/lib/auth/member-access";
 import { getSupabaseServiceEnv } from "@/lib/supabase/env";
 import { createServiceSupabaseClient } from "@/lib/supabase/server";
+import { daysFromNowIso } from "@/lib/utils/dates";
+import { isUuid } from "@/lib/utils/uuid";
 
 export type ChallengeMetric = "workouts" | "habits" | "checkins";
 
@@ -33,18 +35,8 @@ const METRIC_LABEL: Record<ChallengeMetric, string> = {
   checkins: "check-ins",
 };
 
-const METRIC_SOURCE: Record<ChallengeMetric, { table: string; dateCol: string; timestamp: boolean }> = {
-  workouts: { table: "workout_session_logs", dateCol: "session_date", timestamp: false },
-  habits: { table: "member_habit_logs", dateCol: "logged_on", timestamp: false },
-  checkins: { table: "customer_checkins", dateCol: "created_at", timestamp: true },
-};
-
 export function metricLabel(metric: ChallengeMetric): string {
   return METRIC_LABEL[metric] ?? metric;
-}
-
-function isUuid(value?: string | null): value is string {
-  return !!value && /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(value);
 }
 
 async function getDefaultMember(workspaceId: string) {
@@ -71,20 +63,43 @@ async function countMetric(workspaceId: string, challenge: Challenge, memberIds:
   const counts = new Map<string, number>();
   if (!memberIds.length) return counts;
   const supabase = createServiceSupabaseClient();
-  const source = METRIC_SOURCE[challenge.metric];
-  const upper = source.timestamp ? `${challenge.endsOn}T23:59:59` : challenge.endsOn;
 
-  const { data, error } = await (supabase as any)
-    .from(source.table)
-    .select(`member_profile_id,${source.dateCol}`)
-    .eq("workspace_id", workspaceId)
-    .in("member_profile_id", memberIds)
-    .gte(source.dateCol, challenge.startsOn)
-    .lte(source.dateCol, upper)
-    .limit(20000);
+  // The source table and date column depend on the metric. Query each with a
+  // statically-typed builder instead of a runtime table name supabase-js can't type.
+  let rows: Array<{ member_profile_id: string | null }> = [];
+  if (challenge.metric === "workouts") {
+    const { data } = await supabase
+      .from("workout_session_logs")
+      .select("member_profile_id")
+      .eq("workspace_id", workspaceId)
+      .in("member_profile_id", memberIds)
+      .gte("session_date", challenge.startsOn)
+      .lte("session_date", challenge.endsOn)
+      .limit(20000);
+    rows = data ?? [];
+  } else if (challenge.metric === "habits") {
+    const { data } = await supabase
+      .from("member_habit_logs")
+      .select("member_profile_id")
+      .eq("workspace_id", workspaceId)
+      .in("member_profile_id", memberIds)
+      .gte("logged_on", challenge.startsOn)
+      .lte("logged_on", challenge.endsOn)
+      .limit(20000);
+    rows = data ?? [];
+  } else {
+    const { data } = await supabase
+      .from("customer_checkins")
+      .select("member_profile_id")
+      .eq("workspace_id", workspaceId)
+      .in("member_profile_id", memberIds)
+      .gte("created_at", challenge.startsOn)
+      .lte("created_at", `${challenge.endsOn}T23:59:59`)
+      .limit(20000);
+    rows = data ?? [];
+  }
 
-  if (error || !data) return counts;
-  for (const row of data as Array<{ member_profile_id: string }>) {
+  for (const row of rows) {
     if (row.member_profile_id) counts.set(row.member_profile_id, (counts.get(row.member_profile_id) ?? 0) + 1);
   }
   return counts;
@@ -92,7 +107,7 @@ async function countMetric(workspaceId: string, challenge: Challenge, memberIds:
 
 async function buildLeaderboard(workspaceId: string, challenge: Challenge): Promise<{ leaderboard: LeaderboardEntry[]; participants: number }> {
   const supabase = createServiceSupabaseClient();
-  const partResult = await (supabase as any)
+  const partResult = await supabase
     .from("challenge_participants")
     .select("member_profile_id,member_profiles(full_name)")
     .eq("challenge_id", challenge.id)
@@ -119,7 +134,7 @@ export async function listMemberChallenges(workspaceId?: string): Promise<Member
   const env = getSupabaseServiceEnv();
   if (!env.ok || !isUuid(workspaceId)) return [];
   const supabase = createServiceSupabaseClient();
-  const { data, error } = await (supabase as any)
+  const { data, error } = await supabase
     .from("challenges")
     .select("id,title,description,metric,goal,starts_on,ends_on,status")
     .eq("workspace_id", workspaceId)
@@ -151,7 +166,7 @@ export async function listCoachChallenges(workspaceId?: string): Promise<CoachCh
   const env = getSupabaseServiceEnv();
   if (!env.ok || !isUuid(workspaceId)) return [];
   const supabase = createServiceSupabaseClient();
-  const { data, error } = await (supabase as any)
+  const { data, error } = await supabase
     .from("challenges")
     .select("id,title,description,metric,goal,starts_on,ends_on,status")
     .eq("workspace_id", workspaceId)
@@ -181,14 +196,14 @@ export async function createChallenge(input: {
   if (!isUuid(input.workspaceId)) throw new Error("No se pudo identificar la marca.");
   if (!input.title.trim()) throw new Error("El reto necesita un título.");
   const supabase = createServiceSupabaseClient();
-  const { error } = await (supabase as any).from("challenges").insert({
+  const { error } = await supabase.from("challenges").insert({
     workspace_id: input.workspaceId,
     title: input.title.trim().slice(0, 120),
     description: input.description.trim().slice(0, 600),
     metric: ["workouts", "habits", "checkins"].includes(input.metric) ? input.metric : "workouts",
     goal: Math.max(1, Math.min(1000, input.goal || 12)),
     starts_on: input.startsOn || new Date().toISOString().slice(0, 10),
-    ends_on: input.endsOn || new Date(Date.now() + 28 * 86_400_000).toISOString().slice(0, 10),
+    ends_on: input.endsOn || daysFromNowIso(28).slice(0, 10),
     status: "active",
   });
   if (error) throw new Error(`No se pudo crear el reto: ${error.message}`);
@@ -199,7 +214,7 @@ export async function joinChallenge(workspaceId: string, challengeId: string): P
   const member = await getDefaultMember(workspaceId);
   if (!member) return;
   const supabase = createServiceSupabaseClient();
-  await (supabase as any)
+  await supabase
     .from("challenge_participants")
     .upsert(
       { challenge_id: challengeId, workspace_id: workspaceId, member_profile_id: member.id },
@@ -210,5 +225,5 @@ export async function joinChallenge(workspaceId: string, challengeId: string): P
 export async function setChallengeStatus(workspaceId: string, challengeId: string, status: "active" | "ended"): Promise<void> {
   if (!isUuid(workspaceId) || !isUuid(challengeId)) return;
   const supabase = createServiceSupabaseClient();
-  await (supabase as any).from("challenges").update({ status }).eq("workspace_id", workspaceId).eq("id", challengeId);
+  await supabase.from("challenges").update({ status }).eq("workspace_id", workspaceId).eq("id", challengeId);
 }

@@ -1,6 +1,7 @@
 import type { GeneratedWorkoutPlan, PlanBrief } from "@/lib/ai/plan-generator";
 import { getSupabaseServiceEnv } from "@/lib/supabase/env";
 import { createServiceSupabaseClient } from "@/lib/supabase/server";
+import { isUuid } from "@/lib/utils/uuid";
 
 export type PlanDraft = {
   id: string;
@@ -12,10 +13,6 @@ export type PlanDraft = {
   templateId: string | null;
   createdAt: string;
 };
-
-function isUuid(value?: string | null): value is string {
-  return !!value && /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(value);
-}
 
 function slugify(value: string): string {
   return value
@@ -42,7 +39,7 @@ export async function createWorkoutPlanDraft(input: {
 }): Promise<string | null> {
   if (!isUuid(input.workspaceId)) throw new Error("No se pudo identificar la marca.");
   const supabase = createServiceSupabaseClient();
-  const { data, error } = await (supabase as any)
+  const { data, error } = await supabase
     .from("coach_ai_plan_drafts")
     .insert({
       workspace_id: input.workspaceId,
@@ -64,7 +61,7 @@ export async function listPlanDrafts(workspaceId?: string, limit = 12): Promise<
   if (!env.ok || !isUuid(workspaceId)) return [];
 
   const supabase = createServiceSupabaseClient();
-  const { data, error } = await (supabase as any)
+  const { data, error } = await supabase
     .from("coach_ai_plan_drafts")
     .select("id,kind,title,status,brief,content,template_id,created_at")
     .eq("workspace_id", workspaceId)
@@ -87,7 +84,7 @@ export async function listPlanDrafts(workspaceId?: string, limit = 12): Promise<
 
 async function getDraftRow(workspaceId: string, draftId: string) {
   const supabase = createServiceSupabaseClient();
-  const { data } = await (supabase as any)
+  const { data } = await supabase
     .from("coach_ai_plan_drafts")
     .select("id,status,content,template_id")
     .eq("workspace_id", workspaceId)
@@ -99,7 +96,7 @@ async function getDraftRow(workspaceId: string, draftId: string) {
 export async function discardPlanDraft(workspaceId: string, draftId: string) {
   if (!isUuid(workspaceId) || !isUuid(draftId)) throw new Error("Borrador no válido.");
   const supabase = createServiceSupabaseClient();
-  const { error } = await (supabase as any)
+  const { error } = await supabase
     .from("coach_ai_plan_drafts")
     .update({ status: "discarded" })
     .eq("workspace_id", workspaceId)
@@ -222,7 +219,7 @@ export async function approvePlanDraft(workspaceId: string, draftId: string): Pr
   }
 
   // 5) Mark draft approved
-  await (supabase as any)
+  await supabase
     .from("coach_ai_plan_drafts")
     .update({ status: "approved", template_id: templateId, approved_at: new Date().toISOString() })
     .eq("workspace_id", workspaceId)

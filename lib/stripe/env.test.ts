@@ -1,5 +1,23 @@
 import { afterEach, describe, expect, it } from "vitest";
-import { getStripeEnv } from "./env";
+import { clampFeePercent, getStripeEnv } from "./env";
+
+describe("clampFeePercent", () => {
+  it("keeps a valid 0–100 percentage", () => {
+    expect(clampFeePercent(25)).toBe(25);
+    expect(clampFeePercent(0)).toBe(0);
+    expect(clampFeePercent(100)).toBe(100);
+  });
+
+  it("clamps out-of-range values into 0..100", () => {
+    expect(clampFeePercent(250)).toBe(100);
+    expect(clampFeePercent(-5)).toBe(0);
+  });
+
+  it("falls back to 25 for non-finite input", () => {
+    expect(clampFeePercent(NaN)).toBe(25);
+    expect(clampFeePercent(Infinity)).toBe(25);
+  });
+});
 
 describe("getStripeEnv applicationFeePercent", () => {
   const KEY = "STRIPE_APPLICATION_FEE_PERCENT";

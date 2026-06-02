@@ -2,6 +2,7 @@ import { getMemberContext } from "@/lib/auth/member-access";
 import { getSupabaseServiceEnv } from "@/lib/supabase/env";
 import { createServiceSupabaseClient } from "@/lib/supabase/server";
 import { addFoodDiaryEntry } from "@/lib/repositories/nutrition-tracking";
+import { isUuid } from "@/lib/utils/uuid";
 
 export type FoodCategory =
   | "protein"
@@ -116,10 +117,6 @@ function starterItems(): FoodItem[] {
   return STARTER_FOODS.map((food, index) => ({ ...food, id: starterId(index), imageUrl: starterFoodImage(food.name), isStarter: true, isBase: false }));
 }
 
-function isUuid(value?: string | null): value is string {
-  return !!value && /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(value);
-}
-
 function normalizeCategory(value: unknown): FoodCategory {
   return CATEGORY_ORDER.includes(value as FoodCategory) ? (value as FoodCategory) : "other";
 }
@@ -176,7 +173,7 @@ export async function listFoodLibrary(workspaceId?: string, query = ""): Promise
   }
 
   const supabase = createServiceSupabaseClient();
-  let select = (supabase as any)
+  let select = supabase
     .from("food_library_items")
     .select("id,name,brand,serving_label,category,protein_g,fat_g,carbs_g,calories,image_url,sort_order,workspace_id,is_base_library");
 
@@ -212,7 +209,7 @@ export async function listMemberFoodLibrary(
     const memberId = await getDefaultMemberId(workspaceId);
     if (memberId) {
       const supabase = createServiceSupabaseClient();
-      const { data } = await (supabase as any)
+      const { data } = await supabase
         .from("member_food_favorites")
         .select("food_item_id")
         .eq("member_profile_id", memberId);
@@ -250,7 +247,7 @@ export async function createFoodItem(input: {
   const calories = input.calories > 0 ? nonNegative(input.calories) : Math.round(protein * 4 + carbs * 4 + fat * 9);
 
   const supabase = createServiceSupabaseClient();
-  const { error } = await (supabase as any).from("food_library_items").insert({
+  const { error } = await supabase.from("food_library_items").insert({
     workspace_id: input.workspaceId,
     name: input.name.trim().slice(0, 120),
     brand: input.brand.trim().slice(0, 80) || null,
@@ -268,14 +265,14 @@ export async function createFoodItem(input: {
 export async function deleteFoodItem(workspaceId: string, foodId: string): Promise<void> {
   if (!isUuid(workspaceId) || !isUuid(foodId)) return;
   const supabase = createServiceSupabaseClient();
-  await (supabase as any).from("food_library_items").delete().eq("workspace_id", workspaceId).eq("id", foodId);
+  await supabase.from("food_library_items").delete().eq("workspace_id", workspaceId).eq("id", foodId);
 }
 
 /** Loads the built-in starter foods as editable rows. No-op if the library already has rows. */
 export async function seedStarterFoods(workspaceId: string): Promise<number> {
   if (!isUuid(workspaceId)) return 0;
   const supabase = createServiceSupabaseClient();
-  const existing = await (supabase as any)
+  const existing = await supabase
     .from("food_library_items")
     .select("id")
     .eq("workspace_id", workspaceId)
@@ -296,7 +293,7 @@ export async function seedStarterFoods(workspaceId: string): Promise<number> {
     sort_order: index,
   }));
 
-  const { error } = await (supabase as any).from("food_library_items").insert(rows);
+  const { error } = await supabase.from("food_library_items").insert(rows);
   if (error) throw new Error(`No se pudieron cargar los alimentos base: ${error.message}`);
   return rows.length;
 }
@@ -308,7 +305,7 @@ export async function toggleFoodFavorite(workspaceId: string, foodId: string): P
   if (!memberId) return;
   const supabase = createServiceSupabaseClient();
 
-  const existing = await (supabase as any)
+  const existing = await supabase
     .from("member_food_favorites")
     .select("id")
     .eq("member_profile_id", memberId)
@@ -316,10 +313,10 @@ export async function toggleFoodFavorite(workspaceId: string, foodId: string): P
     .maybeSingle();
 
   if (existing.data?.id) {
-    await (supabase as any).from("member_food_favorites").delete().eq("id", existing.data.id);
+    await supabase.from("member_food_favorites").delete().eq("id", existing.data.id);
     return;
   }
-  await (supabase as any).from("member_food_favorites").insert({
+  await supabase.from("member_food_favorites").insert({
     workspace_id: workspaceId,
     member_profile_id: memberId,
     food_item_id: foodId,
@@ -336,7 +333,7 @@ async function resolveFood(workspaceId: string, foodId: string): Promise<FoodIte
   const supabase = createServiceSupabaseClient();
   // A food can be the workspace's own row OR a shared base-library row
   // (workspace_id null), so quick-add resolves both.
-  const { data } = await (supabase as any)
+  const { data } = await supabase
     .from("food_library_items")
     .select("id,name,brand,serving_label,category,protein_g,fat_g,carbs_g,calories,image_url,workspace_id,is_base_library")
     .eq("id", foodId)

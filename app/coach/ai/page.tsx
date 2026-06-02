@@ -2,7 +2,7 @@ import { Brain, Gauge, MessageCircleQuestion, ShieldCheck, Sparkles, Wand2 } fro
 import Link from "next/link";
 import { SubmitButton } from "@/components/ui";
 import { Topbar } from "@/components/topbar";
-import { isCoachBrainAiConfigured } from "@/lib/ai/coach-brain";
+import { isCoachBrainAiConfigured } from "@/lib/ai/coach-chat";
 import { AI_MONTHLY_LIMITS, getMonthlyAiUsage } from "@/lib/ai/usage";
 import { getSelectedMemberAppBrand } from "@/lib/member-app";
 import { getCoachBrain, listRecentClientQuestions } from "@/lib/repositories/coach-brain";

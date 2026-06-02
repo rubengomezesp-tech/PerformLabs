@@ -5,6 +5,8 @@ import { appSettingDefinitions, defaultMemberAppPages } from "@/lib/domain/platf
 import type { EntitlementModule, EntitlementStatus, WorkspaceEntitlement } from "@/lib/repositories/entitlements";
 import { getSupabaseServiceEnv } from "@/lib/supabase/env";
 import { createServiceSupabaseClient } from "@/lib/supabase/server";
+import type { Json, TablesInsert } from "@/lib/supabase/types";
+import { isUuid } from "@/lib/utils/uuid";
 
 export type WorkspaceSummary = {
   id: string;
@@ -177,11 +179,7 @@ function isInternalWorkspace(workspace: { name: string; slug: string }) {
   return workspace.slug === "platform" || name.includes("operativa") || name.includes("mother platform");
 }
 
-function isUuid(value: string) {
-  return /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(value);
-}
-
-function normalizeWorkspaceReference(value?: string | null) {
+export function normalizeWorkspaceReference(value?: string | null) {
   const reference = normalizeDomain(value);
   if (!reference || reference === "localhost" || reference === "127.0.0.1") {
     return "";
@@ -251,7 +249,7 @@ function mapSummaryEntitlement(row?: {
 }
 
 async function seedBaseWorkspaceApp(
-  supabase: any,
+  supabase: ReturnType<typeof createServiceSupabaseClient>,
   input: {
     workspaceId: string;
     workspaceName: string;
@@ -267,14 +265,14 @@ async function seedBaseWorkspaceApp(
     "support.website_url": publicUrl,
   };
 
-  const settingsPayload = appSettingDefinitions.map((setting) => ({
+  const settingsPayload: TablesInsert<"app_settings">[] = appSettingDefinitions.map((setting) => ({
     workspace_id: input.workspaceId,
     key: setting.key,
-    value: settingOverrides[setting.key] ?? setting.defaultValue,
+    value: (settingOverrides[setting.key] ?? setting.defaultValue) as Json,
     updated_at: new Date().toISOString(),
   }));
 
-  const settingsResult = await (supabase as any)
+  const settingsResult = await supabase
     .from("app_settings")
     .upsert(settingsPayload, { onConflict: "workspace_id,key" });
 
@@ -282,38 +280,40 @@ async function seedBaseWorkspaceApp(
     throw new Error(`No se pudo preparar la configuracion base: ${settingsResult.error.message}`);
   }
 
-  const contentResult = await (supabase as any)
-    .from("content_pages")
-    .upsert([
-      {
-        workspace_id: input.workspaceId,
-        title: "Bienvenida",
-        slug: "bienvenida",
-        status: "draft",
-        body: {
-          title: `Bienvenido a ${input.workspaceName}`,
-          notes: "Preparar bienvenida, normas de uso y primeros pasos del cliente.",
-        },
+  const contentPages: TablesInsert<"content_pages">[] = [
+    {
+      workspace_id: input.workspaceId,
+      title: "Bienvenida",
+      slug: "bienvenida",
+      status: "draft",
+      body: {
+        title: `Bienvenido a ${input.workspaceName}`,
+        notes: "Preparar bienvenida, normas de uso y primeros pasos del cliente.",
       },
-      {
-        workspace_id: input.workspaceId,
+    },
+    {
+      workspace_id: input.workspaceId,
+      title: "Soporte",
+      slug: "soporte",
+      status: "draft",
+      body: {
         title: "Soporte",
-        slug: "soporte",
-        status: "draft",
-        body: {
-          title: "Soporte",
-          notes: "Definir canales, tiempos de respuesta y mensajes iniciales.",
-        },
+        notes: "Definir canales, tiempos de respuesta y mensajes iniciales.",
       },
-    ], { onConflict: "workspace_id,slug" })
+    },
+  ];
+
+  const contentResult = await supabase
+    .from("content_pages")
+    .upsert(contentPages, { onConflict: "workspace_id,slug" })
     .select("id,slug");
 
   if (contentResult.error) {
     throw new Error(`No se pudo crear el contenido base: ${contentResult.error.message}`);
   }
 
-  const contentPageBySlug = new Map((contentResult.data ?? []).map((page: any) => [page.slug, page.id]));
-  const appPages = defaultMemberAppPages.map((page) => ({
+  const contentPageBySlug = new Map((contentResult.data ?? []).map((page) => [page.slug, page.id]));
+  const appPages: TablesInsert<"app_pages">[] = defaultMemberAppPages.map((page) => ({
     workspace_id: input.workspaceId,
     title: page.title,
     route: page.route,
@@ -329,7 +329,7 @@ async function seedBaseWorkspaceApp(
         : null,
   }));
 
-  const appPagesResult = await (supabase as any)
+  const appPagesResult = await supabase
     .from("app_pages")
     .upsert(appPages, { onConflict: "workspace_id,route" });
 
@@ -337,7 +337,7 @@ async function seedBaseWorkspaceApp(
     throw new Error(`No se pudo crear la navegacion base: ${appPagesResult.error.message}`);
   }
 
-  const existingProduct = await (supabase as any)
+  const existingProduct = await supabase
     .from("product_catalog_items")
     .select("id")
     .eq("workspace_id", input.workspaceId)
@@ -345,7 +345,7 @@ async function seedBaseWorkspaceApp(
     .maybeSingle();
 
   if (!existingProduct.data?.id) {
-    const productResult = await (supabase as any).from("product_catalog_items").insert({
+    const productResult = await supabase.from("product_catalog_items").insert({
       workspace_id: input.workspaceId,
       name: `Programa ${input.workspaceName}`,
       description: "Oferta principal pendiente de definir.",
@@ -409,7 +409,7 @@ export async function listWorkspaceSummaries(): Promise<{
   if (workspaceIds.length) {
     const [memberRows, subRows] = await Promise.all([
       supabase.from("member_profiles").select("workspace_id").in("workspace_id", workspaceIds),
-      (supabase as any).from("member_subscriptions").select("workspace_id,amount,status").in("workspace_id", workspaceIds),
+      supabase.from("member_subscriptions").select("workspace_id,amount,status").in("workspace_id", workspaceIds),
     ]);
     for (const row of (memberRows.data ?? []) as Array<{ workspace_id: string }>) {
       membersByWorkspace.set(row.workspace_id, (membersByWorkspace.get(row.workspace_id) ?? 0) + 1);
@@ -501,7 +501,7 @@ export async function createWorkspace(input: WorkspaceInput) {
   return data.id as string;
 }
 
-async function applyBrandingSettings(supabase: any, brand: WorkspaceBrand): Promise<WorkspaceBrand> {
+async function applyBrandingSettings(supabase: ReturnType<typeof createServiceSupabaseClient>, brand: WorkspaceBrand): Promise<WorkspaceBrand> {
   if (!isUuid(brand.id)) return brand;
 
   const { data } = await supabase
@@ -552,7 +552,7 @@ export async function updateWorkspaceBranding(workspaceId: string, fields: Works
   if (!payload.length) return;
 
   const supabase = createServiceSupabaseClient();
-  const { error } = await (supabase as any).from("app_settings").upsert(payload, { onConflict: "workspace_id,key" });
+  const { error } = await supabase.from("app_settings").upsert(payload, { onConflict: "workspace_id,key" });
   if (error) {
     throw new Error(`No se pudo guardar la marca: ${error.message}`);
   }

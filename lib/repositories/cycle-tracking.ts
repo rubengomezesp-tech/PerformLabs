@@ -1,4 +1,5 @@
 import { getMemberContext } from "@/lib/auth/member-access";
+import { DAY_MS } from "@/lib/utils/dates";
 import { getSupabaseServiceEnv } from "@/lib/supabase/env";
 import { createServiceSupabaseClient } from "@/lib/supabase/server";
 
@@ -45,13 +46,13 @@ function daysBetweenIso(fromIso: string, toIso: string) {
   const from = new Date(`${fromIso}T00:00:00.000Z`).getTime();
   const to = new Date(`${toIso}T00:00:00.000Z`).getTime();
   if (!Number.isFinite(from) || !Number.isFinite(to)) return null;
-  return Math.round((to - from) / 86_400_000);
+  return Math.round((to - from) / DAY_MS);
 }
 
 function addDaysIso(fromIso: string, days: number) {
   const base = new Date(`${fromIso}T00:00:00.000Z`).getTime();
   if (!Number.isFinite(base)) return null;
-  return new Date(base + days * 86_400_000).toISOString().slice(0, 10);
+  return new Date(base + days * DAY_MS).toISOString().slice(0, 10);
 }
 
 /** Returns the member's cycle history plus a light prediction. Empty + safe when no session. */
@@ -69,7 +70,7 @@ export async function getCycleOverview(workspaceId?: string, limit = 24): Promis
   const scope = await resolveMemberScope(workspaceId);
   if (!scope) return empty;
 
-  const { data, error } = await (supabase as any)
+  const { data, error } = await supabase
     .from("member_cycle_logs")
     .select("id,logged_on,entry_type,flow,symptoms,notes")
     .eq("member_profile_id", scope.memberProfileId)
@@ -127,7 +128,7 @@ export async function upsertCycleLog(input: {
   const flow = input.flow && ["light", "medium", "heavy"].includes(input.flow) ? input.flow : null;
 
   const supabase = createServiceSupabaseClient();
-  const { error } = await (supabase as any)
+  const { error } = await supabase
     .from("member_cycle_logs")
     .upsert(
       {
@@ -155,7 +156,7 @@ export async function deleteCycleLog(workspaceId: string, entryId: string) {
   }
 
   const supabase = createServiceSupabaseClient();
-  const { error } = await (supabase as any)
+  const { error } = await supabase
     .from("member_cycle_logs")
     .delete()
     .eq("id", entryId)

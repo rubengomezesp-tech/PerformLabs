@@ -338,13 +338,13 @@ export async function getCoachDashboard(workspaceId?: string): Promise<CoachDash
       .select("id,full_name,goal,subscription_status,onboarding_status,created_at")
       .eq("workspace_id", workspaceId)
       .order("created_at", { ascending: false }),
-    (supabase as any)
+    supabase
       .from("member_onboarding_responses")
       .select("id,member_profile_id,goal,training_days_per_week,training_location,session_minutes,meals_per_day,status,onboarding_payload,submitted_at,reviewed_at,member_profiles(full_name)")
       .eq("workspace_id", workspaceId)
       .order("submitted_at", { ascending: false })
       .limit(16),
-    (supabase as any)
+    supabase
       .from("member_meal_logs")
       .select("id,member_profile_id,meal_title,meal_slot,status,notes,logged_on,created_at,member_profiles(full_name)")
       .eq("workspace_id", workspaceId)
@@ -352,25 +352,25 @@ export async function getCoachDashboard(workspaceId?: string): Promise<CoachDash
       .gte("logged_on", since7Date)
       .order("created_at", { ascending: false })
       .limit(16),
-    (supabase as any)
+    supabase
       .from("customer_checkins")
       .select("id,member_profile_id,status,submitted_at,created_at,member_profiles(full_name)")
       .eq("workspace_id", workspaceId)
       .neq("status", "reviewed")
       .order("created_at", { ascending: false })
       .limit(16),
-    (supabase as any)
+    supabase
       .from("assigned_workout_plans")
       .select("id,member_profile_id,name,next_review_on,review_status,member_profiles(full_name)")
       .eq("workspace_id", workspaceId)
       .eq("status", "active")
       .order("next_review_on", { ascending: true }),
-    (supabase as any)
+    supabase
       .from("workout_session_logs")
       .select("id,member_profile_id,session_date,status")
       .eq("workspace_id", workspaceId)
       .gte("session_date", since7Date),
-    (supabase as any)
+    supabase
       .from("member_activity_events")
       .select("id,event_type,source,metadata,occurred_at,created_at,member_profiles(full_name)")
       .eq("workspace_id", workspaceId)
@@ -553,7 +553,7 @@ export async function getCoachBriefingDetail(input: {
 
   const supabase = createServiceSupabaseClient();
   const [responseResult, workoutTemplates, dietTemplates] = await Promise.all([
-    (supabase as any)
+    supabase
       .from("member_onboarding_responses")
       .select("id,member_profile_id,goal,training_days_per_week,training_location,session_minutes,meals_per_day,activity_level,status,onboarding_payload,submitted_at,reviewed_at,member_profiles(full_name)")
       .eq("workspace_id", input.workspaceId)
@@ -638,7 +638,7 @@ export async function markOnboardingBriefingReviewed(input: {
   }
 
   const supabase = createServiceSupabaseClient();
-  const existing = await (supabase as any)
+  const existing = await supabase
     .from("member_onboarding_responses")
     .select("id,member_profile_id")
     .eq("workspace_id", input.workspaceId)
@@ -654,7 +654,7 @@ export async function markOnboardingBriefingReviewed(input: {
   }
 
   const now = new Date().toISOString();
-  const update = await (supabase as any)
+  const update = await supabase
     .from("member_onboarding_responses")
     .update({
       status: "reviewed",

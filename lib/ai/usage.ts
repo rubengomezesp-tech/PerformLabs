@@ -1,5 +1,6 @@
 import { getSupabaseServiceEnv } from "@/lib/supabase/env";
 import { createServiceSupabaseClient } from "@/lib/supabase/server";
+import { isUuid } from "@/lib/utils/uuid";
 
 export type AiFeature = "coach_brain" | "plan_gen" | "photo";
 
@@ -43,10 +44,6 @@ export function estimateCostUsd(model: string, usage: AiTokenUsage): number {
   );
 }
 
-function isUuid(value?: string | null): value is string {
-  return !!value && /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(value);
-}
-
 function startOfMonthIso(): string {
   const now = new Date();
   return new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), 1)).toISOString();
@@ -65,7 +62,7 @@ export async function recordAiUsage(input: {
 
   try {
     const supabase = createServiceSupabaseClient();
-    await (supabase as any).from("ai_usage_events").insert({
+    await supabase.from("ai_usage_events").insert({
       workspace_id: input.workspaceId,
       feature: input.feature,
       model: input.model,
@@ -94,7 +91,7 @@ export async function getMonthlyAiUsage(workspaceId?: string): Promise<MonthlyAi
   if (!env.ok || !isUuid(workspaceId)) return empty;
 
   const supabase = createServiceSupabaseClient();
-  const { data, error } = await (supabase as any)
+  const { data, error } = await supabase
     .from("ai_usage_events")
     .select("feature,cost_usd")
     .eq("workspace_id", workspaceId)

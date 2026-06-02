@@ -82,7 +82,7 @@ export async function createSalesLead(input: SalesLeadInput) {
 
 export async function listSalesLeads(): Promise<SalesLeadSummary[]> {
   const supabase = createServiceSupabaseClient();
-  const { data, error } = await (supabase as any)
+  const { data, error } = await supabase
     .from("sales_leads")
     .select("id,full_name,email,phone,brand_name,monthly_clients,main_goal,notes,status,priority,assigned_agent,next_action_at,created_at")
     .order("created_at", { ascending: false })
@@ -96,12 +96,12 @@ export async function listSalesLeads(): Promise<SalesLeadSummary[]> {
   const leadIds = data.map((lead: any) => lead.id);
   const [notesResult, projectsResult] = leadIds.length
     ? await Promise.all([
-        (supabase as any)
+        supabase
           .from("lead_notes")
           .select("lead_id,note,created_at")
           .in("lead_id", leadIds)
           .order("created_at", { ascending: false }),
-        (supabase as any)
+        supabase
           .from("implementation_projects")
           .select("id,lead_id")
           .in("lead_id", leadIds),
@@ -147,7 +147,7 @@ export async function updateSalesLead(input: LeadUpdateInput) {
   }
 
   const supabase = createServiceSupabaseClient();
-  const { error } = await (supabase as any)
+  const { error } = await supabase
     .from("sales_leads")
     .update({
       status: input.status,
@@ -172,7 +172,7 @@ export async function addLeadNote(input: LeadNoteInput) {
   }
 
   const supabase = createServiceSupabaseClient();
-  const { error } = await (supabase as any).from("lead_notes").insert({
+  const { error } = await supabase.from("lead_notes").insert({
     lead_id: input.leadId,
     author_name: input.authorName.trim() || "Equipo",
     note,

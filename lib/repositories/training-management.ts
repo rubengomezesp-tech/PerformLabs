@@ -4,6 +4,7 @@ import { buildPeriodizedWorkoutPlan, type ExperienceLevel, type TrainingLocation
 import { getMemberContext } from "@/lib/auth/member-access";
 import { getSupabaseServiceEnv } from "@/lib/supabase/env";
 import { createServiceSupabaseClient } from "@/lib/supabase/server";
+import { isUuid } from "@/lib/utils/uuid";
 
 export type ManagedExercise = {
   id: string;
@@ -189,10 +190,6 @@ function splitList(value: string) {
 function parseInteger(value: string, fallback: number) {
   const parsed = Number.parseInt(value, 10);
   return Number.isFinite(parsed) ? parsed : fallback;
-}
-
-function isUuid(value?: string): value is string {
-  return !!value && /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(value);
 }
 
 function cleanFilter(value?: string) {
@@ -1083,7 +1080,7 @@ export async function swapAssignedWorkoutExercise(input: { workspaceId: string; 
     throw new Error("Ese ejercicio no es de tu marca.");
   }
 
-  const { data, error } = await (supabase as any)
+  const { data, error } = await supabase
     .from("assigned_workout_exercises")
     .update({
       exercise_id: exercise.data.id,

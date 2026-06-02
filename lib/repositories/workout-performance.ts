@@ -72,7 +72,7 @@ export async function createWorkoutSessionLog(input: WorkoutSessionLogInput) {
   const completedSets = input.sets.filter((set) => set.actualReps || set.weightKg || set.rir || set.rpe || set.notes);
   const status = input.sets.length && completedSets.length >= input.sets.length * 0.8 ? "completed" : completedSets.length ? "partial" : "planned";
 
-  const sessionResult = await (supabase as any)
+  const sessionResult = await supabase
     .from("workout_session_logs")
     .insert({
       workspace_id: input.workspaceId,
@@ -126,7 +126,7 @@ export async function createWorkoutSessionLog(input: WorkoutSessionLogInput) {
     notes: set.notes.trim() || null,
   }));
 
-  const setResult = await (supabase as any).from("workout_set_logs").insert(setPayload);
+  const setResult = await supabase.from("workout_set_logs").insert(setPayload);
   if (setResult.error) {
     throw new Error(`Se guardo la sesion, pero no los sets: ${setResult.error.message}`);
   }
@@ -265,7 +265,7 @@ export async function getWorkoutPerformanceSummary(workspaceId?: string): Promis
   const fromDate = new Date();
   fromDate.setDate(fromDate.getDate() - 7);
 
-  const sessions = await (supabase as any)
+  const sessions = await supabase
     .from("workout_session_logs")
     .select("id,session_date,status")
     .eq("workspace_id", workspaceId)
@@ -279,7 +279,7 @@ export async function getWorkoutPerformanceSummary(workspaceId?: string): Promis
   }
 
   const sessionIds = sessions.data.map((session: { id: string }) => session.id);
-  const sets = await (supabase as any)
+  const sets = await supabase
     .from("workout_set_logs")
     .select("session_log_id,actual_reps,weight_kg,set_number,exercises(name)")
     .in("session_log_id", sessionIds);

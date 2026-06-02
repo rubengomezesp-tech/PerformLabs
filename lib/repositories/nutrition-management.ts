@@ -3,6 +3,7 @@ import { getMemberContext } from "@/lib/auth/member-access";
 import { dietTemplateCategories, meals } from "@/lib/data";
 import { getSupabaseServiceEnv } from "@/lib/supabase/env";
 import { createServiceSupabaseClient } from "@/lib/supabase/server";
+import { isUuid } from "@/lib/utils/uuid";
 
 export type ManagedDietCategory = {
   id: string;
@@ -150,14 +151,18 @@ function parseFloatValue(value: string, fallback = 0) {
   return Number.isFinite(parsed) ? parsed : fallback;
 }
 
-function parseRatio(value: string) {
-  const parsed = Number.parseFloat(value);
-  if (!Number.isFinite(parsed)) return null;
-  return parsed > 1 ? parsed / 100 : parsed;
-}
-
-function isUuid(value?: string): value is string {
-  return !!value && /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(value);
+/**
+ * Macro ratios are entered and stored as percentages (0–100): the UI inputs use a
+ * "35" placeholder / numeric min–max, the targets flow computes integers like
+ * 30/45/25 and the template view renders `ratio * 100 %`. Read the value as an
+ * explicit percentage instead of guessing magnitude from `> 1` — the old heuristic
+ * mis-read "1" as 100% (not 1%) and any sub-1 percentage as a fraction. Non-numeric
+ * or out-of-range (0–100) input → null, and the caller skips it.
+ */
+export function parseRatio(value: string): number | null {
+  const percent = Number.parseFloat(value);
+  if (!Number.isFinite(percent) || percent < 0 || percent > 100) return null;
+  return percent / 100;
 }
 
 function fallbackCategories(): ManagedDietCategory[] {
@@ -486,7 +491,7 @@ export async function swapAssignedMealItem(input: { workspaceId: string; itemId:
   if (!member) throw new Error("No se pudo identificar la app del cliente.");
 
   const supabase = createServiceSupabaseClient();
-  const { data, error } = await (supabase as any)
+  const { data, error } = await supabase
     .from("assigned_meal_plan_items")
     .update({
       recipe_id: recipe.id,

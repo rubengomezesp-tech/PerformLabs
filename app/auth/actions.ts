@@ -73,7 +73,7 @@ export async function signInAction(formData: FormData) {
   const password = readText(formData, "password");
   const nextPath = safeRedirectPath(readText(formData, "next"));
   const securityContext = await getLoginSecurityContext(email);
-  const rateLimit = checkLoginRateLimit(securityContext.rateLimitKey);
+  const rateLimit = await checkLoginRateLimit(securityContext.rateLimitKey);
 
   if (!rateLimit.allowed) {
     await recordSecurityAuditEvent({
@@ -91,7 +91,7 @@ export async function signInAction(formData: FormData) {
   const { data, error } = await supabase.auth.signInWithPassword({ email, password });
 
   if (error || !data.session) {
-    const failedAttempt = recordFailedLogin(securityContext.rateLimitKey);
+    const failedAttempt = await recordFailedLogin(securityContext.rateLimitKey);
     await recordSecurityAuditEvent({
       action: "auth.sign_in_failed",
       entityType: "auth",
@@ -105,7 +105,7 @@ export async function signInAction(formData: FormData) {
     redirect(`/login?error=${encodeURIComponent("No hemos podido iniciar sesión con esos datos.")}`);
   }
 
-  clearLoginRateLimit(securityContext.rateLimitKey);
+  await clearLoginRateLimit(securityContext.rateLimitKey);
   await acceptPendingTeamInvitationsForUser({
     userId: data.user.id,
     email,
@@ -135,7 +135,7 @@ export async function memberSignInAction(formData: FormData) {
   const email = readText(formData, "email").toLowerCase();
   const password = readText(formData, "password");
   const securityContext = await getLoginSecurityContext(email);
-  const rateLimit = checkLoginRateLimit(securityContext.rateLimitKey);
+  const rateLimit = await checkLoginRateLimit(securityContext.rateLimitKey);
 
   if (!rateLimit.allowed) {
     redirect("/acceso?error=" + encodeURIComponent(`Demasiados intentos. Espera ${rateLimit.retryAfterSeconds} segundos.`));
@@ -145,7 +145,7 @@ export async function memberSignInAction(formData: FormData) {
   const { data, error } = await supabase.auth.signInWithPassword({ email, password });
 
   if (error || !data.session) {
-    recordFailedLogin(securityContext.rateLimitKey);
+    await recordFailedLogin(securityContext.rateLimitKey);
     await recordSecurityAuditEvent({
       action: "auth.member_sign_in_failed",
       entityType: "auth",
@@ -154,7 +154,7 @@ export async function memberSignInAction(formData: FormData) {
     redirect("/acceso?error=" + encodeURIComponent("Email o contraseña incorrectos."));
   }
 
-  clearLoginRateLimit(securityContext.rateLimitKey);
+  await clearLoginRateLimit(securityContext.rateLimitKey);
   await setAuthCookies({
     accessToken: data.session.access_token,
     refreshToken: data.session.refresh_token,
@@ -186,7 +186,7 @@ export async function requestMemberAccessLinkAction(formData: FormData) {
   }
 
   const securityContext = await getLoginSecurityContext(email);
-  const rateLimit = checkLoginRateLimit(securityContext.rateLimitKey);
+  const rateLimit = await checkLoginRateLimit(securityContext.rateLimitKey);
   if (!rateLimit.allowed) {
     redirect("/acceso?error=" + encodeURIComponent(`Demasiados intentos. Espera ${rateLimit.retryAfterSeconds} segundos.`));
   }

@@ -1,6 +1,7 @@
 import { getMemberContext } from "@/lib/auth/member-access";
 import { getSupabaseServiceEnv } from "@/lib/supabase/env";
 import { createServiceSupabaseClient } from "@/lib/supabase/server";
+import { isUuid } from "@/lib/utils/uuid";
 
 export type CardioModality = "caminar" | "correr" | "bici" | "eliptica" | "hiit" | "remo";
 
@@ -40,10 +41,6 @@ export type LogCardioInput = {
 
 const VALID_MODALITIES = new Set<string>(["caminar", "correr", "bici", "eliptica", "hiit", "remo"]);
 const VALID_INTENSITIES = new Set<string>(["baja", "media", "alta"]);
-
-function isUuid(value?: string | null): value is string {
-  return !!value && /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(value);
-}
 
 function todayIso() {
   return new Date().toISOString().slice(0, 10);
@@ -116,7 +113,7 @@ export async function listCardioSessions(workspaceId?: string, limit = 8): Promi
   if (!memberProfileId) return empty;
 
   const safeLimit = Math.min(Math.max(Math.trunc(limit) || 8, 1), 50);
-  const result = await (supabase as any)
+  const result = await supabase
     .from("cardio_session_logs")
     .select("id,logged_on,modality,minutes,intensity,distance_km,calories,avg_hr,notes")
     .eq("member_profile_id", memberProfileId)
@@ -156,7 +153,7 @@ export async function logCardioSession(input: LogCardioInput) {
   const minutes = optInt(input.minutes, 600);
   const notes = input.notes?.trim() ? input.notes.trim().slice(0, 500) : null;
 
-  const { error } = await (supabase as any).from("cardio_session_logs").insert({
+  const { error } = await supabase.from("cardio_session_logs").insert({
     workspace_id: input.workspaceId,
     member_profile_id: memberProfileId,
     logged_on: safeDate(input.loggedOn),

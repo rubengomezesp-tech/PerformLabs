@@ -350,12 +350,28 @@ textarea {
   font-size: 12px;
 }
 
-.sessionBadge a {
+.sessionBadge a,
+.sessionBadge button {
   width: fit-content;
   margin-top: 4px;
   color: var(--gold);
   font-size: 12px;
   font-weight: 800;
+}
+
+/* The logout control is a server-action form (CSRF-safe) rendered to look like
+   the old link; display:contents keeps the button as the flex child it was. */
+.sessionBadge form {
+  display: contents;
+}
+
+.sessionBadge button {
+  border: 0;
+  background: none;
+  padding: 0;
+  cursor: pointer;
+  font-family: inherit;
+  text-align: left;
 }
 
 .mobileSession {

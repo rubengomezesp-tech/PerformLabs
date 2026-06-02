@@ -1,7 +1,7 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
-import { answerAsCoach } from "@/lib/ai/coach-brain";
+import { answerAsCoach } from "@/lib/ai/coach-chat";
 import { checkAiQuota, recordAiUsage } from "@/lib/ai/usage";
 import { getSelectedMemberAppBrand } from "@/lib/member-app";
 import {
