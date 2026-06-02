@@ -3,7 +3,8 @@ import Link from "next/link";
 import { Topbar } from "@/components/topbar";
 import { getSelectedMemberAppBrand } from "@/lib/member-app";
 import { type ReactNode } from "react";
-import { getMemberCheckinSummary, type MeasurementSummary } from "@/lib/repositories/checkin-management";
+import { getMemberOwnProgress, type MeasurementSummary } from "@/lib/repositories/checkin-management";
+import { getMemberContext } from "@/lib/auth/member-access";
 import { createMemberCheckinAction } from "./actions";
 
 export const dynamic = "force-dynamic";
@@ -139,7 +140,9 @@ export default async function ProgressPage({ searchParams }: ProgressPageProps) 
   const tab = TABS.some(([key]) => key === params?.tab) ? (params!.tab as string) : "resumen";
 
   const brand = await getSelectedMemberAppBrand();
-  const summary = await getMemberCheckinSummary(brand.id);
+  // Member-scoped: a member only ever sees their OWN check-ins, measurements and photos.
+  const context = await getMemberContext(brand.id);
+  const summary = await getMemberOwnProgress(brand.id, context?.memberProfileId ?? "");
   const latest = summary.latest;
   const weightTrend = summary.weightTrend;
   const totalWeightDelta = weightTrend.length > 1 ? weightTrend[weightTrend.length - 1].weightKg - weightTrend[0].weightKg : null;
@@ -244,16 +247,39 @@ export default async function ProgressPage({ searchParams }: ProgressPageProps) 
               </div>
               <span className={latest?.photosAvailable ? "tag" : "tag danger"}>{latest?.photosAvailable ? "Incluidas" : "Pendientes"}</span>
             </div>
-            <div className="progressPhotoSlots">
-              {(["Frontal", "Lateral", "Espalda"] as const).map((angle, idx) => (
-                <figure className="progressPhotoSlot uiFadeUp" key={angle} style={{ ["--i" as string]: idx }}>
-                  <div className="progressPhotoFrame" aria-hidden="true"><Camera size={20} /></div>
-                  <figcaption>{angle}</figcaption>
-                </figure>
-              ))}
-            </div>
+            {summary.photoUrls.length ? (
+              <>
+                {summary.photosTakenAt ? (
+                  <p className="muted">Fotos de tu check-in del {new Date(summary.photosTakenAt).toLocaleDateString("es-ES", { day: "numeric", month: "long" })}.</p>
+                ) : null}
+                <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(150px, 1fr))", gap: 12 }}>
+                  {summary.photoUrls.map((url, idx) => (
+                    <a
+                      key={url}
+                      href={url}
+                      target="_blank"
+                      rel="noreferrer"
+                      className="uiFadeUp"
+                      style={{ display: "block", aspectRatio: "3 / 4", borderRadius: 14, overflow: "hidden", border: "1px solid var(--border)", ["--i" as string]: idx }}
+                    >
+                      {/* eslint-disable-next-line @next/next/no-img-element */}
+                      <img src={url} alt={`Foto de progreso ${idx + 1}`} style={{ width: "100%", height: "100%", objectFit: "cover", display: "block" }} />
+                    </a>
+                  ))}
+                </div>
+              </>
+            ) : (
+              <div className="progressPhotoSlots">
+                {(["Frontal", "Lateral", "Espalda"] as const).map((angle, idx) => (
+                  <figure className="progressPhotoSlot uiFadeUp" key={angle} style={{ ["--i" as string]: idx }}>
+                    <div className="progressPhotoFrame" aria-hidden="true"><Camera size={20} /></div>
+                    <figcaption>{angle}</figcaption>
+                  </figure>
+                ))}
+              </div>
+            )}
             <p className="muted">Las fotos se suben al enviar tu check-in semanal en la pestaña Medidas. Quedan privadas entre tú y tu coach.</p>
-            <Link className="btn primary" href="/app/progress?tab=medidas">Ir a enviar check-in <CheckCircle2 size={16} /></Link>
+            <Link className="btn primary" href="/app/progress?tab=medidas">{summary.photoUrls.length ? "Enviar nuevo check-in" : "Ir a enviar check-in"} <CheckCircle2 size={16} /></Link>
           </article>
         ) : null}
 
