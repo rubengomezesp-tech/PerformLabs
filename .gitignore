@@ -14,6 +14,10 @@ supabase/.temp
 .vercel
 .agents
 skills-lock.json
+
+# App Factory: native deps + per-coach generated projects/build artifacts
+mobile/node_modules/
+mobile/generated/
 .DS_Store
 *.log
 *.tsbuildinfo

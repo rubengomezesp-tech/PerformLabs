@@ -1,0 +1,16 @@
+{
+  "slug": "marca-blanca-fitness",
+  "appId": "app.performlabs.marcablancafitness",
+  "appName": "Marca Blanca Fitness",
+  "shortName": "Marca Blanca",
+  "memberUrl": "https://marca-blanca.performlabs.app/app",
+  "themeColor": "#0d0d10",
+  "accentColor": "#078df2",
+  "backgroundColor": "#0d0d10",
+  "iconSource": "https://res.cloudinary.com/REPLACE/image/upload/marca-blanca-logo-1024.png",
+  "stores": {
+    "appleTeamId": "REPLACE_APPLE_TEAM_ID",
+    "appleAscKeyRef": "ASC_KEY_MARCA_BLANCA_FITNESS",
+    "playServiceAccountRef": "PLAY_JSON_MARCA_BLANCA_FITNESS"
+  }
+}

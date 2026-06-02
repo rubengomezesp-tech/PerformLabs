@@ -1,0 +1,80 @@
+name: Publish coach app
+
+# Build + publish ONE coach's branded native app to the App Store / Google Play,
+# under THAT coach's store account. Run once per coach (repeatable 1→1000).
+#
+# Per-coach credentials live in a GitHub Environment named after the coach slug
+# (e.g. environment "marca-blanca-fitness"), holding the secrets below. The job
+# selects it via `environment: ${{ inputs.coach_slug }}`, so the SAME workflow
+# resolves each coach's own secrets — the scalable pattern for many tenants.
+#
+# Environment secrets (per coach):
+#   iOS    : ASC_KEY_ID, ASC_ISSUER_ID, ASC_KEY_CONTENT (base64 of the .p8)
+#   Android: PLAY_JSON  (the Play service-account JSON contents)
+
+on:
+  workflow_dispatch:
+    inputs:
+      coach_slug:
+        description: "Coach slug (must match mobile/coaches/<slug>.json and the GitHub Environment name)"
+        required: true
+        type: string
+      platform:
+        description: "Which store(s) to publish"
+        required: true
+        default: both
+        type: choice
+        options: [both, ios, android]
+      track:
+        description: "Android track"
+        required: false
+        default: internal
+        type: choice
+        options: [internal, alpha, beta, production]
+
+jobs:
+  android:
+    if: ${{ inputs.platform == 'android' || inputs.platform == 'both' }}
+    runs-on: ubuntu-latest
+    environment: ${{ inputs.coach_slug }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v4
+        with: { node-version: 22, cache: pnpm }
+      - uses: actions/setup-java@v4
+        with: { distribution: temurin, java-version: "21" }
+      - name: Install factory deps
+        run: cd mobile && pnpm install --no-frozen-lockfile
+      - name: Generate coach project
+        run: cd mobile && node scripts/generate-app.mjs "${{ inputs.coach_slug }}"
+      - name: Add + sync Android
+        run: cd mobile/generated/${{ inputs.coach_slug }} && npx cap add android && npx cap sync android
+      - name: Build + upload to Play (coach account)
+        env:
+          PLAY_TRACK: ${{ inputs.track }}
+        run: |
+          echo '${{ secrets.PLAY_JSON }}' > "$RUNNER_TEMP/play.json"
+          cd mobile && PLAY_JSON_PATH="$RUNNER_TEMP/play.json" fastlane android coach:${{ inputs.coach_slug }}
+
+  ios:
+    if: ${{ inputs.platform == 'ios' || inputs.platform == 'both' }}
+    runs-on: macos-14
+    environment: ${{ inputs.coach_slug }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v4
+        with: { node-version: 22, cache: pnpm }
+      - name: Install factory deps
+        run: cd mobile && pnpm install --no-frozen-lockfile
+      - name: Generate coach project
+        run: cd mobile && node scripts/generate-app.mjs "${{ inputs.coach_slug }}"
+      - name: Add + sync iOS
+        run: cd mobile/generated/${{ inputs.coach_slug }} && npx cap add ios && npx cap sync ios
+      - name: Build + upload to App Store (coach account)
+        env:
+          ASC_KEY_ID: ${{ secrets.ASC_KEY_ID }}
+          ASC_ISSUER_ID: ${{ secrets.ASC_ISSUER_ID }}
+          ASC_KEY_CONTENT: ${{ secrets.ASC_KEY_CONTENT }}
+        run: cd mobile && fastlane ios coach:${{ inputs.coach_slug }}
