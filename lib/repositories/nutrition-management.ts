@@ -151,10 +151,18 @@ function parseFloatValue(value: string, fallback = 0) {
   return Number.isFinite(parsed) ? parsed : fallback;
 }
 
-function parseRatio(value: string) {
-  const parsed = Number.parseFloat(value);
-  if (!Number.isFinite(parsed)) return null;
-  return parsed > 1 ? parsed / 100 : parsed;
+/**
+ * Macro ratios are entered and stored as percentages (0–100): the UI inputs use a
+ * "35" placeholder / numeric min–max, the targets flow computes integers like
+ * 30/45/25 and the template view renders `ratio * 100 %`. Read the value as an
+ * explicit percentage instead of guessing magnitude from `> 1` — the old heuristic
+ * mis-read "1" as 100% (not 1%) and any sub-1 percentage as a fraction. Non-numeric
+ * or out-of-range (0–100) input → null, and the caller skips it.
+ */
+export function parseRatio(value: string): number | null {
+  const percent = Number.parseFloat(value);
+  if (!Number.isFinite(percent) || percent < 0 || percent > 100) return null;
+  return percent / 100;
 }
 
 function fallbackCategories(): ManagedDietCategory[] {
