@@ -14081,6 +14081,26 @@ button[aria-busy="true"] {
 @media (prefers-reduced-motion: reduce) {
   .guideCard:hover { transform: none; }
 }
+
+/* ===== Content-card section labels — lowercase, not kickers =====
+   The .eyebrow class is shared with brand labels that need uppercase (sidebar,
+   etc.). Inside content cards it acts as a section marker, not a kicker; it
+   should not shout. These scoped overrides remove the uppercase treatment
+   without touching the base rule. */
+.dashHeroHeading .eyebrow,
+.panelCheckinCard .eyebrow,
+.workoutAppHero .eyebrow,
+.workoutHeroEyebrow .eyebrow,
+.workoutSession .eyebrow,
+.sessionExercise .eyebrow,
+.sessionIssueBox .eyebrow,
+.sectionHeader .eyebrow,
+.coachAiGate .eyebrow,
+.habitEmptyCard .eyebrow {
+  text-transform: none;
+  letter-spacing: 0;
+  font-weight: 600;
+}
 /* ===== END UI UPLIFT C ===== */
 
 /* ===== Exercise demo preview (platform-default animated frames) ===== */

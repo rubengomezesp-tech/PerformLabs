@@ -142,9 +142,9 @@ export async function listCoachAiMessages(workspaceId: string, memberProfileId: 
     .limit(limit);
 
   if (error || !data) return [];
-  return data.map((row: { id: string; role: string; content: string; created_at: string }) => ({
+  return data.map((row) => ({
     id: row.id,
-    role: row.role === "assistant" ? "assistant" : "user",
+    role: row.role === "assistant" ? "assistant" as const : "user" as const,
     content: row.content,
     createdAt: row.created_at,
   }));
@@ -182,17 +182,17 @@ export async function listRecentClientQuestions(workspaceId?: string, limit = 8)
 
   if (error || !data?.length) return [];
 
-  const memberIds = [...new Set(data.map((row: { member_profile_id: string | null }) => row.member_profile_id).filter(Boolean))];
+  const memberIds = [...new Set(data.map((row) => row.member_profile_id).filter(Boolean))] as string[];
   const namesById = new Map<string, string>();
   if (memberIds.length) {
     const { data: members } = await supabase
       .from("member_profiles")
       .select("id,full_name")
-      .in("id", memberIds as string[]);
+      .in("id", memberIds);
     for (const member of members ?? []) namesById.set(member.id, member.full_name ?? "Cliente");
   }
 
-  return data.map((row: { content: string; created_at: string; member_profile_id: string | null }) => ({
+  return data.map((row) => ({
     content: row.content,
     memberName: (row.member_profile_id && namesById.get(row.member_profile_id)) || "Cliente",
     createdAt: row.created_at,
