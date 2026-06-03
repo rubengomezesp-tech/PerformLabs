@@ -53,12 +53,12 @@ export default async function MemberCyclePage() {
           </div>
           <div className="cycleHeroStat">
             <span className="eyebrow">Ciclo medio</span>
-            <strong>{overview.averageCycleLength ? `${overview.averageCycleLength} días` : "—"}</strong>
+            <strong>{overview.averageCycleLength ? `${overview.averageCycleLength} días` : "·"}</strong>
             <p>{overview.averageCycleLength ? "Media de tus últimos ciclos." : "Necesitamos 2 reglas para calcularlo."}</p>
           </div>
           <div className="cycleHeroStat cycleHeroPredict">
             <span className="eyebrow">Próxima estimada</span>
-            <strong>{overview.nextPredictedStart ? formatDate(overview.nextPredictedStart) : "—"}</strong>
+            <strong>{overview.nextPredictedStart ? formatDate(overview.nextPredictedStart) : "·"}</strong>
             <p>{daysUntilNext !== null ? (daysUntilNext >= 0 ? `En ~${daysUntilNext} días` : "Estimación pasada, registra tu regla") : "Estimación cuando tengamos historial."}</p>
           </div>
         </article>

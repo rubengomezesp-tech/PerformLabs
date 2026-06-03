@@ -133,7 +133,7 @@ export default async function MemberDiaryPage({ searchParams }: DiaryPageProps) 
         <article className="card span12 diaryStats ntrbDiaryStats uiSheen">
           <span className="ntrbDiaryStat"><span className="uiIconChip ntrbStatChip"><CheckCircle2 size={16} /></span><span className="uiStat"><strong className="uiStatValue">{doneCount}</strong><small className="uiStatLabel">comidas</small></span></span>
           <span className="ntrbDiaryStat"><span className="uiIconChip ntrbStatChip"><Droplets size={16} /></span><span className="uiStat"><strong className="uiStatValue">{summary.waterGlasses}</strong><small className="uiStatLabel">vasos agua</small></span></span>
-          <span className="ntrbDiaryStat"><span className="uiIconChip ntrbStatChip"><Apple size={16} /></span><span className="uiStat"><strong className="uiStatValue">{summary.energyLevel ? `${summary.energyLevel}/5` : "—"}</strong><small className="uiStatLabel">energía</small></span></span>
+          <span className="ntrbDiaryStat"><span className="uiIconChip ntrbStatChip"><Apple size={16} /></span><span className="uiStat"><strong className="uiStatValue">{summary.energyLevel ? `${summary.energyLevel}/5` : "·"}</strong><small className="uiStatLabel">energía</small></span></span>
         </article>
 
         <article className="card span12 smartAddCard uiSheen">

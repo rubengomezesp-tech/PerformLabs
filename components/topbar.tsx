@@ -12,7 +12,7 @@ export function Topbar({
   return (
     <header className="topbar">
       <div className="titleBlock">
-        <span className="eyebrow">{eyebrow}</span>
+        <span className="topbarLabel">{eyebrow}</span>
         <h1>{title}</h1>
         <p>{text}</p>
       </div>

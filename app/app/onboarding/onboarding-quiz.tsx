@@ -742,10 +742,10 @@ export function OnboardingQuiz({ workspaceId, appName }: { workspaceId: string; 
           <textarea name="notes" rows={3} value={answers.notes} placeholder="Horarios, trabajo, estrés, lo que te cuesta cumplir..." onChange={(event) => update("notes", event.target.value)} />
         </label>
         <div className="quizSummary">
-          <span><strong>Objetivo</strong>{goalOptions.find((option) => option.value === answers.goal)?.label ?? "—"}</span>
-          <span><strong>Dónde</strong>{locationOptions.find((option) => option.value === answers.trainingLocation)?.label ?? "—"}</span>
-          <span><strong>Días</strong>{answers.daysPerWeek || "—"}/semana · {answers.sessionMinutes || "—"} min</span>
-          <span><strong>Comidas</strong>{answers.mealsPerDay || "—"}/día</span>
+          <span><strong>Objetivo</strong>{goalOptions.find((option) => option.value === answers.goal)?.label ?? "·"}</span>
+          <span><strong>Dónde</strong>{locationOptions.find((option) => option.value === answers.trainingLocation)?.label ?? "·"}</span>
+          <span><strong>Días</strong>{answers.daysPerWeek || "·"}/semana · {answers.sessionMinutes || "·"} min</span>
+          <span><strong>Comidas</strong>{answers.mealsPerDay || "·"}/día</span>
         </div>
         <button className="btn primary quizSubmit" type="submit">
           <Sparkles size={16} /> Crear mi plan en {appName}

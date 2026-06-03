@@ -171,12 +171,12 @@ export default async function WorkoutsPage() {
         </article>
 
         <div className="span12 workoutMenuGrid" role="group" aria-label="Resumen de tu entrenamiento (desliza horizontalmente)" tabIndex={0}>
-          <article className="card workoutStatusCard uiSheen uiFadeUp" style={{ ['--i' as string]: 1 }}>
+          <article className="card workoutStatusCard workoutStatusPrimary uiSheen uiFadeUp" style={{ ['--i' as string]: 1 }}>
             <div className="workoutStatusTop">
-              <span className="uiIconChip"><CalendarClock size={17} /></span>
+              <span className="uiIconChip is-active"><CalendarClock size={17} /></span>
               <div className="uiStat">
                 <span className="uiStatLabel">Esta semana</span>
-                <span className="uiStatValue">{activeDay ? `${performance.sessionsThisWeek}/${weeklyGoal}` : "—"}</span>
+                <span className="uiStatValue">{activeDay ? `${performance.sessionsThisWeek}/${weeklyGoal}` : "0/0"}</span>
               </div>
             </div>
             <div className="workoutMetrics">
@@ -190,7 +190,7 @@ export default async function WorkoutsPage() {
               <span className="uiIconChip"><TrendingUp size={17} /></span>
               <div className="uiStat">
                 <span className="uiStatLabel">Mejor marca</span>
-                <span className="uiStatValue">{performance.bestSet ? `${performance.bestSet.weightKg} kg` : "—"}</span>
+                <span className="uiStatValue">{performance.bestSet ? `${performance.bestSet.weightKg} kg` : "Sin sesiones"}</span>
               </div>
             </div>
             <p>{performance.bestSet ? `${performance.bestSet.reps} reps registradas en tu mejor set.` : "Cuando guardes tus entrenos, aquí verás tus mejores marcas."}</p>
@@ -201,7 +201,7 @@ export default async function WorkoutsPage() {
               <span className="uiIconChip"><Target size={17} /></span>
               <div className="uiStat">
                 <span className="uiStatLabel">Objetivo de hoy</span>
-                <span className="uiStatValue">{activeDay ? `${sessionExercises}` : "—"}<span className="workoutStatUnit">{activeDay ? " ejercicios" : ""}</span></span>
+                <span className="uiStatValue">{activeDay ? `${sessionExercises}` : "0"}<span className="workoutStatUnit">{activeDay ? " ejercicios" : ""}</span></span>
               </div>
             </div>
             <p>{activeDay ? "Haz cada ejercicio con buena técnica. Si hay dolor, falta de material o una limitación real, avisa al coach." : "Tu plan no se publica hasta que el entrenador lo aprueba."}</p>

@@ -57,6 +57,16 @@
   --dur: 200ms;
   --dur-slow: 320ms;
 
+  /* === Z-index scale (semantic layers) === */
+  --z-drawer: 40;       /* side drawers, slide-over panels */
+  --z-sticky: 50;       /* sticky headers and navbars */
+  --z-float: 60;        /* floating action buttons, pinned CTAs */
+  --z-overlay: 80;      /* inline overlays and auth toasts */
+  --z-cmdk: 100;        /* command palette backdrop */
+  --z-modal: 110;       /* modal dialogs */
+  --z-skip-link: 1000;  /* skip-navigation accessibility link */
+  --z-toast: 1100;      /* notification toasts (always on top) */
+
   /* === Back-compat aliases — keep, ~800 usages depend on these === */
   --gold: var(--accent);
   --gold-2: var(--accent-strong);
@@ -107,7 +117,7 @@ body {
   position: fixed;
   top: 12px;
   left: 12px;
-  z-index: 1000;
+  z-index: var(--z-skip-link);
   transform: translateY(-150%);
   border: 1px solid var(--accent);
   border-radius: var(--radius);
@@ -175,18 +185,10 @@ h3,
   letter-spacing: -0.02em;
 }
 
-/* Premium gradient keyword for display headings */
+/* Accent keyword for display headings — solid color with ambient glow on dark */
 .accentText {
-  background: linear-gradient(
-    100deg,
-    var(--accent),
-    color-mix(in srgb, var(--accent) 55%, #ffffff) 60%,
-    color-mix(in srgb, var(--accent) 88%, #8fd0ff)
-  );
-  -webkit-background-clip: text;
-  background-clip: text;
-  -webkit-text-fill-color: transparent;
-  color: transparent;
+  color: var(--accent);
+  text-shadow: 0 0 40px color-mix(in srgb, var(--accent) 38%, transparent);
 }
 
 /* Frosted glass surface utility */
@@ -390,7 +392,7 @@ textarea {
 
 .authBridgeToast {
   position: fixed;
-  z-index: 80;
+  z-index: var(--z-overlay);
   right: 18px;
   bottom: 18px;
   max-width: min(360px, calc(100vw - 36px));
@@ -407,7 +409,7 @@ textarea {
   position: fixed;
   right: 18px;
   bottom: 18px;
-  z-index: 60;
+  z-index: var(--z-float);
   display: inline-flex;
   align-items: center;
   gap: 8px;
@@ -430,6 +432,15 @@ textarea {
   justify-content: space-between;
   gap: 20px;
   margin-bottom: 20px;
+}
+
+/* Topbar section label — breadcrumb style, not a kicker */
+.topbarLabel {
+  display: block;
+  font-size: 12px;
+  font-weight: 500;
+  letter-spacing: 0;
+  color: var(--text-soft);
 }
 
 .titleBlock h1 {
@@ -738,8 +749,7 @@ a.card:hover {
 .uiStatLabel {
   font-size: 11.5px;
   font-weight: 600;
-  letter-spacing: 0.05em;
-  text-transform: uppercase;
+  letter-spacing: 0;
   color: var(--text-soft);
 }
 
@@ -2779,7 +2789,7 @@ a.card:hover {
 
 .workoutMenuGrid {
   display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
+  grid-template-columns: 1.6fr 1fr 1fr;
   gap: 14px;
 }
 
@@ -2813,6 +2823,11 @@ a.card:hover {
   align-content: start;
 }
 
+.workoutStatusPrimary {
+  border-color: color-mix(in srgb, var(--accent) 30%, transparent);
+  background: color-mix(in srgb, var(--accent) 6%, var(--surface));
+}
+
 .workoutStatusCard > div:first-child {
   display: flex;
   align-items: flex-start;
@@ -2832,7 +2847,6 @@ a.card:hover {
 .workoutStatusCard > div:first-child small {
   font-size: 11px;
   letter-spacing: 0;
-  text-transform: uppercase;
 }
 
 .workoutStatusCard > div:first-child strong {
@@ -3998,7 +4012,7 @@ a.card:hover {
 .landingTopbar {
   position: sticky;
   top: 0;
-  z-index: 50;
+  z-index: var(--z-sticky);
   padding: 13px 28px;
   border-bottom: 1px solid transparent;
   transition:
@@ -5775,7 +5789,7 @@ input[type="color"] {
   position: fixed;
   right: 20px;
   bottom: 20px;
-  z-index: 1100;
+  z-index: var(--z-toast);
   display: flex;
   flex-direction: column;
   gap: 10px;
@@ -6623,7 +6637,7 @@ input[type="color"] {
 .cmdkOverlay {
   position: fixed;
   inset: 0;
-  z-index: 100;
+  z-index: var(--z-cmdk);
   display: flex;
   align-items: flex-start;
   justify-content: center;
@@ -6714,7 +6728,7 @@ input[type="color"] {
 .dialogOverlay {
   position: fixed;
   inset: 0;
-  z-index: 110;
+  z-index: var(--z-modal);
   display: flex;
   align-items: flex-start;
   justify-content: center;
@@ -7696,11 +7710,28 @@ a.diaryEntryTitle:hover {
   border: 1px solid var(--line);
   border-radius: var(--radius);
   background: var(--surface);
-  transition: border-color 0.15s ease, background 0.15s ease;
+  transition:
+    border-color 160ms var(--ease),
+    background 160ms var(--ease),
+    transform 120ms var(--ease),
+    box-shadow 160ms var(--ease);
+}
+.habitCard:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.22);
+}
+.habitCard:active {
+  transform: scale(0.98);
 }
 .habitCard.done {
   border-color: color-mix(in srgb, var(--accent) 45%, var(--border));
   background: color-mix(in srgb, var(--accent) 10%, var(--surface));
+  box-shadow: 0 0 0 1px color-mix(in srgb, var(--accent) 20%, transparent);
+}
+@media (prefers-reduced-motion: reduce) {
+  .habitCard { transition: border-color 0ms, background 0ms; }
+  .habitCard:hover { transform: none; box-shadow: none; }
+  .habitCard:active { transform: none; }
 }
 .habitToggleForm {
   margin: 0;
@@ -7727,11 +7758,25 @@ a.diaryEntryTitle:hover {
   border: 1px solid var(--border-strong);
   color: var(--text-muted);
   flex-shrink: 0;
+  transition:
+    background 200ms var(--ease),
+    border-color 200ms var(--ease),
+    color 200ms var(--ease),
+    transform 150ms var(--ease);
+}
+.habitToggle:active .habitToggleIcon {
+  transform: scale(0.9);
 }
 .habitCard.done .habitToggleIcon {
   background: var(--accent);
   border-color: var(--accent);
   color: #fff;
+  transform: scale(1);
+  box-shadow: 0 0 12px color-mix(in srgb, var(--accent) 45%, transparent);
+}
+@media (prefers-reduced-motion: reduce) {
+  .habitToggleIcon { transition: none; }
+  .habitCard.done .habitToggleIcon { box-shadow: none; }
 }
 .habitToggleName {
   font-weight: 600;
@@ -8185,6 +8230,25 @@ a.diaryEntryTitle:hover {
   border-color: var(--accent);
   color: #07121f;
 }
+.progressFirstCheckinCard {
+  display: flex;
+  align-items: center;
+  gap: 18px;
+  flex-wrap: wrap;
+}
+.progressFirstCheckinCard div {
+  flex: 1 1 240px;
+}
+.progressFirstCheckinCard h2 {
+  margin: 0 0 6px;
+}
+.progressFirstCheckinCard p {
+  margin: 0;
+  color: var(--text-muted);
+  font-size: 14px;
+  line-height: 1.5;
+}
+
 .progressMetricCard {
   display: flex;
   flex-direction: column;
@@ -8409,7 +8473,7 @@ a.diaryEntryTitle:hover {
 .memberDrawer {
   position: fixed;
   inset: 0;
-  z-index: 40;
+  z-index: var(--z-drawer);
 }
 .memberDrawerBackdrop {
   position: absolute;
@@ -8855,6 +8919,33 @@ button[aria-busy="true"] {
   color: var(--text-muted);
   font-size: 12px;
   margin: 0;
+}
+
+.coachChatStreaming {
+  opacity: 0.92;
+}
+
+.coachChatDots {
+  display: inline-flex;
+  gap: 5px;
+  align-items: center;
+  padding: 2px 0;
+}
+
+.coachChatDots span {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: var(--text-muted);
+  animation: dotPulse 1.3s ease-in-out infinite;
+}
+
+.coachChatDots span:nth-child(2) { animation-delay: 0.18s; }
+.coachChatDots span:nth-child(3) { animation-delay: 0.36s; }
+
+@keyframes dotPulse {
+  0%, 60%, 100% { opacity: 0.25; transform: scale(0.75); }
+  30% { opacity: 1; transform: scale(1.1); }
 }
 
 /* ---- Coach IA: plan generator ---- */
@@ -10704,7 +10795,7 @@ button[aria-busy="true"] {
   position: absolute;
   top: calc(100% + 8px);
   right: 0;
-  z-index: 80;
+  z-index: var(--z-overlay);
   min-width: 168px;
   padding: 6px;
   display: flex;
@@ -10837,10 +10928,10 @@ button[aria-busy="true"] {
   font-size: clamp(92px, 22vw, 168px);
   line-height: 0.86;
   letter-spacing: -0.04em;
-  background: linear-gradient(168deg, var(--text) 26%, color-mix(in srgb, var(--accent) 82%, var(--text)));
-  -webkit-background-clip: text;
-  background-clip: text;
-  color: transparent;
+  color: var(--text);
+  text-shadow:
+    0 0 120px color-mix(in srgb, var(--accent) 30%, transparent),
+    0 0 40px color-mix(in srgb, var(--accent) 18%, transparent);
   font-variant-numeric: tabular-nums;
 }
 .notFoundTitle {
@@ -13643,6 +13734,13 @@ button[aria-busy="true"] {
 .eyebrow .uiIconChip { vertical-align: middle; }
 .progressMetricCard .uiStatValue {
   font-size: clamp(28px, 3.4vw, 36px);
+}
+.progressMetricCard:first-of-type {
+  border-color: color-mix(in srgb, var(--accent) 28%, var(--border));
+  background: color-mix(in srgb, var(--accent) 5%, var(--surface));
+}
+.progressMetricCard:first-of-type .uiStatValue {
+  font-size: clamp(32px, 4vw, 42px);
 }
 .progressMetricCard:hover {
   border-color: color-mix(in srgb, var(--accent) 38%, var(--border));

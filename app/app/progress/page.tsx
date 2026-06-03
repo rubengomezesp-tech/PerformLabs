@@ -170,9 +170,22 @@ export default async function ProgressPage({ searchParams }: ProgressPageProps) 
       <section className="grid">
         {tab === "resumen" ? (
           <>
-            <MetricCard measure={measureByKey.weightKg} icon={<Scale size={16} />} i={0} />
-            <MetricCard measure={measureByKey.bodyFatPercent} icon={<LineChart size={16} />} i={1} />
-            <MetricCard measure={measureByKey.waistCm} icon={<Ruler size={16} />} i={2} />
+            {keyMetrics.every((m) => m.current === null) ? (
+              <article className="card span12 progressFirstCheckinCard uiFadeUp" style={{ ["--i" as string]: 0 }}>
+                <span className="uiIconChip"><Scale size={18} /></span>
+                <div>
+                  <h2>Aún no hay medidas registradas.</h2>
+                  <p>Envía tu primer check-in con peso, grasa y cintura para ver aquí tus métricas y su evolución.</p>
+                </div>
+                <a className="btn primary" href="/app/progress?tab=medidas">Enviar primer check-in <CheckCircle2 size={16} /></a>
+              </article>
+            ) : (
+              <>
+                <MetricCard measure={measureByKey.weightKg} icon={<Scale size={16} />} i={0} />
+                <MetricCard measure={measureByKey.bodyFatPercent} icon={<LineChart size={16} />} i={1} />
+                <MetricCard measure={measureByKey.waistCm} icon={<Ruler size={16} />} i={2} />
+              </>
+            )}
 
             <article className="card span12 progressEvolutionCard uiFadeUp" style={{ ["--i" as string]: 3 }}>
               <div className="sectionHeader">
