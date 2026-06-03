@@ -12,7 +12,7 @@ export async function generateMetadata(): Promise<Metadata> {
 
   return {
     title: brand.name,
-    description: `${brand.name}: entrenamiento, nutricion, progreso y soporte.`,
+    description: `${brand.name}: entrenamiento, nutrición, progreso y soporte.`,
   };
 }
 

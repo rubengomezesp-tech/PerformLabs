@@ -196,7 +196,7 @@ async function markAssignedWorkoutDay(input: {
 }) {
   if (!input.assignedDayId || !input.memberProfileId) return;
 
-  const update = await (input.supabase as any)
+  const update = await input.supabase
     .from("assigned_workout_days")
     .update({
       status: input.status === "completed" ? "completed" : "in_progress",

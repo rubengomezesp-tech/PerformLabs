@@ -69,6 +69,58 @@ function buildSystemPrompt(brain: CoachBrain, brandName: string, member: CoachMe
   return lines.join("\n");
 }
 
+export async function* streamAsCoach(params: {
+  brain: CoachBrain;
+  brandName: string;
+  member: CoachMemberContext;
+  history: CoachChatTurn[];
+  question: string;
+  onUsage?: (usage: AiTokenUsage, model: string) => void;
+}): AsyncGenerator<string> {
+  const question = params.question.trim();
+  if (!question) { yield "Escribe tu pregunta."; return; }
+  if (!process.env.ANTHROPIC_API_KEY) {
+    yield "El asistente todavía no está activo. Inténtalo más tarde.";
+    return;
+  }
+
+  const system = buildSystemPrompt(params.brain, params.brandName, params.member);
+  const history = params.history
+    .filter((turn) => turn.content.trim())
+    .slice(-10)
+    .map((turn) => ({ role: turn.role, content: turn.content.slice(0, 4000) }));
+
+  const client = new Anthropic();
+  let inputTokens = 0;
+  let outputTokens = 0;
+
+  try {
+    const events = await client.messages.create({
+      model: MODEL,
+      max_tokens: 800,
+      stream: true,
+      system: [{ type: "text", text: system, cache_control: { type: "ephemeral" } }],
+      messages: [...history, { role: "user", content: question }],
+    });
+
+    for await (const event of events) {
+      if (event.type === "content_block_delta" && event.delta.type === "text_delta") {
+        yield event.delta.text;
+      }
+      if (event.type === "message_start" && event.message.usage) {
+        inputTokens = event.message.usage.input_tokens;
+      }
+      if (event.type === "message_delta" && "usage" in event) {
+        outputTokens = (event as { usage?: { output_tokens?: number } }).usage?.output_tokens ?? outputTokens;
+      }
+    }
+
+    params.onUsage?.({ input_tokens: inputTokens, output_tokens: outputTokens } as AiTokenUsage, MODEL);
+  } catch {
+    yield "El asistente no está disponible ahora mismo. Inténtalo en un momento.";
+  }
+}
+
 export async function answerAsCoach(params: {
   brain: CoachBrain;
   brandName: string;
@@ -93,7 +145,6 @@ export async function answerAsCoach(params: {
     const message = await client.messages.create({
       model: MODEL,
       max_tokens: 800,
-      thinking: { type: "disabled" },
       system: [{ type: "text", text: system, cache_control: { type: "ephemeral" } }],
       messages: [...history, { role: "user", content: question }],
     });

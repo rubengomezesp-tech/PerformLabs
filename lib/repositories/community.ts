@@ -15,7 +15,7 @@ export type CommunityPost = {
   pinned: boolean;
 };
 
-async function getDefaultMember(workspaceId: string) {
+async function getMember(workspaceId: string) {
   const context = await getMemberContext(workspaceId);
   if (!context || context.workspaceId !== workspaceId) return null;
   return { id: context.memberProfileId, full_name: context.fullName };
@@ -26,7 +26,7 @@ export async function listCommunityPosts(workspaceId?: string): Promise<Communit
   if (!env.ok || !isUuid(workspaceId)) return [];
 
   const supabase = createServiceSupabaseClient();
-  const member = await getDefaultMember(workspaceId);
+  const member = await getMember(workspaceId);
 
   const postsResult = await supabase
     .from("community_posts")
@@ -71,7 +71,7 @@ export async function createCommunityPost(workspaceId: string, body: string) {
   if (!text) throw new Error("Escribe algo para publicar.");
 
   const supabase = createServiceSupabaseClient();
-  const member = await getDefaultMember(workspaceId);
+  const member = await getMember(workspaceId);
   // Only an authenticated member of this workspace may post (mirrors
   // toggleCommunityLike/deleteCommunityPost) — blocks anonymous feed injection.
   if (!member) throw new Error("Todavía no hay perfil de cliente.");
@@ -88,7 +88,7 @@ export async function createCommunityPost(workspaceId: string, body: string) {
 export async function toggleCommunityLike(workspaceId: string, postId: string) {
   if (!isUuid(workspaceId) || !isUuid(postId)) throw new Error("Publicación no válida.");
   const supabase = createServiceSupabaseClient();
-  const member = await getDefaultMember(workspaceId);
+  const member = await getMember(workspaceId);
   if (!member) throw new Error("Todavía no hay perfil de cliente.");
 
   const existing = await supabase
@@ -116,7 +116,7 @@ export async function toggleCommunityLike(workspaceId: string, postId: string) {
 export async function deleteCommunityPost(workspaceId: string, postId: string) {
   if (!isUuid(workspaceId) || !isUuid(postId)) throw new Error("Publicación no válida.");
   const supabase = createServiceSupabaseClient();
-  const member = await getDefaultMember(workspaceId);
+  const member = await getMember(workspaceId);
   if (!member) throw new Error("Todavía no hay perfil de cliente.");
 
   const { error } = await supabase
