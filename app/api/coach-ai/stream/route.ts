@@ -3,37 +3,17 @@ import { streamAsCoach } from "@/lib/ai/coach-chat";
 import type { AiTokenUsage } from "@/lib/ai/usage";
 import { checkAiQuota, recordAiUsage } from "@/lib/ai/usage";
 import { getSelectedMemberAppBrand } from "@/lib/member-app";
+import { consumeRateLimit } from "@/lib/rate-limit/shared";
 import { appendCoachAiMessage, getCoachBrain, getDefaultMember, listCoachAiMessages } from "@/lib/repositories/coach-brain";
 
 export const dynamic = "force-dynamic";
 
-// Per-member rate limit: max 8 requests per 60-second window.
-// NOTE: this Map is per warm serverless instance, so the effective limit is
-// RATE_MAX × concurrent instances — fine as a coarse guardrail, but a shared
-// store (Vercel KV / a Supabase counter) is needed for a hard global limit.
+// Per-member rate limit: max 8 requests per 60-second window, enforced via the
+// Supabase-backed shared limiter so it holds across serverless instances
+// (degrades to a per-instance counter if the store is unavailable).
 const RATE_WINDOW_MS = 60_000;
 const RATE_MAX = 8;
 const MAX_QUESTION_CHARS = 2_000;
-const rateMap = new Map<string, { count: number; resetAt: number }>();
-
-function checkRateLimit(key: string): boolean {
-  const now = Date.now();
-  // Evict expired windows so the Map can't grow unbounded over the lifetime of a
-  // warm instance (every distinct member key would otherwise leak forever).
-  if (rateMap.size > 5_000) {
-    for (const [k, v] of rateMap) {
-      if (now >= v.resetAt) rateMap.delete(k);
-    }
-  }
-  const entry = rateMap.get(key);
-  if (!entry || now >= entry.resetAt) {
-    rateMap.set(key, { count: 1, resetAt: now + RATE_WINDOW_MS });
-    return true;
-  }
-  if (entry.count >= RATE_MAX) return false;
-  entry.count += 1;
-  return true;
-}
 
 export async function POST(request: NextRequest) {
   try {
@@ -51,8 +31,8 @@ export async function POST(request: NextRequest) {
     if (!member) return new Response("Member not found", { status: 403 });
 
     // Per-member rate limit before any DB writes or AI calls.
-    const rateLimitKey = `${brand.id}:${member.id}`;
-    if (!checkRateLimit(rateLimitKey)) {
+    const rateLimitKey = `coach-ai:${brand.id}:${member.id}`;
+    if (!(await consumeRateLimit(rateLimitKey, { windowMs: RATE_WINDOW_MS, max: RATE_MAX }))) {
       return new Response(
         "Has enviado demasiadas preguntas seguidas. Espera un momento antes de continuar.",
         { status: 429, headers: { "Retry-After": "60" } },

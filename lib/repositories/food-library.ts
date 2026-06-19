@@ -183,6 +183,23 @@ export async function listFoodLibrary(workspaceId?: string, query = ""): Promise
     ? select.or(`workspace_id.eq.${workspaceId},workspace_id.is.null`)
     : select.is("workspace_id", null);
 
+  // Search optimization: when the user types a single token, push a coarse
+  // case-insensitive match into the DB so we don't fetch the whole library (up to
+  // 2000 rows, each with an image) just to filter it in memory. matchesQuery()
+  // below stays the final authority, so results are byte-for-byte identical — this
+  // only shrinks the candidate set. The term is stripped of PostgREST filter
+  // metacharacters before being interpolated into .or() (injection-safe, like
+  // normalizeWorkspaceReference elsewhere); a broader/sanitized DB match can never
+  // change the result set because matchesQuery re-checks the original query. We
+  // skip multi-word queries (a token could straddle the name/brand boundary that
+  // matchesQuery joins) and fall back to the in-memory path for those.
+  const dbFilterTerm = trimmed && !trimmed.includes(" ")
+    ? trimmed.replace(/[,()*:."'%\\]/g, "").trim()
+    : "";
+  if (dbFilterTerm) {
+    select = select.or(`name.ilike.%${dbFilterTerm}%,brand.ilike.%${dbFilterTerm}%`);
+  }
+
   const { data, error } = await select
     .order("sort_order", { ascending: true })
     .order("name", { ascending: true })
