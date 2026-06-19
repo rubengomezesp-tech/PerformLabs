@@ -86,7 +86,9 @@ async function handleEvent(event: StripeEvent) {
 
   switch (event.type) {
     case "account.updated": {
-      const accountId = event.account ?? (object.id as string);
+      // Reachable only when !event.account (this is the platform branch), so the
+      // connected-account id lives on the Account object itself.
+      const accountId = object.id as string;
       const workspaceId = await findWorkspaceByStripeAccount(accountId);
       if (!workspaceId) return;
       await upsertStripeAccount({
@@ -160,6 +162,26 @@ async function handleConnectedEvent(event: StripeEvent, account: string) {
   const { applicationFeePercent } = getStripeEnv();
 
   switch (event.type) {
+    case "account.updated": {
+      // Connect account updates about a connected account arrive HERE (the event
+      // carries event.account). Mirror the capability/onboarding flags so the
+      // coach is unblocked to charge the moment Stripe enables them. The
+      // platform-branch `account.updated` case only fires for events WITHOUT
+      // event.account, which a connected-account update never is — so without
+      // this case `charges_enabled` was never persisted and the coach stayed
+      // locked out of billing despite Stripe having approved them.
+      await upsertStripeAccount({
+        workspaceId,
+        stripeUserId: account,
+        chargesEnabled: Boolean(object.charges_enabled),
+        payoutsEnabled: Boolean(object.payouts_enabled),
+        detailsSubmitted: Boolean(object.details_submitted),
+        country: (object.country as string) ?? null,
+        defaultCurrency: (object.default_currency as string) ?? null,
+      });
+      return;
+    }
+
     case "checkout.session.completed": {
       if (object.metadata?.kind !== "member_subscription") return;
       // The metadata is coach-controllable; never trust it to point at another
