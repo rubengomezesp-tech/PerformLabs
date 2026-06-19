@@ -3,33 +3,24 @@ import { streamAsCoach } from "@/lib/ai/coach-chat";
 import type { AiTokenUsage } from "@/lib/ai/usage";
 import { checkAiQuota, recordAiUsage } from "@/lib/ai/usage";
 import { getSelectedMemberAppBrand } from "@/lib/member-app";
+import { consumeRateLimit } from "@/lib/rate-limit/shared";
 import { appendCoachAiMessage, getCoachBrain, getDefaultMember, listCoachAiMessages } from "@/lib/repositories/coach-brain";
 
 export const dynamic = "force-dynamic";
 
-// Per-member rate limit: max 8 requests per 60-second window.
-// In-process Map is sufficient for a coaching app (low concurrency per user).
-// Resets automatically as the Map entries expire; no persistence needed.
+// Per-member rate limit: max 8 requests per 60-second window, enforced via the
+// Supabase-backed shared limiter so it holds across serverless instances
+// (degrades to a per-instance counter if the store is unavailable).
 const RATE_WINDOW_MS = 60_000;
 const RATE_MAX = 8;
-const rateMap = new Map<string, { count: number; resetAt: number }>();
-
-function checkRateLimit(key: string): boolean {
-  const now = Date.now();
-  const entry = rateMap.get(key);
-  if (!entry || now >= entry.resetAt) {
-    rateMap.set(key, { count: 1, resetAt: now + RATE_WINDOW_MS });
-    return true;
-  }
-  if (entry.count >= RATE_MAX) return false;
-  entry.count += 1;
-  return true;
-}
+const MAX_QUESTION_CHARS = 2_000;
 
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json() as { question?: string };
-    const question = typeof body.question === "string" ? body.question.trim() : "";
+    // Cap length before it reaches the model: bounds token cost and removes a
+    // cheap abuse vector (bodySizeLimit alone allows multi-MB prompts).
+    const question = (typeof body.question === "string" ? body.question.trim() : "").slice(0, MAX_QUESTION_CHARS);
     if (!question) return new Response("Missing question", { status: 400 });
 
     const brand = await getSelectedMemberAppBrand();
@@ -40,8 +31,8 @@ export async function POST(request: NextRequest) {
     if (!member) return new Response("Member not found", { status: 403 });
 
     // Per-member rate limit before any DB writes or AI calls.
-    const rateLimitKey = `${brand.id}:${member.id}`;
-    if (!checkRateLimit(rateLimitKey)) {
+    const rateLimitKey = `coach-ai:${brand.id}:${member.id}`;
+    if (!(await consumeRateLimit(rateLimitKey, { windowMs: RATE_WINDOW_MS, max: RATE_MAX }))) {
       return new Response(
         "Has enviado demasiadas preguntas seguidas. Espera un momento antes de continuar.",
         { status: 429, headers: { "Retry-After": "60" } },

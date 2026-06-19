@@ -35,6 +35,17 @@ describe("nutrition-engine", () => {
     expect(splitCaloriesByMeal(5)).toEqual([0.22, 0.28, 0.22, 0.14, 0.14]);
   });
 
+  it("always allocates 100% of calories regardless of meal count", () => {
+    const sum = (arr: number[]) => arr.reduce((a, b) => a + b, 0);
+    for (const meals of [1, 2, 3, 4, 5, 6]) {
+      const ratios = splitCaloriesByMeal(meals);
+      expect(sum(ratios)).toBeCloseTo(1, 10);
+    }
+    // 1-2 meals used to under-allocate (0.3 / 0.7); pin the corrected ratios.
+    expect(splitCaloriesByMeal(1)).toEqual([1]);
+    expect(splitCaloriesByMeal(2)).toEqual([0.45, 0.55]);
+  });
+
   it("creates carb cycling days without changing protein target", () => {
     const targets = calculateNutritionTargets({
       gender: "female",

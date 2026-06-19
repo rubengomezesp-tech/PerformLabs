@@ -14,7 +14,13 @@ type MotionRevealProps = {
 };
 
 export function SmoothScroll() {
+  const reduceMotion = useReducedMotion();
+
   useEffect(() => {
+    // Users who ask for reduced motion must not get scroll-hijacking/inertia
+    // (WCAG 2.3.3). Leave the browser's native scroll untouched for them.
+    if (reduceMotion) return;
+
     const lenis = new Lenis({
       duration: 1.08,
       smoothWheel: true,
@@ -33,7 +39,7 @@ export function SmoothScroll() {
       cancelAnimationFrame(frame);
       lenis.destroy();
     };
-  }, []);
+  }, [reduceMotion]);
 
   return null;
 }

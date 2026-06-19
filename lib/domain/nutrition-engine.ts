@@ -206,15 +206,13 @@ export function calculateNutritionTargets(input: NutritionTargetInput): Nutritio
 }
 
 export function splitCaloriesByMeal(mealsPerDay: number) {
-  if (mealsPerDay <= 3) {
-    return [0.3, 0.4, 0.3].slice(0, mealsPerDay);
-  }
-
-  if (mealsPerDay === 4) {
-    return [0.25, 0.35, 0.25, 0.15];
-  }
-
-  return [0.22, 0.28, 0.22, 0.14, 0.14].slice(0, mealsPerDay);
+  // Every branch MUST sum to 1.0. The previous `[0.3,0.4,0.3].slice(0, n)` left
+  // 1-2 meals summing to 0.3/0.7, under-allocating calories when called directly.
+  if (mealsPerDay <= 1) return [1];
+  if (mealsPerDay === 2) return [0.45, 0.55];
+  if (mealsPerDay === 3) return [0.3, 0.4, 0.3];
+  if (mealsPerDay === 4) return [0.25, 0.35, 0.25, 0.15];
+  return [0.22, 0.28, 0.22, 0.14, 0.14];
 }
 
 export function buildMealTargets(input: {
