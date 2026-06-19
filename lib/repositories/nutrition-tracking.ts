@@ -786,6 +786,12 @@ export async function upsertMealLog(input: MealLogInput) {
 
   const supabase = createServiceSupabaseClient();
   const memberProfileId = await getDefaultMemberProfileId(input.workspaceId);
+  if (!memberProfileId) {
+    // Without a resolved profile the upsert would write member_profile_id: null,
+    // creating an orphan row (the onConflict key includes member_profile_id) that
+    // corrupts the member's meal history. Fail loudly instead.
+    throw new Error("No se pudo identificar el perfil del cliente para registrar la comida.");
+  }
   const activeMealPlanId = await getActiveMealPlanId(supabase, input.workspaceId, memberProfileId);
   const date = todayIso();
   const requestReason = input.requestReason?.trim() ?? "";

@@ -8,14 +8,23 @@ import { appendCoachAiMessage, getCoachBrain, getDefaultMember, listCoachAiMessa
 export const dynamic = "force-dynamic";
 
 // Per-member rate limit: max 8 requests per 60-second window.
-// In-process Map is sufficient for a coaching app (low concurrency per user).
-// Resets automatically as the Map entries expire; no persistence needed.
+// NOTE: this Map is per warm serverless instance, so the effective limit is
+// RATE_MAX × concurrent instances — fine as a coarse guardrail, but a shared
+// store (Vercel KV / a Supabase counter) is needed for a hard global limit.
 const RATE_WINDOW_MS = 60_000;
 const RATE_MAX = 8;
+const MAX_QUESTION_CHARS = 2_000;
 const rateMap = new Map<string, { count: number; resetAt: number }>();
 
 function checkRateLimit(key: string): boolean {
   const now = Date.now();
+  // Evict expired windows so the Map can't grow unbounded over the lifetime of a
+  // warm instance (every distinct member key would otherwise leak forever).
+  if (rateMap.size > 5_000) {
+    for (const [k, v] of rateMap) {
+      if (now >= v.resetAt) rateMap.delete(k);
+    }
+  }
   const entry = rateMap.get(key);
   if (!entry || now >= entry.resetAt) {
     rateMap.set(key, { count: 1, resetAt: now + RATE_WINDOW_MS });
@@ -29,7 +38,9 @@ function checkRateLimit(key: string): boolean {
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json() as { question?: string };
-    const question = typeof body.question === "string" ? body.question.trim() : "";
+    // Cap length before it reaches the model: bounds token cost and removes a
+    // cheap abuse vector (bodySizeLimit alone allows multi-MB prompts).
+    const question = (typeof body.question === "string" ? body.question.trim() : "").slice(0, MAX_QUESTION_CHARS);
     if (!question) return new Response("Missing question", { status: 400 });
 
     const brand = await getSelectedMemberAppBrand();
