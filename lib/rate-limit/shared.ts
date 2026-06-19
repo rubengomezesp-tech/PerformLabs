@@ -35,16 +35,7 @@ export async function consumeRateLimit(
   if (!getSupabaseServiceEnv().ok) return fallbackConsume(bucket, opts.windowMs, opts.max);
   try {
     const supabase = createServiceSupabaseClient();
-    // `consume_rate_limit` ships in the same PR (migration
-    // 20260619153000_shared_rate_limit_counters.sql). database.types.ts is
-    // regenerated on deploy, so until the migration lands the RPC name isn't in
-    // the generated union — narrowly type this single call rather than weaken
-    // the whole client.
-    const callRpc = supabase.rpc as unknown as (
-      fn: string,
-      args: { p_bucket: string; p_window_ms: number; p_max: number },
-    ) => Promise<{ data: boolean | null; error: { message: string } | null }>;
-    const { data, error } = await callRpc("consume_rate_limit", {
+    const { data, error } = await supabase.rpc("consume_rate_limit", {
       p_bucket: bucket,
       p_window_ms: opts.windowMs,
       p_max: opts.max,

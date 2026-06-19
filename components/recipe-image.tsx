@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { Apple, Coffee, Soup, Utensils, UtensilsCrossed, type LucideIcon } from "lucide-react";
+import { cloudinaryFetch } from "@/lib/cloudinary";
 import { recipeImageUrl, recipeVisualKey, stableHash, type RecipeImageInput, type RecipeVisualKey } from "@/lib/nutrition/recipe-image";
 
 const FALLBACK_ICON: Record<RecipeVisualKey, LucideIcon> = {
@@ -10,6 +11,15 @@ const FALLBACK_ICON: Record<RecipeVisualKey, LucideIcon> = {
   dinner: UtensilsCrossed,
   snack: Apple,
   meal: Utensils,
+};
+
+// Target render box per variant — drives Cloudinary's resize so we never ship a
+// 256 KB original into a 96 px thumbnail. Matches the CSS aspect ratios of
+// `recipeImageFrame--${variant}` (retina handled by dpr_auto in cloudinaryFetch).
+const VARIANT_SIZE: Record<NonNullable<RecipeImageProps["variant"]>, { width: number; height: number }> = {
+  thumb: { width: 96, height: 96 },
+  card: { width: 480, height: 300 },
+  detail: { width: 800, height: 550 },
 };
 
 type RecipeImageProps = RecipeImageInput & {
@@ -37,7 +47,11 @@ type RecipeImageProps = RecipeImageInput & {
  */
 export function RecipeImage({ variant = "card", className, children, ...input }: RecipeImageProps) {
   const [failed, setFailed] = useState(false);
-  const src = recipeImageUrl(input);
+  // Route the curated URL through Cloudinary fetch: arbitrary remote hosts get
+  // f_auto/q_auto + a right-sized image from the CDN. Falls back to the original
+  // URL untouched when no cloud is configured, so behaviour is unchanged locally.
+  const size = VARIANT_SIZE[variant];
+  const src = cloudinaryFetch(recipeImageUrl(input), { width: size.width, height: size.height });
   const alt = input.name?.trim() ? input.name : "Receta";
   const frameClass = ["recipeImageFrame", `recipeImageFrame--${variant}`, className].filter(Boolean).join(" ");
   const Icon = FALLBACK_ICON[recipeVisualKey(input)];

@@ -1387,6 +1387,44 @@ export type Database = {
           },
         ]
       }
+      coach_inquiries: {
+        Row: {
+          created_at: string
+          email: string
+          full_name: string
+          id: string
+          kind: string
+          message: string
+          workspace_id: string
+        }
+        Insert: {
+          created_at?: string
+          email: string
+          full_name: string
+          id?: string
+          kind?: string
+          message?: string
+          workspace_id: string
+        }
+        Update: {
+          created_at?: string
+          email?: string
+          full_name?: string
+          id?: string
+          kind?: string
+          message?: string
+          workspace_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "coach_inquiries_workspace_id_fkey"
+            columns: ["workspace_id"]
+            isOneToOne: false
+            referencedRelation: "workspaces"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       coach_member_notes: {
         Row: {
           author_user_id: string | null
@@ -4266,6 +4304,27 @@ export type Database = {
           },
         ]
       }
+      rate_limit_counters: {
+        Row: {
+          bucket: string
+          count: number
+          reset_at: string
+          updated_at: string
+        }
+        Insert: {
+          bucket: string
+          count?: number
+          reset_at: string
+          updated_at?: string
+        }
+        Update: {
+          bucket?: string
+          count?: number
+          reset_at?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       recipe_alternatives: {
         Row: {
           alternative_recipe_id: string
@@ -5617,6 +5676,10 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      consume_rate_limit: {
+        Args: { p_bucket: string; p_max: number; p_window_ms: number }
+        Returns: boolean
+      }
       exercise_library_facets: {
         Args: { p_workspace_id: string }
         Returns: Json
