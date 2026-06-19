@@ -22,3 +22,10 @@ skills-lock.json
 # local agent worktrees & scratch
 .claude/worktrees/
 handoff.md
+
+# obsidian vault mounted on the repo (local notes, not product code)
+.obsidian/
+
+# unrelated nested experiment (@miniverse Vite app) — not part of the product;
+# excluded from tsconfig too. Keep out of the repo to avoid accidental commits.
+performlabs/

@@ -805,19 +805,36 @@ export async function provisionPaidMember(input: {
   const supabase = createServiceSupabaseClient();
   const fullName = (input.fullName?.trim() || email.split("@")[0] || "Cliente").slice(0, 120);
 
+  // Stripe can re-deliver checkout.session.completed concurrently. Two deliveries
+  // can both pass the webhook idempotency guard and race here: one createUser
+  // wins, the other fails with "email exists" and must look the user up. There is
+  // also a replication window where the loser's lookup briefly returns null while
+  // the winner's user propagates. Retry the find-or-create a few times so we never
+  // strand a member who has already paid.
   let userId: string | null = null;
-  const created = await supabase.auth.admin.createUser({
-    email,
-    email_confirm: true,
-    user_metadata: { full_name: fullName },
-  });
-  if (created.data?.user) {
-    userId = created.data.user.id;
-  } else {
-    // Email already registered (coach pre-created, or a repeat purchase): reuse it.
+  for (let attempt = 0; attempt < 3 && !userId; attempt++) {
+    const created = await supabase.auth.admin.createUser({
+      email,
+      email_confirm: true,
+      user_metadata: { full_name: fullName },
+    });
+    if (created.data?.user) {
+      userId = created.data.user.id;
+      break;
+    }
+    // createUser failed — most often the email already exists (coach pre-created,
+    // repeat purchase, or a concurrent delivery that just created it). Reuse it.
     userId = await findAuthUserIdByEmail(supabase, email);
+    if (userId) break;
+    // Neither created nor found: likely a propagation race with a concurrent
+    // delivery. Brief backoff, then retry rather than returning null.
+    if (attempt < 2) await new Promise((resolve) => setTimeout(resolve, 250 * (attempt + 1)));
   }
-  if (!userId) return null;
+  if (!userId) {
+    // Surface to the webhook handler so it returns 500 and Stripe re-delivers,
+    // instead of ACKing 200 and leaving a paid member without an account.
+    throw new Error(`No se pudo aprovisionar el usuario para un pago confirmado: ${email}`);
+  }
 
   const profile = await supabase
     .from("member_profiles")

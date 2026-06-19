@@ -1,5 +1,6 @@
 "use server";
 
+import Decimal from "decimal.js";
 import { revalidatePath } from "next/cache";
 import { headers } from "next/headers";
 import { redirect } from "next/navigation";
@@ -60,9 +61,17 @@ export async function createCoachPlanAction(formData: FormData) {
 
   const name = String(formData.get("name") ?? "").trim();
   const description = String(formData.get("description") ?? "").trim();
-  const amount = Number(String(formData.get("amount") ?? "").replace(",", "."));
+  const amountRaw = String(formData.get("amount") ?? "").replace(",", ".").trim();
   const interval = String(formData.get("interval") ?? "month") === "year" ? "year" : "month";
-  const amountCents = Math.round(amount * 100);
+  // Real money goes to Stripe: never use native float arithmetic. `29.99 * 100`
+  // is 2998.9999… in IEEE-754; Decimal keeps it exact (2999). Decimal throws on a
+  // non-numeric string, which we treat as an invalid plan.
+  let amountCents = 0;
+  try {
+    amountCents = new Decimal(amountRaw).times(100).round().toNumber();
+  } catch {
+    amountCents = 0;
+  }
   if (!name || !Number.isFinite(amountCents) || amountCents < 50) {
     redirect("/coach/billing?status=invalid_plan");
   }
