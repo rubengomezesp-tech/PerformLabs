@@ -1,13 +1,7 @@
 import { NextResponse, type NextRequest } from "next/server";
 import { isConsoleAuthRequired } from "@/lib/auth/auth-mode";
 import { authAccessCookie } from "@/lib/auth/session";
-
-/** A trainer's own subdomain/custom domain — not the platform apex or Vercel URL. */
-function isTenantHost(request: NextRequest): boolean {
-  const host = (request.headers.get("host") || "").split(":")[0].toLowerCase().replace(/^www\./, "");
-  if (!host || host === "performlabs.app" || host === "localhost" || host === "127.0.0.1") return false;
-  return !host.endsWith(".vercel.app");
-}
+import { isTenantHost } from "@/lib/tenant-host-guard";
 
 /**
  * Per-request Content-Security-Policy. A fresh nonce authorises exactly the
@@ -64,7 +58,7 @@ export function proxy(request: NextRequest) {
 
   // On a trainer's domain the root is THEIR branded member landing, not the
   // PerformLabs commercial site. Serve /m in place (URL stays the trainer's).
-  if (request.nextUrl.pathname === "/" && isTenantHost(request)) {
+  if (request.nextUrl.pathname === "/" && isTenantHost(request.headers.get("host"))) {
     return withCsp(NextResponse.rewrite(new URL("/m", request.url), { request: { headers: requestHeaders } }));
   }
 

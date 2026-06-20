@@ -5,6 +5,22 @@
 export const ZERO_UUID = "00000000-0000-0000-0000-000000000000";
 
 /**
+ * A tenant host = a trainer's own subdomain/custom domain — NOT the platform apex
+ * (`performlabs.app`), localhost, or a `*.vercel.app` preview/system URL, all of
+ * which legitimately serve the default brand and must never be treated as tenant
+ * hosts. Centralized here (was triplicated in proxy.ts, lib/member-app.ts and
+ * app/auth/session/route.ts) so the multi-tenant routing decision has a single,
+ * tested source of truth — a divergence between copies would be an isolation bug.
+ */
+export function isTenantHost(host: string | null | undefined): boolean {
+  const value = (host || "").split(":")[0].toLowerCase().replace(/^www\./, "");
+  if (!value || value === "performlabs.app" || value === "localhost" || value === "127.0.0.1") {
+    return false;
+  }
+  return !value.endsWith(".vercel.app");
+}
+
+/**
  * L4 (multi-tenant hardening): should we 404 instead of serving the synthetic
  * zero-UUID brand?
  *
