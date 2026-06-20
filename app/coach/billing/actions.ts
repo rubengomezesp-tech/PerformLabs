@@ -1,5 +1,6 @@
 "use server";
 
+import { createHash } from "node:crypto";
 import Decimal from "decimal.js";
 import { revalidatePath } from "next/cache";
 import { headers } from "next/headers";
@@ -77,8 +78,22 @@ export async function createCoachPlanAction(formData: FormData) {
   }
 
   const currency = (account.defaultCurrency || "eur").toLowerCase();
-  const product = await createConnectedProduct(account.stripeUserId, name, description || null);
-  const price = await createConnectedPrice(account.stripeUserId, { product: product.id, amountCents, currency, interval });
+  // Idempotency: a retry of the same plan (network blip after the product was
+  // created, or a double-submit) must not leave an orphan product/price in Stripe.
+  // A stable key per (workspace, name, interval, amount, currency) makes Stripe
+  // return the existing object instead of creating a new one within its window.
+  const planKey = createHash("sha256")
+    .update(`${brand.id}:${name}:${interval}:${amountCents}:${currency}`)
+    .digest("hex")
+    .slice(0, 48);
+  const product = await createConnectedProduct(account.stripeUserId, name, description || null, `plan_product_${planKey}`);
+  const price = await createConnectedPrice(account.stripeUserId, {
+    product: product.id,
+    amountCents,
+    currency,
+    interval,
+    idempotencyKey: `plan_price_${planKey}`,
+  });
   await createCoachPlan({
     workspaceId: brand.id,
     name,

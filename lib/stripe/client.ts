@@ -206,18 +206,19 @@ export async function createConnectedProduct(
   stripeAccount: string,
   name: string,
   description?: string | null,
+  idempotencyKey?: string,
 ): Promise<{ id: string }> {
   return stripeRequest<{ id: string }>(
     "POST",
     "/products",
     { name, description: description || undefined },
-    { stripeAccount },
+    { stripeAccount, idempotencyKey },
   );
 }
 
 export async function createConnectedPrice(
   stripeAccount: string,
-  opts: { product: string; amountCents: number; currency: string; interval: string },
+  opts: { product: string; amountCents: number; currency: string; interval: string; idempotencyKey?: string },
 ): Promise<{ id: string }> {
   return stripeRequest<{ id: string }>(
     "POST",
@@ -228,7 +229,7 @@ export async function createConnectedPrice(
       currency: opts.currency,
       "recurring[interval]": opts.interval,
     },
-    { stripeAccount },
+    { stripeAccount, idempotencyKey: opts.idempotencyKey },
   );
 }
 

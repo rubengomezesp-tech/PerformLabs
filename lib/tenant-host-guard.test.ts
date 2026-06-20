@@ -1,5 +1,27 @@
 import { describe, expect, it } from "vitest";
-import { shouldBlockUnknownTenantHost, ZERO_UUID } from "./tenant-host-guard";
+import { isTenantHost, shouldBlockUnknownTenantHost, ZERO_UUID } from "./tenant-host-guard";
+
+describe("isTenantHost", () => {
+  it("treats a trainer subdomain / custom domain as a tenant host", () => {
+    expect(isTenantHost("coach.performlabs.app")).toBe(true);
+    expect(isTenantHost("mitrainer.com")).toBe(true);
+    expect(isTenantHost("WWW.MiTrainer.com:443")).toBe(true); // case + www + port normalized
+  });
+
+  it("never treats platform apex / localhost / *.vercel.app as a tenant host", () => {
+    expect(isTenantHost("performlabs.app")).toBe(false);
+    expect(isTenantHost("www.performlabs.app")).toBe(false);
+    expect(isTenantHost("localhost")).toBe(false);
+    expect(isTenantHost("127.0.0.1")).toBe(false);
+    expect(isTenantHost("perform-labs-pcgg-git-main-discipline1.vercel.app")).toBe(false);
+  });
+
+  it("handles empty / nullish hosts safely", () => {
+    expect(isTenantHost("")).toBe(false);
+    expect(isTenantHost(null)).toBe(false);
+    expect(isTenantHost(undefined)).toBe(false);
+  });
+});
 
 describe("shouldBlockUnknownTenantHost (L4)", () => {
   const unknownTenantInProd = {

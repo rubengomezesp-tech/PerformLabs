@@ -21,7 +21,7 @@ import {
 import { listWorkspaceAppPages, type MemberAppPage } from "@/lib/repositories/member-experience";
 import { getWorkspaceBrand, type WorkspaceBrand } from "@/lib/repositories/workspaces";
 import { getSupabaseServiceEnv } from "@/lib/supabase/env";
-import { shouldBlockUnknownTenantHost } from "@/lib/tenant-host-guard";
+import { isTenantHost, shouldBlockUnknownTenantHost } from "@/lib/tenant-host-guard";
 
 const selectedWorkspaceCookie = "performlabs_workspace_id";
 
@@ -65,17 +65,6 @@ async function getRequestHost() {
  * or a Vercel preview URL. On a tenant host the brand is resolved from the host
  * so each trainer's domain shows their own app, regardless of any stale cookie.
  */
-function isTenantHost(host: string): boolean {
-  const value = host.split(":")[0].toLowerCase().replace(/^www\./, "");
-  if (!value || value === "performlabs.app" || value === "localhost" || value === "127.0.0.1") {
-    return false;
-  }
-  if (value.endsWith(".vercel.app")) {
-    return false;
-  }
-  return true;
-}
-
 function toNavItem(page: MemberAppPage): MemberNavItem {
   return {
     label: page.title,

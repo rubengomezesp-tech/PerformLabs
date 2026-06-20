@@ -8,19 +8,13 @@ import type { Database } from "@/lib/supabase/database.types";
 import { getSupabasePublicEnv, getSupabaseServiceEnv } from "@/lib/supabase/env";
 import { createServiceSupabaseClient } from "@/lib/supabase/server";
 import { getWorkspaceBrand } from "@/lib/repositories/workspaces";
+import { isTenantHost } from "@/lib/tenant-host-guard";
 
 function explicitNextPath(value: unknown) {
   if (typeof value !== "string" || !value.startsWith("/") || value.startsWith("//") || value.includes("://")) {
     return null;
   }
   return value;
-}
-
-/** A trainer's own subdomain/custom domain — i.e. a member-facing host. */
-function isTenantHost(host: string): boolean {
-  const value = host.split(":")[0].toLowerCase().replace(/^www\./, "");
-  if (!value || value === "performlabs.app" || value === "localhost" || value === "127.0.0.1") return false;
-  return !value.endsWith(".vercel.app");
 }
 
 /**
