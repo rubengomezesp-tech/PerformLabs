@@ -48,16 +48,21 @@ export async function listNudgeableSubscriptions(workspaceId: string, cooldownDa
   const supabase = createServiceSupabaseClient();
   const cutoff = daysAgoIso(cooldownDays);
 
+  // Push the cooldown filter into the query: previously we fetched the first 2000
+  // ENABLED subscriptions and filtered in memory, so in a workspace with >2000
+  // subscriptions the nudgeable ones beyond row 2000 were never reached. Now the
+  // 2000 cap applies to actually-nudgeable rows. cutoff is a generated ISO string
+  // (no untrusted input), safe to interpolate into .or().
   const { data, error } = await supabase
     .from("push_subscriptions")
     .select("id,member_profile_id,endpoint,p256dh,auth,last_notified_at")
     .eq("workspace_id", workspaceId)
     .eq("enabled", true)
+    .or(`last_notified_at.is.null,last_notified_at.lt.${cutoff}`)
     .limit(2000);
 
   if (error || !data) return [];
   return (data as Array<any>)
-    .filter((row) => !row.last_notified_at || row.last_notified_at < cutoff)
     .map((row) => ({
       id: row.id,
       memberProfileId: row.member_profile_id,
