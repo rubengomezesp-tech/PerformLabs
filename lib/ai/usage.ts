@@ -125,8 +125,20 @@ export async function checkAiQuota(workspaceId: string | undefined, feature: AiF
   // Don't block when we can't measure (e.g. local/no DB).
   if (!env.ok || !isUuid(workspaceId)) return { allowed: true, used: 0, limit, remaining: limit };
 
-  const usage = await getMonthlyAiUsage(workspaceId);
-  const used = feature === "coach_brain" ? usage.coachBrain : feature === "plan_gen" ? usage.planGen : usage.photo;
+  // Count this feature's events directly with an exact head count: bounded (no
+  // rows transferred) and accurate. The previous path read up to 20000 rows via
+  // getMonthlyAiUsage and counted in memory, so a very active workspace could slip
+  // past its quota once monthly usage passed that cap. Fail open on a metering
+  // error (don't block a paying member because the usage table hiccupped).
+  const supabase = createServiceSupabaseClient();
+  const { count, error } = await supabase
+    .from("ai_usage_events")
+    .select("*", { count: "exact", head: true })
+    .eq("workspace_id", workspaceId)
+    .eq("feature", feature)
+    .gte("created_at", startOfMonthIso());
+
+  const used = error ? 0 : (count ?? 0);
   const remaining = Math.max(0, limit - used);
   return { allowed: used < limit, used, limit, remaining };
 }

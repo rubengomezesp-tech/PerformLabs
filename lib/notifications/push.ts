@@ -24,7 +24,11 @@ function ensureConfigured(): boolean {
 }
 
 export function isPushConfigured(): boolean {
-  return Boolean(PUBLIC_KEY && PRIVATE_KEY);
+  // Reflect actual usability, not just presence: ensureConfigured runs
+  // setVapidDetails, which throws on malformed keys. Returning true when the keys
+  // exist but are invalid made every send fail later with a generic error instead
+  // of short-circuiting cleanly as "not configured".
+  return ensureConfigured();
 }
 
 export type PushTarget = { endpoint: string; p256dh: string; auth: string };
