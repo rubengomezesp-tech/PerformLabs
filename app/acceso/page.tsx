@@ -4,6 +4,7 @@ import { LogIn, Mail, Sparkles } from "lucide-react";
 import { memberSignInAction, requestMemberAccessLinkAction } from "@/app/auth/actions";
 import { GoogleSignInButton } from "@/components/google-signin-button";
 import { getSelectedMemberAppBrand } from "@/lib/member-app";
+import { getRequestTenantBrand } from "@/lib/request-brand";
 
 export const dynamic = "force-dynamic";
 
@@ -15,7 +16,10 @@ export default async function MemberAccessPage({ searchParams }: AccesoPageProps
   const params = await searchParams;
   // Resolved by host: on a trainer's domain this is THEIR brand, so the client
   // login is white-label too (logo, name, accent), not the platform's.
-  const brand = await getSelectedMemberAppBrand();
+  const [brand, tenantBrand] = await Promise.all([
+    getSelectedMemberAppBrand(),
+    getRequestTenantBrand(),
+  ]);
   const accent = brand.accentColor || "#078df2";
 
   return (
@@ -65,7 +69,9 @@ export default async function MemberAccessPage({ searchParams }: AccesoPageProps
             </button>
           </form>
         </details>
-        <p className="muted">¿Eres entrenador o staff? <Link href="/login">Entra a la consola</Link></p>
+        {!tenantBrand ? (
+          <p className="muted">¿Eres entrenador o staff? <Link href="/login">Entra a la consola</Link></p>
+        ) : null}
       </section>
       <section className="authAside">
         <Sparkles color={accent} />

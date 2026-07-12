@@ -19,7 +19,7 @@ function buildNudge(brandName: string, member: RetentionMember): PushPayload {
   } else {
     body = "Tu objetivo te espera. ¿Entrenamos hoy? 💪";
   }
-  return { title: brandName || "PerformLabs", body, url: "/app", tag: "pl-nudge" };
+  return { title: brandName || "Coach App", body, url: "/app", tag: "coach-nudge" };
 }
 
 export type NudgeRunResult = {
@@ -64,7 +64,7 @@ export async function runInactivityNudges(options: { maxPerRun?: number; cooldow
       const risk = sub.memberProfileId ? riskByMember.get(sub.memberProfileId) : null;
       if (!risk) continue; // only nudge members the radar flags as at-risk
 
-      const result = await sendWebPush(sub, buildNudge(workspace.name, risk));
+      const result = await sendWebPush(sub, buildNudge(workspace.appName || workspace.name, risk));
       if (result.ok) {
         sent += 1;
         await markSubscriptionNotified(sub.id);

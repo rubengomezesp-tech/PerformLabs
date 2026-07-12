@@ -1,5 +1,18 @@
 import { describe, expect, it } from "vitest";
-import { isTenantHost, shouldBlockUnknownTenantHost, ZERO_UUID } from "./tenant-host-guard";
+import { isTenantHost, selectRequestHost, shouldBlockUnknownTenantHost, ZERO_UUID } from "./tenant-host-guard";
+
+describe("selectRequestHost", () => {
+  it("prioriza x-forwarded-host igual que metadata y autenticación", () => {
+    expect(selectRequestHost("miembros.rubengomezcoaching.com", "performlabs.app"))
+      .toBe("miembros.rubengomezcoaching.com");
+    expect(selectRequestHost("tenant.example.com, proxy.internal", "proxy.internal"))
+      .toBe("tenant.example.com");
+  });
+
+  it("usa host como fallback", () => {
+    expect(selectRequestHost(null, "performlabs.app")).toBe("performlabs.app");
+  });
+});
 
 describe("isTenantHost", () => {
   it("treats a trainer subdomain / custom domain as a tenant host", () => {

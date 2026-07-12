@@ -4,6 +4,12 @@
 /** The synthetic brand id getWorkspaceBrand returns when a host resolves to no workspace. */
 export const ZERO_UUID = "00000000-0000-0000-0000-000000000000";
 
+/** Match Next/Vercel host resolution everywhere: the externally forwarded host
+ * wins, and only the first value is meaningful if an intermediary sent a list. */
+export function selectRequestHost(forwardedHost: string | null | undefined, host: string | null | undefined): string {
+  return forwardedHost?.split(",")[0]?.trim() || host?.trim() || "";
+}
+
 /**
  * A tenant host = a trainer's own subdomain/custom domain — NOT the platform apex
  * (`performlabs.app`), localhost, or a `*.vercel.app` preview/system URL, all of

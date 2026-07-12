@@ -72,15 +72,25 @@ self.addEventListener("push", (event) => {
   } catch (_) {
     data = { body: event.data ? event.data.text() : "" };
   }
-  const title = data.title || "PerformLabs";
-  const options = {
-    body: data.body || "",
-    tag: data.tag || "performlabs",
-    icon: "/icon.png",
-    badge: "/icon.png",
-    data: { url: data.url || "/app" },
-  };
-  event.waitUntil(self.registration.showNotification(title, options));
+  event.waitUntil((async () => {
+    let manifestName = "";
+    if (!data.title) {
+      try {
+        const response = await fetch("/manifest.webmanifest", { cache: "no-store" });
+        const manifest = response.ok ? await response.json() : null;
+        manifestName = typeof manifest?.name === "string" ? manifest.name : "";
+      } catch (_) {}
+    }
+
+    const title = data.title || manifestName || "Coach App";
+    await self.registration.showNotification(title, {
+      body: data.body || "",
+      tag: data.tag || "coach-app",
+      icon: "/api/pwa-icon?size=192",
+      badge: "/api/pwa-icon?size=192&maskable=1",
+      data: { url: data.url || "/app" },
+    });
+  })());
 });
 
 self.addEventListener("notificationclick", (event) => {

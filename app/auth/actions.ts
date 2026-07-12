@@ -5,6 +5,7 @@ import { headers } from "next/headers";
 import { redirect } from "next/navigation";
 import { createClient } from "@supabase/supabase-js";
 import { checkLoginRateLimit, clearLoginRateLimit, recordFailedLogin } from "@/lib/auth/login-rate-limit";
+import { resolveMemberAccessWorkspace } from "@/lib/auth/member-workspace";
 import { clearAuthCookies, setAuthCookies } from "@/lib/auth/session";
 import { acceptPendingTeamInvitationsForUser, recordSecurityAuditEvent } from "@/lib/repositories/security-management";
 import type { Database } from "@/lib/supabase/database.types";
@@ -196,20 +197,23 @@ export async function requestMemberAccessLinkAction(formData: FormData) {
   const proto = headerStore.get("x-forwarded-proto") || (process.env.NODE_ENV === "production" ? "https" : "http");
 
   if (host) {
-    // Carry the workspace into the magic link so the member lands in THEIR coach's
-    // app even opening the email on another device (cookie-independent).
-    const workspaceRef = readText(formData, "w");
-    const callback = new URL(`${proto}://${host}/auth/callback`);
-    if (workspaceRef) callback.searchParams.set("w", workspaceRef);
-    callback.searchParams.set("next", "/app");
-    const supabase = createAuthClient();
-    await supabase.auth.signInWithOtp({
-      email,
-      options: {
-        shouldCreateUser: false,
-        emailRedirectTo: callback.toString(),
-      },
-    });
+    // Bind the callback to the canonical tenant. A hidden `w` value is
+    // untrusted: on a trainer domain it must resolve to that same host tenant;
+    // on the platform host it must resolve to a real explicit workspace.
+    const workspace = await resolveMemberAccessWorkspace(host, readText(formData, "w"));
+    if (workspace) {
+      const callback = new URL(`${proto}://${host}/auth/callback`);
+      callback.searchParams.set("w", workspace.id);
+      callback.searchParams.set("next", "/app");
+      const supabase = createAuthClient();
+      await supabase.auth.signInWithOtp({
+        email,
+        options: {
+          shouldCreateUser: false,
+          emailRedirectTo: callback.toString(),
+        },
+      });
+    }
   }
 
   await recordSecurityAuditEvent({

@@ -4,7 +4,7 @@ import { revalidatePath } from "next/cache";
 import { requirePlatformAccess } from "@/lib/auth/access-control";
 import { entitlementModules, upsertWorkspaceEntitlement, type EntitlementModule, type EntitlementStatus } from "@/lib/repositories/entitlements";
 import { recordSecurityAuditEvent } from "@/lib/repositories/security-management";
-import { createWorkspace, setWorkspaceActive, setWorkspaceCustomDomain, updateWorkspace } from "@/lib/repositories/workspaces";
+import { createWorkspace, setWorkspaceActive, setWorkspaceMemberDomain, updateWorkspace } from "@/lib/repositories/workspaces";
 import { registerProjectDomain } from "@/lib/vercel/domains";
 
 function readText(formData: FormData, key: string) {
@@ -13,19 +13,17 @@ function readText(formData: FormData, key: string) {
 }
 
 /**
- * Connect a coach's custom domain: store it on the workspace and (best-effort)
- * register it on the Vercel project so it's served with TLS. Dark-safe — if the
- * Vercel API token isn't set the domain is still saved and the operator adds the
- * host by hand. getWorkspaceBrand already resolves the brand from this host.
+ * Connect only the member-app host. The public/marketing domain stays on its
+ * existing website project and is never registered or moved by this action.
  */
 export async function connectWorkspaceDomainAction(formData: FormData) {
   const session = await requirePlatformAccess();
   const id = readText(formData, "id");
-  const domain = readText(formData, "customDomain");
+  const domain = readText(formData, "memberDomain");
   if (!id || !domain) return;
 
-  await setWorkspaceCustomDomain(id, domain);
-  const result = await registerProjectDomain(domain);
+  const memberDomain = await setWorkspaceMemberDomain(id, domain);
+  const result = await registerProjectDomain(memberDomain);
 
   await recordSecurityAuditEvent({
     workspaceId: id,
@@ -34,7 +32,7 @@ export async function connectWorkspaceDomainAction(formData: FormData) {
     entityType: "workspace",
     entityId: id,
     metadata: {
-      domain,
+      memberDomain,
       vercel: !result.configured ? "not_configured" : result.ok ? "registered" : `error:${result.error ?? "unknown"}`,
     },
   });
@@ -48,7 +46,8 @@ export async function createWorkspaceAction(formData: FormData) {
   await createWorkspace({
     name: readText(formData, "name"),
     appName: readText(formData, "appName"),
-    customDomain: readText(formData, "customDomain"),
+    publicDomain: readText(formData, "publicDomain"),
+    memberDomain: readText(formData, "memberDomain"),
     supportEmail: readText(formData, "supportEmail"),
     accentColor: readText(formData, "accentColor"),
   });
@@ -70,7 +69,8 @@ export async function updateWorkspaceAction(formData: FormData) {
     id,
     name: readText(formData, "name"),
     appName: readText(formData, "appName"),
-    customDomain: readText(formData, "customDomain"),
+    publicDomain: readText(formData, "publicDomain"),
+    memberDomain: readText(formData, "memberDomain"),
     supportEmail: readText(formData, "supportEmail"),
     accentColor: readText(formData, "accentColor"),
     subdomain: readText(formData, "subdomain"),

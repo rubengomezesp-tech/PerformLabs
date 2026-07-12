@@ -30,7 +30,10 @@ export type WorkspaceInput = {
   id?: string;
   name: string;
   appName: string;
-  customDomain: string;
+  /** Existing marketing website; it is never registered on the app project. */
+  publicDomain: string;
+  /** Dedicated client-app host; this is the only custom host registered in Vercel. */
+  memberDomain: string;
   supportEmail: string;
   accentColor: string;
   /** Provisional subdomain label or full host; stored as fallback_subdomain. */
@@ -58,11 +61,15 @@ export type WorkspaceBrand = {
   accentColor: string;
   isActive: boolean;
   logoUrl?: string | null;
+  faviconUrl?: string | null;
   backgroundColor?: string | null;
   heroHeadline?: string | null;
   heroSubtext?: string | null;
   heroImageUrl?: string | null;
   welcomeMessage?: string | null;
+  pwaShortName?: string | null;
+  pwaDescription?: string | null;
+  pwaThemeColor?: string | null;
 };
 
 /** Editable brand fields persisted as per-workspace app_settings (brand.*). */
@@ -80,10 +87,14 @@ const BRAND_SETTING_KEYS = {
   accentColor: "brand.accent_color",
   backgroundColor: "brand.background_color",
   logoUrl: "brand.logo_url",
+  faviconUrl: "brand.favicon_url",
   heroHeadline: "brand.hero_headline",
   heroSubtext: "brand.hero_subtext",
   heroImageUrl: "brand.hero_image_url",
   welcomeMessage: "brand.welcome_message",
+  pwaShortName: "pwa.short_name",
+  pwaDescription: "pwa.description",
+  pwaThemeColor: "pwa.theme_color",
 } as const;
 
 function slugify(value: string) {
@@ -117,6 +128,63 @@ function normalizeDomain(value?: string | null) {
 
 function memberDomainFor(publicDomain: string) {
   return publicDomain ? `miembros.${publicDomain}` : "";
+}
+
+export function resolveWorkspaceDomains(publicInput?: string | null, memberInput?: string | null) {
+  const publicDomain = normalizeDomain(publicInput);
+  const memberDomain = normalizeDomain(memberInput) || memberDomainFor(publicDomain);
+  if (publicDomain && memberDomain === publicDomain) {
+    throw new Error("El dominio de la app debe ser un subdominio distinto de la web pública.");
+  }
+  return { publicDomain, memberDomain };
+}
+
+type WorkspaceDomainRegistryRow = {
+  workspace_id: string;
+  domain: string;
+};
+
+export function findWorkspaceDomainCollision(
+  requestedDomains: Array<string | null | undefined>,
+  registryRows: WorkspaceDomainRegistryRow[],
+  currentWorkspaceId?: string,
+): string | null {
+  const requested = new Set(requestedDomains.map(normalizeDomain).filter(Boolean));
+  return registryRows.find((row) =>
+    row.workspace_id !== currentWorkspaceId && requested.has(normalizeDomain(row.domain)))?.domain ?? null;
+}
+
+export function workspaceDomainWriteError(error: { code?: string; message?: string } | null | undefined, fallback: string) {
+  const message = error?.message ?? "error desconocido";
+  if (error?.code === "23505" && /domain|workspace_domains/i.test(message)) {
+    return new Error("Ese dominio ya está asignado a otra marca. Libéralo primero o utiliza otro dominio.");
+  }
+  return new Error(`${fallback}: ${message}`);
+}
+
+async function assertWorkspaceDomainsAvailable(
+  supabase: ReturnType<typeof createServiceSupabaseClient>,
+  domains: Array<string | null | undefined>,
+  currentWorkspaceId?: string,
+) {
+  const requested = [...new Set(domains.map(normalizeDomain).filter(Boolean))];
+  if (!requested.length) return;
+
+  let query = supabase
+    .from("workspace_domains")
+    .select("workspace_id,domain")
+    .in("domain", requested);
+  if (currentWorkspaceId) query = query.neq("workspace_id", currentWorkspaceId);
+
+  const { data, error } = await query.limit(10);
+  if (error) {
+    throw new Error(`No se pudo comprobar la disponibilidad del dominio: ${error.message}`);
+  }
+
+  const collision = findWorkspaceDomainCollision(requested, data ?? [], currentWorkspaceId);
+  if (collision) {
+    throw new Error(`El dominio ${collision} ya está asignado a otra marca. Libéralo primero o utiliza otro dominio.`);
+  }
 }
 
 function fallbackSubdomainFor(slugOrName: string) {
@@ -253,11 +321,11 @@ async function seedBaseWorkspaceApp(
   input: {
     workspaceId: string;
     workspaceName: string;
-    customDomain: string | null;
+    publicDomain: string | null;
     accentColor: string;
   },
 ) {
-  const publicUrl = input.customDomain ? `https://${input.customDomain}` : "";
+  const publicUrl = input.publicDomain ? `https://${input.publicDomain}` : "";
   const settingOverrides: Record<string, string | boolean | number | Record<string, unknown>> = {
     "pwa.short_name": input.workspaceName.slice(0, 24),
     "pwa.description": `${input.workspaceName} app de coaching, entrenamiento y nutricion.`,
@@ -458,31 +526,32 @@ export async function createWorkspace(input: WorkspaceInput) {
   }
 
   const supabase = createServiceSupabaseClient();
-  const customDomain = cleanOptional(input.customDomain);
-  const publicDomain = normalizeDomain(customDomain);
-  const memberDomain = memberDomainFor(publicDomain);
+  const { publicDomain, memberDomain } = resolveWorkspaceDomains(input.publicDomain, input.memberDomain);
   const accentColor = normalizeHexColor(input.accentColor);
   const slug = `${slugBase}-${Date.now().toString(36)}`;
+  const fallbackSubdomain = fallbackSubdomainFor(slug);
+  await assertWorkspaceDomainsAvailable(supabase, [publicDomain, memberDomain, fallbackSubdomain]);
   const { data, error } = await supabase.from("workspaces").insert({
     name,
     slug,
     app_name: input.appName.trim() || name,
-    custom_domain: customDomain,
+    // Kept in sync for backward compatibility with pre-domain-split rows.
+    custom_domain: publicDomain || null,
     public_domain: publicDomain || null,
     member_domain: memberDomain || null,
-    fallback_subdomain: fallbackSubdomainFor(slug),
+    fallback_subdomain: fallbackSubdomain,
     support_email: cleanOptional(input.supportEmail),
     accent_color: accentColor,
   }).select("id").single();
 
   if (error || !data) {
-    throw new Error(`No se pudo crear la marca: ${error?.message ?? "error desconocido"}`);
+    throw workspaceDomainWriteError(error, "No se pudo crear la marca");
   }
 
   await seedBaseWorkspaceApp(supabase, {
     workspaceId: data.id,
     workspaceName: input.appName.trim() || name,
-    customDomain,
+    publicDomain: publicDomain || null,
     accentColor,
   });
 
@@ -501,19 +570,13 @@ export async function createWorkspace(input: WorkspaceInput) {
   return data.id as string;
 }
 
-async function applyBrandingSettings(supabase: ReturnType<typeof createServiceSupabaseClient>, brand: WorkspaceBrand): Promise<WorkspaceBrand> {
-  if (!isUuid(brand.id)) return brand;
-
-  const { data } = await supabase
-    .from("app_settings")
-    .select("key,value")
-    .eq("workspace_id", brand.id)
-    .in("key", Object.values(BRAND_SETTING_KEYS));
-
-  if (!data?.length) return brand;
-
+export function applyWorkspaceBrandSettings(
+  brand: WorkspaceBrand,
+  rows: Array<{ key: string; value: unknown }>,
+): WorkspaceBrand {
+  if (!rows.length) return brand;
   const map = new Map<string, string>();
-  for (const row of data as Array<{ key: string; value: unknown }>) {
+  for (const row of rows) {
     const value = typeof row.value === "string" ? row.value : row.value == null ? "" : String(row.value);
     if (value.trim()) map.set(row.key, value.trim());
   }
@@ -526,11 +589,27 @@ async function applyBrandingSettings(supabase: ReturnType<typeof createServiceSu
     accentColor: accent ? normalizeHexColor(accent) : brand.accentColor,
     backgroundColor: background && /^#[0-9a-fA-F]{6}$/.test(background) ? background : brand.backgroundColor ?? null,
     logoUrl: map.get(BRAND_SETTING_KEYS.logoUrl) ?? brand.logoUrl ?? null,
+    faviconUrl: map.get(BRAND_SETTING_KEYS.faviconUrl) ?? brand.faviconUrl ?? null,
     heroHeadline: map.get(BRAND_SETTING_KEYS.heroHeadline) ?? brand.heroHeadline ?? null,
     heroSubtext: map.get(BRAND_SETTING_KEYS.heroSubtext) ?? brand.heroSubtext ?? null,
     heroImageUrl: map.get(BRAND_SETTING_KEYS.heroImageUrl) ?? brand.heroImageUrl ?? null,
     welcomeMessage: map.get(BRAND_SETTING_KEYS.welcomeMessage) ?? brand.welcomeMessage ?? null,
+    pwaShortName: map.get(BRAND_SETTING_KEYS.pwaShortName) ?? brand.pwaShortName ?? null,
+    pwaDescription: map.get(BRAND_SETTING_KEYS.pwaDescription) ?? brand.pwaDescription ?? null,
+    pwaThemeColor: map.get(BRAND_SETTING_KEYS.pwaThemeColor) ?? brand.pwaThemeColor ?? null,
   };
+}
+
+async function applyBrandingSettings(supabase: ReturnType<typeof createServiceSupabaseClient>, brand: WorkspaceBrand): Promise<WorkspaceBrand> {
+  if (!isUuid(brand.id)) return brand;
+
+  const { data } = await supabase
+    .from("app_settings")
+    .select("key,value")
+    .eq("workspace_id", brand.id)
+    .in("key", Object.values(BRAND_SETTING_KEYS));
+
+  return applyWorkspaceBrandSettings(brand, (data ?? []) as Array<{ key: string; value: unknown }>);
 }
 
 /** Persists editable brand fields as per-workspace app_settings rows. */
@@ -566,19 +645,32 @@ export async function getWorkspaceSlug(workspaceId: string): Promise<string | nu
   return (data as { slug: string | null } | null)?.slug ?? null;
 }
 
-/** Set (or clear) a workspace's custom domain — the host the coach's clients use. */
-export async function setWorkspaceCustomDomain(workspaceId: string, domain: string): Promise<void> {
+/** Set the dedicated member-app domain without touching the marketing domain. */
+export async function setWorkspaceMemberDomain(workspaceId: string, domain: string): Promise<string> {
   if (!isUuid(workspaceId)) throw new Error("No se pudo identificar la marca.");
   const normalized = normalizeDomain(domain);
+  if (!normalized) throw new Error("El dominio de la app es obligatorio.");
   const supabase = createServiceSupabaseClient();
+  const current = await supabase
+    .from("workspaces")
+    .select("public_domain,custom_domain")
+    .eq("id", workspaceId)
+    .maybeSingle();
+  if (current.error) throw new Error(`No se pudo comprobar el dominio público: ${current.error.message}`);
+  const publicDomain = normalizeDomain(current.data?.public_domain || current.data?.custom_domain);
+  if (normalized === publicDomain) {
+    throw new Error("No se puede mover la web pública al proyecto de la app. Usa un subdominio como app.tudominio.com.");
+  }
+  await assertWorkspaceDomainsAvailable(supabase, [normalized], workspaceId);
   const { error } = await supabase
     .from("workspaces")
-    .update({ custom_domain: normalized || null, updated_at: new Date().toISOString() })
+    .update({ member_domain: normalized, updated_at: new Date().toISOString() })
     .eq("id", workspaceId);
-  if (error) throw new Error(`No se pudo guardar el dominio: ${error.message}`);
+  if (error) throw workspaceDomainWriteError(error, "No se pudo guardar el dominio");
+  return normalized;
 }
 
-export const getWorkspaceBrand = cache(async (workspaceReference?: string): Promise<WorkspaceBrand> => {
+export async function resolveWorkspaceBrand(workspaceReference?: string): Promise<WorkspaceBrand> {
   const env = getSupabaseServiceEnv();
 
   const reference = normalizeWorkspaceReference(workspaceReference);
@@ -650,7 +742,7 @@ export const getWorkspaceBrand = cache(async (workspaceReference?: string): Prom
   const workspace = result.data;
   const { publicDomain, memberDomain, fallbackSubdomain, primaryDomain } = domainsFor(workspace);
 
-  return {
+  return applyBrandingSettings(supabase, {
     id: workspace.id,
     name: workspace.name,
     appName: workspace.app_name,
@@ -661,8 +753,10 @@ export const getWorkspaceBrand = cache(async (workspaceReference?: string): Prom
     fallbackSubdomain,
     accentColor: workspace.accent_color,
     isActive: workspace.is_active,
-  };
-});
+  });
+}
+
+export const getWorkspaceBrand = cache(resolveWorkspaceBrand);
 
 export async function updateWorkspace(input: WorkspaceInput) {
   if (!input.id) {
@@ -675,13 +769,18 @@ export async function updateWorkspace(input: WorkspaceInput) {
   }
 
   const supabase = createServiceSupabaseClient();
-  const publicDomain = normalizeDomain(input.customDomain);
-  const memberDomain = memberDomainFor(publicDomain);
+  const { publicDomain, memberDomain } = resolveWorkspaceDomains(input.publicDomain, input.memberDomain);
   const subdomainHost = toSubdomainHost(input.subdomain);
+  await assertWorkspaceDomainsAvailable(
+    supabase,
+    [publicDomain, memberDomain, subdomainHost],
+    input.id,
+  );
   const base = {
     name,
     app_name: input.appName.trim() || name,
-    custom_domain: cleanOptional(input.customDomain),
+    // Legacy mirror: public_domain is the canonical marketing host.
+    custom_domain: publicDomain || null,
     public_domain: publicDomain || null,
     member_domain: memberDomain || null,
     support_email: cleanOptional(input.supportEmail),
@@ -696,7 +795,7 @@ export async function updateWorkspace(input: WorkspaceInput) {
     .eq("id", input.id);
 
   if (error) {
-    throw new Error(`No se pudo actualizar la marca: ${error.message}`);
+    throw workspaceDomainWriteError(error, "No se pudo actualizar la marca");
   }
 }
 

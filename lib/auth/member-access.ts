@@ -167,8 +167,12 @@ export async function getMemberContext(workspaceIdHint?: string): Promise<Member
     return null;
   }
 
-  // Prefer a profile the member actually owns in the hinted workspace.
-  let chosen = (workspaceIdHint && data?.find((profile) => profile.workspace_id === workspaceIdHint)) || null;
+  // A workspace hint comes from the resolved tenant host/cookie/form and is an
+  // isolation boundary, not merely a preference. If this user only belongs to a
+  // different workspace, never fall through to that other profile.
+  const chosen = workspaceIdHint
+    ? data?.find((profile) => profile.workspace_id === workspaceIdHint) ?? null
+    : data?.[0] ?? null;
 
   // Admin (owner) previewing a brand where they have no profile yet: provision a
   // real, comped member profile so the preview is fully interactive — onboarding
@@ -190,8 +194,8 @@ export async function getMemberContext(workspaceIdHint?: string): Promise<Member
     }
   }
 
-  // Otherwise fall back to the member's own first profile.
-  chosen = chosen || data?.[0] || null;
+  // The first-profile fallback is only valid on the platform host, where there
+  // is no explicit tenant/workspace context to preserve.
   if (!chosen) {
     return null;
   }
