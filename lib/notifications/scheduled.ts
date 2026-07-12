@@ -1,11 +1,10 @@
-import { isPushConfigured, sendWebPush } from "@/lib/notifications/push";
+import { isPushConfigured, resolvePushTitle, sendWebPush } from "@/lib/notifications/push";
 import {
   claimScheduledNotificationForSend,
   listDueScheduledNotifications,
   markScheduledNotificationStatus,
 } from "@/lib/repositories/notification-management";
 import { deletePushSubscription, listActiveSubscriptions } from "@/lib/repositories/push-subscriptions";
-import { listWorkspaceSummaries } from "@/lib/repositories/workspaces";
 
 export type ScheduledRunResult = {
   ok: boolean;
@@ -32,9 +31,6 @@ export async function runScheduledNotifications(options: { maxCampaigns?: number
     return { ok: true, campaigns: 0, sent: 0, pruned: 0 };
   }
 
-  const { workspaces } = await listWorkspaceSummaries();
-  const nameById = new Map(workspaces.map((workspace) => [workspace.id, workspace.name]));
-
   let campaigns = 0;
   let sent = 0;
   let pruned = 0;
@@ -46,13 +42,13 @@ export async function runScheduledNotifications(options: { maxCampaigns?: number
 
     try {
       const subs = await listActiveSubscriptions(campaign.workspaceId);
-      const title = nameById.get(campaign.workspaceId) || "PerformLabs";
+      const title = await resolvePushTitle({ workspaceId: campaign.workspaceId });
       for (const sub of subs) {
         const result = await sendWebPush(sub, {
           title,
           body: campaign.message || title,
           url: "/app",
-          tag: "pl-campaign",
+          tag: "coach-campaign",
         });
         if (result.ok) {
           sent += 1;

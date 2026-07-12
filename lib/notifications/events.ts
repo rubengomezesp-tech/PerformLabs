@@ -1,4 +1,4 @@
-import { isPushConfigured, sendWebPush } from "@/lib/notifications/push";
+import { isPushConfigured, resolvePushTitle, sendWebPush } from "@/lib/notifications/push";
 import { getEnabledPushTemplate } from "@/lib/repositories/notification-management";
 import { deletePushSubscription, listMemberSubscriptions, markSubscriptionNotified } from "@/lib/repositories/push-subscriptions";
 
@@ -20,14 +20,15 @@ export async function fireMemberEventNotification(input: {
 
     const template = await getEnabledPushTemplate(workspaceId, eventKey);
     if (!template || !template.body) return;
+    const title = await resolvePushTitle({ title: template.subject || undefined, workspaceId });
 
     const subs = await listMemberSubscriptions(workspaceId, memberProfileId);
     for (const sub of subs) {
       const result = await sendWebPush(sub, {
-        title: template.subject || "PerformLabs",
+        title,
         body: template.body,
         url: "/app",
-        tag: `pl-${eventKey}`,
+        tag: `coach-${eventKey}`,
       });
       if (result.ok) await markSubscriptionNotified(sub.id);
       else if (result.gone) await deletePushSubscription(sub.endpoint);

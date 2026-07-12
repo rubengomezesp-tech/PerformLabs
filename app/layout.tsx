@@ -5,6 +5,8 @@ import { ServiceWorkerRegister } from "@/components/sw-register";
 import { ToastProvider } from "@/components/ui";
 import { platformBrand } from "@/lib/brand";
 import { getLocale } from "@/lib/i18n/server";
+import { tenantPwaIconUrl, workspacePwaIdentity } from "@/lib/pwa-branding";
+import { getRequestBrandContext } from "@/lib/request-brand";
 import "./globals.css";
 
 // 2026 type system: Geist (UI/body, Vercel-tier) + Bricolage Grotesque (display
@@ -28,23 +30,67 @@ const geistMono = Geist_Mono({
   display: "swap",
 });
 
-export const metadata: Metadata = {
-  title: platformBrand.name,
-  description: "Premium coaching app implementation for performance brands",
-  manifest: "/manifest.webmanifest",
-  appleWebApp: {
-    capable: true,
-    statusBarStyle: "black-translucent",
-    title: platformBrand.name,
-  },
-};
+export async function generateMetadata(): Promise<Metadata> {
+  const context = await getRequestBrandContext();
+  if (context.kind === "platform") {
+    return {
+      title: platformBrand.name,
+      applicationName: platformBrand.name,
+      description: "Premium coaching app implementation for performance brands",
+      manifest: "/manifest.webmanifest",
+      icons: {
+        icon: platformBrand.markUrl,
+        apple: platformBrand.markUrl,
+      },
+      appleWebApp: {
+        capable: true,
+        statusBarStyle: "black-translucent",
+        title: platformBrand.name,
+      },
+    };
+  }
 
-export const viewport: Viewport = {
-  themeColor: "#0d0d10",
-  width: "device-width",
-  initialScale: 1,
-  viewportFit: "cover",
-};
+  if (context.kind === "unknown-tenant") {
+    return {
+      title: "App no disponible",
+      applicationName: "App",
+      description: "Este dominio no está configurado.",
+      robots: { index: false, follow: false },
+    };
+  }
+
+  const brand = context.brand;
+  const identity = workspacePwaIdentity(brand);
+  return {
+    title: identity.name,
+    applicationName: identity.name,
+    description: identity.description,
+    manifest: "/manifest.webmanifest",
+    icons: {
+      icon: [
+        { url: tenantPwaIconUrl(192), sizes: "192x192", type: "image/png" },
+        { url: tenantPwaIconUrl(512), sizes: "512x512", type: "image/png" },
+      ],
+      apple: [{ url: tenantPwaIconUrl(180), sizes: "180x180", type: "image/png" }],
+    },
+    appleWebApp: {
+      capable: true,
+      statusBarStyle: "black-translucent",
+      title: identity.name,
+    },
+  };
+}
+
+export async function generateViewport(): Promise<Viewport> {
+  const context = await getRequestBrandContext();
+  const themeColor = context.kind === "tenant" ? workspacePwaIdentity(context.brand).themeColor : "#0d0d10";
+  return {
+    themeColor,
+    width: "device-width",
+    initialScale: 1,
+    viewportFit: "cover",
+  };
+}
 
 export default async function RootLayout({ children }: { children: React.ReactNode }) {
   const locale = await getLocale();

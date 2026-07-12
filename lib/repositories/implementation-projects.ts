@@ -1,6 +1,7 @@
 import { createServiceSupabaseClient } from "@/lib/supabase/server";
 import type { Json, TablesInsert } from "@/lib/supabase/types";
 import { appSettingDefinitions } from "@/lib/domain/platform-logic";
+import { resolveWorkspaceDomains } from "@/lib/repositories/workspaces";
 
 export type ImplementationProjectSummary = {
   id: string;
@@ -835,6 +836,7 @@ export async function createOperationalWorkspaceFromProject(projectId: string) {
   }
 
   const customDomain = normalizeDomain(brief.desiredDomain);
+  const { publicDomain, memberDomain } = resolveWorkspaceDomains(customDomain);
   const accentColor = normalizeHexColor(brief.accentColor || brief.primaryColor);
   const supportEmail = projectResult.data.client_email || null;
   const workspaceSlug = `${slugBase}-${projectId.slice(0, 8)}`.slice(0, 80);
@@ -847,7 +849,9 @@ export async function createOperationalWorkspaceFromProject(projectId: string) {
             name: workspaceName,
             slug: workspaceSlug,
             app_name: workspaceName,
-            custom_domain: cleanOptional(customDomain),
+            custom_domain: cleanOptional(publicDomain),
+            public_domain: cleanOptional(publicDomain),
+            member_domain: cleanOptional(memberDomain),
             support_email: supportEmail,
             accent_color: accentColor,
             is_active: false,

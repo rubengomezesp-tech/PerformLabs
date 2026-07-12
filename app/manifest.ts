@@ -1,32 +1,23 @@
 import type { MetadataRoute } from "next";
-import { getSelectedMemberAppBrand } from "@/lib/member-app";
+import { buildPwaManifest } from "@/lib/pwa-branding";
+import { getRequestBrandContext } from "@/lib/request-brand";
 
 export const dynamic = "force-dynamic";
 
 export default async function manifest(): Promise<MetadataRoute.Manifest> {
-  const brand = await getSelectedMemberAppBrand();
-  const dark = brand.backgroundColor || "#0d0d10";
-  const shortName = (brand.appName || brand.name || "App").slice(0, 12);
-
-  return {
-    // Stable identity so the install isn't re-keyed if start_url ever changes.
-    id: "/app",
-    name: brand.name,
-    short_name: shortName,
-    description: `${brand.name}: entrenamiento, nutrición y progreso.`,
-    start_url: "/app",
-    scope: "/",
-    display: "standalone",
-    orientation: "portrait",
-    background_color: dark,
-    theme_color: dark,
-    icons: [
-      { src: "/icon-192.png", sizes: "192x192", type: "image/png", purpose: "any" },
-      { src: "/icon.png", sizes: "512x512", type: "image/png", purpose: "any" },
-      { src: "/icon-maskable.png", sizes: "512x512", type: "image/png", purpose: "maskable" },
-      // El apple-touch-icon (app/apple-icon.png) lo expone Next como <link rel="apple-touch-icon">;
-      // no va en el array del manifest. Declararlo aquí como 180x180 cuando el PNG real es 512x512
-      // hacía que Chrome lo rechazara ("resource isn't a valid image").
-    ],
-  };
+  const context = await getRequestBrandContext();
+  if (context.kind === "unknown-tenant") {
+    return {
+      id: "/",
+      name: "App no disponible",
+      short_name: "App",
+      start_url: "/",
+      scope: "/",
+      display: "standalone",
+      background_color: "#0d0d10",
+      theme_color: "#0d0d10",
+      icons: [],
+    };
+  }
+  return buildPwaManifest(context.kind === "tenant" ? context.brand : null);
 }

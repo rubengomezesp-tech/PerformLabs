@@ -1,4 +1,5 @@
 import webpush from "web-push";
+import { getWorkspaceBrand } from "@/lib/repositories/workspaces";
 
 /**
  * Channel-agnostic push delivery. Today it sends Web Push (VAPID) — works on
@@ -34,26 +35,48 @@ export function isPushConfigured(): boolean {
 export type PushTarget = { endpoint: string; p256dh: string; auth: string };
 
 export type PushPayload = {
-  title: string;
+  title?: string;
   body: string;
   url?: string;
   tag?: string;
+  workspaceId?: string;
 };
 
 export type PushSendResult = { ok: true } | { ok: false; gone: boolean; error: string };
+
+type PushBrandLoader = (workspaceId: string) => Promise<{ appName: string; name: string }>;
+
+/** Resolve every implicit notification title through the workspace brand. */
+export async function resolvePushTitle(
+  payload: Pick<PushPayload, "title" | "workspaceId">,
+  loadBrand: PushBrandLoader = getWorkspaceBrand,
+): Promise<string> {
+  const explicit = payload.title?.trim();
+  if (explicit) return explicit;
+  if (payload.workspaceId) {
+    try {
+      const brand = await loadBrand(payload.workspaceId);
+      return brand.appName.trim() || brand.name.trim() || "Coach App";
+    } catch {
+      // Push remains best-effort; a brand lookup outage must not fail the event.
+    }
+  }
+  return "Coach App";
+}
 
 /** Sends one notification. `gone: true` means the subscription is dead (410/404) and should be pruned. */
 export async function sendWebPush(target: PushTarget, payload: PushPayload): Promise<PushSendResult> {
   if (!ensureConfigured()) return { ok: false, gone: false, error: "Push no configurado." };
 
   try {
+    const title = await resolvePushTitle(payload);
     await webpush.sendNotification(
       { endpoint: target.endpoint, keys: { p256dh: target.p256dh, auth: target.auth } },
       JSON.stringify({
-        title: payload.title,
+        title,
         body: payload.body,
         url: payload.url ?? "/app",
-        tag: payload.tag ?? "performlabs",
+        tag: payload.tag ?? "coach-app",
       }),
     );
     return { ok: true };

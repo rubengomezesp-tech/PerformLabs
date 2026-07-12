@@ -1,7 +1,7 @@
 import { NextResponse, type NextRequest } from "next/server";
 import { isConsoleAuthRequired } from "@/lib/auth/auth-mode";
 import { authAccessCookie } from "@/lib/auth/session";
-import { isTenantHost } from "@/lib/tenant-host-guard";
+import { isTenantHost, selectRequestHost } from "@/lib/tenant-host-guard";
 
 /**
  * Per-request Content-Security-Policy. A fresh nonce authorises exactly the
@@ -56,9 +56,22 @@ export function proxy(request: NextRequest) {
     return response;
   };
 
+  const requestHost = selectRequestHost(request.headers.get("x-forwarded-host"), request.headers.get("host"));
+  const tenantHost = isTenantHost(requestHost);
+
+  // Next's root icon/apple-icon files have higher metadata priority than
+  // generateMetadata. Keep those platform assets on the apex, but serve the
+  // host-derived white-label icon when the same conventional URLs are requested
+  // from a tenant domain.
+  if (tenantHost && (request.nextUrl.pathname === "/icon.png" || request.nextUrl.pathname === "/apple-icon.png")) {
+    const iconUrl = new URL("/api/pwa-icon", request.url);
+    iconUrl.searchParams.set("size", request.nextUrl.pathname === "/apple-icon.png" ? "180" : "512");
+    return withCsp(NextResponse.rewrite(iconUrl, { request: { headers: requestHeaders } }));
+  }
+
   // On a trainer's domain the root is THEIR branded member landing, not the
   // PerformLabs commercial site. Serve /m in place (URL stays the trainer's).
-  if (request.nextUrl.pathname === "/" && isTenantHost(request.headers.get("host"))) {
+  if (request.nextUrl.pathname === "/" && tenantHost) {
     return withCsp(NextResponse.rewrite(new URL("/m", request.url), { request: { headers: requestHeaders } }));
   }
 

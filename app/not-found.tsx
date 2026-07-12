@@ -2,6 +2,7 @@ import Link from "next/link";
 import { platformBrand } from "@/lib/brand";
 import type { Locale } from "@/lib/i18n/config";
 import { getLocale } from "@/lib/i18n/server";
+import { getRequestBrandContext } from "@/lib/request-brand";
 
 // Self-contained copy: these strings belong to the 404 surface only, so they
 // live here instead of inflating the shared Dictionary contract. Mirrors the
@@ -17,8 +18,13 @@ const COPY: Record<Locale, { title: string; text: string; cta: string }> = {
 };
 
 export default async function NotFound() {
-  const locale = await getLocale();
+  const [locale, context] = await Promise.all([getLocale(), getRequestBrandContext()]);
   const t = COPY[locale] ?? COPY.es;
+  const brand = context.kind === "platform"
+    ? { name: platformBrand.name, markUrl: platformBrand.markUrl }
+    : context.kind === "tenant"
+      ? { name: context.brand.appName || context.brand.name, markUrl: context.brand.logoUrl }
+      : null;
 
   return (
     <main className="notFound">
@@ -27,11 +33,15 @@ export default async function NotFound() {
         <span className="notFoundCode">404</span>
         <h1 className="notFoundTitle">{t.title}</h1>
         <p className="notFoundText">{t.text}</p>
-        <Link href="/" className="btn primary notFoundCta">{t.cta}</Link>
-        <span className="notFoundBrand">
-          <img src={platformBrand.markUrl} alt="" width={18} height={18} />
-          {platformBrand.name}
-        </span>
+        {context.kind === "unknown-tenant" ? null : (
+          <Link href="/" className="btn primary notFoundCta">{t.cta}</Link>
+        )}
+        {brand ? (
+          <span className="notFoundBrand">
+            {brand.markUrl ? <img src={brand.markUrl} alt="" width={18} height={18} /> : null}
+            {brand.name}
+          </span>
+        ) : null}
       </div>
     </main>
   );

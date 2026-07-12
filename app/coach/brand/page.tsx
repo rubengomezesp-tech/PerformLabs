@@ -73,12 +73,12 @@ export default async function CoachBrandPage() {
             <span className="btn primary sm" style={{ background: accent, borderColor: accent }}>Entrar</span>
           </div>
           <ul className="list">
-            <li className="row">URL de tu app <span className="tag">{brand.publicDomain ? brand.memberDomain : brand.fallbackSubdomain}</span></li>
+            <li className="row">URL de tu app <span className="tag">{brand.memberDomain || brand.fallbackSubdomain}</span></li>
             <li className="row">Nombre <strong>{brand.name}</strong></li>
             <li className="row">Acento <span className="tag">{accent}</span></li>
             <li className="row">Soporte <span>{brand.supportEmail}</span></li>
           </ul>
-          {brand.publicDomain ? null : (
+          {brand.memberDomain ? null : (
             <p className="muted">URL provisional gratuita de PerformLabs (<strong>{brand.fallbackSubdomain}</strong>). Cuando quieras, conecta tu propio dominio.</p>
           )}
         </article>

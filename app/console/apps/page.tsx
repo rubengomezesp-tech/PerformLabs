@@ -74,8 +74,12 @@ export default async function ChildAppsPage() {
               <input name="appName" placeholder="Ej. Elite App" />
             </label>
             <label>
-              Dominio
-              <input name="customDomain" placeholder="app.tudominio.com" />
+              Web pública (no se mueve)
+              <input name="publicDomain" placeholder="tudominio.com" />
+            </label>
+            <label>
+              Dominio de la app
+              <input name="memberDomain" placeholder="app.tudominio.com" />
             </label>
             <label>
               Email soporte
@@ -108,7 +112,8 @@ export default async function ChildAppsPage() {
                 </span>
               </div>
               <ul className="list">
-                <li className="row">Dominio <span>{app.domain}</span></li>
+                <li className="row">Web pública <span>{app.publicDomain || "Pendiente"}</span></li>
+                <li className="row">App privada <span>{app.memberDomain || app.fallbackSubdomain}</span></li>
                 <li className="row">Soporte <span>{app.supportEmail || "Pendiente"}</span></li>
                 <li className="row">Estado app <span className={app.isActive ? "tag" : "tag danger"}>{app.status}</span></li>
                 <li className="row">Miembros <strong>{app.members}</strong></li>
@@ -175,17 +180,17 @@ export default async function ChildAppsPage() {
                 </div>
                 <div className="domainRow">
                   <span className="muted">Dominio propio</span>
-                  <span>{app.domain ? app.domain : <span className="tag">Sin conectar</span>}</span>
+                  <span>{app.memberDomain || <span className="tag">Sin conectar</span>}</span>
                 </div>
                 <form action={connectWorkspaceDomainAction} style={{ display: "flex", gap: 8, margin: "6px 0", flexWrap: "wrap" }}>
                   <input name="id" type="hidden" value={app.id} />
-                  <input name="customDomain" defaultValue={app.domain} placeholder="app.sumarca.com" aria-label={`Dominio propio de ${app.name}`} />
-                  <button className="btn sm" type="submit">Conectar dominio</button>
+                  <input name="memberDomain" defaultValue={app.memberDomain} placeholder="app.sumarca.com" aria-label={`Dominio de la app de ${app.name}`} />
+                  <button className="btn sm" type="submit">Conectar app</button>
                 </form>
                 <p className="muted domainHint">
                   {vercelReady
-                    ? "Se da de alta en Vercel automáticamente. Apunta el DNS del dominio a Vercel (CNAME → cname.vercel-dns.com, o A → 76.76.21.21) y deja *.performlabs.app en DNS-only."
-                    : "Se guarda el dominio; el alta automática en Vercel necesita VERCEL_API_TOKEN. Mientras, añádelo a mano en el proyecto perform-labs-pcgg. DNS: CNAME → cname.vercel-dns.com."}
+                    ? "Solo la app se da de alta en Vercel. La web pública no se toca. Apunta este subdominio con CNAME → cname.vercel-dns.com."
+                    : "Se guarda solo el dominio de la app; el alta automática necesita VERCEL_API_TOKEN. La web pública permanece en su hosting actual."}
                 </p>
               </div>
 
@@ -207,8 +212,12 @@ export default async function ChildAppsPage() {
                     <input name="subdomain" defaultValue={app.fallbackSubdomain.replace(/\.performlabs\.app$/, "")} placeholder="marca" />
                   </label>
                   <label>
-                    Dominio propio
-                    <input name="customDomain" defaultValue={app.domain} placeholder="app.sumarca.com" />
+                    Web pública
+                    <input name="publicDomain" defaultValue={app.publicDomain} placeholder="sumarca.com" />
+                  </label>
+                  <label>
+                    Dominio de la app
+                    <input name="memberDomain" defaultValue={app.memberDomain} placeholder="app.sumarca.com" />
                   </label>
                   <label>
                     Soporte
