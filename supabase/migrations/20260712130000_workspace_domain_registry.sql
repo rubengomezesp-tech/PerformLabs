@@ -196,3 +196,14 @@ for each row execute function public.sync_workspace_domain_registry();
 -- future writes.
 update public.workspaces set public_domain = public_domain;
 
+-- Trigger helpers are internal database plumbing, not Data API RPCs. Supabase
+-- projects may grant EXECUTE on new public functions automatically, so remove
+-- every client-facing grant explicitly. Triggers continue to execute normally.
+revoke execute on function public.canonical_workspace_domain(text)
+  from public, anon, authenticated, service_role;
+revoke execute on function public.normalize_workspace_domain_registry_row()
+  from public, anon, authenticated, service_role;
+revoke execute on function public.normalize_workspace_domain_columns()
+  from public, anon, authenticated, service_role;
+revoke execute on function public.sync_workspace_domain_registry()
+  from public, anon, authenticated, service_role;
