@@ -49,6 +49,15 @@ const attribution = {
   utmCampaign: "miami-summer",
   utmContent: "reel-01",
   utmTerm: "coach-miami",
+  utmId: "21098765432",
+  utmMatchtype: "e",
+  utmDevice: "m",
+  utmNetwork: "g",
+  utmAdgroup: "brickell-exact",
+  gclid: "EAIaIQobChMI_repo-test-123",
+  gbraid: "",
+  wbraid: "",
+  fbclid: "",
   landingPath: "/diagnostico",
   referrerHost: "instagram.com",
 } as const;
@@ -153,6 +162,15 @@ describe("createCoachInquiry", () => {
       utm_campaign: "miami-summer",
       utm_content: "reel-01",
       utm_term: "coach-miami",
+      utm_id: "21098765432",
+      utm_matchtype: "e",
+      utm_device: "m",
+      utm_network: "g",
+      utm_adgroup: "brickell-exact",
+      gclid: "EAIaIQobChMI_repo-test-123",
+      gbraid: null,
+      wbraid: null,
+      fbclid: null,
       landing_path: "/diagnostico",
       referrer_host: "instagram.com",
       submission_id: SUBMISSION_ID,
@@ -206,7 +224,7 @@ describe("createCoachInquiry", () => {
     expect(lookup.chain.eq).toHaveBeenCalledWith("submission_id", SUBMISSION_ID);
   });
 
-  it("uses the six-column legacy insert only for a schema compatibility error", async () => {
+  it("preserves the existing CRM payload while the new attribution columns roll out", async () => {
     const insert = vi.fn()
       .mockImplementationOnce(() => ({
         select: vi.fn(() => ({
@@ -230,7 +248,49 @@ describe("createCoachInquiry", () => {
     });
 
     expect(insert).toHaveBeenCalledTimes(2);
-    expect(insert.mock.calls[1]?.[0]).toEqual({
+    expect(insert.mock.calls[1]?.[0]).toEqual(expect.objectContaining({
+      workspace_id: WORKSPACE_ID,
+      full_name: "María Gómez",
+      email: "maria@example.com",
+      phone: "+1 305 555 0199",
+      message: "RG_DIAGNOSTIC_V1\nfull diagnostic",
+      kind: "diagnostic",
+      answers,
+      utm_campaign: "miami-summer",
+      submission_id: null,
+    }));
+    expect(insert.mock.calls[1]?.[0]).not.toHaveProperty("gclid");
+    expect(insert.mock.calls[1]?.[0]).not.toHaveProperty("utm_adgroup");
+  });
+
+  it("uses the six-column legacy insert only when both additive CRM projections are unavailable", async () => {
+    const missingColumn = { code: "PGRST204", message: "column not found in schema cache" };
+    const insert = vi.fn()
+      .mockImplementationOnce(() => ({
+        select: vi.fn(() => ({
+          single: vi.fn().mockResolvedValue({ data: null, error: missingColumn }),
+        })),
+      }))
+      .mockImplementationOnce(() => ({
+        select: vi.fn(() => ({
+          single: vi.fn().mockResolvedValue({ data: null, error: missingColumn }),
+        })),
+      }))
+      .mockImplementationOnce(() => ({
+        select: vi.fn(() => ({
+          single: vi.fn().mockResolvedValue({ data: { id: INQUIRY_ID }, error: null }),
+        })),
+      }));
+    useClient({ from: vi.fn(() => ({ insert })) });
+
+    await expect(createCoachInquiry(createInput({ submissionId: undefined }))).resolves.toEqual({
+      id: INQUIRY_ID,
+      duplicate: false,
+      legacySchema: true,
+    });
+
+    expect(insert).toHaveBeenCalledTimes(3);
+    expect(insert.mock.calls[2]?.[0]).toEqual({
       workspace_id: WORKSPACE_ID,
       full_name: "María Gómez",
       email: "maria@example.com",
@@ -325,6 +385,15 @@ describe("listCoachInquiries", () => {
         utm_campaign: "miami-summer",
         utm_content: "reel-01",
         utm_term: "coach-miami",
+        utm_id: "21098765432",
+        utm_matchtype: "e",
+        utm_device: "m",
+        utm_network: "g",
+        utm_adgroup: "brickell-exact",
+        gclid: "EAIaIQobChMI_repo-test-123",
+        gbraid: null,
+        wbraid: null,
+        fbclid: null,
         landing_path: "/diagnostico",
         referrer_host: "instagram.com",
         submission_id: SUBMISSION_ID,
@@ -356,6 +425,61 @@ describe("listCoachInquiries", () => {
       qualificationNotes: "Lista para comenzar",
       source: "instagram",
       submissionId: SUBMISSION_ID,
+    })]);
+  });
+
+  it("keeps CRM state visible before the additive attribution migration lands", async () => {
+    const fullLimit = vi.fn().mockResolvedValue({
+      data: null,
+      error: { code: "42703", message: "column gclid does not exist" },
+    });
+    const baseLimit = vi.fn().mockResolvedValue({
+      data: [{
+        id: INQUIRY_ID,
+        workspace_id: WORKSPACE_ID,
+        full_name: "María Gómez",
+        email: "maria@example.com",
+        phone: "+13055550199",
+        message: publicInquiryMessage(),
+        kind: "diagnostic",
+        preferred_contact: "whatsapp",
+        locale: "es",
+        answers,
+        status: "qualified",
+        priority: "high",
+        qualification_notes: "Lista para comenzar",
+        next_action_at: "2026-07-15T16:00:00.000Z",
+        contacted_at: "2026-07-13T05:00:00.000Z",
+        source: "instagram",
+        utm_source: "instagram",
+        utm_medium: "social",
+        utm_campaign: "miami-summer",
+        utm_content: "reel-01",
+        utm_term: "coach-miami",
+        landing_path: "/diagnostico",
+        referrer_host: "instagram.com",
+        submission_id: SUBMISSION_ID,
+        created_at: "2026-07-13T04:00:00.000Z",
+        updated_at: "2026-07-13T05:00:00.000Z",
+      }],
+      error: null,
+    });
+    const fullEq = vi.fn(() => ({ order: vi.fn(() => ({ limit: fullLimit })) }));
+    const baseEq = vi.fn(() => ({ order: vi.fn(() => ({ limit: baseLimit })) }));
+    const select = vi.fn((columns: string) => ({
+      eq: columns.includes("utm_adgroup") ? fullEq : baseEq,
+    }));
+    useClient({ from: vi.fn(() => ({ select })) });
+
+    const result = await listCoachInquiries(WORKSPACE_ID, 25);
+
+    expect(fullEq).toHaveBeenCalledWith("workspace_id", WORKSPACE_ID);
+    expect(baseEq).toHaveBeenCalledWith("workspace_id", WORKSPACE_ID);
+    expect(result).toEqual([expect.objectContaining({
+      status: "qualified",
+      priority: "high",
+      qualificationNotes: "Lista para comenzar",
+      attribution,
     })]);
   });
 

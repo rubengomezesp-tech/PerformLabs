@@ -47,6 +47,15 @@ const attributionValue = z.string()
   .refine((value) => !CONTROL_CHARACTERS.test(value), "El valor contiene caracteres no válidos.")
   .default("");
 
+// Advertising click identifiers are opaque and can be materially longer than
+// UTM values. Keep any visible ASCII token verbatim (including percent/base64
+// punctuation), while excluding spaces and controls that could corrupt the
+// durable line-based fallback.
+const clickIdValue = z.string()
+  .max(512)
+  .regex(/^[\x21-\x7e]*$/, "Identificador publicitario no válido.")
+  .default("");
+
 export const coachDiagnosticAnswersSchema = z.object({
   goal: z.enum(DIAGNOSTIC_GOALS),
   place: z.enum(DIAGNOSTIC_PLACES),
@@ -78,6 +87,15 @@ export const coachInquiryAttributionSchema = z.object({
   utmCampaign: attributionValue,
   utmContent: attributionValue,
   utmTerm: attributionValue,
+  utmId: attributionValue,
+  utmMatchtype: attributionValue,
+  utmDevice: attributionValue,
+  utmNetwork: attributionValue,
+  utmAdgroup: attributionValue,
+  gclid: clickIdValue,
+  gbraid: clickIdValue,
+  wbraid: clickIdValue,
+  fbclid: clickIdValue,
   landingPath: z.string().trim().max(240)
     .refine((value) => !CONTROL_CHARACTERS.test(value), "Ruta no válida.")
     .refine((value) => !value || (value.startsWith("/") && !value.startsWith("//")), "Ruta no válida.")
@@ -155,7 +173,10 @@ export function normalizedDiagnosticZone(answers: CoachDiagnosticAnswers) {
 }
 
 export function coachInquirySource(attribution: CoachInquiryAttribution) {
-  return attribution.utmSource || attribution.referrerHost || "direct";
+  if (attribution.utmSource) return attribution.utmSource;
+  if (attribution.gclid || attribution.gbraid || attribution.wbraid) return "google";
+  if (attribution.fbclid) return "meta";
+  return attribution.referrerHost || "direct";
 }
 
 /** Durable, human-readable fallback used before the additive CRM migration lands. */
@@ -186,6 +207,15 @@ export function structuredCoachInquiryMessage(
     `utm_campaign: ${input.attribution.utmCampaign}`,
     `utm_content: ${input.attribution.utmContent}`,
     `utm_term: ${input.attribution.utmTerm}`,
+    `utm_id: ${input.attribution.utmId}`,
+    `utm_matchtype: ${input.attribution.utmMatchtype}`,
+    `utm_device: ${input.attribution.utmDevice}`,
+    `utm_network: ${input.attribution.utmNetwork}`,
+    `utm_adgroup: ${input.attribution.utmAdgroup}`,
+    `gclid: ${input.attribution.gclid}`,
+    `gbraid: ${input.attribution.gbraid}`,
+    `wbraid: ${input.attribution.wbraid}`,
+    `fbclid: ${input.attribution.fbclid}`,
     `landing_path: ${input.attribution.landingPath}`,
     `referrer_host: ${input.attribution.referrerHost}`,
   ].join("\n");
@@ -225,6 +255,15 @@ export function parseStructuredCoachInquiryMessage(message: string): {
     utmCampaign: fields.get("utm_campaign") ?? "",
     utmContent: fields.get("utm_content") ?? "",
     utmTerm: fields.get("utm_term") ?? "",
+    utmId: fields.get("utm_id") ?? "",
+    utmMatchtype: fields.get("utm_matchtype") ?? "",
+    utmDevice: fields.get("utm_device") ?? "",
+    utmNetwork: fields.get("utm_network") ?? "",
+    utmAdgroup: fields.get("utm_adgroup") ?? "",
+    gclid: fields.get("gclid") ?? "",
+    gbraid: fields.get("gbraid") ?? "",
+    wbraid: fields.get("wbraid") ?? "",
+    fbclid: fields.get("fbclid") ?? "",
     landingPath: fields.get("landing_path") ?? "",
     referrerHost: fields.get("referrer_host") ?? "",
   });

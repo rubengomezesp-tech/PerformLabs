@@ -65,6 +65,15 @@ const validPayload = {
     utmCampaign: "brickell",
     utmContent: "",
     utmTerm: "personal trainer brickell",
+    utmId: "21098765432",
+    utmMatchtype: "e",
+    utmDevice: "m",
+    utmNetwork: "g",
+    utmAdgroup: "brickell-exact",
+    gclid: "EAIaIQobChMI_route-test-123",
+    gbraid: "",
+    wbraid: "",
+    fbclid: "",
     landingPath: "/?utm_source=google",
     referrerHost: "google.com",
   },
@@ -222,5 +231,21 @@ describe("public RG coach inquiry API", () => {
     expect(response.status).toBe(503);
     expect(mocks.createCoachInquiry).not.toHaveBeenCalled();
     expect(mocks.sendRgCoachLeadEmails).not.toHaveBeenCalled();
+  });
+
+  it("never writes PII or advertising click IDs to logs when persistence fails", async () => {
+    const consoleError = vi.spyOn(console, "error").mockImplementation(() => undefined);
+    mocks.createCoachInquiry.mockRejectedValueOnce(new Error(
+      `provider details ${validPayload.email} ${validPayload.attribution.gclid}`,
+    ));
+
+    const response = await POST(request());
+
+    expect(response.status).toBe(503);
+    const logged = JSON.stringify(consoleError.mock.calls);
+    expect(logged).toContain("RG coach inquiry could not be persisted");
+    expect(logged).not.toContain(validPayload.email);
+    expect(logged).not.toContain(validPayload.attribution.gclid);
+    consoleError.mockRestore();
   });
 });

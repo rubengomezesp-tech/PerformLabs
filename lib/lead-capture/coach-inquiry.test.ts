@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 import {
+  coachInquirySource,
   parseStructuredCoachInquiryMessage,
   publicCoachInquirySchema,
   structuredCoachInquiryMessage,
@@ -32,6 +33,15 @@ function publicPayload(overrides: Record<string, unknown> = {}) {
       utmCampaign: "miami-summer",
       utmContent: "reel-01",
       utmTerm: "personal-trainer-miami",
+      utmId: "21098765432",
+      utmMatchtype: "e",
+      utmDevice: "m",
+      utmNetwork: "g",
+      utmAdgroup: "brickell-exact",
+      gclid: "EAIaIQobChMI_test.123-abc_DEF~x",
+      gbraid: "GBRAID_test-123",
+      wbraid: "WBRAID_test-456",
+      fbclid: "IwAR0meta_test-789",
       landingPath: "/?utm_source=instagram",
       referrerHost: "instagram.com",
     },
@@ -72,6 +82,15 @@ describe("publicCoachInquirySchema", () => {
         utmCampaign: "miami-summer",
         utmContent: "reel-01",
         utmTerm: "personal-trainer-miami",
+        utmId: "21098765432",
+        utmMatchtype: "e",
+        utmDevice: "m",
+        utmNetwork: "g",
+        utmAdgroup: "brickell-exact",
+        gclid: "EAIaIQobChMI_test.123-abc_DEF~x",
+        gbraid: "GBRAID_test-123",
+        wbraid: "WBRAID_test-456",
+        fbclid: "IwAR0meta_test-789",
         landingPath: "/?utm_source=instagram",
         referrerHost: "instagram.com",
       },
@@ -135,6 +154,53 @@ describe("publicCoachInquirySchema", () => {
       attribution: { ...(base.attribution as object), clickId: "secret" },
     }).success).toBe(false);
   });
+
+  it("keeps the expanded attribution contract backward compatible", () => {
+    const base = publicPayload();
+    const legacyAttribution = { ...(base.attribution as Record<string, unknown>) };
+    for (const key of [
+      "utmId", "utmMatchtype", "utmDevice", "utmNetwork", "utmAdgroup",
+      "gclid", "gbraid", "wbraid", "fbclid",
+    ]) delete legacyAttribution[key];
+
+    const parsed = publicCoachInquirySchema.parse({ ...base, attribution: legacyAttribution });
+    expect(parsed.attribution).toMatchObject({
+      utmId: "",
+      utmMatchtype: "",
+      utmDevice: "",
+      utmNetwork: "",
+      utmAdgroup: "",
+      gclid: "",
+      gbraid: "",
+      wbraid: "",
+      fbclid: "",
+    });
+  });
+
+  it("preserves visible punctuation in opaque click identifiers", () => {
+    const base = publicPayload();
+    const parsed = publicCoachInquirySchema.parse({
+      ...base,
+      attribution: {
+        ...(base.attribution as object),
+        gclid: "opaque%2Btoken=value:part",
+      },
+    });
+    expect(parsed.attribution.gclid).toBe("opaque%2Btoken=value:part");
+  });
+
+  it.each([
+    ["oversized UTM dimension", "utmAdgroup", "a".repeat(121)],
+    ["oversized click identifier", "gclid", "a".repeat(513)],
+    ["click identifier with spaces", "fbclid", "IwAR invalid"],
+    ["click identifier with controls", "wbraid", "valid\ninvalid"],
+  ])("rejects %s", (_label, key, value) => {
+    const base = publicPayload();
+    expect(publicCoachInquirySchema.safeParse({
+      ...base,
+      attribution: { ...(base.attribution as object), [key]: value },
+    }).success).toBe(false);
+  });
 });
 
 describe("structured diagnostic fallback", () => {
@@ -144,6 +210,8 @@ describe("structured diagnostic fallback", () => {
 
     expect(message).toContain("RG_DIAGNOSTIC_V1");
     expect(message).toContain(`RG_SUBMISSION_ID: ${inquiry.submissionId}`);
+    expect(message).toContain(`gclid: ${inquiry.attribution.gclid}`);
+    expect(message).toContain(`utm_adgroup: ${inquiry.attribution.utmAdgroup}`);
     expect(parseStructuredCoachInquiryMessage(message)).toEqual({
       submissionId: inquiry.submissionId,
       phone: inquiry.phone,
@@ -179,6 +247,26 @@ describe("structured diagnostic fallback", () => {
     });
   });
 
+  it("parses pre-expansion V1 messages with empty defaults for new campaign fields", () => {
+    const expandedLines = /^(?:utm_id|utm_matchtype|utm_device|utm_network|utm_adgroup|gclid|gbraid|wbraid|fbclid):/;
+    const legacyMessage = structuredCoachInquiryMessage(parsedPayload())
+      .split("\n")
+      .filter((line) => !expandedLines.test(line))
+      .join("\n");
+
+    expect(parseStructuredCoachInquiryMessage(legacyMessage)?.attribution).toMatchObject({
+      utmId: "",
+      utmMatchtype: "",
+      utmDevice: "",
+      utmNetwork: "",
+      utmAdgroup: "",
+      gclid: "",
+      gbraid: "",
+      wbraid: "",
+      fbclid: "",
+    });
+  });
+
   it("fails closed for unrelated or incomplete structured messages", () => {
     expect(parseStructuredCoachInquiryMessage("ordinary contact message")).toBeNull();
     expect(parseStructuredCoachInquiryMessage("RG_DIAGNOSTIC_V1\nRG_SUBMISSION_ID: rg-1783932000000-a1b2")).toBeNull();
@@ -201,5 +289,20 @@ describe("structured diagnostic fallback", () => {
     }],
   ])("rejects control-character injection through %s", (_label, override) => {
     expect(publicCoachInquirySchema.safeParse(publicPayload(override)).success).toBe(false);
+  });
+});
+
+describe("coachInquirySource", () => {
+  it("infers paid platforms from click identifiers when utm_source is absent", () => {
+    const google = parsedPayload().attribution;
+    expect(coachInquirySource({ ...google, utmSource: "", gclid: "gclid-123", fbclid: "" })).toBe("google");
+    expect(coachInquirySource({
+      ...google,
+      utmSource: "",
+      gclid: "",
+      gbraid: "",
+      wbraid: "",
+      fbclid: "fbclid-123",
+    })).toBe("meta");
   });
 });
