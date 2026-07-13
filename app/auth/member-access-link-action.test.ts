@@ -177,7 +177,7 @@ describe("requestMemberAccessLinkAction", () => {
       type: "magiclink",
       email: "member@example.com",
       options: {
-        redirectTo: "https://miembros.rubengomezcoaching.com/auth/callback?w=83a83c28-7baa-48b5-9ca3-22634e030fd4&next=%2Fapp",
+        redirectTo: "https://miembros.rubengomezcoaching.com/auth/callback",
       },
     });
     expect(mocks.signInWithOtp).not.toHaveBeenCalled();
@@ -204,7 +204,7 @@ describe("requestMemberAccessLinkAction", () => {
 
     expect(mocks.generateLink).toHaveBeenCalledWith(expect.objectContaining({
       options: {
-        redirectTo: "https://clientes.rubengomezcoaching.com/auth/callback?w=83a83c28-7baa-48b5-9ca3-22634e030fd4&next=%2Fapp",
+        redirectTo: "https://clientes.rubengomezcoaching.com/auth/callback",
       },
     }));
   });

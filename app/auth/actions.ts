@@ -85,8 +85,13 @@ function memberAccessCallback(input: {
   if (!origin) return null;
 
   const callback = new URL("/auth/callback", origin);
-  callback.searchParams.set("w", input.workspaceId);
-  callback.searchParams.set("next", "/app");
+  // A canonical tenant host is already the workspace boundary and always lands
+  // members in /app. Keep its redirect URL exact so Supabase's production
+  // allow-list accepts it; only local/platform fallbacks need explicit context.
+  if (!canonicalHost) {
+    callback.searchParams.set("w", input.workspaceId);
+    callback.searchParams.set("next", "/app");
+  }
   return callback;
 }
 
