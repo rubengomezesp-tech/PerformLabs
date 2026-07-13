@@ -147,6 +147,7 @@ export const platformModules: PlatformModule[] = [
 export const appSettingDefinitions: AppSettingDefinition[] = [
   { group: "general", key: "brand.logo_url", label: "Logo", valueType: "url", defaultValue: "" },
   { group: "general", key: "brand.favicon_url", label: "Favicon", valueType: "url", defaultValue: "" },
+  { group: "general", key: "brand.signature_url", label: "Firma del coach", valueType: "url", defaultValue: "" },
   { group: "general", key: "brand.header_image_url", label: "Imagen de cabecera", valueType: "url", defaultValue: "" },
   { group: "general", key: "support.reactivation_url", label: "URL reactivacion", valueType: "url", defaultValue: "" },
   { group: "general", key: "support.website_url", label: "Web publica", valueType: "url", defaultValue: "" },
@@ -156,6 +157,8 @@ export const appSettingDefinitions: AppSettingDefinition[] = [
   { group: "pwa", key: "pwa.short_name", label: "Nombre corto PWA", valueType: "text", defaultValue: "PerformLabs" },
   { group: "pwa", key: "pwa.description", label: "Descripcion PWA", valueType: "text", defaultValue: "Performance coaching app" },
   { group: "pwa", key: "pwa.theme_color", label: "Theme color", valueType: "color", defaultValue: "#078df2" },
+  { group: "pwa", key: "pwa.icon_url", label: "Icono PWA", valueType: "url", defaultValue: "" },
+  { group: "pwa", key: "pwa.maskable_icon_url", label: "Icono PWA adaptable", valueType: "url", defaultValue: "" },
   { group: "subscription", key: "subscription.activation_delay_min_days", label: "Activacion minima", valueType: "number", defaultValue: 0 },
   { group: "subscription", key: "subscription.activation_delay_max_days", label: "Activacion maxima", valueType: "number", defaultValue: 7 },
   { group: "subscription", key: "subscription.default_measurement_system", label: "Sistema medicion", valueType: "select", defaultValue: "metric" },
