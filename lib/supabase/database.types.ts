@@ -1389,31 +1389,121 @@ export type Database = {
       }
       coach_inquiries: {
         Row: {
+          answers: Json
+          contact_consent_at: string | null
+          consent_version: string | null
+          contacted_at: string | null
           created_at: string
+          elapsed_ms: number | null
           email: string
           full_name: string
+          goal: string | null
           id: string
           kind: string
+          landing_path: string | null
+          locale: string
+          marketing_consent_at: string | null
           message: string
+          next_action_at: string | null
+          obstacle: string | null
+          phone: string | null
+          preferred_contact: string
+          priority: string
+          qualification_notes: string | null
+          referrer_host: string | null
+          schedule: string | null
+          service_mode: string | null
+          sessions_per_week: number | null
+          source: string
+          status: string
+          submission_id: string | null
+          training_level: string | null
+          updated_at: string
+          utm_campaign: string | null
+          utm_content: string | null
+          utm_medium: string | null
+          utm_source: string | null
+          utm_term: string | null
           workspace_id: string
+          zone: string | null
         }
         Insert: {
+          answers?: Json
+          contact_consent_at?: string | null
+          consent_version?: string | null
+          contacted_at?: string | null
           created_at?: string
+          elapsed_ms?: number | null
           email: string
           full_name: string
+          goal?: string | null
           id?: string
           kind?: string
+          landing_path?: string | null
+          locale?: string
+          marketing_consent_at?: string | null
           message?: string
+          next_action_at?: string | null
+          obstacle?: string | null
+          phone?: string | null
+          preferred_contact?: string
+          priority?: string
+          qualification_notes?: string | null
+          referrer_host?: string | null
+          schedule?: string | null
+          service_mode?: string | null
+          sessions_per_week?: number | null
+          source?: string
+          status?: string
+          submission_id?: string | null
+          training_level?: string | null
+          updated_at?: string
+          utm_campaign?: string | null
+          utm_content?: string | null
+          utm_medium?: string | null
+          utm_source?: string | null
+          utm_term?: string | null
           workspace_id: string
+          zone?: string | null
         }
         Update: {
+          answers?: Json
+          contact_consent_at?: string | null
+          consent_version?: string | null
+          contacted_at?: string | null
           created_at?: string
+          elapsed_ms?: number | null
           email?: string
           full_name?: string
+          goal?: string | null
           id?: string
           kind?: string
+          landing_path?: string | null
+          locale?: string
+          marketing_consent_at?: string | null
           message?: string
+          next_action_at?: string | null
+          obstacle?: string | null
+          phone?: string | null
+          preferred_contact?: string
+          priority?: string
+          qualification_notes?: string | null
+          referrer_host?: string | null
+          schedule?: string | null
+          service_mode?: string | null
+          sessions_per_week?: number | null
+          source?: string
+          status?: string
+          submission_id?: string | null
+          training_level?: string | null
+          updated_at?: string
+          utm_campaign?: string | null
+          utm_content?: string | null
+          utm_medium?: string | null
+          utm_source?: string | null
+          utm_term?: string | null
           workspace_id?: string
+          zone?: string | null
         }
         Relationships: [
           {

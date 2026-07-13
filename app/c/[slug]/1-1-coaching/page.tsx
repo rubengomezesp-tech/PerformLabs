@@ -1,3 +1,4 @@
+import { randomUUID } from "node:crypto";
 import type { CSSProperties } from "react";
 import { notFound } from "next/navigation";
 import { ArrowRight, Dumbbell, HeartHandshake, Salad, Sparkles, Target, TrendingUp } from "lucide-react";
@@ -45,6 +46,7 @@ export default async function CoachingOneToOnePage({
   const accent = brand.accentColor || "#078df2";
   const background = brand.backgroundColor || "#0d0d10";
   const markUrl = workspaceBrandMarkUrl(brand);
+  const submissionId = randomUUID();
 
   return (
     <main className="salesPage" style={{ "--accent": accent, "--sales-bg": background } as CSSProperties}>
@@ -115,17 +117,22 @@ export default async function CoachingOneToOnePage({
           <form action={submitCoachInquiryAction} className="salesContactForm">
             <input type="hidden" name="slug" value={slug} />
             <input type="hidden" name="kind" value="coaching" />
+            <input type="hidden" name="submissionId" value={submissionId} />
+            <label aria-hidden="true" style={{ position: "fixed", left: "-10000px", width: 1, height: 1, overflow: "hidden" }}>
+              Sitio web
+              <input autoComplete="off" name="website" tabIndex={-1} />
+            </label>
             <label className="salesPlanField">
               Nombre completo
-              <input name="fullName" required autoComplete="name" placeholder="Tu nombre" />
+              <input name="fullName" required autoComplete="name" maxLength={80} placeholder="Tu nombre" />
             </label>
             <label className="salesPlanField">
               Email
-              <input name="email" type="email" required autoComplete="email" inputMode="email" placeholder="tu@email.com" />
+              <input name="email" type="email" required autoComplete="email" inputMode="email" maxLength={160} placeholder="tu@email.com" />
             </label>
             <label className="salesPlanField">
               Tu objetivo
-              <textarea name="message" rows={4} placeholder="¿Qué quieres conseguir?" />
+              <textarea name="message" rows={4} maxLength={2000} placeholder="¿Qué quieres conseguir?" />
             </label>
             <button className="btn primary salesPlanCta" type="submit" style={{ background: accent, borderColor: accent }}>
               Enviar solicitud

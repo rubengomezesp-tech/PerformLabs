@@ -30,7 +30,7 @@ function fallbackConsume(bucket: string, windowMs: number, max: number): boolean
 /** Returns true if the request is allowed, false if it should be throttled. */
 export async function consumeRateLimit(
   bucket: string,
-  opts: { windowMs: number; max: number },
+  opts: { windowMs: number; max: number; failClosed?: boolean },
 ): Promise<boolean> {
   if (!getSupabaseServiceEnv().ok) return fallbackConsume(bucket, opts.windowMs, opts.max);
   try {
@@ -43,6 +43,10 @@ export async function consumeRateLimit(
     if (error) throw new Error(error.message);
     return data === true;
   } catch (error) {
+    if (opts.failClosed) {
+      console.error("shared rate-limit failed; rejecting protected request", (error as Error).message);
+      return false;
+    }
     console.error("shared rate-limit failed; using in-memory fallback", (error as Error).message);
     return fallbackConsume(bucket, opts.windowMs, opts.max);
   }
