@@ -55,7 +55,7 @@ describe("sendTenantMagicLinkIfConfigured", () => {
     process.env.NEXT_PUBLIC_SUPABASE_URL = "https://example.supabase.co";
     process.env.RG_COACH_MAGIC_LINK_WORKSPACE_ID = RG_WORKSPACE_ID;
     process.env.RG_COACH_RESEND_API_KEY = "test-rg-resend-key";
-    process.env.RG_COACH_RESEND_FROM = "RG Coach <acceso@auth.rubengomezcoaching.com>";
+    process.env.RG_COACH_RESEND_FROM = "Rubén · RG Coach <acceso@auth.rubengomezcoaching.com>";
     mocks.listUsers.mockReset().mockResolvedValue({
       data: { users: [{ id: "user-rg", email: "member@example.com" }] },
       error: null,
@@ -185,7 +185,7 @@ describe("sendTenantMagicLinkIfConfigured", () => {
 
   it("sends a tenant-branded message through the isolated Resend API", async () => {
     await expect(sendTenantMagicLinkIfConfigured({
-      workspace: { ...workspace, appName: "RG <Coach>" },
+      workspace: { ...workspace, appName: "RG <Coach>\r\nAuthentic" },
       email: "member@example.com",
       callbackUrl: "https://miembros.rubengomezcoaching.com/auth/callback",
     })).resolves.toEqual({ handled: true, status: "sent" });
@@ -199,14 +199,35 @@ describe("sendTenantMagicLinkIfConfigured", () => {
       "User-Agent": "rg-coach-member-auth/1.0",
     });
     expect(body).toMatchObject({
-      from: "RG Coach <acceso@auth.rubengomezcoaching.com>",
+      from: "Rubén · RG Coach <acceso@auth.rubengomezcoaching.com>",
       to: ["member@example.com"],
       reply_to: "soporte@rubengomezcoaching.com",
-      subject: "Tu acceso a RG <Coach>",
+      subject: "Tu acceso a RG <Coach> Authentic",
     });
-    expect(body.html).toContain("RG &lt;Coach&gt;");
-    expect(String(body.html)).not.toContain("PerformLabs");
-    expect(String(body.html)).not.toContain("FitControl");
+    const html = String(body.html);
+    const text = String(body.text);
+    expect(html).toContain("RG &lt;Coach&gt;");
+    expect(html).toContain('role="presentation"');
+    expect(html).toContain("ACCESO PRIVADO");
+    expect(html).toContain("Tu espacio<br>está listo.");
+    expect(html).toContain("ABRIR MI APP RG");
+    expect(html).toContain("UN MENSAJE DE RUBÉN");
+    expect(html).toContain("ENTRENAMIENTO");
+    expect(html).toContain("NUTRICIÓN");
+    expect(html).toContain("PROGRESO");
+    expect(html).toContain("#2f6bff");
+    expect(html).toContain("#00d4ff");
+    expect(html).toContain("soporte@rubengomezcoaching.com");
+    expect(html).toContain("https://example.supabase.co/auth/v1/verify?");
+    expect(html).toContain("token=opaque&amp;type=magiclink&amp;redirect_to=");
+    expect(html.length).toBeLessThan(25_000);
+    expect(html).not.toMatch(/<(?:img|script|form|iframe|svg)\b/i);
+    expect(html).not.toMatch(/@import|url\(https?:/i);
+    expect(html).not.toContain("PerformLabs");
+    expect(html).not.toContain("FitControl");
+    expect(text).toContain("Tu espacio está listo.");
+    expect(text).toContain("https://example.supabase.co/auth/v1/verify?token=opaque&type=magiclink&redirect_to=");
+    expect(text).toContain("Rubén Gómez · Tu coach");
     expect(mocks.select).toHaveBeenCalledWith("id,subscription_status");
   });
 
