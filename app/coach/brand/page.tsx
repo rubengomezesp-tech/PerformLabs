@@ -2,6 +2,7 @@ import { Eye, Palette, Smartphone } from "lucide-react";
 import Link from "next/link";
 import { Topbar } from "@/components/topbar";
 import { getSelectedMemberAppBrand } from "@/lib/member-app";
+import { workspaceBrandMarkUrl } from "@/lib/workspace-brand-assets";
 import { updateBrandingAction } from "./actions";
 
 export const dynamic = "force-dynamic";
@@ -10,6 +11,7 @@ export default async function CoachBrandPage() {
   const brand = await getSelectedMemberAppBrand();
   const accent = brand.accentColor || "#078df2";
   const background = brand.backgroundColor || "#101014";
+  const markUrl = workspaceBrandMarkUrl(brand);
 
   return (
     <>
@@ -66,7 +68,7 @@ export default async function CoachBrandPage() {
             }}
           >
             <span className="brandPreviewMark" style={{ borderColor: accent, color: accent }}>
-              {brand.logoUrl ? <img alt="" src={brand.logoUrl} /> : brand.appName.slice(0, 3).toUpperCase()}
+              {markUrl ? <img alt="" src={markUrl} /> : brand.appName.slice(0, 3).toUpperCase()}
             </span>
             <strong>{brand.heroHeadline || brand.name}</strong>
             <p>{brand.heroSubtext || `Tu espacio de ${brand.name}.`}</p>

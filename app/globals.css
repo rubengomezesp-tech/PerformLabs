@@ -8470,6 +8470,20 @@ a.diaryEntryTitle:hover {
   font-weight: 700;
   color: var(--text);
 }
+.memberHeaderIdentity {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  min-width: 0;
+}
+.memberHeaderMark {
+  width: 30px;
+  height: 30px;
+  border-radius: 9px;
+  object-fit: contain;
+  flex: 0 0 auto;
+}
 .memberDrawer {
   position: fixed;
   inset: 0;
@@ -8652,6 +8666,14 @@ a.diaryEntryTitle:hover {
   font-weight: 700;
   font-size: 14px;
   flex-shrink: 0;
+}
+.communityAvatar img,
+.chatAvatar img,
+.chatHeaderAvatar img {
+  width: 100%;
+  height: 100%;
+  border-radius: inherit;
+  object-fit: contain;
 }
 .communityBody {
   margin: 0;
@@ -14600,6 +14622,14 @@ button[aria-busy="true"] {
   border: 1px solid rgba(255, 255, 255, 0.1);
 }
 .salesAboutBody p { margin: 0; line-height: 1.6; opacity: 0.88; font-size: 17px; white-space: pre-line; }
+.salesAboutSignature {
+  display: block;
+  width: min(220px, 62%);
+  height: auto;
+  margin-top: 20px;
+  object-fit: contain;
+  object-position: left center;
+}
 @media (max-width: 720px) { .salesAbout { grid-template-columns: 1fr; } }
 .salesPlanGrid {
   display: grid;

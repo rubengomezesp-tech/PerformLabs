@@ -4,6 +4,7 @@ import { SubmitButton } from "@/components/ui";
 import { Topbar } from "@/components/topbar";
 import { getSelectedMemberAppBrand } from "@/lib/member-app";
 import { listCommunityPosts } from "@/lib/repositories/community";
+import { workspaceBrandMarkUrl } from "@/lib/workspace-brand-assets";
 import { createCommunityPostAction, deleteCommunityPostAction, toggleCommunityLikeAction } from "./actions";
 
 export const dynamic = "force-dynamic";
@@ -27,6 +28,7 @@ function initials(name: string) {
 export default async function MemberCommunityPage() {
   const brand = await getSelectedMemberAppBrand();
   const posts = await listCommunityPosts(brand.id);
+  const markUrl = workspaceBrandMarkUrl(brand);
 
   return (
     <>
@@ -53,7 +55,9 @@ export default async function MemberCommunityPage() {
               <article className={`${post.isCoach ? "card communityPost coachPost" : "card communityPost"} uiFadeUp`} style={{ ["--i" as string]: idx }} key={post.id}>
                 <div className="communityPostHead">
                   <span className={post.isCoach ? "communityAvatar coach" : "communityAvatar"}>
-                    {post.isCoach ? <Sparkles size={16} /> : initials(post.authorName)}
+                    {post.isCoach ? (
+                      markUrl ? <img src={markUrl} alt="" /> : <Sparkles size={16} />
+                    ) : initials(post.authorName)}
                   </span>
                   <div>
                     <strong>

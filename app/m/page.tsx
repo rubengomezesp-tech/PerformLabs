@@ -3,6 +3,7 @@ import { LogIn, Mail, ShieldCheck } from "lucide-react";
 import { memberSignInAction, requestMemberAccessLinkAction } from "@/app/auth/actions";
 import { GoogleSignInButton } from "@/components/google-signin-button";
 import { getSelectedMemberAppBrand } from "@/lib/member-app";
+import { workspaceBrandMarkUrl } from "@/lib/workspace-brand-assets";
 
 export const dynamic = "force-dynamic";
 
@@ -22,6 +23,7 @@ export default async function MemberLandingPage({ searchParams }: MemberLandingP
   const background = brand.backgroundColor || "#0d0d10";
   const headline = brand.heroHeadline || `Entrena con ${brand.name}`;
   const subtext = brand.heroSubtext || "Tu plan de entrenamiento y nutrición, tu progreso y tu coach, en un solo sitio.";
+  const markUrl = workspaceBrandMarkUrl(brand);
 
   const asideStyle: CSSProperties = brand.heroImageUrl
     ? { background: `linear-gradient(160deg, rgba(0,0,0,.25), rgba(0,0,0,.7)), url(${brand.heroImageUrl}) center/cover` }
@@ -32,7 +34,7 @@ export default async function MemberLandingPage({ searchParams }: MemberLandingP
       <section className="memberLandingPanel">
         <div className="memberBrandLockup">
           <span className="memberBrandMark" style={{ borderColor: accent, color: accent }}>
-            {brand.logoUrl ? <img alt="" src={brand.logoUrl} /> : brand.appName.slice(0, 3).toUpperCase()}
+            {markUrl ? <img alt="" src={markUrl} /> : brand.appName.slice(0, 3).toUpperCase()}
           </span>
           <strong>{brand.name}</strong>
         </div>

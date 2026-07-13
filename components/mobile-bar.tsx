@@ -2,6 +2,7 @@ import Link from "next/link";
 import { platformBrand } from "@/lib/brand";
 import type { ShellSession } from "@/components/page-shell";
 import type { WorkspaceBrand } from "@/lib/repositories/workspaces";
+import { workspaceBrandMarkUrl } from "@/lib/workspace-brand-assets";
 
 export function MobileBar({
   href,
@@ -20,14 +21,15 @@ export function MobileBar({
     accentColor: platformBrand.accentColor,
   };
   const isPlatformShell = !brand;
+  const markUrl = brand ? workspaceBrandMarkUrl(brand) : null;
 
   return (
     <div className="mobileBar">
       <Link className="brand" href={href} style={{ margin: 0 }}>
         {isPlatformShell ? (
           <img className="brandImageMark" src={platformBrand.markUrl} alt="" />
-        ) : brand?.logoUrl ? (
-          <img className="brandLogoMark" src={brand.logoUrl} alt="" />
+        ) : markUrl ? (
+          <img className="brandLogoMark" src={markUrl} alt="" />
         ) : (
           <span className="brandMark" style={{ borderColor: displayBrand.accentColor, color: displayBrand.accentColor }}>
             {displayBrand.appName.slice(0, 3).toUpperCase()}

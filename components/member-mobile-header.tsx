@@ -6,6 +6,7 @@ import { usePathname } from "next/navigation";
 import { Activity, Bell, BookOpen, ChefHat, ClipboardList, Dumbbell, Flame, Home, LineChart, Menu, MessageSquare, Moon, NotebookPen, Pill, Salad, Sparkles, Trophy, UserRound, Users, Utensils, X } from "lucide-react";
 import { useModalA11y } from "@/components/use-modal-a11y";
 import type { WorkspaceBrand } from "@/lib/repositories/workspaces";
+import { workspaceBrandMarkUrl } from "@/lib/workspace-brand-assets";
 
 const MENU = [
   { label: "Panel", href: "/app", icon: Home },
@@ -42,6 +43,7 @@ export function MemberMobileHeader({ brand }: { brand?: WorkspaceBrand }) {
   const pathname = usePathname() || "/app";
   const [open, setOpen] = useState(false);
   const title = titleFor(pathname, brand?.name ?? "App");
+  const markUrl = brand ? workspaceBrandMarkUrl(brand) : null;
   const triggerRef = useRef<HTMLButtonElement>(null);
   const panelRef = useRef<HTMLElement>(null);
 
@@ -52,7 +54,10 @@ export function MemberMobileHeader({ brand }: { brand?: WorkspaceBrand }) {
       <button ref={triggerRef} className="memberHeaderBtn" type="button" aria-label="Abrir menú" onClick={() => setOpen(true)}>
         <Menu size={22} />
       </button>
-      <strong className="memberHeaderTitle">{title}</strong>
+      <span className="memberHeaderIdentity">
+        {markUrl ? <img className="memberHeaderMark" src={markUrl} alt="" /> : null}
+        <strong className="memberHeaderTitle">{title}</strong>
+      </span>
       <Link className="memberHeaderBtn" href="/app/support" aria-label="Avisos y soporte">
         <Bell size={20} />
       </Link>
@@ -62,7 +67,10 @@ export function MemberMobileHeader({ brand }: { brand?: WorkspaceBrand }) {
           <button className="memberDrawerBackdrop" type="button" aria-label="Cerrar menú" onClick={() => setOpen(false)} />
           <nav className="memberDrawerPanel" ref={panelRef} tabIndex={-1}>
             <div className="memberDrawerHead">
-              <span className="memberHeaderTitle">{brand?.name ?? "App"}</span>
+              <span className="memberHeaderIdentity">
+                {markUrl ? <img className="memberHeaderMark" src={markUrl} alt="" /> : null}
+                <span className="memberHeaderTitle">{brand?.name ?? "App"}</span>
+              </span>
               <button className="memberHeaderBtn" type="button" aria-label="Cerrar" onClick={() => setOpen(false)}>
                 <X size={20} />
               </button>

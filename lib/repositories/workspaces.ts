@@ -62,6 +62,7 @@ export type WorkspaceBrand = {
   isActive: boolean;
   logoUrl?: string | null;
   faviconUrl?: string | null;
+  signatureUrl?: string | null;
   backgroundColor?: string | null;
   heroHeadline?: string | null;
   heroSubtext?: string | null;
@@ -70,6 +71,8 @@ export type WorkspaceBrand = {
   pwaShortName?: string | null;
   pwaDescription?: string | null;
   pwaThemeColor?: string | null;
+  pwaIconUrl?: string | null;
+  pwaMaskableIconUrl?: string | null;
 };
 
 /** Editable brand fields persisted as per-workspace app_settings (brand.*). */
@@ -88,6 +91,7 @@ const BRAND_SETTING_KEYS = {
   backgroundColor: "brand.background_color",
   logoUrl: "brand.logo_url",
   faviconUrl: "brand.favicon_url",
+  signatureUrl: "brand.signature_url",
   heroHeadline: "brand.hero_headline",
   heroSubtext: "brand.hero_subtext",
   heroImageUrl: "brand.hero_image_url",
@@ -95,6 +99,8 @@ const BRAND_SETTING_KEYS = {
   pwaShortName: "pwa.short_name",
   pwaDescription: "pwa.description",
   pwaThemeColor: "pwa.theme_color",
+  pwaIconUrl: "pwa.icon_url",
+  pwaMaskableIconUrl: "pwa.maskable_icon_url",
 } as const;
 
 function slugify(value: string) {
@@ -590,6 +596,7 @@ export function applyWorkspaceBrandSettings(
     backgroundColor: background && /^#[0-9a-fA-F]{6}$/.test(background) ? background : brand.backgroundColor ?? null,
     logoUrl: map.get(BRAND_SETTING_KEYS.logoUrl) ?? brand.logoUrl ?? null,
     faviconUrl: map.get(BRAND_SETTING_KEYS.faviconUrl) ?? brand.faviconUrl ?? null,
+    signatureUrl: map.get(BRAND_SETTING_KEYS.signatureUrl) ?? brand.signatureUrl ?? null,
     heroHeadline: map.get(BRAND_SETTING_KEYS.heroHeadline) ?? brand.heroHeadline ?? null,
     heroSubtext: map.get(BRAND_SETTING_KEYS.heroSubtext) ?? brand.heroSubtext ?? null,
     heroImageUrl: map.get(BRAND_SETTING_KEYS.heroImageUrl) ?? brand.heroImageUrl ?? null,
@@ -597,6 +604,8 @@ export function applyWorkspaceBrandSettings(
     pwaShortName: map.get(BRAND_SETTING_KEYS.pwaShortName) ?? brand.pwaShortName ?? null,
     pwaDescription: map.get(BRAND_SETTING_KEYS.pwaDescription) ?? brand.pwaDescription ?? null,
     pwaThemeColor: map.get(BRAND_SETTING_KEYS.pwaThemeColor) ?? brand.pwaThemeColor ?? null,
+    pwaIconUrl: map.get(BRAND_SETTING_KEYS.pwaIconUrl) ?? brand.pwaIconUrl ?? null,
+    pwaMaskableIconUrl: map.get(BRAND_SETTING_KEYS.pwaMaskableIconUrl) ?? brand.pwaMaskableIconUrl ?? null,
   };
 }
 

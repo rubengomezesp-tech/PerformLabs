@@ -4,6 +4,7 @@ import { Topbar } from "@/components/topbar";
 import { getSelectedMemberAppBrand } from "@/lib/member-app";
 import { listWorkspaceContentPages } from "@/lib/repositories/member-experience";
 import { getOrCreateMemberConversation, listSupportConversations } from "@/lib/repositories/support-management";
+import { workspaceBrandMarkUrl } from "@/lib/workspace-brand-assets";
 import { createSupportConversationAction } from "./actions";
 import { ChatComposer } from "./chat-composer";
 import { ChatLive } from "./chat-live";
@@ -25,6 +26,7 @@ export default async function SupportPage() {
     getOrCreateMemberConversation(brand.id),
   ]);
   const supportPage = pages.find((page) => page.slug === "soporte");
+  const markUrl = workspaceBrandMarkUrl(brand);
   const chatMessages = conversation?.messages ?? [];
   const guides = [
     { icon: BookOpen, title: "Guía inicial", text: "Empieza por aquí" },
@@ -45,7 +47,9 @@ export default async function SupportPage() {
           <article className="card span12 chatCard uiGlass uiSheen">
             <div className="sectionHeader chatHeader">
               <div className="chatHeaderId">
-                <span className="chatHeaderAvatar" aria-hidden="true">{brand.name.slice(0, 1).toUpperCase()}</span>
+                <span className="chatHeaderAvatar" aria-hidden="true">
+                  {markUrl ? <img src={markUrl} alt="" /> : brand.name.slice(0, 1).toUpperCase()}
+                </span>
                 <div>
                   <h2>{brand.name}</h2>
                   <p>Mensajes 1:1 con tu coach, en directo. Las respuestas aparecen aquí sin recargar.</p>
@@ -60,7 +64,11 @@ export default async function SupportPage() {
                   const mine = message.senderRole === "member";
                   return (
                     <div className={mine ? "chatRow member" : "chatRow coach"} key={message.id}>
-                      {!mine ? <span className="chatAvatar">{brand.name.slice(0, 1).toUpperCase()}</span> : null}
+                      {!mine ? (
+                        <span className="chatAvatar" aria-hidden="true">
+                          {markUrl ? <img src={markUrl} alt="" /> : brand.name.slice(0, 1).toUpperCase()}
+                        </span>
+                      ) : null}
                       <div className="chatBubble">
                         <p>{message.body}</p>
                         <time>{formatTime(message.createdAt)}</time>
