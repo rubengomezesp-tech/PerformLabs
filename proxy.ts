@@ -1,7 +1,7 @@
 import { NextResponse, type NextRequest } from "next/server";
 import { isConsoleAuthRequired } from "@/lib/auth/auth-mode";
 import { authAccessCookie } from "@/lib/auth/session";
-import { isTenantHost, selectRequestHost } from "@/lib/tenant-host-guard";
+import { isTenantHost, selectRequestHost, tenantHostRedirectPath } from "@/lib/tenant-host-guard";
 
 /**
  * Per-request Content-Security-Policy. A fresh nonce authorises exactly the
@@ -73,6 +73,11 @@ export function proxy(request: NextRequest) {
   // PerformLabs commercial site. Serve /m in place (URL stays the trainer's).
   if (request.nextUrl.pathname === "/" && tenantHost) {
     return withCsp(NextResponse.rewrite(new URL("/m", request.url), { request: { headers: requestHeaders } }));
+  }
+
+  const tenantRedirect = tenantHostRedirectPath(request.nextUrl.pathname);
+  if (tenantHost && tenantRedirect) {
+    return withCsp(NextResponse.redirect(new URL(tenantRedirect, request.url)));
   }
 
   const authRequired = isConsoleAuthRequired();

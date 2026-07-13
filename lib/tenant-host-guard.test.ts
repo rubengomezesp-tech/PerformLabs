@@ -1,5 +1,11 @@
 import { describe, expect, it } from "vitest";
-import { isTenantHost, selectRequestHost, shouldBlockUnknownTenantHost, ZERO_UUID } from "./tenant-host-guard";
+import {
+  isTenantHost,
+  selectRequestHost,
+  shouldBlockUnknownTenantHost,
+  tenantHostRedirectPath,
+  ZERO_UUID,
+} from "./tenant-host-guard";
 
 describe("selectRequestHost", () => {
   it("prioriza x-forwarded-host igual que metadata y autenticación", () => {
@@ -33,6 +39,25 @@ describe("isTenantHost", () => {
     expect(isTenantHost("")).toBe(false);
     expect(isTenantHost(null)).toBe(false);
     expect(isTenantHost(undefined)).toBe(false);
+  });
+});
+
+describe("tenantHostRedirectPath", () => {
+  it("keeps platform branding and cross-tenant sales pages off white-label hosts", () => {
+    expect(tenantHostRedirectPath("/login")).toBe("/acceso");
+    expect(tenantHostRedirectPath("/registro")).toBe("/");
+    expect(tenantHostRedirectPath("/gracias")).toBe("/");
+    expect(tenantHostRedirectPath("/console/leads")).toBe("/");
+    expect(tenantHostRedirectPath("/coach/clients")).toBe("/");
+    expect(tenantHostRedirectPath("/c/another-brand")).toBe("/");
+  });
+
+  it("keeps every member-facing route available", () => {
+    expect(tenantHostRedirectPath("/")).toBeNull();
+    expect(tenantHostRedirectPath("/m")).toBeNull();
+    expect(tenantHostRedirectPath("/acceso")).toBeNull();
+    expect(tenantHostRedirectPath("/auth/callback")).toBeNull();
+    expect(tenantHostRedirectPath("/app/profile")).toBeNull();
   });
 });
 
