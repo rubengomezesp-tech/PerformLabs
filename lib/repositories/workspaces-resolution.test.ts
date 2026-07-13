@@ -126,15 +126,15 @@ describe("RG Coach asset defaults", () => {
     });
   });
 
-  it("keeps explicit tenant settings as the highest-priority source", () => {
+  it("replaces legacy RG asset settings with the approved canonical kit", () => {
     expect(
       applyWorkspaceBrandSettings(rgBrand, [
         { key: "brand.logo_url", value: "https://cdn.example.com/custom-logo.svg" },
         { key: "brand.signature_url", value: "https://cdn.example.com/custom-signature.svg" },
       ]),
     ).toMatchObject({
-      logoUrl: "https://cdn.example.com/custom-logo.svg",
-      signatureUrl: "https://cdn.example.com/custom-signature.svg",
+      logoUrl: "/brand/rg-coach/rg-lockup-horizontal.svg",
+      signatureUrl: "/brand/rg-coach/ruben-gomez-signature.svg",
     });
   });
 
