@@ -16,7 +16,8 @@ vi.mock("@/lib/supabase/server", () => ({
   createServiceSupabaseClient: mocks.createServiceSupabaseClient,
 }));
 
-import { resolveWorkspaceBrand } from "./workspaces";
+import { RG_COACH_WORKSPACE_ID } from "@/lib/workspace-brand-assets";
+import { applyWorkspaceBrandSettings, resolveWorkspaceBrand, type WorkspaceBrand } from "./workspaces";
 
 const workspace = {
   id: "11111111-1111-4111-8111-111111111111",
@@ -98,5 +99,48 @@ describe("resolveWorkspaceBrand", () => {
       pwaIconUrl: "https://cdn.example.com/rg-app-icon.png",
       pwaMaskableIconUrl: "https://cdn.example.com/rg-app-icon-maskable.png",
     });
+  });
+});
+
+describe("RG Coach asset defaults", () => {
+  const rgBrand: WorkspaceBrand = {
+    id: RG_COACH_WORKSPACE_ID,
+    name: "Rubén Gómez Coaching",
+    appName: "RG Coach",
+    supportEmail: "coach@example.com",
+    domain: "miembros.rubengomezcoaching.com",
+    publicDomain: "rubengomezcoaching.com",
+    memberDomain: "miembros.rubengomezcoaching.com",
+    fallbackSubdomain: "rg-coach.performlabs.app",
+    accentColor: "#2f6bff",
+    isActive: true,
+  };
+
+  it("uses the isolated RG kit when the database has no asset rows", () => {
+    expect(applyWorkspaceBrandSettings(rgBrand, [])).toMatchObject({
+      logoUrl: "/brand/rg-coach/rg-lockup-horizontal.svg",
+      faviconUrl: "/brand/rg-coach/rg-favicon.svg",
+      signatureUrl: "/brand/rg-coach/ruben-gomez-signature.svg",
+      pwaIconUrl: "/brand/rg-coach/rg-icon-512.png",
+      pwaMaskableIconUrl: "/brand/rg-coach/rg-icon-maskable-512.png",
+    });
+  });
+
+  it("keeps explicit tenant settings as the highest-priority source", () => {
+    expect(
+      applyWorkspaceBrandSettings(rgBrand, [
+        { key: "brand.logo_url", value: "https://cdn.example.com/custom-logo.svg" },
+        { key: "brand.signature_url", value: "https://cdn.example.com/custom-signature.svg" },
+      ]),
+    ).toMatchObject({
+      logoUrl: "https://cdn.example.com/custom-logo.svg",
+      signatureUrl: "https://cdn.example.com/custom-signature.svg",
+    });
+  });
+
+  it("does not apply RG assets to other workspaces", () => {
+    const other = applyWorkspaceBrandSettings({ ...rgBrand, id: workspace.id, name: "Other Coach" }, []);
+    expect(other.logoUrl).toBeUndefined();
+    expect(other.signatureUrl).toBeUndefined();
   });
 });
