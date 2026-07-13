@@ -27,6 +27,22 @@ export function isTenantHost(host: string | null | undefined): boolean {
 }
 
 /**
+ * Platform/staff pages must never be rendered under a trainer's white-label
+ * domain. Apart from leaking the PerformLabs brand, `/c/:slug` could render a
+ * different trainer's public sales page on the current trainer's host.
+ */
+export function tenantHostRedirectPath(pathname: string): string | null {
+  if (pathname === "/login" || pathname.startsWith("/login/")) return "/acceso";
+
+  const platformOnlyPrefixes = ["/registro", "/gracias", "/console", "/coach", "/c"];
+  const isPlatformOnly = platformOnlyPrefixes.some(
+    (prefix) => pathname === prefix || pathname.startsWith(`${prefix}/`),
+  );
+
+  return isPlatformOnly ? "/" : null;
+}
+
+/**
  * L4 (multi-tenant hardening): should we 404 instead of serving the synthetic
  * zero-UUID brand?
  *

@@ -1,5 +1,4 @@
-import { Bell, CheckCircle2, ClipboardCheck, Dumbbell, Eye, EyeOff, Mail, MessageSquare, Moon, Ruler, ShieldCheck, Share2, Smartphone, Trash2, UserRound, Utensils } from "lucide-react";
-import { ReferralCard } from "@/components/referral-card";
+import { Bell, CheckCircle2, ClipboardCheck, Dumbbell, Eye, EyeOff, Mail, MessageSquare, Moon, Ruler, ShieldCheck, Smartphone, Trash2, UserRound, Utensils } from "lucide-react";
 import { Topbar } from "@/components/topbar";
 import { getSelectedMemberAppBrand } from "@/lib/member-app";
 import { goalLabel, getMemberProfileSummary, subscriptionStatusLabel } from "@/lib/repositories/member-profile";
@@ -134,17 +133,6 @@ export default async function ProfilePage() {
             <NotifRow icon={<Moon size={17} />} label="Modo descanso" hint="Silencia los avisos por la noche" prefKey="quiet_mode" on={notif.quiet_mode} workspaceId={brand.id} />
           </div>
         </article>
-        <article className="card span12">
-          <div className="sectionHeader">
-            <div>
-              <Share2 color="var(--gold)" />
-              <h2>Invita a un amigo.</h2>
-              <p>Comparte tu enlace de {brand.name}. Quien lo use solicitará acceso y tu coach verá que llega por tu invitación.</p>
-            </div>
-          </div>
-          <ReferralCard refCode={brand.id} appName={brand.appName ?? brand.name} />
-        </article>
-
         <article className="card span12">
           <ShieldCheck color="var(--gold)" />
           <h2>Privacidad y seguridad</h2>
