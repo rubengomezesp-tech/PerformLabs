@@ -10,16 +10,12 @@ const RG_COACH_ASSETS = {
   pwaMaskableIconUrl: "/brand/rg-coach/rg-icon-maskable-512.png",
 } as const;
 
-export function withDefaultWorkspaceBrandAssets(brand: WorkspaceBrand): WorkspaceBrand {
+export function withCanonicalWorkspaceBrandAssets(brand: WorkspaceBrand): WorkspaceBrand {
   if (brand.id !== RG_COACH_WORKSPACE_ID) return brand;
 
   return {
     ...brand,
-    logoUrl: brand.logoUrl || RG_COACH_ASSETS.logoUrl,
-    faviconUrl: brand.faviconUrl || RG_COACH_ASSETS.faviconUrl,
-    signatureUrl: brand.signatureUrl || RG_COACH_ASSETS.signatureUrl,
-    pwaIconUrl: brand.pwaIconUrl || RG_COACH_ASSETS.pwaIconUrl,
-    pwaMaskableIconUrl: brand.pwaMaskableIconUrl || RG_COACH_ASSETS.pwaMaskableIconUrl,
+    ...RG_COACH_ASSETS,
   };
 }
 
