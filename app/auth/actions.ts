@@ -206,13 +206,20 @@ export async function requestMemberAccessLinkAction(formData: FormData) {
       callback.searchParams.set("w", workspace.id);
       callback.searchParams.set("next", "/app");
       const supabase = createAuthClient();
-      await supabase.auth.signInWithOtp({
+      const { error } = await supabase.auth.signInWithOtp({
         email,
         options: {
           shouldCreateUser: false,
           emailRedirectTo: callback.toString(),
         },
       });
+      if (error && ((error.status ?? 0) >= 500 || error.code === "unexpected_failure")) {
+        console.error("Unable to send member access link", {
+          code: error.code ?? "unknown",
+          status: error.status ?? null,
+        });
+        redirect("/acceso?error=" + encodeURIComponent("No hemos podido enviar el enlace ahora. Inténtalo de nuevo en unos minutos."));
+      }
     }
   }
 
