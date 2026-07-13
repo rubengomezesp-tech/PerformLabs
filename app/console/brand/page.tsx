@@ -94,6 +94,12 @@ export default async function BrandPage({ searchParams }: BrandPageProps) {
   const { workspaces } = await listWorkspaceSummaries();
   const selectedWorkspace = workspaces.find((workspace) => workspace.id === params?.brand) ?? workspaces[0];
   const settings = await getBrandSettings(selectedWorkspace?.id ?? "");
+  const selectedMarkUrl = String(
+    settings.values["brand.favicon_url"] ||
+      settings.values["pwa.icon_url"] ||
+      settings.values["brand.logo_url"] ||
+      "",
+  );
   const groupedSettings = Object.entries(
     Object.groupBy(appSettingDefinitions, (setting) => setting.group),
   );
@@ -155,9 +161,13 @@ export default async function BrandPage({ searchParams }: BrandPageProps) {
             <article className="card span8">
               <h2>Vista rápida</h2>
               <div className="brandPreview" style={{ borderColor: selectedWorkspace.accentColor }}>
-                <span className="brandMark" style={{ borderColor: selectedWorkspace.accentColor, color: selectedWorkspace.accentColor }}>
-                  {selectedWorkspace.appName.slice(0, 3).toUpperCase()}
-                </span>
+                {selectedMarkUrl ? (
+                  <img className="brandImageMark" src={selectedMarkUrl} alt="" />
+                ) : (
+                  <span className="brandMark" style={{ borderColor: selectedWorkspace.accentColor, color: selectedWorkspace.accentColor }}>
+                    {selectedWorkspace.appName.slice(0, 3).toUpperCase()}
+                  </span>
+                )}
                 <div>
                   <strong>{selectedWorkspace.appName}</strong>
               <p>Experiencia móvil preparada por nuestro equipo para clientes, planes y progreso.</p>
