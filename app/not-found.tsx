@@ -3,6 +3,7 @@ import { platformBrand } from "@/lib/brand";
 import type { Locale } from "@/lib/i18n/config";
 import { getLocale } from "@/lib/i18n/server";
 import { getRequestBrandContext } from "@/lib/request-brand";
+import { workspaceBrandMarkUrl } from "@/lib/workspace-brand-assets";
 
 // Self-contained copy: these strings belong to the 404 surface only, so they
 // live here instead of inflating the shared Dictionary contract. Mirrors the
@@ -23,7 +24,7 @@ export default async function NotFound() {
   const brand = context.kind === "platform"
     ? { name: platformBrand.name, markUrl: platformBrand.markUrl }
     : context.kind === "tenant"
-      ? { name: context.brand.appName || context.brand.name, markUrl: context.brand.logoUrl }
+      ? { name: context.brand.appName || context.brand.name, markUrl: workspaceBrandMarkUrl(context.brand) }
       : null;
 
   return (

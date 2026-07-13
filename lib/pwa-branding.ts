@@ -7,6 +7,17 @@ const PLATFORM_BACKGROUND = "#0d0d10";
 export const tenantPwaIconUrl = (size: 180 | 192 | 512, maskable = false) =>
   `/api/pwa-icon?size=${size}${maskable ? "&maskable=1" : ""}`;
 
+export function workspacePwaIconUrl(
+  brand: WorkspaceBrand,
+  size: 180 | 192 | 512,
+  maskable = false,
+) {
+  if (maskable) {
+    return brand.pwaMaskableIconUrl || brand.pwaIconUrl || brand.faviconUrl || tenantPwaIconUrl(size, true);
+  }
+  return brand.pwaIconUrl || brand.faviconUrl || tenantPwaIconUrl(size);
+}
+
 export function workspacePwaIdentity(brand: WorkspaceBrand) {
   const name = brand.appName || brand.name;
   const shortName = (brand.pwaShortName || name || "Coach App").slice(0, 12);
@@ -48,6 +59,7 @@ export function buildPwaManifest(brand: WorkspaceBrand | null): MetadataRoute.Ma
   }
 
   const identity = workspacePwaIdentity(brand);
+  const hasConfiguredIcon = Boolean(brand.pwaIconUrl || brand.faviconUrl);
   return {
     id: "/app",
     name: identity.name,
@@ -59,10 +71,15 @@ export function buildPwaManifest(brand: WorkspaceBrand | null): MetadataRoute.Ma
     orientation: "portrait",
     background_color: identity.backgroundColor,
     theme_color: identity.themeColor,
-    icons: [
-      { src: tenantPwaIconUrl(192), sizes: "192x192", type: "image/png", purpose: "any" },
-      { src: tenantPwaIconUrl(512), sizes: "512x512", type: "image/png", purpose: "any" },
-      { src: tenantPwaIconUrl(512, true), sizes: "512x512", type: "image/png", purpose: "maskable" },
-    ],
+    icons: hasConfiguredIcon
+      ? [
+          { src: workspacePwaIconUrl(brand, 512), sizes: "512x512", type: "image/png", purpose: "any" },
+          { src: workspacePwaIconUrl(brand, 512, true), sizes: "512x512", type: "image/png", purpose: "maskable" },
+        ]
+      : [
+          { src: tenantPwaIconUrl(192), sizes: "192x192", type: "image/png", purpose: "any" },
+          { src: tenantPwaIconUrl(512), sizes: "512x512", type: "image/png", purpose: "any" },
+          { src: tenantPwaIconUrl(512, true), sizes: "512x512", type: "image/png", purpose: "maskable" },
+        ],
   };
 }

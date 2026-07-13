@@ -2,6 +2,8 @@ import { createServiceSupabaseClient } from "@/lib/supabase/server";
 import type { WorkspaceBrand } from "@/lib/repositories/workspaces";
 
 const RESEND_EMAILS_URL = "https://api.resend.com/emails";
+const RG_EMAIL_LOGO_URL = "https://miembros.rubengomezcoaching.com/brand/rg-coach/rg-lockup-horizontal-white-1024.png";
+const RG_EMAIL_SIGNATURE_URL = "https://miembros.rubengomezcoaching.com/brand/rg-coach/ruben-gomez-signature-white-512.png";
 const USER_PAGE_SIZE = 200;
 const MAX_USER_PAGES = 10;
 const ACCESSIBLE_SUBSCRIPTION_STATUSES = new Set(["active", "trialing"]);
@@ -102,13 +104,9 @@ function brandedEmail(workspace: WorkspaceBrand, actionLink: string) {
                   <td class="rg-main" colspan="2" style="padding:40px 44px 34px">
                     <table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0">
                       <tr>
-                        <td width="54" valign="middle">
-                          <table role="presentation" cellspacing="0" cellpadding="0" border="0">
-                            <tr><td align="center" valign="middle" width="48" height="48" bgcolor="#2f6bff" style="width:48px;height:48px;background:#2f6bff;border-radius:12px;color:#ffffff;font-size:18px;font-weight:900;letter-spacing:-1px">RG</td></tr>
-                          </table>
-                        </td>
-                        <td valign="middle" style="padding-left:12px">
-                          <div style="color:#ffffff;font-size:16px;font-weight:800;line-height:1.2">${safeBrandName}</div>
+                        <td valign="middle">
+                          <img src="${RG_EMAIL_LOGO_URL}" width="270" alt="Rubén Gómez Coaching" style="display:block;width:270px;max-width:100%;height:auto;border:0;outline:none;text-decoration:none">
+                          <div style="margin-top:10px;color:#ffffff;font-size:13px;font-weight:800;line-height:1.2">${safeBrandName}</div>
                           <div style="margin-top:4px;color:#7f8ca3;font-size:10px;font-weight:700;letter-spacing:1.5px">COACHING · MIAMI + ONLINE</div>
                         </td>
                       </tr>
@@ -140,6 +138,7 @@ function brandedEmail(workspace: WorkspaceBrand, actionLink: string) {
                         <td bgcolor="#0b1323" style="background:#0b1323;border-left:3px solid #00d4ff;border-radius:0 12px 12px 0;padding:18px 20px">
                           <div style="color:#00d4ff;font-size:10px;font-weight:800;letter-spacing:1.4px">UN MENSAJE DE RUBÉN</div>
                           <p style="margin:9px 0 0;color:#d7deea;font-size:14px;line-height:1.6">Aquí tienes todo lo que trabajamos, organizado para que sepas qué toca hoy. Nos vemos dentro.</p>
+                          <img src="${RG_EMAIL_SIGNATURE_URL}" width="176" alt="Firma de Rubén Gómez" style="display:block;width:176px;max-width:55%;height:auto;margin-top:14px;border:0;outline:none;text-decoration:none">
                           <p style="margin:10px 0 0;color:#ffffff;font-size:13px;font-weight:700">Rubén Gómez · Tu coach</p>
                         </td>
                       </tr>

@@ -38,10 +38,13 @@ const settings = [
   { key: "brand.background_color", value: "#050914" },
   { key: "brand.logo_url", value: "https://cdn.example.com/rg-logo.png" },
   { key: "brand.favicon_url", value: "https://cdn.example.com/rg-icon.png" },
+  { key: "brand.signature_url", value: "https://cdn.example.com/rg-signature.png" },
   { key: "brand.hero_headline", value: "Tu plan de hoy" },
   { key: "pwa.short_name", value: "RG Coach" },
   { key: "pwa.description", value: "Entrena con tu plan RG." },
   { key: "pwa.theme_color", value: "#050914" },
+  { key: "pwa.icon_url", value: "https://cdn.example.com/rg-app-icon.png" },
+  { key: "pwa.maskable_icon_url", value: "https://cdn.example.com/rg-app-icon-maskable.png" },
 ];
 
 function createSupabaseStub() {
@@ -87,10 +90,13 @@ describe("resolveWorkspaceBrand", () => {
       backgroundColor: "#050914",
       logoUrl: "https://cdn.example.com/rg-logo.png",
       faviconUrl: "https://cdn.example.com/rg-icon.png",
+      signatureUrl: "https://cdn.example.com/rg-signature.png",
       heroHeadline: "Tu plan de hoy",
       pwaShortName: "RG Coach",
       pwaDescription: "Entrena con tu plan RG.",
       pwaThemeColor: "#050914",
+      pwaIconUrl: "https://cdn.example.com/rg-app-icon.png",
+      pwaMaskableIconUrl: "https://cdn.example.com/rg-app-icon-maskable.png",
     });
   });
 });

@@ -4,6 +4,7 @@ import { ScreensGallery } from "@/components/landing/screens-gallery";
 import { MotionReveal, SmoothScroll } from "@/components/motion-reveal";
 import type { CoachPlan } from "@/lib/repositories/coach-plans";
 import type { WorkspaceBrand } from "@/lib/repositories/workspaces";
+import { workspaceBrandMarkUrl } from "@/lib/workspace-brand-assets";
 
 function formatPrice(amountCents: number, currency: string, interval: string): string {
   const amount = (amountCents / 100).toLocaleString("es-ES", {
@@ -71,6 +72,7 @@ export function SalesPage({
 }) {
   const accent = brand.accentColor || "#078df2";
   const background = brand.backgroundColor || "#0d0d10";
+  const markUrl = workspaceBrandMarkUrl(brand);
   const headline = brand.heroHeadline || `Transforma tu cuerpo con ${brand.name}`;
   const subtext =
     brand.heroSubtext ||
@@ -86,7 +88,7 @@ export function SalesPage({
       <header className="salesNav">
         <span className="memberBrandLockup">
           <span className="memberBrandMark" style={{ borderColor: accent, color: accent }}>
-            {brand.logoUrl ? <img alt="" src={brand.logoUrl} /> : brand.appName.slice(0, 3).toUpperCase()}
+            {markUrl ? <img alt="" src={markUrl} /> : brand.appName.slice(0, 3).toUpperCase()}
           </span>
           <strong>{brand.name}</strong>
         </span>
@@ -170,6 +172,9 @@ export function SalesPage({
           <MotionReveal className="salesAboutBody">
             <h2 id="sales-about-title" className="salesSectionTitle">Hola, soy {brand.name}</h2>
             <p>{brand.welcomeMessage}</p>
+            {brand.signatureUrl ? (
+              <img className="salesAboutSignature" src={brand.signatureUrl} alt={`Firma de ${brand.name}`} />
+            ) : null}
           </MotionReveal>
         </section>
       ) : null}

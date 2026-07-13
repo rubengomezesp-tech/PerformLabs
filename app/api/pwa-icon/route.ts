@@ -2,7 +2,7 @@ import { createElement } from "react";
 import { ImageResponse } from "next/og";
 import type { NextRequest } from "next/server";
 import { platformBrand } from "@/lib/brand";
-import { brandMonogram, workspacePwaIdentity } from "@/lib/pwa-branding";
+import { brandMonogram, workspacePwaIconUrl, workspacePwaIdentity } from "@/lib/pwa-branding";
 import { getRequestBrandContext } from "@/lib/request-brand";
 
 export const dynamic = "force-dynamic";
@@ -13,6 +13,23 @@ export async function GET(request: NextRequest) {
   const maskable = request.nextUrl.searchParams.get("maskable") === "1";
   const context = await getRequestBrandContext();
   const brand = context.kind === "tenant" ? context.brand : null;
+  if (brand && (brand.pwaIconUrl || brand.faviconUrl)) {
+    const configuredUrl = workspacePwaIconUrl(brand, size, maskable);
+    try {
+      const target = new URL(configuredUrl, request.nextUrl.origin);
+      if (target.protocol === "https:" || target.origin === request.nextUrl.origin) {
+        return new Response(null, {
+          status: 307,
+          headers: {
+            "Cache-Control": "private, no-store",
+            Location: target.toString(),
+          },
+        });
+      }
+    } catch {
+      // Invalid tenant asset URLs fall through to the safe generated mark.
+    }
+  }
   const identity = brand ? workspacePwaIdentity(brand) : null;
   const unavailable = context.kind === "unknown-tenant";
   const name = identity?.name || (unavailable ? "App" : platformBrand.name);

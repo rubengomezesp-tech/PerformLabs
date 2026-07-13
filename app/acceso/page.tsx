@@ -5,6 +5,7 @@ import { memberSignInAction, requestMemberAccessLinkAction } from "@/app/auth/ac
 import { GoogleSignInButton } from "@/components/google-signin-button";
 import { getSelectedMemberAppBrand } from "@/lib/member-app";
 import { getRequestTenantBrand } from "@/lib/request-brand";
+import { workspaceBrandMarkUrl } from "@/lib/workspace-brand-assets";
 
 export const dynamic = "force-dynamic";
 
@@ -21,13 +22,14 @@ export default async function MemberAccessPage({ searchParams }: AccesoPageProps
     getRequestTenantBrand(),
   ]);
   const accent = brand.accentColor || "#078df2";
+  const markUrl = workspaceBrandMarkUrl(brand);
 
   return (
     <main className="authPage" style={{ "--accent": accent } as CSSProperties}>
       <section className="authPanel">
         <span className="brand" style={{ margin: 0 }}>
           <span className="memberBrandMark" style={{ borderColor: accent, color: accent }}>
-            {brand.logoUrl ? <img alt="" src={brand.logoUrl} /> : brand.appName.slice(0, 3).toUpperCase()}
+            {markUrl ? <img alt="" src={markUrl} /> : brand.appName.slice(0, 3).toUpperCase()}
           </span>
           <span>
             <small>{brand.name}</small>

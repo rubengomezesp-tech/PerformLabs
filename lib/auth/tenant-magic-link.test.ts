@@ -218,10 +218,13 @@ describe("sendTenantMagicLinkIfConfigured", () => {
     expect(html).toContain("#2f6bff");
     expect(html).toContain("#00d4ff");
     expect(html).toContain("soporte@rubengomezcoaching.com");
+    expect(html.match(/<img\b/g)).toHaveLength(2);
+    expect(html).toContain('src="https://miembros.rubengomezcoaching.com/brand/rg-coach/rg-lockup-horizontal-white-1024.png"');
+    expect(html).toContain('src="https://miembros.rubengomezcoaching.com/brand/rg-coach/ruben-gomez-signature-white-512.png"');
     expect(html).toContain("https://example.supabase.co/auth/v1/verify?");
     expect(html).toContain("token=opaque&amp;type=magiclink&amp;redirect_to=");
     expect(html.length).toBeLessThan(25_000);
-    expect(html).not.toMatch(/<(?:img|script|form|iframe|svg)\b/i);
+    expect(html).not.toMatch(/<(?:script|form|iframe|svg)\b/i);
     expect(html).not.toMatch(/@import|url\(https?:/i);
     expect(html).not.toContain("PerformLabs");
     expect(html).not.toContain("FitControl");

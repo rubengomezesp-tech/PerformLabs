@@ -2,6 +2,7 @@ import type { CSSProperties } from "react";
 import { notFound } from "next/navigation";
 import { MotionReveal } from "@/components/motion-reveal";
 import { getWorkspaceBrand } from "@/lib/repositories/workspaces";
+import { workspaceBrandMarkUrl } from "@/lib/workspace-brand-assets";
 import { submitCoachInquiryAction } from "../contact-actions";
 
 export const dynamic = "force-dynamic";
@@ -29,13 +30,14 @@ export default async function CoachContactPage({
 
   const accent = brand.accentColor || "#078df2";
   const background = brand.backgroundColor || "#0d0d10";
+  const markUrl = workspaceBrandMarkUrl(brand);
 
   return (
     <main className="salesPage" style={{ "--accent": accent, "--sales-bg": background } as CSSProperties}>
       <header className="salesNav">
         <a className="memberBrandLockup salesNavBrand" href={`/c/${slug}`}>
           <span className="memberBrandMark" style={{ borderColor: accent, color: accent }}>
-            {brand.logoUrl ? <img alt="" src={brand.logoUrl} /> : brand.appName.slice(0, 3).toUpperCase()}
+            {markUrl ? <img alt="" src={markUrl} /> : brand.appName.slice(0, 3).toUpperCase()}
           </span>
           <strong>{brand.name}</strong>
         </a>

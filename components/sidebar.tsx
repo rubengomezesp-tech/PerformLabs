@@ -6,6 +6,7 @@ import { NavLink } from "@/components/nav-link";
 import { platformBrand } from "@/lib/brand";
 import type { ShellSession } from "@/components/page-shell";
 import type { WorkspaceBrand } from "@/lib/repositories/workspaces";
+import { workspaceBrandMarkUrl } from "@/lib/workspace-brand-assets";
 
 type NavItem = {
   label: string;
@@ -33,14 +34,15 @@ export function Sidebar({
     accentColor: platformBrand.accentColor,
   };
   const isPlatformShell = !brand;
+  const markUrl = brand ? workspaceBrandMarkUrl(brand) : null;
 
   return (
     <aside className="sidebar">
       <Link className="brand" href={nav[0]?.href ?? "/"}>
         {isPlatformShell ? (
           <img className="brandImageMark" src={platformBrand.markUrl} alt="" />
-        ) : brand?.logoUrl ? (
-          <img className="brandLogoMark" src={brand.logoUrl} alt="" />
+        ) : markUrl ? (
+          <img className="brandLogoMark" src={markUrl} alt="" />
         ) : (
           <span className="brandMark" style={{ borderColor: displayBrand.accentColor, color: displayBrand.accentColor }}>
             {displayBrand.appName.slice(0, 3).toUpperCase()}

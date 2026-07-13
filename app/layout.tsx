@@ -5,7 +5,7 @@ import { ServiceWorkerRegister } from "@/components/sw-register";
 import { ToastProvider } from "@/components/ui";
 import { platformBrand } from "@/lib/brand";
 import { getLocale } from "@/lib/i18n/server";
-import { tenantPwaIconUrl, workspacePwaIdentity } from "@/lib/pwa-branding";
+import { workspacePwaIconUrl, workspacePwaIdentity } from "@/lib/pwa-branding";
 import { getRequestBrandContext } from "@/lib/request-brand";
 import "./globals.css";
 
@@ -68,10 +68,10 @@ export async function generateMetadata(): Promise<Metadata> {
     manifest: "/manifest.webmanifest",
     icons: {
       icon: [
-        { url: tenantPwaIconUrl(192), sizes: "192x192", type: "image/png" },
-        { url: tenantPwaIconUrl(512), sizes: "512x512", type: "image/png" },
+        { url: workspacePwaIconUrl(brand, 192), sizes: "192x192", type: "image/png" },
+        { url: workspacePwaIconUrl(brand, 512), sizes: "512x512", type: "image/png" },
       ],
-      apple: [{ url: tenantPwaIconUrl(180), sizes: "180x180", type: "image/png" }],
+      apple: [{ url: workspacePwaIconUrl(brand, 180), sizes: "180x180", type: "image/png" }],
     },
     appleWebApp: {
       capable: true,

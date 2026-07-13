@@ -2,6 +2,7 @@ import type { CSSProperties } from "react";
 import { ShieldCheck } from "lucide-react";
 import { platformBrand } from "@/lib/brand";
 import { getRequestTenantBrand } from "@/lib/request-brand";
+import { workspaceBrandMarkUrl } from "@/lib/workspace-brand-assets";
 
 export default async function AuthCallbackPage() {
   const tenantBrand = await getRequestTenantBrand();
@@ -9,13 +10,14 @@ export default async function AuthCallbackPage() {
   const name = tenantBrand?.name ?? platformBrand.name;
   const appName = tenantBrand?.appName || name;
   const accent = tenantBrand?.accentColor || platformBrand.accentColor;
+  const markUrl = tenantBrand ? workspaceBrandMarkUrl(tenantBrand) : null;
 
   return (
     <main className="authPage" style={{ "--accent": accent } as CSSProperties}>
       <section className="authPanel">
         {tenantBrand ? (
           <span className="memberBrandMark" style={{ borderColor: accent, color: accent }}>
-            {tenantBrand.logoUrl ? <img alt="" src={tenantBrand.logoUrl} /> : appName.slice(0, 3).toUpperCase()}
+            {markUrl ? <img alt="" src={markUrl} /> : appName.slice(0, 3).toUpperCase()}
           </span>
         ) : (
           <img className="brandImageMark" src={platformBrand.markUrl} alt="" />

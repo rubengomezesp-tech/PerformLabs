@@ -13,6 +13,9 @@ const rgBrand: WorkspaceBrand = {
   fallbackSubdomain: "rg-coach.performlabs.app",
   accentColor: "#2f6bff",
   backgroundColor: "#050914",
+  faviconUrl: "https://miembros.rubengomezcoaching.com/brand/rg-coach/rg-icon-512.png",
+  pwaIconUrl: "https://miembros.rubengomezcoaching.com/brand/rg-coach/rg-icon-512.png",
+  pwaMaskableIconUrl: "https://miembros.rubengomezcoaching.com/brand/rg-coach/rg-icon-maskable-512.png",
   pwaShortName: "RG Coach",
   pwaDescription: "Tu entrenamiento RG, siempre contigo.",
   pwaThemeColor: "#00d4ff",
@@ -39,7 +42,20 @@ describe("PWA white-label", () => {
       theme_color: "#00d4ff",
     });
     expect(JSON.stringify(manifest)).not.toContain("PerformLabs");
-    expect(manifest.icons?.every((icon) => icon.src.startsWith("/api/pwa-icon"))).toBe(true);
+    expect(manifest.icons).toEqual([
+      {
+        src: "https://miembros.rubengomezcoaching.com/brand/rg-coach/rg-icon-512.png",
+        sizes: "512x512",
+        type: "image/png",
+        purpose: "any",
+      },
+      {
+        src: "https://miembros.rubengomezcoaching.com/brand/rg-coach/rg-icon-maskable-512.png",
+        sizes: "512x512",
+        type: "image/png",
+        purpose: "maskable",
+      },
+    ]);
   });
 
   it("mantiene la identidad PerformLabs en el apex de plataforma", () => {
