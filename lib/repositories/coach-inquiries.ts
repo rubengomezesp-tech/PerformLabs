@@ -4,6 +4,7 @@ import {
   RG_DIAGNOSTIC_CONSENT_VERSION,
   coachDiagnosticAnswersSchema,
   coachInquiryAttributionSchema,
+  coachInquirySource,
   parseStructuredCoachInquiryMessage,
   type CoachDiagnosticAnswers,
   type CoachInquiryAttribution,
@@ -117,6 +118,15 @@ type ExtendedInquiryRow = {
   utm_campaign: string | null;
   utm_content: string | null;
   utm_term: string | null;
+  utm_id?: string | null;
+  utm_matchtype?: string | null;
+  utm_device?: string | null;
+  utm_network?: string | null;
+  utm_adgroup?: string | null;
+  gclid?: string | null;
+  gbraid?: string | null;
+  wbraid?: string | null;
+  fbclid?: string | null;
   landing_path: string | null;
   referrer_host: string | null;
   submission_id: string | null;
@@ -135,6 +145,15 @@ const EMPTY_ATTRIBUTION: CoachInquiryAttribution = {
   utmCampaign: "",
   utmContent: "",
   utmTerm: "",
+  utmId: "",
+  utmMatchtype: "",
+  utmDevice: "",
+  utmNetwork: "",
+  utmAdgroup: "",
+  gclid: "",
+  gbraid: "",
+  wbraid: "",
+  fbclid: "",
   landingPath: "",
   referrerHost: "",
 };
@@ -247,7 +266,7 @@ export async function createCoachInquiry(input: CoachInquiryInput): Promise<Coac
     if (existingId) return { id: existingId, duplicate: true, legacySchema: false };
   }
 
-  const payload = {
+  const basePayload = {
     workspace_id: input.workspaceId,
     full_name: fullName,
     email,
@@ -284,6 +303,18 @@ export async function createCoachInquiry(input: CoachInquiryInput): Promise<Coac
     marketing_consent_at: cleanOptional(input.marketingConsentAt),
     updated_at: now,
   };
+  const payload = {
+    ...basePayload,
+    utm_id: cleanOptional(attribution.utmId),
+    utm_matchtype: cleanOptional(attribution.utmMatchtype),
+    utm_device: cleanOptional(attribution.utmDevice),
+    utm_network: cleanOptional(attribution.utmNetwork),
+    utm_adgroup: cleanOptional(attribution.utmAdgroup),
+    gclid: cleanOptional(attribution.gclid),
+    gbraid: cleanOptional(attribution.gbraid),
+    wbraid: cleanOptional(attribution.wbraid),
+    fbclid: cleanOptional(attribution.fbclid),
+  };
 
   const inserted = await supabase
     .from("coach_inquiries")
@@ -302,6 +333,27 @@ export async function createCoachInquiry(input: CoachInquiryInput): Promise<Coac
 
   if (!isSchemaCompatibilityError(inserted.error)) {
     throw new Error(`No se pudo enviar tu mensaje: ${inserted.error?.message ?? "error desconocido"}`);
+  }
+
+  // During the attribution migration rollout, retain the already-migrated CRM
+  // fields and only defer the new campaign columns to the durable message.
+  const baseInserted = await supabase
+    .from("coach_inquiries")
+    .insert(basePayload)
+    .select("id")
+    .single();
+
+  if (!baseInserted.error && baseInserted.data?.id) {
+    return { id: baseInserted.data.id, duplicate: false, legacySchema: true };
+  }
+
+  if (input.submissionId && isDuplicateError(baseInserted.error)) {
+    const id = await findBySubmissionId(supabase, input.workspaceId, input.submissionId);
+    if (id) return { id, duplicate: true, legacySchema: true };
+  }
+
+  if (!isSchemaCompatibilityError(baseInserted.error)) {
+    throw new Error(`No se pudo enviar tu mensaje: ${baseInserted.error?.message ?? "error desconocido"}`);
   }
 
   if (input.submissionId) {
@@ -337,14 +389,29 @@ function mapExtendedInquiry(row: ExtendedInquiryRow): CoachInquirySummary {
     utmCampaign: row.utm_campaign ?? "",
     utmContent: row.utm_content ?? "",
     utmTerm: row.utm_term ?? "",
+    utmId: row.utm_id ?? "",
+    utmMatchtype: row.utm_matchtype ?? "",
+    utmDevice: row.utm_device ?? "",
+    utmNetwork: row.utm_network ?? "",
+    utmAdgroup: row.utm_adgroup ?? "",
+    gclid: row.gclid ?? "",
+    gbraid: row.gbraid ?? "",
+    wbraid: row.wbraid ?? "",
+    fbclid: row.fbclid ?? "",
     landingPath: row.landing_path ?? "",
     referrerHost: row.referrer_host ?? "",
   };
   const attribution = coachInquiryAttributionSchema.safeParse(storedAttribution);
-  const hasStoredAttribution = Object.values(storedAttribution).some(Boolean);
-  const resolvedAttribution = hasStoredAttribution && attribution.success
-    ? attribution.data
-    : legacy?.attribution ?? (attribution.success ? attribution.data : EMPTY_ATTRIBUTION);
+  const validStoredAttribution = attribution.success ? attribution.data : EMPTY_ATTRIBUTION;
+  const resolvedAttribution = coachInquiryAttributionSchema.parse(Object.fromEntries(
+    Object.keys(EMPTY_ATTRIBUTION).map((key) => {
+      const attributionKey = key as keyof CoachInquiryAttribution;
+      return [
+        attributionKey,
+        validStoredAttribution[attributionKey] || legacy?.attribution[attributionKey] || "",
+      ];
+    }),
+  ));
   const phone = row.phone ?? legacy?.phone ?? "";
   const isMigratedLegacy = Boolean(legacy && !row.submission_id);
   const storedSource = row.source?.trim() ?? "";
@@ -372,7 +439,7 @@ function mapExtendedInquiry(row: ExtendedInquiryRow): CoachInquirySummary {
     marketingConsentAt: row.marketing_consent_at ?? "",
     source: storedSource && !(isMigratedLegacy && storedSource === "website")
       ? storedSource
-      : resolvedAttribution.utmSource || resolvedAttribution.referrerHost || "direct",
+      : coachInquirySource(resolvedAttribution),
     submissionId: row.submission_id ?? legacy?.submissionId ?? "",
     createdAt: row.created_at,
     updatedAt: row.updated_at,
@@ -402,7 +469,7 @@ function mapLegacyInquiry(row: LegacyInquiryRow): CoachInquirySummary {
     contactConsentAt: legacy?.contactConsentAt || (legacy ? row.created_at : ""),
     consentVersion: legacy?.consentVersion || (legacy ? RG_DIAGNOSTIC_CONSENT_VERSION : ""),
     marketingConsentAt: "",
-    source: legacy?.attribution.utmSource || legacy?.attribution.referrerHost || "direct",
+    source: legacy ? coachInquirySource(legacy.attribution) : "direct",
     submissionId: legacy?.submissionId ?? "",
     createdAt: row.created_at,
     updatedAt: row.created_at,
@@ -421,7 +488,7 @@ export async function listCoachInquiries(
   const safeOffset = Math.min(Math.max(options.offset ?? 0, 0), 100_000);
   let extendedQuery = supabase
     .from("coach_inquiries")
-    .select("id,workspace_id,full_name,email,phone,message,kind,preferred_contact,locale,answers,status,priority,qualification_notes,next_action_at,contacted_at,elapsed_ms,contact_consent_at,consent_version,marketing_consent_at,source,utm_source,utm_medium,utm_campaign,utm_content,utm_term,landing_path,referrer_host,submission_id,created_at,updated_at")
+    .select("id,workspace_id,full_name,email,phone,message,kind,preferred_contact,locale,answers,status,priority,qualification_notes,next_action_at,contacted_at,elapsed_ms,contact_consent_at,consent_version,marketing_consent_at,source,utm_source,utm_medium,utm_campaign,utm_content,utm_term,utm_id,utm_matchtype,utm_device,utm_network,utm_adgroup,gclid,gbraid,wbraid,fbclid,landing_path,referrer_host,submission_id,created_at,updated_at")
     .eq("workspace_id", workspaceId);
   if (options.status) extendedQuery = extendedQuery.eq("status", options.status);
   if (options.priority) extendedQuery = extendedQuery.eq("priority", options.priority);
@@ -432,6 +499,29 @@ export async function listCoachInquiries(
 
   if (!extended.error) {
     return ((extended.data ?? []) as unknown as ExtendedInquiryRow[]).map(mapExtendedInquiry);
+  }
+  if (isSchemaCompatibilityError(extended.error)) {
+    // A deploy can briefly precede the additive attribution migration. Retry
+    // the already-live CRM projection so status, notes and qualification never
+    // disappear from the coach view during that window.
+    let preAttributionQuery = supabase
+      .from("coach_inquiries")
+      .select("id,workspace_id,full_name,email,phone,message,kind,preferred_contact,locale,answers,status,priority,qualification_notes,next_action_at,contacted_at,elapsed_ms,contact_consent_at,consent_version,marketing_consent_at,source,utm_source,utm_medium,utm_campaign,utm_content,utm_term,landing_path,referrer_host,submission_id,created_at,updated_at")
+      .eq("workspace_id", workspaceId);
+    if (options.status) preAttributionQuery = preAttributionQuery.eq("status", options.status);
+    if (options.priority) preAttributionQuery = preAttributionQuery.eq("priority", options.priority);
+    preAttributionQuery = preAttributionQuery.order("created_at", { ascending: false });
+    const preAttribution = safeOffset
+      ? await preAttributionQuery.range(safeOffset, safeOffset + safeLimit - 1)
+      : await preAttributionQuery.limit(safeLimit);
+
+    if (!preAttribution.error) {
+      return ((preAttribution.data ?? []) as unknown as ExtendedInquiryRow[]).map(mapExtendedInquiry);
+    }
+    if (!isSchemaCompatibilityError(preAttribution.error)) {
+      console.error("Unable to load coach inquiries", preAttribution.error.message);
+      return [];
+    }
   }
   if (!isSchemaCompatibilityError(extended.error)) {
     console.error("Unable to load coach inquiries", extended.error.message);

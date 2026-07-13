@@ -1396,7 +1396,10 @@ export type Database = {
           created_at: string
           elapsed_ms: number | null
           email: string
+          fbclid: string | null
           full_name: string
+          gbraid: string | null
+          gclid: string | null
           goal: string | null
           id: string
           kind: string
@@ -1420,10 +1423,16 @@ export type Database = {
           training_level: string | null
           updated_at: string
           utm_campaign: string | null
+          utm_adgroup: string | null
           utm_content: string | null
+          utm_device: string | null
+          utm_id: string | null
+          utm_matchtype: string | null
           utm_medium: string | null
+          utm_network: string | null
           utm_source: string | null
           utm_term: string | null
+          wbraid: string | null
           workspace_id: string
           zone: string | null
         }
@@ -1435,7 +1444,10 @@ export type Database = {
           created_at?: string
           elapsed_ms?: number | null
           email: string
+          fbclid?: string | null
           full_name: string
+          gbraid?: string | null
+          gclid?: string | null
           goal?: string | null
           id?: string
           kind?: string
@@ -1459,10 +1471,16 @@ export type Database = {
           training_level?: string | null
           updated_at?: string
           utm_campaign?: string | null
+          utm_adgroup?: string | null
           utm_content?: string | null
+          utm_device?: string | null
+          utm_id?: string | null
+          utm_matchtype?: string | null
           utm_medium?: string | null
+          utm_network?: string | null
           utm_source?: string | null
           utm_term?: string | null
+          wbraid?: string | null
           workspace_id: string
           zone?: string | null
         }
@@ -1474,7 +1492,10 @@ export type Database = {
           created_at?: string
           elapsed_ms?: number | null
           email?: string
+          fbclid?: string | null
           full_name?: string
+          gbraid?: string | null
+          gclid?: string | null
           goal?: string | null
           id?: string
           kind?: string
@@ -1498,10 +1519,16 @@ export type Database = {
           training_level?: string | null
           updated_at?: string
           utm_campaign?: string | null
+          utm_adgroup?: string | null
           utm_content?: string | null
+          utm_device?: string | null
+          utm_id?: string | null
+          utm_matchtype?: string | null
           utm_medium?: string | null
+          utm_network?: string | null
           utm_source?: string | null
           utm_term?: string | null
+          wbraid?: string | null
           workspace_id?: string
           zone?: string | null
         }

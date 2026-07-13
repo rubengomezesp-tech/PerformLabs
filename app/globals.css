@@ -11163,6 +11163,19 @@ button[aria-busy="true"] {
   padding: 7px 10px;
   font-size: 13px;
 }
+.leadAttributionValue {
+  min-width: 0;
+  max-width: 68%;
+  margin-left: auto;
+  overflow-wrap: anywhere;
+  text-align: right;
+}
+code.leadAttributionValue {
+  color: var(--muted);
+  font-family: var(--font-mono);
+  font-size: 11px;
+  line-height: 1.45;
+}
 .leadCard .leadControlGrid {
   grid-template-columns: 1fr;
 }

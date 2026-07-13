@@ -171,6 +171,33 @@ export function buildRgCoachLeadNotification(inquiry: PublicCoachInquiry): Email
   const areaValue = inquiry.answers.place === "online" ? "online" : inquiry.answers.area;
   const area = diagnosticAnswerLabel("area", areaValue, "es");
   const source = safeLine(coachInquirySource(inquiry.attribution), 120);
+  const campaign = safeLine(inquiry.attribution.utmCampaign, 120);
+  const campaignId = safeLine(inquiry.attribution.utmId, 120);
+  const adgroup = safeLine(inquiry.attribution.utmAdgroup, 120);
+  const term = safeLine(inquiry.attribution.utmTerm, 120);
+  const matchtype = safeLine(inquiry.attribution.utmMatchtype, 120);
+  const deviceNetwork = [
+    safeLine(inquiry.attribution.utmDevice, 120),
+    safeLine(inquiry.attribution.utmNetwork, 120),
+  ].filter(Boolean).join(" · ");
+  // Campaign context helps Rubén prioritize the lead. Opaque click IDs stay in
+  // the access-controlled CRM and are intentionally excluded from email.
+  const campaignRows = [
+    ["Campaña", campaign],
+    ["ID campaña", campaignId],
+    ["Grupo", adgroup],
+    ["Palabra clave", term],
+    ["Coincidencia", matchtype],
+    ["Dispositivo / red", deviceNetwork],
+  ].filter((entry) => entry[1]).map(([label, value]) => row(label, value)).join("");
+  const campaignText = [
+    campaign ? `Campaña: ${campaign}` : "",
+    campaignId ? `ID campaña: ${campaignId}` : "",
+    adgroup ? `Grupo: ${adgroup}` : "",
+    term ? `Palabra clave: ${term}` : "",
+    matchtype ? `Coincidencia: ${matchtype}` : "",
+    deviceNetwork ? `Dispositivo / red: ${deviceNetwork}` : "",
+  ].filter(Boolean).join("\n");
   const contactUrl = inquiry.phone
     ? whatsappUrl(inquiry.phone, `Hola ${name}, soy Rubén de RG Coach. He revisado tu diagnóstico.`)
     : `mailto:${encodeURIComponent(inquiry.email)}?subject=${encodeURIComponent("Tu diagnóstico RG Coach")}`;
@@ -191,6 +218,7 @@ export function buildRgCoachLeadNotification(inquiry: PublicCoachInquiry): Email
         row("Nivel", diagnosticAnswerLabel("level", inquiry.answers.level, "es")),
         row("Bloqueo", diagnosticAnswerLabel("obstacle", inquiry.answers.obstacle, "es")),
         row("Fuente", source),
+        campaignRows,
         row("Contacto", inquiry.phone || inquiry.email),
       ].join(""),
       ctaLabel: inquiry.phone ? "RESPONDER POR WHATSAPP" : "RESPONDER POR EMAIL",
@@ -198,7 +226,7 @@ export function buildRgCoachLeadNotification(inquiry: PublicCoachInquiry): Email
       coachMessage: "Responde mientras la intención está fresca y deja la próxima acción registrada en el panel.",
       footer: `Referencia de envío: ${inquiry.submissionId}`,
     }),
-    text: `Nuevo diagnóstico RG\n\nNombre: ${name}\nEmail: ${inquiry.email}\nTeléfono: ${inquiry.phone || "—"}\nObjetivo: ${goal}\nModalidad: ${format}\nZona: ${area}\nSesiones: ${inquiry.answers.sessions}\nHorario: ${inquiry.answers.schedule}\nNivel: ${inquiry.answers.level}\nBloqueo: ${inquiry.answers.obstacle}\nFuente: ${source}\nReferencia: ${inquiry.submissionId}\n\nResponder: ${contactUrl}`,
+    text: `Nuevo diagnóstico RG\n\nNombre: ${name}\nEmail: ${inquiry.email}\nTeléfono: ${inquiry.phone || "—"}\nObjetivo: ${goal}\nModalidad: ${format}\nZona: ${area}\nSesiones: ${inquiry.answers.sessions}\nHorario: ${inquiry.answers.schedule}\nNivel: ${inquiry.answers.level}\nBloqueo: ${inquiry.answers.obstacle}\nFuente: ${source}${campaignText ? `\n${campaignText}` : ""}\nReferencia: ${inquiry.submissionId}\n\nResponder: ${contactUrl}`,
   };
 }
 

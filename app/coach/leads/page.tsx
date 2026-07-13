@@ -13,6 +13,7 @@ import { EmptyState } from "@/components/empty-state";
 import { Topbar } from "@/components/topbar";
 import { SubmitButton } from "@/components/ui";
 import { requireWorkspaceMutationAccess } from "@/lib/auth/access-control";
+import { coachInquiryAttributionRows } from "@/lib/lead-capture/attribution-display";
 import { diagnosticAnswerLabel } from "@/lib/lead-capture/coach-inquiry";
 import { getSelectedMemberAppBrand } from "@/lib/member-app";
 import { listCoachInquiries, type CoachInquirySummary } from "@/lib/repositories/coach-inquiries";
@@ -216,6 +217,7 @@ export default async function CoachLeadsPage({ searchParams }: CoachLeadsPagePro
           const fitScore = leadFitScore(lead);
           const phoneDigits = whatsappPhone(lead.phone);
           const locale = lead.locale === "en" ? "en" : "es";
+          const attributionRows = coachInquiryAttributionRows(lead.attribution);
           return (
             <article className="card span4 leadCard" key={lead.id}>
               <div className="leadCardHead">
@@ -252,6 +254,24 @@ export default async function CoachLeadsPage({ searchParams }: CoachLeadsPagePro
               </ul>
 
               {lead.message ? <p className="sessionCoachNotes">{lead.message}</p> : null}
+
+              {attributionRows.length ? (
+                <details className="editDetails">
+                  <summary><Radar size={14} /> Ver atribución completa</summary>
+                  <ul className="list leadFacts">
+                    {attributionRows.map((row) => (
+                      <li className="row" key={row.label}>
+                        {row.label}
+                        {row.opaque ? (
+                          <code className="leadAttributionValue">{row.value}</code>
+                        ) : (
+                          <span className="leadAttributionValue">{row.value}</span>
+                        )}
+                      </li>
+                    ))}
+                  </ul>
+                </details>
+              ) : null}
 
               <div className="contactStack leadContact">
                 <a href={`mailto:${lead.email}`}><Mail size={14} /> {lead.email}</a>

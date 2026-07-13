@@ -54,6 +54,15 @@ function inquiry(overrides: Partial<PublicCoachInquiry> = {}): PublicCoachInquir
       utmCampaign: "miami-summer",
       utmContent: "reel-01",
       utmTerm: "coach-miami",
+      utmId: "21098765432",
+      utmMatchtype: "e",
+      utmDevice: "m",
+      utmNetwork: "g",
+      utmAdgroup: "brickell-exact",
+      gclid: "EAIaIQobChMI_email-test-123",
+      gbraid: "",
+      wbraid: "",
+      fbclid: "IwAR0email-test-456",
       landingPath: "/diagnostico",
       referrerHost: "instagram.com",
     },
@@ -113,6 +122,22 @@ describe("RG Coach lead email templates", () => {
       expect(html).toContain("&lt;img");
     }
     expect(notification.html).toContain("&lt;script&gt;alert(&quot;x&quot;)&lt;/script&gt;");
+  });
+
+  it("adds actionable campaign dimensions to the internal email without exposing click IDs", () => {
+    const lead = inquiry();
+    const confirmation = buildRgCoachLeadConfirmation(lead);
+    const notification = buildRgCoachLeadNotification(lead);
+
+    expect(notification.html).toContain("miami-summer");
+    expect(notification.html).toContain("brickell-exact");
+    expect(notification.text).toContain("Palabra clave: coach-miami");
+    expect(notification.text).toContain("Dispositivo / red: m · g");
+    for (const clickId of [lead.attribution.gclid, lead.attribution.fbclid]) {
+      expect(notification.html).not.toContain(clickId);
+      expect(notification.text).not.toContain(clickId);
+      expect(confirmation.html).not.toContain(clickId);
+    }
   });
 });
 
