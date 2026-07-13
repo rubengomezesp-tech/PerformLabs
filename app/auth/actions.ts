@@ -6,10 +6,20 @@ import { redirect } from "next/navigation";
 import { createClient } from "@supabase/supabase-js";
 import { checkLoginRateLimit, clearLoginRateLimit, recordFailedLogin } from "@/lib/auth/login-rate-limit";
 import { resolveMemberAccessWorkspace } from "@/lib/auth/member-workspace";
+import { sendTenantMagicLinkIfConfigured } from "@/lib/auth/tenant-magic-link";
 import { clearAuthCookies, setAuthCookies } from "@/lib/auth/session";
+import { consumeRateLimit } from "@/lib/rate-limit/shared";
 import { acceptPendingTeamInvitationsForUser, recordSecurityAuditEvent } from "@/lib/repositories/security-management";
 import type { Database } from "@/lib/supabase/database.types";
 import { getSupabasePublicEnv } from "@/lib/supabase/env";
+
+const MEMBER_LINK_RATE_LIMIT = { windowMs: 15 * 60 * 1000, max: 5 } as const;
+
+function isValidHostname(value: string) {
+  return value.length <= 253 && value.split(".").every((label) =>
+    /^[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?$/i.test(label),
+  );
+}
 
 function readText(formData: FormData, key: string) {
   const value = formData.get(key);
@@ -34,6 +44,50 @@ function emailDomain(email: string) {
 
 function forwardedIp(headerValue: string | null) {
   return headerValue?.split(",")[0]?.trim() || "";
+}
+
+function normalizedDomainHost(value: string | null | undefined) {
+  const candidate = value?.trim().toLowerCase() ?? "";
+  if (!candidate || !isValidHostname(candidate)) return "";
+  try {
+    const parsed = new URL(`https://${candidate}`);
+    return parsed.hostname === candidate && !parsed.port ? candidate : "";
+  } catch {
+    return "";
+  }
+}
+
+function validatedRequestOrigin(host: string, proto: string) {
+  if (proto !== "http" && proto !== "https") return "";
+  if (!/^[a-z0-9.-]+(?::[0-9]{1,5})?$/i.test(host)) return "";
+  try {
+    const origin = new URL(`${proto}://${host}`);
+    return origin.username || origin.password || origin.pathname !== "/" || !isValidHostname(origin.hostname)
+      ? ""
+      : origin.origin;
+  } catch {
+    return "";
+  }
+}
+
+function memberAccessCallback(input: {
+  workspaceId: string;
+  memberDomain?: string | null;
+  requestHost: string;
+  requestProto: string;
+}) {
+  const canonicalHost = normalizedDomainHost(input.memberDomain);
+  const origin = canonicalHost
+    ? `https://${canonicalHost}`
+    : process.env.NODE_ENV !== "production"
+      ? validatedRequestOrigin(input.requestHost, input.requestProto)
+      : "";
+  if (!origin) return null;
+
+  const callback = new URL("/auth/callback", origin);
+  callback.searchParams.set("w", input.workspaceId);
+  callback.searchParams.set("next", "/app");
+  return callback;
 }
 
 async function getLoginSecurityContext(email: string) {
@@ -202,23 +256,47 @@ export async function requestMemberAccessLinkAction(formData: FormData) {
     // on the platform host it must resolve to a real explicit workspace.
     const workspace = await resolveMemberAccessWorkspace(host, readText(formData, "w"));
     if (workspace) {
-      const callback = new URL(`${proto}://${host}/auth/callback`);
-      callback.searchParams.set("w", workspace.id);
-      callback.searchParams.set("next", "/app");
-      const supabase = createAuthClient();
-      const { error } = await supabase.auth.signInWithOtp({
-        email,
-        options: {
-          shouldCreateUser: false,
-          emailRedirectTo: callback.toString(),
-        },
+      const memberLinkAllowed = await consumeRateLimit(
+        `member_link:${workspace.id}:${securityContext.auditMetadata.ip_hash}:${securityContext.auditMetadata.email_hash}`,
+        MEMBER_LINK_RATE_LIMIT,
+      );
+      if (!memberLinkAllowed) redirect(genericSuccess);
+
+      const callback = memberAccessCallback({
+        workspaceId: workspace.id,
+        memberDomain: workspace.memberDomain,
+        requestHost: host,
+        requestProto: proto,
       });
-      if (error && ((error.status ?? 0) >= 500 || error.code === "unexpected_failure")) {
-        console.error("Unable to send member access link", {
-          code: error.code ?? "unknown",
-          status: error.status ?? null,
+      if (!callback) redirect(genericSuccess);
+
+      const tenantDelivery = await sendTenantMagicLinkIfConfigured({
+        workspace,
+        email,
+        callbackUrl: callback.toString(),
+      });
+
+      if (tenantDelivery.handled) {
+        if (tenantDelivery.status === "failed") {
+          console.error("Unable to send tenant member access link", tenantDelivery.failure);
+          redirect("/acceso?error=" + encodeURIComponent("No hemos podido enviar el enlace ahora. Inténtalo de nuevo en unos minutos."));
+        }
+      } else {
+        const supabase = createAuthClient();
+        const { error } = await supabase.auth.signInWithOtp({
+          email,
+          options: {
+            shouldCreateUser: false,
+            emailRedirectTo: callback.toString(),
+          },
         });
-        redirect("/acceso?error=" + encodeURIComponent("No hemos podido enviar el enlace ahora. Inténtalo de nuevo en unos minutos."));
+        if (error && ((error.status ?? 0) >= 500 || error.code === "unexpected_failure")) {
+          console.error("Unable to send member access link", {
+            code: error.code ?? "unknown",
+            status: error.status ?? null,
+          });
+          redirect("/acceso?error=" + encodeURIComponent("No hemos podido enviar el enlace ahora. Inténtalo de nuevo en unos minutos."));
+        }
       }
     }
   }
