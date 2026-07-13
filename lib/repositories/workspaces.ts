@@ -7,6 +7,7 @@ import { getSupabaseServiceEnv } from "@/lib/supabase/env";
 import { createServiceSupabaseClient } from "@/lib/supabase/server";
 import type { Json, TablesInsert } from "@/lib/supabase/types";
 import { isUuid } from "@/lib/utils/uuid";
+import { withDefaultWorkspaceBrandAssets } from "@/lib/workspace-brand-assets";
 
 export type WorkspaceSummary = {
   id: string;
@@ -580,7 +581,8 @@ export function applyWorkspaceBrandSettings(
   brand: WorkspaceBrand,
   rows: Array<{ key: string; value: unknown }>,
 ): WorkspaceBrand {
-  if (!rows.length) return brand;
+  const baseBrand = withDefaultWorkspaceBrandAssets(brand);
+  if (!rows.length) return baseBrand;
   const map = new Map<string, string>();
   for (const row of rows) {
     const value = typeof row.value === "string" ? row.value : row.value == null ? "" : String(row.value);
@@ -591,21 +593,21 @@ export function applyWorkspaceBrandSettings(
   const background = map.get(BRAND_SETTING_KEYS.backgroundColor);
 
   return {
-    ...brand,
-    accentColor: accent ? normalizeHexColor(accent) : brand.accentColor,
-    backgroundColor: background && /^#[0-9a-fA-F]{6}$/.test(background) ? background : brand.backgroundColor ?? null,
-    logoUrl: map.get(BRAND_SETTING_KEYS.logoUrl) ?? brand.logoUrl ?? null,
-    faviconUrl: map.get(BRAND_SETTING_KEYS.faviconUrl) ?? brand.faviconUrl ?? null,
-    signatureUrl: map.get(BRAND_SETTING_KEYS.signatureUrl) ?? brand.signatureUrl ?? null,
-    heroHeadline: map.get(BRAND_SETTING_KEYS.heroHeadline) ?? brand.heroHeadline ?? null,
-    heroSubtext: map.get(BRAND_SETTING_KEYS.heroSubtext) ?? brand.heroSubtext ?? null,
-    heroImageUrl: map.get(BRAND_SETTING_KEYS.heroImageUrl) ?? brand.heroImageUrl ?? null,
-    welcomeMessage: map.get(BRAND_SETTING_KEYS.welcomeMessage) ?? brand.welcomeMessage ?? null,
-    pwaShortName: map.get(BRAND_SETTING_KEYS.pwaShortName) ?? brand.pwaShortName ?? null,
-    pwaDescription: map.get(BRAND_SETTING_KEYS.pwaDescription) ?? brand.pwaDescription ?? null,
-    pwaThemeColor: map.get(BRAND_SETTING_KEYS.pwaThemeColor) ?? brand.pwaThemeColor ?? null,
-    pwaIconUrl: map.get(BRAND_SETTING_KEYS.pwaIconUrl) ?? brand.pwaIconUrl ?? null,
-    pwaMaskableIconUrl: map.get(BRAND_SETTING_KEYS.pwaMaskableIconUrl) ?? brand.pwaMaskableIconUrl ?? null,
+    ...baseBrand,
+    accentColor: accent ? normalizeHexColor(accent) : baseBrand.accentColor,
+    backgroundColor: background && /^#[0-9a-fA-F]{6}$/.test(background) ? background : baseBrand.backgroundColor ?? null,
+    logoUrl: map.get(BRAND_SETTING_KEYS.logoUrl) ?? baseBrand.logoUrl ?? null,
+    faviconUrl: map.get(BRAND_SETTING_KEYS.faviconUrl) ?? baseBrand.faviconUrl ?? null,
+    signatureUrl: map.get(BRAND_SETTING_KEYS.signatureUrl) ?? baseBrand.signatureUrl ?? null,
+    heroHeadline: map.get(BRAND_SETTING_KEYS.heroHeadline) ?? baseBrand.heroHeadline ?? null,
+    heroSubtext: map.get(BRAND_SETTING_KEYS.heroSubtext) ?? baseBrand.heroSubtext ?? null,
+    heroImageUrl: map.get(BRAND_SETTING_KEYS.heroImageUrl) ?? baseBrand.heroImageUrl ?? null,
+    welcomeMessage: map.get(BRAND_SETTING_KEYS.welcomeMessage) ?? baseBrand.welcomeMessage ?? null,
+    pwaShortName: map.get(BRAND_SETTING_KEYS.pwaShortName) ?? baseBrand.pwaShortName ?? null,
+    pwaDescription: map.get(BRAND_SETTING_KEYS.pwaDescription) ?? baseBrand.pwaDescription ?? null,
+    pwaThemeColor: map.get(BRAND_SETTING_KEYS.pwaThemeColor) ?? baseBrand.pwaThemeColor ?? null,
+    pwaIconUrl: map.get(BRAND_SETTING_KEYS.pwaIconUrl) ?? baseBrand.pwaIconUrl ?? null,
+    pwaMaskableIconUrl: map.get(BRAND_SETTING_KEYS.pwaMaskableIconUrl) ?? baseBrand.pwaMaskableIconUrl ?? null,
   };
 }
 
