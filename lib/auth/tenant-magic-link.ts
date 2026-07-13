@@ -59,19 +59,112 @@ function emailAddress(value: string | null | undefined) {
 }
 
 function brandedEmail(workspace: WorkspaceBrand, actionLink: string) {
-  const brandName = (workspace.appName || workspace.name || "Tu coach").trim().slice(0, 80);
+  const brandName = (workspace.appName || workspace.name || "Tu coach")
+    .replace(/[\u0000-\u001f\u007f]+/g, " ")
+    .replace(/\s+/g, " ")
+    .trim()
+    .slice(0, 80);
   const safeBrandName = escapeHtml(brandName);
   const safeActionLink = escapeHtml(actionLink);
-  const accentColor = /^#[0-9a-f]{6}$/i.test(workspace.accentColor) ? workspace.accentColor : "#078df2";
   const supportEmail = emailAddress(workspace.supportEmail);
-  const supportLine = supportEmail
-    ? `<p style="margin:24px 0 0;color:#64748b;font-size:13px">¿Necesitas ayuda? <a href="mailto:${escapeHtml(supportEmail)}" style="color:${accentColor}">${escapeHtml(supportEmail)}</a></p>`
-    : "";
+  const supportBlock = supportEmail
+    ? `¿Necesitas ayuda? <a href="mailto:${escapeHtml(supportEmail)}" style="color:#00d4ff;text-decoration:underline">Escribe directamente a Rubén</a>.`
+    : "Si necesitas ayuda, responde a este correo.";
 
   return {
     subject: `Tu acceso a ${brandName}`,
-    html: `<!doctype html><html lang="es"><body style="margin:0;background:#f5f7fb;font-family:Arial,sans-serif;color:#111827"><div style="max-width:560px;margin:0 auto;padding:40px 20px"><div style="background:#ffffff;border:1px solid #e5e7eb;border-radius:18px;padding:36px"><p style="margin:0 0 12px;color:${accentColor};font-size:14px;font-weight:700">${safeBrandName}</p><h1 style="margin:0 0 16px;font-size:28px;line-height:1.2">Tu enlace de acceso</h1><p style="margin:0 0 28px;color:#475569;line-height:1.6">Pulsa el botón para entrar de forma segura. Este enlace es personal y de un solo uso.</p><a href="${safeActionLink}" style="display:inline-block;background:${accentColor};color:#ffffff;text-decoration:none;font-weight:700;padding:14px 22px;border-radius:10px">Entrar en ${safeBrandName}</a><p style="margin:28px 0 0;color:#64748b;font-size:13px;line-height:1.5">Si no solicitaste este acceso, puedes ignorar este correo.</p>${supportLine}</div></div></body></html>`,
-    text: `${brandName}\n\nTu enlace de acceso:\n${actionLink}\n\nEste enlace es personal y de un solo uso. Si no lo solicitaste, puedes ignorar este correo.${supportEmail ? `\n\nSoporte: ${supportEmail}` : ""}`,
+    html: `<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="x-apple-disable-message-reformatting">
+  <title>Tu acceso a ${safeBrandName}</title>
+  <style>@media only screen and (max-width:620px){.rg-shell{padding:20px 10px!important}.rg-card{border-radius:18px!important}.rg-main{padding:32px 24px 28px!important}.rg-title{font-size:32px!important}.rg-metric{font-size:10px!important;letter-spacing:.4px!important}}</style>
+</head>
+<body style="margin:0;padding:0;background:#eef2f8;color:#f8fafc;font-family:Arial,'Helvetica Neue',Helvetica,sans-serif;-webkit-font-smoothing:antialiased">
+  <div style="display:none;max-height:0;overflow:hidden;opacity:0;color:transparent">Tu espacio RG está listo. Entra para ver tu plan de hoy.</div>
+  <table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0" bgcolor="#eef2f8" style="width:100%;background:#eef2f8">
+    <tr>
+      <td class="rg-shell" align="center" style="padding:42px 16px">
+        <table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0" style="width:100%;max-width:600px">
+          <tr>
+            <td align="center" style="padding:0 0 14px;color:#64748b;font-size:11px;font-weight:700;letter-spacing:2px">ACCESO PRIVADO · RG COACH</td>
+          </tr>
+          <tr>
+            <td class="rg-card" bgcolor="#050914" style="background:#050914;border:1px solid #182338;border-radius:24px;overflow:hidden;box-shadow:0 18px 50px rgba(5,9,20,.18)">
+              <table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0">
+                <tr>
+                  <td width="68%" height="5" bgcolor="#2f6bff" style="height:5px;background:#2f6bff;font-size:0;line-height:0">&nbsp;</td>
+                  <td width="32%" height="5" bgcolor="#00d4ff" style="height:5px;background:#00d4ff;font-size:0;line-height:0">&nbsp;</td>
+                </tr>
+                <tr>
+                  <td class="rg-main" colspan="2" style="padding:40px 44px 34px">
+                    <table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0">
+                      <tr>
+                        <td width="54" valign="middle">
+                          <table role="presentation" cellspacing="0" cellpadding="0" border="0">
+                            <tr><td align="center" valign="middle" width="48" height="48" bgcolor="#2f6bff" style="width:48px;height:48px;background:#2f6bff;border-radius:12px;color:#ffffff;font-size:18px;font-weight:900;letter-spacing:-1px">RG</td></tr>
+                          </table>
+                        </td>
+                        <td valign="middle" style="padding-left:12px">
+                          <div style="color:#ffffff;font-size:16px;font-weight:800;line-height:1.2">${safeBrandName}</div>
+                          <div style="margin-top:4px;color:#7f8ca3;font-size:10px;font-weight:700;letter-spacing:1.5px">COACHING · MIAMI + ONLINE</div>
+                        </td>
+                      </tr>
+                    </table>
+
+                    <div style="margin-top:38px;color:#00d4ff;font-size:11px;font-weight:800;letter-spacing:1.8px">TU ESPACIO DE CLIENTE</div>
+                    <h1 class="rg-title" style="margin:10px 0 14px;color:#ffffff;font-size:38px;line-height:1.08;letter-spacing:-1.2px">Tu espacio<br>está listo.</h1>
+                    <p style="margin:0;color:#a9b4c7;font-size:16px;line-height:1.65">Entra en tu app privada para ver tu entrenamiento, nutrición y seguimiento. Este acceso es personal y de un solo uso.</p>
+
+                    <table role="presentation" cellspacing="0" cellpadding="0" border="0" style="margin-top:28px">
+                      <tr>
+                        <td bgcolor="#2f6bff" style="background:#2f6bff;border-radius:12px;mso-padding-alt:16px 24px">
+                          <a href="${safeActionLink}" style="display:inline-block;padding:16px 24px;color:#ffffff;text-decoration:none;font-size:14px;font-weight:800;letter-spacing:.3px">ABRIR MI APP RG&nbsp;&nbsp;→</a>
+                        </td>
+                      </tr>
+                    </table>
+                    <p style="margin:14px 0 0;color:#69778f;font-size:11px;line-height:1.5">Enlace seguro · válido para un solo acceso</p>
+
+                    <table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0" style="margin-top:32px;border-top:1px solid #1a263b;border-bottom:1px solid #1a263b">
+                      <tr>
+                        <td class="rg-metric" align="left" style="padding:15px 0;color:#8e9bb0;font-size:11px;font-weight:800;letter-spacing:.8px">ENTRENAMIENTO</td>
+                        <td class="rg-metric" align="center" style="padding:15px 5px;color:#8e9bb0;font-size:11px;font-weight:800;letter-spacing:.8px">NUTRICIÓN</td>
+                        <td class="rg-metric" align="right" style="padding:15px 0;color:#8e9bb0;font-size:11px;font-weight:800;letter-spacing:.8px">PROGRESO</td>
+                      </tr>
+                    </table>
+
+                    <table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0" style="margin-top:28px">
+                      <tr>
+                        <td bgcolor="#0b1323" style="background:#0b1323;border-left:3px solid #00d4ff;border-radius:0 12px 12px 0;padding:18px 20px">
+                          <div style="color:#00d4ff;font-size:10px;font-weight:800;letter-spacing:1.4px">UN MENSAJE DE RUBÉN</div>
+                          <p style="margin:9px 0 0;color:#d7deea;font-size:14px;line-height:1.6">Aquí tienes todo lo que trabajamos, organizado para que sepas qué toca hoy. Nos vemos dentro.</p>
+                          <p style="margin:10px 0 0;color:#ffffff;font-size:13px;font-weight:700">Rubén Gómez · Tu coach</p>
+                        </td>
+                      </tr>
+                    </table>
+                  </td>
+                </tr>
+                <tr>
+                  <td colspan="2" bgcolor="#080d19" style="background:#080d19;border-top:1px solid #182338;padding:22px 44px 26px">
+                    <p style="margin:0;color:#758198;font-size:12px;line-height:1.6">${supportBlock}</p>
+                    <p style="margin:8px 0 0;color:#536076;font-size:11px;line-height:1.5">Si no pediste este acceso, puedes ignorar este correo con tranquilidad.</p>
+                  </td>
+                </tr>
+              </table>
+            </td>
+          </tr>
+          <tr>
+            <td align="center" style="padding:18px 20px 0;color:#7b8799;font-size:11px;line-height:1.5">RG Coach · Entrenamiento personal en Miami y online<br><a href="https://rubengomezcoaching.com" style="color:#64748b;text-decoration:underline">rubengomezcoaching.com</a></td>
+          </tr>
+        </table>
+      </td>
+    </tr>
+  </table>
+</body>
+</html>`,
+    text: `${brandName}\n\nTu espacio está listo.\n\nEntra en tu app privada para ver tu entrenamiento, nutrición y seguimiento:\n${actionLink}\n\nEste enlace es personal y de un solo uso.\n\nAquí tienes todo lo que trabajamos, organizado para que sepas qué toca hoy. Nos vemos dentro.\nRubén Gómez · Tu coach${supportEmail ? `\n\n¿Necesitas ayuda? ${supportEmail}` : ""}\n\nSi no pediste este acceso, puedes ignorar este correo.`,
   };
 }
 

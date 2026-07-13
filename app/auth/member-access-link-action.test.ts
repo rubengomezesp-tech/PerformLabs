@@ -161,7 +161,7 @@ describe("requestMemberAccessLinkAction", () => {
   it("uses RG Coach's own provider instead of the global SMTP transport", async () => {
     process.env.RG_COACH_MAGIC_LINK_WORKSPACE_ID = "83a83c28-7baa-48b5-9ca3-22634e030fd4";
     process.env.RG_COACH_RESEND_API_KEY = "test-rg-resend-key";
-    process.env.RG_COACH_RESEND_FROM = "RG Coach <acceso@auth.rubengomezcoaching.com>";
+    process.env.RG_COACH_RESEND_FROM = "Rubén · RG Coach <acceso@auth.rubengomezcoaching.com>";
     mocks.signInWithOtp.mockResolvedValue({ data: {}, error: null });
     vi.stubGlobal("fetch", vi.fn().mockResolvedValue({ ok: true, status: 200 }));
 
@@ -186,7 +186,7 @@ describe("requestMemberAccessLinkAction", () => {
   it("uses the workspace member domain as the HTTPS callback instead of the request host", async () => {
     process.env.RG_COACH_MAGIC_LINK_WORKSPACE_ID = "83a83c28-7baa-48b5-9ca3-22634e030fd4";
     process.env.RG_COACH_RESEND_API_KEY = "test-rg-resend-key";
-    process.env.RG_COACH_RESEND_FROM = "RG Coach <acceso@auth.rubengomezcoaching.com>";
+    process.env.RG_COACH_RESEND_FROM = "Rubén · RG Coach <acceso@auth.rubengomezcoaching.com>";
     mocks.resolveMemberAccessWorkspace.mockResolvedValue({
       id: "83a83c28-7baa-48b5-9ca3-22634e030fd4",
       name: "RG Coach",
@@ -212,7 +212,7 @@ describe("requestMemberAccessLinkAction", () => {
   it("consumes the workspace-scoped member-link limit even for an unknown email", async () => {
     process.env.RG_COACH_MAGIC_LINK_WORKSPACE_ID = "83a83c28-7baa-48b5-9ca3-22634e030fd4";
     process.env.RG_COACH_RESEND_API_KEY = "test-rg-resend-key";
-    process.env.RG_COACH_RESEND_FROM = "RG Coach <acceso@auth.rubengomezcoaching.com>";
+    process.env.RG_COACH_RESEND_FROM = "Rubén · RG Coach <acceso@auth.rubengomezcoaching.com>";
     mocks.listUsers.mockResolvedValue({ data: { users: [] }, error: null });
 
     const formData = new FormData();
@@ -232,7 +232,7 @@ describe("requestMemberAccessLinkAction", () => {
   it("returns the same generic response when the member-link bucket is exhausted", async () => {
     process.env.RG_COACH_MAGIC_LINK_WORKSPACE_ID = "83a83c28-7baa-48b5-9ca3-22634e030fd4";
     process.env.RG_COACH_RESEND_API_KEY = "test-rg-resend-key";
-    process.env.RG_COACH_RESEND_FROM = "RG Coach <acceso@auth.rubengomezcoaching.com>";
+    process.env.RG_COACH_RESEND_FROM = "Rubén · RG Coach <acceso@auth.rubengomezcoaching.com>";
     mocks.consumeRateLimit.mockResolvedValue(false);
 
     const formData = new FormData();
