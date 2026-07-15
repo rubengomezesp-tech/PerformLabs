@@ -22,6 +22,7 @@ import { getSelectedMemberAppBrand } from "@/lib/member-app";
 import { getMemberTrainingContext } from "@/lib/repositories/member-onboarding";
 import { getMemberMealPlanForToday } from "@/lib/repositories/nutrition-tracking";
 import { getMemberHabitDay } from "@/lib/repositories/habit-tracking";
+import { listMemberPersonalTrainingSessions } from "@/lib/repositories/personal-training-sessions";
 import { toggleHabitAction } from "@/app/app/habits/actions";
 
 const HABIT_ICONS: Record<string, React.ComponentType<{ size?: number }>> = {
@@ -57,11 +58,12 @@ function nextWeeklyCheckin(nextReviewOn?: string | null) {
 
 export default async function MemberDashboard() {
   const brand = await getSelectedMemberAppBrand();
-  const [member, trainingContext, mealPlan, habitDay] = await Promise.all([
+  const [member, trainingContext, mealPlan, habitDay, personalSessions] = await Promise.all([
     getMemberContext(brand.id),
     getMemberTrainingContext(brand.id),
     getMemberMealPlanForToday(brand.id),
     getMemberHabitDay(brand.id),
+    listMemberPersonalTrainingSessions(brand.id, 20),
   ]);
 
   const now = new Date();
@@ -75,6 +77,7 @@ export default async function MemberDashboard() {
   const firstName = member?.fullName.trim().split(/\s+/)[0] ?? "";
   const greeting = now.getHours() < 12 ? "Buenos días" : now.getHours() < 20 ? "Buenas tardes" : "Buenas noches";
   const longDate = now.toLocaleDateString("es-ES", { weekday: "long", day: "numeric", month: "long" });
+  const nextPersonalSession = personalSessions.find((session) => session.status === "scheduled" && new Date(session.endsAt).getTime() >= now.getTime()) ?? null;
 
   const primary = activeDay
     ? {
@@ -205,6 +208,18 @@ export default async function MemberDashboard() {
             </span>
             <ChevronRight size={18} />
           </Link>
+
+          {nextPersonalSession ? (
+            <Link className="memberReviewCard memberPersonalSessionCard" href="/app/sessions">
+              <span className="memberReviewIcon"><Dumbbell size={20} /></span>
+              <span>
+                <small>Próximo entrenamiento personal</small>
+                <strong>{new Intl.DateTimeFormat("es-ES", { timeZone: nextPersonalSession.timezone, weekday: "short", day: "numeric", month: "short" }).format(new Date(nextPersonalSession.startsAt))}</strong>
+                <em>{new Intl.DateTimeFormat("es-ES", { timeZone: nextPersonalSession.timezone, hour: "numeric", minute: "2-digit" }).format(new Date(nextPersonalSession.startsAt))}{nextPersonalSession.location ? ` · ${nextPersonalSession.location}` : ""}</em>
+              </span>
+              <ChevronRight size={18} />
+            </Link>
+          ) : null}
 
           <section className="memberHelpCard">
             <span><Sparkles size={18} /></span>

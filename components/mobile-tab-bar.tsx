@@ -13,7 +13,7 @@ type Tab = {
 
 const TABS: Tab[] = [
   { label: "Hoy", href: "/app", icon: Home, match: (p) => p === "/app" },
-  { label: "Entreno", href: "/app/workouts", icon: Dumbbell, match: (p) => p.startsWith("/app/workouts") || p.startsWith("/app/cardio") || p.startsWith("/app/recovery") },
+  { label: "Entreno", href: "/app/workouts", icon: Dumbbell, match: (p) => p.startsWith("/app/workouts") || p.startsWith("/app/sessions") || p.startsWith("/app/cardio") || p.startsWith("/app/recovery") },
   { label: "Comidas", href: "/app/meals", icon: Utensils, match: (p) => p.startsWith("/app/meals") || p.startsWith("/app/recipes") || p.startsWith("/app/diary") },
   { label: "Progreso", href: "/app/progress", icon: LineChart, match: (p) => p.startsWith("/app/progress") },
   { label: "Soporte", href: "/app/support", icon: MessageSquare, match: (p) => p.startsWith("/app/support") || p.startsWith("/app/guides") },

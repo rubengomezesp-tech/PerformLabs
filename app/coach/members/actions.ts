@@ -83,19 +83,19 @@ export async function adjustCoachMemberSessionsAction(formData: FormData) {
   const note = readText(formData, "note");
   const session = await requireWorkspaceMutationAccess(workspaceId);
 
-  if (!memberProfileId || !["add", "use"].includes(operation) || !Number.isInteger(quantity) || quantity < 1 || quantity > 100) {
+  if (!memberProfileId || operation !== "add" || !Number.isInteger(quantity) || quantity < 1 || quantity > 100) {
     throw new Error("Ajuste de sesiones no válido");
   }
 
-  const delta = operation === "add" ? quantity : -quantity;
+  const delta = quantity;
   const actorUserId = session.mode === "authenticated" ? session.user.id : null;
   const newBalance = await adjustManagedMemberSessions({
     workspaceId,
     memberProfileId,
     delta,
-    note: note || (operation === "add" ? "Abono manual del coach" : "Entrenamiento personal realizado"),
+    note: note || "Abono manual del coach",
     actorUserId,
-    eventType: operation === "add" ? "coach_credit" : "session_used",
+    eventType: "coach_credit",
   });
 
   await recordSecurityAuditEvent({

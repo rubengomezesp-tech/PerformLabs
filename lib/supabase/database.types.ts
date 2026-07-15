@@ -12,6 +12,31 @@ export type Database = {
   __InternalSupabase: {
     PostgrestVersion: "14.5"
   }
+  graphql_public: {
+    Tables: {
+      [_ in never]: never
+    }
+    Views: {
+      [_ in never]: never
+    }
+    Functions: {
+      graphql: {
+        Args: {
+          extensions?: Json
+          operationName?: string
+          query?: string
+          variables?: Json
+        }
+        Returns: Json
+      }
+    }
+    Enums: {
+      [_ in never]: never
+    }
+    CompositeTypes: {
+      [_ in never]: never
+    }
+  }
   public: {
     Tables: {
       ai_usage_events: {
@@ -4275,6 +4300,145 @@ export type Database = {
           },
         ]
       }
+      personal_training_session_events: {
+        Row: {
+          actor_user_id: string | null
+          created_at: string
+          event_type: string
+          external_event_id: string
+          from_status: string | null
+          id: string
+          member_profile_id: string
+          metadata: Json
+          note: string | null
+          session_id: string
+          to_status: string
+          workspace_id: string
+        }
+        Insert: {
+          actor_user_id?: string | null
+          created_at?: string
+          event_type: string
+          external_event_id: string
+          from_status?: string | null
+          id?: string
+          member_profile_id: string
+          metadata?: Json
+          note?: string | null
+          session_id: string
+          to_status: string
+          workspace_id: string
+        }
+        Update: {
+          actor_user_id?: string | null
+          created_at?: string
+          event_type?: string
+          external_event_id?: string
+          from_status?: string | null
+          id?: string
+          member_profile_id?: string
+          metadata?: Json
+          note?: string | null
+          session_id?: string
+          to_status?: string
+          workspace_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "personal_training_session_events_member_profile_id_fkey"
+            columns: ["member_profile_id"]
+            isOneToOne: false
+            referencedRelation: "member_profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "personal_training_session_events_session_id_fkey"
+            columns: ["session_id"]
+            isOneToOne: false
+            referencedRelation: "personal_training_sessions"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "personal_training_session_events_workspace_id_fkey"
+            columns: ["workspace_id"]
+            isOneToOne: false
+            referencedRelation: "workspaces"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      personal_training_sessions: {
+        Row: {
+          cancellation_window_hours: number
+          created_at: string
+          created_by: string | null
+          credit_state: string
+          ends_at: string
+          id: string
+          location: string | null
+          member_notes: string | null
+          member_profile_id: string
+          starts_at: string
+          status: string
+          status_changed_at: string
+          status_changed_by: string | null
+          timezone: string
+          updated_at: string
+          workspace_id: string
+        }
+        Insert: {
+          cancellation_window_hours?: number
+          created_at?: string
+          created_by?: string | null
+          credit_state?: string
+          ends_at: string
+          id?: string
+          location?: string | null
+          member_notes?: string | null
+          member_profile_id: string
+          starts_at: string
+          status?: string
+          status_changed_at?: string
+          status_changed_by?: string | null
+          timezone?: string
+          updated_at?: string
+          workspace_id: string
+        }
+        Update: {
+          cancellation_window_hours?: number
+          created_at?: string
+          created_by?: string | null
+          credit_state?: string
+          ends_at?: string
+          id?: string
+          location?: string | null
+          member_notes?: string | null
+          member_profile_id?: string
+          starts_at?: string
+          status?: string
+          status_changed_at?: string
+          status_changed_by?: string | null
+          timezone?: string
+          updated_at?: string
+          workspace_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "personal_training_sessions_member_profile_id_fkey"
+            columns: ["member_profile_id"]
+            isOneToOne: false
+            referencedRelation: "member_profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "personal_training_sessions_workspace_id_fkey"
+            columns: ["workspace_id"]
+            isOneToOne: false
+            referencedRelation: "workspaces"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       platform_fee_events: {
         Row: {
           amount_total: number | null
@@ -4918,6 +5082,57 @@ export type Database = {
           },
         ]
       }
+      retention_outreach: {
+        Row: {
+          acted_at: string | null
+          created_at: string
+          id: string
+          member_profile_id: string
+          message: string
+          reason: string
+          risk_score: number
+          status: string
+          workspace_id: string
+        }
+        Insert: {
+          acted_at?: string | null
+          created_at?: string
+          id?: string
+          member_profile_id: string
+          message: string
+          reason?: string
+          risk_score?: number
+          status?: string
+          workspace_id: string
+        }
+        Update: {
+          acted_at?: string | null
+          created_at?: string
+          id?: string
+          member_profile_id?: string
+          message?: string
+          reason?: string
+          risk_score?: number
+          status?: string
+          workspace_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "retention_outreach_member_profile_id_fkey"
+            columns: ["member_profile_id"]
+            isOneToOne: false
+            referencedRelation: "member_profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "retention_outreach_workspace_id_fkey"
+            columns: ["workspace_id"]
+            isOneToOne: false
+            referencedRelation: "workspaces"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       revenuecat_webhook_events: {
         Row: {
           app_user_id: string | null
@@ -4974,57 +5189,6 @@ export type Database = {
           },
           {
             foreignKeyName: "revenuecat_webhook_events_workspace_id_fkey"
-            columns: ["workspace_id"]
-            isOneToOne: false
-            referencedRelation: "workspaces"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      retention_outreach: {
-        Row: {
-          acted_at: string | null
-          created_at: string
-          id: string
-          member_profile_id: string
-          message: string
-          reason: string
-          risk_score: number
-          status: string
-          workspace_id: string
-        }
-        Insert: {
-          acted_at?: string | null
-          created_at?: string
-          id?: string
-          member_profile_id: string
-          message: string
-          reason?: string
-          risk_score?: number
-          status?: string
-          workspace_id: string
-        }
-        Update: {
-          acted_at?: string | null
-          created_at?: string
-          id?: string
-          member_profile_id?: string
-          message?: string
-          reason?: string
-          risk_score?: number
-          status?: string
-          workspace_id?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "retention_outreach_member_profile_id_fkey"
-            columns: ["member_profile_id"]
-            isOneToOne: false
-            referencedRelation: "member_profiles"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "retention_outreach_workspace_id_fkey"
             columns: ["workspace_id"]
             isOneToOne: false
             referencedRelation: "workspaces"
@@ -6168,12 +6332,12 @@ export type Database = {
     Functions: {
       adjust_member_session_balance: {
         Args: {
-          p_actor_user_id: string | null
+          p_actor_user_id: string
           p_delta: number
           p_event_type: string
-          p_expires_at: string | null
+          p_expires_at: string
           p_member_profile_id: string
-          p_note: string | null
+          p_note: string
           p_workspace_id: string
         }
         Returns: number
@@ -6204,11 +6368,11 @@ export type Database = {
       }
       record_revenuecat_session_purchase: {
         Args: {
-          p_customer_email: string | null
-          p_expires_at: string | null
+          p_customer_email: string
+          p_expires_at: string
           p_external_event_id: string
           p_external_transaction_id: string
-          p_member_profile_id: string | null
+          p_member_profile_id: string
           p_metadata: Json
           p_product_identifier: string
           p_purchased_at: string
@@ -6230,6 +6394,20 @@ export type Database = {
           p_workspace_id: string
         }
         Returns: boolean
+      }
+      reschedule_personal_training_session: {
+        Args: {
+          p_actor_user_id: string
+          p_ends_at: string
+          p_external_event_id: string
+          p_location: string
+          p_member_notes: string
+          p_session_id: string
+          p_starts_at: string
+          p_timezone: string
+          p_workspace_id: string
+        }
+        Returns: string
       }
       save_coach_member_adjustment: {
         Args: {
@@ -6259,6 +6437,44 @@ export type Database = {
           adjustment_version: number
           meal_plan_updated: boolean
           workout_plan_updated: boolean
+        }[]
+      }
+      schedule_personal_training_session: {
+        Args: {
+          p_actor_user_id: string
+          p_cancellation_window_hours: number
+          p_ends_at: string
+          p_external_event_id: string
+          p_location: string
+          p_member_notes: string
+          p_member_profile_id: string
+          p_starts_at: string
+          p_timezone: string
+          p_workspace_id: string
+        }
+        Returns: {
+          available: number
+          balance: number
+          reserved: number
+          session_id: string
+        }[]
+      }
+      transition_personal_training_session: {
+        Args: {
+          p_actor_user_id: string
+          p_external_event_id: string
+          p_next_status: string
+          p_note: string
+          p_session_id: string
+          p_workspace_id: string
+        }
+        Returns: {
+          available: number
+          balance: number
+          changed: boolean
+          reserved: number
+          session_id: string
+          status: string
         }[]
       }
     }
@@ -6422,6 +6638,9 @@ export type CompositeTypes<
     : never
 
 export const Constants = {
+  graphql_public: {
+    Enums: {},
+  },
   public: {
     Enums: {
       delivery_status: ["queued", "sent", "delivered", "failed", "cancelled"],

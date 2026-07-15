@@ -41,6 +41,8 @@ export type SessionCreditMovement = {
 
 export type MemberSessionBalance = {
   remaining: number;
+  reserved: number;
+  available: number;
   totalGranted: number;
   totalUsed: number;
   nextExpiryAt: string | null;
@@ -50,6 +52,8 @@ export type MemberSessionBalance = {
 
 const EMPTY_BALANCE: MemberSessionBalance = {
   remaining: 0,
+  reserved: 0,
+  available: 0,
   totalGranted: 0,
   totalUsed: 0,
   nextExpiryAt: null,
@@ -78,7 +82,7 @@ export function revenueCatCustomerEmail(attributes: unknown): string | null {
 async function readMemberBalance(workspaceId: string, memberProfileId: string): Promise<MemberSessionBalance> {
   if (!getSupabaseServiceEnv().ok || !isUuid(workspaceId) || !isUuid(memberProfileId)) return EMPTY_BALANCE;
   const supabase = createServiceSupabaseClient();
-  const [packResult, ledgerResult] = await Promise.all([
+  const [packResult, ledgerResult, reservationResult] = await Promise.all([
     supabase
       .from("member_session_packs")
       .select("id,product_identifier,source,total_sessions,remaining_sessions,purchased_at,expires_at,status")
@@ -91,10 +95,18 @@ async function readMemberBalance(workspaceId: string, memberProfileId: string): 
       .eq("workspace_id", workspaceId)
       .eq("member_profile_id", memberProfileId)
       .order("created_at", { ascending: false }),
+    supabase
+      .from("personal_training_sessions")
+      .select("id", { count: "exact", head: true })
+      .eq("workspace_id", workspaceId)
+      .eq("member_profile_id", memberProfileId)
+      .eq("status", "scheduled")
+      .eq("credit_state", "reserved"),
   ]);
 
   if (packResult.error) throw new Error(`Unable to load session packs: ${packResult.error.message}`);
   if (ledgerResult.error) throw new Error(`Unable to load session movements: ${ledgerResult.error.message}`);
+  if (reservationResult.error) throw new Error(`Unable to load session reservations: ${reservationResult.error.message}`);
 
   const now = Date.now();
   const packs = (packResult.data ?? []).map((pack) => ({
@@ -124,8 +136,12 @@ async function readMemberBalance(workspaceId: string, memberProfileId: string): 
     .filter((value): value is string => Boolean(value))
     .sort()[0] ?? null;
 
+  const remaining = active.reduce((sum, pack) => sum + pack.remaining, 0);
+  const reserved = reservationResult.count ?? 0;
   return {
-    remaining: active.reduce((sum, pack) => sum + pack.remaining, 0),
+    remaining,
+    reserved,
+    available: Math.max(remaining - reserved, 0),
     totalGranted: allMovements.filter((movement) => movement.delta > 0).reduce((sum, movement) => sum + movement.delta, 0),
     totalUsed: Math.abs(allMovements
       .filter((movement) => movement.eventType === "session_used" || movement.eventType === "coach_debit")
@@ -170,9 +186,9 @@ export async function adjustManagedMemberSessions(input: {
     p_member_profile_id: input.memberProfileId,
     p_delta: input.delta,
     p_event_type: eventType,
-    p_note: input.note ?? null,
-    p_expires_at: input.expiresAt ?? null,
-    p_actor_user_id: input.actorUserId ?? null,
+    p_note: input.note ?? (null as unknown as string),
+    p_expires_at: input.expiresAt ?? (null as unknown as string),
+    p_actor_user_id: input.actorUserId ?? (null as unknown as string),
   });
   if (error) throw new Error(`Unable to adjust session balance: ${error.message}`);
   return Number(data ?? 0);
@@ -224,12 +240,12 @@ export async function recordRevenueCatSessionPurchase(input: {
   const supabase = createServiceSupabaseClient();
   const { data, error } = await supabase.rpc("record_revenuecat_session_purchase", {
     p_workspace_id: input.workspaceId,
-    p_member_profile_id: input.memberProfileId,
+    p_member_profile_id: input.memberProfileId ?? (null as unknown as string),
     p_product_identifier: input.productIdentifier,
     p_external_transaction_id: input.transactionId,
     p_external_event_id: input.eventId,
     p_revenuecat_app_user_id: input.appUserId,
-    p_customer_email: input.customerEmail,
+    p_customer_email: input.customerEmail ?? (null as unknown as string),
     p_total_sessions: product.sessions,
     p_purchased_at: new Date(input.purchasedAtMs).toISOString(),
     p_expires_at: sessionPackExpiry(input.purchasedAtMs, product.validityDays),

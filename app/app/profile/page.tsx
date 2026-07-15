@@ -44,6 +44,7 @@ export default async function ProfilePage() {
     eyebrow: "Personal training",
     title: "Your sessions",
     available: "sessions available",
+    reserved: "reserved",
     used: "used",
     granted: "purchased or credited",
     nextExpiry: "Next expiry",
@@ -58,6 +59,7 @@ export default async function ProfilePage() {
     eyebrow: "Entrenamiento personal",
     title: "Tus sesiones",
     available: "sesiones disponibles",
+    reserved: "reservadas",
     used: "utilizadas",
     granted: "compradas o abonadas",
     nextExpiry: "Próxima caducidad",
@@ -133,10 +135,11 @@ export default async function ProfilePage() {
           {sessionBalance.remaining > 0 ? (
             <div className="sessionWalletGrid">
               <div className="sessionWalletBalance">
-                <strong>{sessionBalance.remaining}</strong>
+                <strong>{sessionBalance.available}</strong>
                 <span>{sessionCopy.available}</span>
                 <dl>
                   <div><dt>{sessionCopy.used}</dt><dd>{sessionBalance.totalUsed}</dd></div>
+                  <div><dt>{sessionCopy.reserved}</dt><dd>{sessionBalance.reserved}</dd></div>
                   <div><dt>{sessionCopy.granted}</dt><dd>{sessionBalance.totalGranted}</dd></div>
                   <div><dt>{sessionCopy.nextExpiry}</dt><dd>{sessionBalance.nextExpiryAt ? dateFormatter.format(new Date(sessionBalance.nextExpiryAt)) : sessionCopy.noExpiry}</dd></div>
                 </dl>

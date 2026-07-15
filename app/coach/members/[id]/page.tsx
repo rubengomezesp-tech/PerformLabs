@@ -152,8 +152,9 @@ export default async function CoachMemberDetailPage({ params }: MemberDetailPage
         <article className="card span12 coachSessionControl motionCard">
           <div className="coachSessionSummary">
             <span className="uiIconChip"><TicketCheck size={20} /></span>
-            <div><span className="eyebrow">Bono de entrenamiento personal</span><strong>{sessionBalance.remaining}</strong><p>sesiones disponibles</p></div>
+            <div><span className="eyebrow">Bono de entrenamiento personal</span><strong>{sessionBalance.available}</strong><p>sesiones disponibles</p></div>
             <dl>
+              <div><dt>Reservadas</dt><dd>{sessionBalance.reserved}</dd></div>
               <div><dt>Utilizadas</dt><dd>{sessionBalance.totalUsed}</dd></div>
               <div><dt>Abonadas</dt><dd>{sessionBalance.totalGranted}</dd></div>
               <div><dt>Caduca antes</dt><dd>{sessionBalance.nextExpiryAt ? prettyDate(sessionBalance.nextExpiryAt) : "Sin caducidad"}</dd></div>
@@ -163,7 +164,7 @@ export default async function CoachMemberDetailPage({ params }: MemberDetailPage
           <form action={adjustCoachMemberSessionsAction} className="coachSessionForm">
             <input name="workspaceId" type="hidden" value={brand.id} />
             <input name="memberProfileId" type="hidden" value={member.id} />
-            <label>Movimiento<select name="operation" defaultValue="use"><option value="use">Registrar sesión realizada</option><option value="add">Añadir sesiones</option></select></label>
+            <label>Movimiento<select name="operation" defaultValue="add"><option value="add">Añadir sesiones</option></select></label>
             <label>Cantidad<input name="quantity" type="number" min="1" max="100" defaultValue="1" inputMode="numeric" /></label>
             <label className="coachSessionNote">Nota visible para el cliente<input name="note" placeholder="Ej. Sesión del 15 de julio" /></label>
             <SubmitButton variant="primary" successToast="Saldo actualizado">Guardar movimiento</SubmitButton>
@@ -208,6 +209,7 @@ export default async function CoachMemberDetailPage({ params }: MemberDetailPage
           <div className="memberQuickLinks">
             <Link className="btn primary sm" href={`/coach/members/${member.id}/assessment`}><ClipboardCheck size={15} /> Primera valoración</Link>
             <Link className="btn ghost sm" href={`/coach/members/${member.id}/control`}><SlidersHorizontal size={15} /> Centro de control</Link>
+            <Link className="btn ghost sm" href={`/coach/sessions?member=${member.id}`}><CalendarDays size={15} /> Reservar sesión</Link>
             <Link className="btn ghost sm" href="/coach/messages"><MessageSquareText size={15} /> Mensajes</Link>
             <Link className="btn ghost sm" href="/coach/checkins"><ClipboardCheck size={15} /> Check-ins</Link>
           </div>

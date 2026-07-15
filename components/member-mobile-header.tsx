@@ -3,7 +3,7 @@
 import { useRef, useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Activity, Bell, BookOpen, ChefHat, ClipboardList, Dumbbell, Flame, Home, LineChart, Menu, MessageSquare, Moon, NotebookPen, Pill, Salad, Sparkles, Trophy, UserRound, Users, Utensils, X } from "lucide-react";
+import { Activity, Bell, BookOpen, CalendarDays, ChefHat, ClipboardList, Dumbbell, Flame, Home, LineChart, Menu, MessageSquare, Moon, NotebookPen, Pill, Salad, Sparkles, Trophy, UserRound, Users, Utensils, X } from "lucide-react";
 import { useModalA11y } from "@/components/use-modal-a11y";
 import type { WorkspaceBrand } from "@/lib/repositories/workspaces";
 import { workspaceBrandMarkUrl } from "@/lib/workspace-brand-assets";
@@ -11,6 +11,7 @@ import { workspaceBrandMarkUrl } from "@/lib/workspace-brand-assets";
 const PRIMARY_MENU = [
   { label: "Hoy", href: "/app", icon: Home },
   { label: "Entreno", href: "/app/workouts", icon: Dumbbell },
+  { label: "Sesiones", href: "/app/sessions", icon: CalendarDays },
   { label: "Comidas", href: "/app/meals", icon: Utensils },
   { label: "Progreso", href: "/app/progress", icon: LineChart },
   { label: "Hábitos", href: "/app/habits", icon: Flame },

@@ -6,6 +6,7 @@ import {
   Apple,
   BarChart3,
   BookOpen,
+  CalendarDays,
   ClipboardList,
   Dumbbell,
   Flame,
@@ -33,12 +34,13 @@ type MemberNavItem = {
   children?: MemberNavItem[];
 };
 
-const primaryMemberPageTypes = ["dashboard", "workouts", "nutrition", "progress", "habits", "support"];
+const primaryMemberPageTypes = ["dashboard", "workouts", "sessions", "nutrition", "progress", "habits", "support"];
 
 const memberPageLabels: Record<string, string> = {
   dashboard: "Hoy",
   onboarding: "Mi ficha",
   workouts: "Entreno",
+  sessions: "Sesiones",
   nutrition: "Comidas",
   progress: "Progreso",
   habits: "Hábitos",
@@ -50,6 +52,7 @@ const iconByPageType: Record<string, React.ComponentType<{ size?: number }>> = {
   dashboard: LayoutDashboard,
   onboarding: ClipboardList,
   workouts: Dumbbell,
+  sessions: CalendarDays,
   nutrition: Apple,
   supplements: Pill,
   foods: Salad,
