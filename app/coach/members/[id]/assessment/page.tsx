@@ -1,4 +1,4 @@
-import { ArrowLeft, CheckCircle2, ClipboardCheck, LockKeyhole, ShieldAlert } from "lucide-react";
+import { AlertTriangle, ArrowLeft, CalendarDays, CheckCircle2, ClipboardCheck, LockKeyhole, Mail, ShieldAlert, TicketCheck } from "lucide-react";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { LocaleSwitcher } from "@/components/locale-switcher";
@@ -16,7 +16,7 @@ export const dynamic = "force-dynamic";
 
 type Props = {
   params: Promise<{ id: string }>;
-  searchParams: Promise<{ saved?: string }>;
+  searchParams: Promise<{ saved?: string; new?: string; setup?: string; access?: string; pack?: string; session?: string }>;
 };
 
 type Labels = ReturnType<typeof getCoachAssessmentDictionary>["labels"];
@@ -55,7 +55,12 @@ export default async function CoachAssessmentPage({ params, searchParams }: Prop
   if (!member) notFound();
 
   const t = getCoachAssessmentDictionary(locale);
-  const answers = assessment?.answers ?? {};
+  const storedAnswers = assessment?.answers ?? {};
+  const answers: CoachAssessmentAnswers = {
+    ...storedAnswers,
+    primaryGoal: storedAnswers.primaryGoal || member.goal || "",
+    bodyWeightKg: storedAnswers.bodyWeightKg || (member.startingWeightKg ? String(member.startingWeightKg) : ""),
+  };
   const statusLabel = assessment?.status === "complete" ? t.complete : assessment?.status === "medical_clearance_required" ? t.clearance : t.draft;
   const hasCriticalRisk = assessment?.status === "medical_clearance_required";
   const interviewAt = assessment?.interviewAt ? assessment.interviewAt.slice(0, 16) : new Date().toISOString().slice(0, 16);
@@ -67,6 +72,20 @@ export default async function CoachAssessmentPage({ params, searchParams }: Prop
       text={t.subtitle}
       actions={<><LocaleSwitcher current={locale} label={t.language} changeLabel={t.changeLanguage} supportedLocales={["es", "en"]} /><Link className="btn" href={`/coach/members/${member.id}`}><ArrowLeft size={16} />{t.back}</Link></>}
     />
+
+    {query.new ? <section className={`memberExpressResult ${query.setup === "partial" ? "warning" : "success"}`} role="status">
+      {query.setup === "partial" ? <AlertTriangle size={22} /> : <CheckCircle2 size={22} />}
+      <div>
+        <strong>{query.setup === "partial" ? `${member.fullName} está creado; falta revisar parte de la preparación.` : `${member.fullName} ya está dentro del sistema.`}</strong>
+        <p>Los datos introducidos ya están guardados. Ahora completa la valoración sin repetirlos.</p>
+        <ul>
+          <li><TicketCheck size={15} /> {Number(query.pack) > 0 ? `Bono de ${query.pack} sesión${query.pack === "1" ? "" : "es"} registrado` : "Bono pendiente de pago"}</li>
+          <li><CalendarDays size={15} /> {query.session === "reserved" ? "Primera sesión reservada" : "Primera sesión pendiente"}</li>
+          <li><Mail size={15} /> {query.access === "sent" ? "Acceso privado enviado" : query.access === "failed" ? "Acceso no enviado: inténtalo desde su ficha" : "Acceso preparado para entrega manual"}</li>
+        </ul>
+      </div>
+      {query.setup === "partial" || query.access === "failed" ? <Link className="btn ghost" href={`/coach/members/${member.id}`}>Revisar ficha</Link> : null}
+    </section> : null}
 
     <section className="assessmentStatusBar" aria-label={statusLabel}>
       <div><ClipboardCheck aria-hidden="true" size={18} /><strong>{statusLabel}</strong><span>{assessment?.completionPercent ?? 0}% {t.progress.toLowerCase()}</span></div>

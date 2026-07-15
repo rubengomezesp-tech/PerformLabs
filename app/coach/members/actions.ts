@@ -3,9 +3,13 @@
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { requireWorkspaceMutationAccess } from "@/lib/auth/access-control";
+import { sendTenantMagicLinkIfConfigured } from "@/lib/auth/tenant-magic-link";
+import { localDateTimeToUtc, sessionDurationEnd } from "@/lib/domain/personal-training-schedule";
 import { assignPlansToMember, createManagedMember, listManagedMembers } from "@/lib/repositories/member-management";
+import { scheduleManagedPersonalTrainingSession } from "@/lib/repositories/personal-training-sessions";
 import { adjustManagedMemberSessions } from "@/lib/repositories/session-credits";
 import { recordSecurityAuditEvent } from "@/lib/repositories/security-management";
+import { resolveWorkspaceBrand } from "@/lib/repositories/workspaces";
 
 function readText(formData: FormData, key: string) {
   const value = formData.get(key);
@@ -15,30 +19,102 @@ function readText(formData: FormData, key: string) {
 export async function createCoachMemberAction(formData: FormData) {
   const workspaceId = readText(formData, "workspaceId");
   const session = await requireWorkspaceMutationAccess(workspaceId);
+  const actorUserId = session.mode === "authenticated" ? session.user.id : null;
+  const packageSessions = Number.parseInt(readText(formData, "packageSessions") || "0", 10);
+  const startLocal = readText(formData, "startLocal");
+  const timezone = readText(formData, "timezone") || "America/New_York";
+  const durationMinutes = Number.parseInt(readText(formData, "durationMinutes") || "60", 10);
+  const allowedPackages = new Set([0, 1, 8, 12]);
+
+  if (!allowedPackages.has(packageSessions)) throw new Error("Bono inicial no válido");
+  if (startLocal && packageSessions < 1) throw new Error("Confirma un bono antes de reservar la primera sesión");
+  if (startLocal && ![30, 45, 60, 90].includes(durationMinutes)) throw new Error("Duración de sesión no válida");
+
+  const startsAt = startLocal ? localDateTimeToUtc(startLocal, timezone) : "";
+  const endsAt = startLocal ? sessionDurationEnd(startLocal, durationMinutes, timezone) : "";
+  const email = readText(formData, "email");
 
   const memberProfileId = await createManagedMember({
     workspaceId,
     fullName: readText(formData, "fullName"),
-    email: readText(formData, "email"),
+    email,
     phone: readText(formData, "phone"),
     goal: readText(formData, "goal"),
     heightCm: readText(formData, "heightCm"),
     startingWeightKg: readText(formData, "startingWeightKg"),
     sex: readText(formData, "sex"),
-    timezone: readText(formData, "timezone"),
+    timezone,
   });
+
+  let setupStatus: "complete" | "partial" = "complete";
+  let sessionId = "";
+  try {
+    if (packageSessions > 0) {
+      await adjustManagedMemberSessions({
+        workspaceId,
+        memberProfileId,
+        delta: packageSessions,
+        note: `Bono inicial confirmado en alta express · ${packageSessions} sesión${packageSessions === 1 ? "" : "es"}`,
+        actorUserId,
+        eventType: "coach_credit",
+      });
+    }
+
+    if (startsAt && endsAt) {
+      const result = await scheduleManagedPersonalTrainingSession({
+        workspaceId,
+        memberProfileId,
+        startsAt,
+        endsAt,
+        timezone,
+        location: readText(formData, "location"),
+        memberNotes: readText(formData, "memberNotes"),
+        cancellationWindowHours: 24,
+        actorUserId,
+        eventId: crypto.randomUUID(),
+      });
+      sessionId = result.sessionId;
+    }
+  } catch (error) {
+    setupStatus = "partial";
+    console.error("Unable to complete coach express member setup", { workspaceId, memberProfileId, error });
+  }
+
+  let accessStatus: "sent" | "manual" | "failed" = "manual";
+  if (readText(formData, "sendAccess") === "yes") {
+    try {
+      const brand = await resolveWorkspaceBrand(workspaceId);
+      const memberHost = brand.memberDomain || brand.fallbackSubdomain;
+      if (memberHost) {
+        const delivery = await sendTenantMagicLinkIfConfigured({
+          workspace: brand,
+          email,
+          callbackUrl: `https://${memberHost}/auth/callback`,
+        });
+        accessStatus = delivery.handled && delivery.status === "sent"
+          ? "sent"
+          : delivery.handled && delivery.status === "failed"
+            ? "failed"
+            : "manual";
+      }
+    } catch (error) {
+      accessStatus = "failed";
+      console.error("Unable to send express member access", { workspaceId, memberProfileId, error });
+    }
+  }
 
   await recordSecurityAuditEvent({
     workspaceId,
-    actorUserId: session.mode === "authenticated" ? session.user.id : null,
+    actorUserId,
     action: "coach.member.created",
     entityType: "member_profile",
     entityId: memberProfileId,
-    metadata: { source: "coach_quick_start" },
+    metadata: { source: "coach_quick_start", packageSessions, sessionId: sessionId || null, setupStatus, accessStatus },
   });
 
   revalidatePath("/coach/members");
-  redirect(`/coach/members/${memberProfileId}/assessment?new=1`);
+  revalidatePath("/coach/sessions");
+  redirect(`/coach/members/${memberProfileId}/assessment?new=1&setup=${setupStatus}&access=${accessStatus}&pack=${packageSessions}&session=${sessionId ? "reserved" : "none"}`);
 }
 
 export async function assignCoachMemberPlansAction(formData: FormData) {

@@ -1,8 +1,8 @@
-import { ArrowRight, ClipboardCheck, Plus, UserPlus } from "lucide-react";
-import { Dialog } from "@/components/dialog";
+import { ClipboardCheck, UserPlus } from "lucide-react";
+import { MemberExpressCreate } from "@/components/coach/member-express-create";
 import { MembersExplorer } from "@/components/coach/members-explorer";
 import { Topbar } from "@/components/topbar";
-import { SubmitButton } from "@/components/ui";
+import { utcToLocalDateTime } from "@/lib/domain/personal-training-schedule";
 import { getSelectedMemberAppBrand } from "@/lib/member-app";
 import { listManagedMembers } from "@/lib/repositories/member-management";
 import { listManagedDietTemplates } from "@/lib/repositories/nutrition-management";
@@ -18,6 +18,8 @@ export default async function CoachMembersPage() {
     listManagedWorkoutTemplates(brand.id),
     listManagedDietTemplates(brand.id),
   ]);
+  const now = new Date().getTime();
+  const roundedStart = new Date(Math.ceil((now + 30 * 60_000) / 1_800_000) * 1_800_000);
 
   return (
     <>
@@ -26,37 +28,7 @@ export default async function CoachMembersPage() {
         title="Clientes"
         text="Da de alta, valora y activa el plan de cada cliente desde un único recorrido."
         actions={
-          <Dialog
-            triggerClassName="btn primary"
-            trigger={<>Nuevo cliente <Plus size={18} /></>}
-            title={`Nuevo cliente en ${brand.name}`}
-            description="Nombre y email bastan para empezar. Al crearle, se abrirá directamente su primera valoración."
-          >
-            <form action={createCoachMemberAction} className="editForm">
-              <input name="workspaceId" type="hidden" value={brand.id} />
-              <label>
-                Nombre
-                <input name="fullName" placeholder="Cliente demo" required />
-              </label>
-              <label>
-                Email
-                <input name="email" placeholder="cliente@email.com" required type="email" />
-              </label>
-              <label>
-                Objetivo
-                <input name="goal" placeholder="Definición, fuerza..." />
-              </label>
-              <label>
-                Peso inicial (kg)
-                <input name="startingWeightKg" placeholder="82" />
-              </label>
-              <input name="phone" type="hidden" value="" />
-              <input name="heightCm" type="hidden" value="" />
-              <input name="sex" type="hidden" value="" />
-              <input name="timezone" type="hidden" value="Europe/Madrid" />
-              <SubmitButton variant="primary" className="spanFull" successToast="Cliente creado">Crear y empezar valoración <ArrowRight size={18} /></SubmitButton>
-            </form>
-          </Dialog>
+          <MemberExpressCreate brandId={brand.id} brandName={brand.name} defaultStart={utcToLocalDateTime(roundedStart, "America/New_York")} action={createCoachMemberAction} />
         }
       />
       <section className="grid">
