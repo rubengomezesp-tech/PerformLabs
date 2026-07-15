@@ -1,6 +1,7 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
+import { redirect } from "next/navigation";
 import { requireWorkspaceMutationAccess } from "@/lib/auth/access-control";
 import { assignPlansToMember, createManagedMember, listManagedMembers } from "@/lib/repositories/member-management";
 import { recordSecurityAuditEvent } from "@/lib/repositories/security-management";
@@ -14,7 +15,7 @@ export async function createCoachMemberAction(formData: FormData) {
   const workspaceId = readText(formData, "workspaceId");
   const session = await requireWorkspaceMutationAccess(workspaceId);
 
-  await createManagedMember({
+  const memberProfileId = await createManagedMember({
     workspaceId,
     fullName: readText(formData, "fullName"),
     email: readText(formData, "email"),
@@ -31,10 +32,12 @@ export async function createCoachMemberAction(formData: FormData) {
     actorUserId: session.mode === "authenticated" ? session.user.id : null,
     action: "coach.member.created",
     entityType: "member_profile",
-    metadata: { fullName: readText(formData, "fullName"), email: readText(formData, "email") },
+    entityId: memberProfileId,
+    metadata: { source: "coach_quick_start" },
   });
 
   revalidatePath("/coach/members");
+  redirect(`/coach/members/${memberProfileId}/assessment?new=1`);
 }
 
 export async function assignCoachMemberPlansAction(formData: FormData) {

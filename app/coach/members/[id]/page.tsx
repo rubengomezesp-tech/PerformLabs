@@ -2,13 +2,17 @@ import {
   Activity,
   ArrowLeft,
   CalendarDays,
+  CheckCircle2,
   ClipboardCheck,
   Dumbbell,
+  ExternalLink,
   Mail,
   MessageSquareText,
   Plus,
+  Rocket,
   ShieldAlert,
   ShieldCheck,
+  SlidersHorizontal,
   Target,
   TrendingDown,
   UserRound,
@@ -71,6 +75,8 @@ export default async function CoachMemberDetailPage({ params }: MemberDetailPage
   const checkins = allCheckins.filter((checkin) => checkin.memberProfileId === id).slice(0, 5);
   const TierIcon = risk ? tierIcon[risk.tier] : ShieldCheck;
   const plan = member.activeWorkoutPlan;
+  const memberHost = brand.memberDomain || brand.fallbackSubdomain;
+  const memberAccessHref = memberHost ? `https://${memberHost}/m` : "/m";
 
   return (
     <>
@@ -84,6 +90,15 @@ export default async function CoachMemberDetailPage({ params }: MemberDetailPage
           </Link>
         }
       />
+
+      <section className="coachMemberLaunchpad">
+        <div className="coachMemberLaunchTitle"><Rocket size={20} /><div><strong>Activa a {member.fullName} en 3 pasos</strong><p>El recorrido completo de la cita, sin buscar por el panel.</p></div></div>
+        <div className="coachMemberLaunchSteps">
+          <Link className="coachMemberLaunchStep" href={`/coach/members/${member.id}/assessment`}><span>{member.onboardingStatus === "complete" ? <CheckCircle2 size={17} /> : "1"}</span><div><small>Primero</small><strong>Valoración</strong></div><ArrowLeft className="launchArrow" size={16} /></Link>
+          <a className="coachMemberLaunchStep" href="#plans"><span>{plan ? <CheckCircle2 size={17} /> : "2"}</span><div><small>Después</small><strong>Asignar planes</strong></div><ArrowLeft className="launchArrow" size={16} /></a>
+          <a className="coachMemberLaunchStep" href={memberAccessHref} rel="noreferrer" target="_blank"><span>3</span><div><small>Enséñale</small><strong>Abrir su acceso</strong></div><ExternalLink size={16} /></a>
+        </div>
+      </section>
 
       <section className="grid">
         <article className="card span3 motionCard">
@@ -140,13 +155,14 @@ export default async function CoachMemberDetailPage({ params }: MemberDetailPage
           </ul>
           <div className="memberQuickLinks">
             <Link className="btn primary sm" href={`/coach/members/${member.id}/assessment`}><ClipboardCheck size={15} /> Primera valoración</Link>
+            <Link className="btn ghost sm" href={`/coach/members/${member.id}/control`}><SlidersHorizontal size={15} /> Centro de control</Link>
             <Link className="btn ghost sm" href="/coach/messages"><MessageSquareText size={15} /> Mensajes</Link>
             <Link className="btn ghost sm" href="/coach/checkins"><ClipboardCheck size={15} /> Check-ins</Link>
           </div>
         </article>
 
         {/* Retención */}
-        <article className="card span7 motionCard">
+        <article className="card span7 motionCard" id="plans">
           <div className="sectionHeader">
             <div>
               <TierIcon color="var(--accent)" aria-hidden="true" />

@@ -53,7 +53,7 @@ export function PageShell({
       ) : (
         <MobileBar brand={brand} href={nav[0]?.href ?? "/"} productLabel={productLabel} session={session} />
       )}
-      <Sidebar brand={brand} nav={nav} active={active} productLabel={productLabel} session={session} locale={locale} i18nLabels={i18nLabels} />
+      <Sidebar brand={brand} nav={nav} active={active} productLabel={productLabel} session={session} locale={locale} i18nLabels={i18nLabels} collapseFolders={variant === "app"} />
       <main className="main" id="main" tabIndex={-1}>
         {children}
       </main>

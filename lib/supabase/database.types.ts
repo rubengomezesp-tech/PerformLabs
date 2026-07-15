@@ -12,31 +12,6 @@ export type Database = {
   __InternalSupabase: {
     PostgrestVersion: "14.5"
   }
-  graphql_public: {
-    Tables: {
-      [_ in never]: never
-    }
-    Views: {
-      [_ in never]: never
-    }
-    Functions: {
-      graphql: {
-        Args: {
-          extensions?: Json
-          operationName?: string
-          query?: string
-          variables?: Json
-        }
-        Returns: Json
-      }
-    }
-    Enums: {
-      [_ in never]: never
-    }
-    CompositeTypes: {
-      [_ in never]: never
-    }
-  }
   public: {
     Tables: {
       ai_usage_events: {
@@ -1560,6 +1535,99 @@ export type Database = {
         Relationships: [
           {
             foreignKeyName: "coach_inquiries_workspace_id_fkey"
+            columns: ["workspace_id"]
+            isOneToOne: false
+            referencedRelation: "workspaces"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      coach_member_adjustments: {
+        Row: {
+          calculation_snapshot: Json
+          created_at: string
+          created_by: string | null
+          current_training_week: number | null
+          daily_steps_target: number | null
+          effective_on: string
+          fiber_target_g: number | null
+          goal: string
+          id: string
+          member_message: string | null
+          member_profile_id: string
+          next_review_on: string | null
+          rationale: string | null
+          source_snapshot: Json
+          status: string
+          target_calories: number | null
+          target_carbs_g: number | null
+          target_fat_g: number | null
+          target_protein_g: number | null
+          training_days_per_week: number | null
+          version: number
+          water_target_ml: number | null
+          workspace_id: string
+        }
+        Insert: {
+          calculation_snapshot?: Json
+          created_at?: string
+          created_by?: string | null
+          current_training_week?: number | null
+          daily_steps_target?: number | null
+          effective_on?: string
+          fiber_target_g?: number | null
+          goal?: string
+          id?: string
+          member_message?: string | null
+          member_profile_id: string
+          next_review_on?: string | null
+          rationale?: string | null
+          source_snapshot?: Json
+          status?: string
+          target_calories?: number | null
+          target_carbs_g?: number | null
+          target_fat_g?: number | null
+          target_protein_g?: number | null
+          training_days_per_week?: number | null
+          version: number
+          water_target_ml?: number | null
+          workspace_id: string
+        }
+        Update: {
+          calculation_snapshot?: Json
+          created_at?: string
+          created_by?: string | null
+          current_training_week?: number | null
+          daily_steps_target?: number | null
+          effective_on?: string
+          fiber_target_g?: number | null
+          goal?: string
+          id?: string
+          member_message?: string | null
+          member_profile_id?: string
+          next_review_on?: string | null
+          rationale?: string | null
+          source_snapshot?: Json
+          status?: string
+          target_calories?: number | null
+          target_carbs_g?: number | null
+          target_fat_g?: number | null
+          target_protein_g?: number | null
+          training_days_per_week?: number | null
+          version?: number
+          water_target_ml?: number | null
+          workspace_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "coach_member_adjustments_member_profile_id_fkey"
+            columns: ["member_profile_id"]
+            isOneToOne: false
+            referencedRelation: "member_profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "coach_member_adjustments_workspace_id_fkey"
             columns: ["workspace_id"]
             isOneToOne: false
             referencedRelation: "workspaces"
@@ -5920,6 +5988,36 @@ export type Database = {
         Args: { target_workspace_id: string }
         Returns: boolean
       }
+      save_coach_member_adjustment: {
+        Args: {
+          p_calculation_snapshot: Json
+          p_created_by: string
+          p_current_training_week: number
+          p_daily_steps_target: number
+          p_effective_on: string
+          p_fiber_target_g: number
+          p_goal: string
+          p_member_message: string
+          p_member_profile_id: string
+          p_next_review_on: string
+          p_rationale: string
+          p_source_snapshot: Json
+          p_status: string
+          p_target_calories: number
+          p_target_carbs_g: number
+          p_target_fat_g: number
+          p_target_protein_g: number
+          p_training_days_per_week: number
+          p_water_target_ml: number
+          p_workspace_id: string
+        }
+        Returns: {
+          adjustment_id: string
+          adjustment_version: number
+          meal_plan_updated: boolean
+          workout_plan_updated: boolean
+        }[]
+      }
     }
     Enums: {
       delivery_status: "queued" | "sent" | "delivered" | "failed" | "cancelled"
@@ -6081,9 +6179,6 @@ export type CompositeTypes<
     : never
 
 export const Constants = {
-  graphql_public: {
-    Enums: {},
-  },
   public: {
     Enums: {
       delivery_status: ["queued", "sent", "delivered", "failed", "cancelled"],

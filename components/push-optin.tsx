@@ -80,7 +80,7 @@ export function PushOptIn() {
   if (state === "loading" || state === "unsupported") return null;
 
   return (
-    <article className="card span12 pushOptIn">
+    <article className="memberNotificationBar pushOptIn">
       <div className="pushOptInIcon">{state === "subscribed" ? <BellRing color="var(--accent)" /> : <Bell color="var(--accent)" />}</div>
       <div className="pushOptInBody">
         <strong>

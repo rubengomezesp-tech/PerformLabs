@@ -1,4 +1,4 @@
-import { Plus, UserPlus } from "lucide-react";
+import { ArrowRight, ClipboardCheck, Plus, UserPlus } from "lucide-react";
 import { Dialog } from "@/components/dialog";
 import { MembersExplorer } from "@/components/coach/members-explorer";
 import { Topbar } from "@/components/topbar";
@@ -23,14 +23,14 @@ export default async function CoachMembersPage() {
     <>
       <Topbar
         eyebrow="Miembros"
-        title="Clientes, acceso y seguimiento."
-        text="El entrenador ve quién está activo, qué plan tiene asignado y qué necesita revisión."
+        title="Clientes"
+        text="Da de alta, valora y activa el plan de cada cliente desde un único recorrido."
         actions={
           <Dialog
             triggerClassName="btn primary"
-            trigger={<>Crear miembro <Plus size={18} /></>}
-            title={`Crear miembro en ${brand.name}`}
-            description="Después podrás asignarle entrenamiento, nutrición y check-ins."
+            trigger={<>Nuevo cliente <Plus size={18} /></>}
+            title={`Nuevo cliente en ${brand.name}`}
+            description="Nombre y email bastan para empezar. Al crearle, se abrirá directamente su primera valoración."
           >
             <form action={createCoachMemberAction} className="editForm">
               <input name="workspaceId" type="hidden" value={brand.id} />
@@ -54,12 +54,17 @@ export default async function CoachMembersPage() {
               <input name="heightCm" type="hidden" value="" />
               <input name="sex" type="hidden" value="" />
               <input name="timezone" type="hidden" value="Europe/Madrid" />
-              <SubmitButton variant="primary" className="spanFull" successToast="Miembro creado">Crear miembro <UserPlus size={18} /></SubmitButton>
+              <SubmitButton variant="primary" className="spanFull" successToast="Cliente creado">Crear y empezar valoración <ArrowRight size={18} /></SubmitButton>
             </form>
           </Dialog>
         }
       />
       <section className="grid">
+        <article className="span12 coachQuickStartBar">
+          <span><UserPlus size={18} /><strong>Alta express</strong></span>
+          <ol><li><b>1</b> Crear cliente</li><li><b>2</b> Completar valoración</li><li><b>3</b> Publicar plan y abrir su acceso</li></ol>
+          <span className="coachQuickStartHint"><ClipboardCheck size={16} /> Al crearle, irás automáticamente al formulario.</span>
+        </article>
         <MembersExplorer
           brandId={brand.id}
           members={members}

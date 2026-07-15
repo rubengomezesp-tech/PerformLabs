@@ -25,6 +25,7 @@ export function Sidebar({
   session,
   locale,
   i18nLabels,
+  collapseFolders = false,
 }: {
   nav: NavItem[];
   active: string;
@@ -33,6 +34,7 @@ export function Sidebar({
   session?: ShellSession;
   locale?: Locale;
   i18nLabels?: { language: string; changeLanguage: string; signedIn: string; localMode: string; signOut: string };
+  collapseFolders?: boolean;
 }) {
   const displayBrand = brand ?? {
     appName: platformBrand.monogram,
@@ -75,7 +77,7 @@ export function Sidebar({
 
           if (item.children?.length) {
             return (
-              <details className="navFolder" key={item.label} open>
+              <details className="navFolder" key={item.label} open={!collapseFolders}>
                 <summary>
                   <Icon size={18} />
                   {item.label}
