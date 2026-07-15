@@ -4,6 +4,7 @@ import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { requireWorkspaceMutationAccess } from "@/lib/auth/access-control";
 import { assignPlansToMember, createManagedMember, listManagedMembers } from "@/lib/repositories/member-management";
+import { adjustManagedMemberSessions } from "@/lib/repositories/session-credits";
 import { recordSecurityAuditEvent } from "@/lib/repositories/security-management";
 
 function readText(formData: FormData, key: string) {
@@ -72,6 +73,43 @@ export async function assignCoachMemberPlansAction(formData: FormData) {
   revalidatePath("/coach/members");
   revalidatePath("/app/workouts");
   revalidatePath("/app/meals");
+}
+
+export async function adjustCoachMemberSessionsAction(formData: FormData) {
+  const workspaceId = readText(formData, "workspaceId");
+  const memberProfileId = readText(formData, "memberProfileId");
+  const operation = readText(formData, "operation");
+  const quantity = Number.parseInt(readText(formData, "quantity"), 10);
+  const note = readText(formData, "note");
+  const session = await requireWorkspaceMutationAccess(workspaceId);
+
+  if (!memberProfileId || !["add", "use"].includes(operation) || !Number.isInteger(quantity) || quantity < 1 || quantity > 100) {
+    throw new Error("Ajuste de sesiones no válido");
+  }
+
+  const delta = operation === "add" ? quantity : -quantity;
+  const actorUserId = session.mode === "authenticated" ? session.user.id : null;
+  const newBalance = await adjustManagedMemberSessions({
+    workspaceId,
+    memberProfileId,
+    delta,
+    note: note || (operation === "add" ? "Abono manual del coach" : "Entrenamiento personal realizado"),
+    actorUserId,
+    eventType: operation === "add" ? "coach_credit" : "session_used",
+  });
+
+  await recordSecurityAuditEvent({
+    workspaceId,
+    actorUserId,
+    action: "coach.member.session_balance_adjusted",
+    entityType: "member_profile",
+    entityId: memberProfileId,
+    metadata: { operation, quantity, delta, newBalance },
+  });
+
+  revalidatePath(`/coach/members/${memberProfileId}`);
+  revalidatePath("/app");
+  revalidatePath("/app/profile");
 }
 
 /**

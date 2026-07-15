@@ -4,8 +4,10 @@ import {
   CalendarDays,
   CheckCircle2,
   ClipboardCheck,
+  CreditCard,
   Dumbbell,
   ExternalLink,
+  History,
   Mail,
   MessageSquareText,
   Plus,
@@ -14,6 +16,7 @@ import {
   ShieldCheck,
   SlidersHorizontal,
   Target,
+  TicketCheck,
   TrendingDown,
   UserRound,
 } from "lucide-react";
@@ -28,7 +31,8 @@ import { listManagedMembers } from "@/lib/repositories/member-management";
 import { getRetentionRadar, type RetentionTier } from "@/lib/repositories/member-retention";
 import { listManagedDietTemplates } from "@/lib/repositories/nutrition-management";
 import { listManagedWorkoutTemplates } from "@/lib/repositories/training-management";
-import { assignCoachMemberPlansAction } from "../actions";
+import { getManagedMemberSessionBalance, type SessionLedgerEventType } from "@/lib/repositories/session-credits";
+import { adjustCoachMemberSessionsAction, assignCoachMemberPlansAction } from "../actions";
 
 export const dynamic = "force-dynamic";
 
@@ -58,12 +62,13 @@ function prettyDate(value: string | null) {
 export default async function CoachMemberDetailPage({ params }: MemberDetailPageProps) {
   const { id } = await params;
   const brand = await getSelectedMemberAppBrand();
-  const [members, radar, allCheckins, workoutTemplates, dietTemplates] = await Promise.all([
+  const [members, radar, allCheckins, workoutTemplates, dietTemplates, sessionBalance] = await Promise.all([
     listManagedMembers(brand.id),
     getRetentionRadar(brand.id),
     listManagedCheckins(brand.id),
     listManagedWorkoutTemplates(brand.id),
     listManagedDietTemplates(brand.id),
+    getManagedMemberSessionBalance(brand.id, id),
   ]);
 
   const member = members.find((candidate) => candidate.id === id);
@@ -77,6 +82,16 @@ export default async function CoachMemberDetailPage({ params }: MemberDetailPage
   const plan = member.activeWorkoutPlan;
   const memberHost = brand.memberDomain || brand.fallbackSubdomain;
   const memberAccessHref = memberHost ? `https://${memberHost}/m` : "/m";
+  const purchaseBase = `https://pay.rev.cat/yvcgmrwpgqphcyyq/${encodeURIComponent(member.id)}`;
+  const sessionEventLabels: Record<SessionLedgerEventType, string> = {
+    purchase: "Bono comprado",
+    session_used: "Entrenamiento realizado",
+    coach_credit: "Abono manual",
+    coach_debit: "Ajuste manual",
+    refund: "Reembolso",
+    pack_assigned: "Bono asignado",
+    void: "Bono anulado",
+  };
 
   return (
     <>
@@ -132,6 +147,43 @@ export default async function CoachMemberDetailPage({ params }: MemberDetailPage
                 ? `Último ${prettyDate(checkins[0]!.submittedAt)}`
                 : "Aún sin check-ins"}
           </p>
+        </article>
+
+        <article className="card span12 coachSessionControl motionCard">
+          <div className="coachSessionSummary">
+            <span className="uiIconChip"><TicketCheck size={20} /></span>
+            <div><span className="eyebrow">Bono de entrenamiento personal</span><strong>{sessionBalance.remaining}</strong><p>sesiones disponibles</p></div>
+            <dl>
+              <div><dt>Utilizadas</dt><dd>{sessionBalance.totalUsed}</dd></div>
+              <div><dt>Abonadas</dt><dd>{sessionBalance.totalGranted}</dd></div>
+              <div><dt>Caduca antes</dt><dd>{sessionBalance.nextExpiryAt ? prettyDate(sessionBalance.nextExpiryAt) : "Sin caducidad"}</dd></div>
+            </dl>
+          </div>
+
+          <form action={adjustCoachMemberSessionsAction} className="coachSessionForm">
+            <input name="workspaceId" type="hidden" value={brand.id} />
+            <input name="memberProfileId" type="hidden" value={member.id} />
+            <label>Movimiento<select name="operation" defaultValue="use"><option value="use">Registrar sesión realizada</option><option value="add">Añadir sesiones</option></select></label>
+            <label>Cantidad<input name="quantity" type="number" min="1" max="100" defaultValue="1" inputMode="numeric" /></label>
+            <label className="coachSessionNote">Nota visible para el cliente<input name="note" placeholder="Ej. Sesión del 15 de julio" /></label>
+            <SubmitButton variant="primary" successToast="Saldo actualizado">Guardar movimiento</SubmitButton>
+          </form>
+
+          <div className="coachSessionPurchase">
+            <div><CreditCard size={17} /><span><strong>Enviar pago</strong><small>El bono se asigna a este cliente al completarse.</small></span></div>
+            <div className="coachSessionPurchaseLinks">
+              <a href={`${purchaseBase}?package_id=single_session`} target="_blank" rel="noreferrer">1 sesión · $70 <ExternalLink size={13} /></a>
+              <a href={`${purchaseBase}?package_id=pack_8`} target="_blank" rel="noreferrer">8 sesiones · $440 <ExternalLink size={13} /></a>
+              <a href={`${purchaseBase}?package_id=pack_12`} target="_blank" rel="noreferrer">12 sesiones · $600 <ExternalLink size={13} /></a>
+            </div>
+          </div>
+
+          <div className="coachSessionHistory">
+            <h3><History size={16} /> Últimos movimientos</h3>
+            {sessionBalance.movements.length ? (
+              <ul>{sessionBalance.movements.slice(0, 5).map((movement) => <li key={movement.id}><span className={movement.delta > 0 ? "positive" : "negative"}>{movement.delta > 0 ? "+" : ""}{movement.delta}</span><div><strong>{sessionEventLabels[movement.eventType]}</strong><small>{prettyDate(movement.createdAt)}{movement.note ? ` · ${movement.note}` : ""}</small></div></li>)}</ul>
+            ) : <p>Aún no hay movimientos. Añade el bono inicial o envía un enlace de pago.</p>}
+          </div>
         </article>
 
         {/* Datos del cliente */}

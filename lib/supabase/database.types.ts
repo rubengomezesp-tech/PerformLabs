@@ -3696,6 +3696,145 @@ export type Database = {
           },
         ]
       }
+      member_session_ledger: {
+        Row: {
+          actor_user_id: string | null
+          created_at: string
+          delta: number
+          event_type: string
+          external_event_id: string | null
+          id: string
+          member_profile_id: string | null
+          metadata: Json
+          note: string | null
+          pack_id: string | null
+          workspace_id: string
+        }
+        Insert: {
+          actor_user_id?: string | null
+          created_at?: string
+          delta: number
+          event_type: string
+          external_event_id?: string | null
+          id?: string
+          member_profile_id?: string | null
+          metadata?: Json
+          note?: string | null
+          pack_id?: string | null
+          workspace_id: string
+        }
+        Update: {
+          actor_user_id?: string | null
+          created_at?: string
+          delta?: number
+          event_type?: string
+          external_event_id?: string | null
+          id?: string
+          member_profile_id?: string | null
+          metadata?: Json
+          note?: string | null
+          pack_id?: string | null
+          workspace_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "member_session_ledger_member_profile_id_fkey"
+            columns: ["member_profile_id"]
+            isOneToOne: false
+            referencedRelation: "member_profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "member_session_ledger_pack_id_fkey"
+            columns: ["pack_id"]
+            isOneToOne: false
+            referencedRelation: "member_session_packs"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "member_session_ledger_workspace_id_fkey"
+            columns: ["workspace_id"]
+            isOneToOne: false
+            referencedRelation: "workspaces"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      member_session_packs: {
+        Row: {
+          created_at: string
+          created_by: string | null
+          customer_email: string | null
+          expires_at: string | null
+          external_transaction_id: string | null
+          id: string
+          member_profile_id: string | null
+          metadata: Json
+          product_identifier: string
+          purchased_at: string
+          remaining_sessions: number
+          revenuecat_app_user_id: string | null
+          source: string
+          status: string
+          total_sessions: number
+          updated_at: string
+          workspace_id: string
+        }
+        Insert: {
+          created_at?: string
+          created_by?: string | null
+          customer_email?: string | null
+          expires_at?: string | null
+          external_transaction_id?: string | null
+          id?: string
+          member_profile_id?: string | null
+          metadata?: Json
+          product_identifier: string
+          purchased_at?: string
+          remaining_sessions: number
+          revenuecat_app_user_id?: string | null
+          source?: string
+          status?: string
+          total_sessions: number
+          updated_at?: string
+          workspace_id: string
+        }
+        Update: {
+          created_at?: string
+          created_by?: string | null
+          customer_email?: string | null
+          expires_at?: string | null
+          external_transaction_id?: string | null
+          id?: string
+          member_profile_id?: string | null
+          metadata?: Json
+          product_identifier?: string
+          purchased_at?: string
+          remaining_sessions?: number
+          revenuecat_app_user_id?: string | null
+          source?: string
+          status?: string
+          total_sessions?: number
+          updated_at?: string
+          workspace_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "member_session_packs_member_profile_id_fkey"
+            columns: ["member_profile_id"]
+            isOneToOne: false
+            referencedRelation: "member_profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "member_session_packs_workspace_id_fkey"
+            columns: ["workspace_id"]
+            isOneToOne: false
+            referencedRelation: "workspaces"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       member_subscriptions: {
         Row: {
           amount: number | null
@@ -4772,6 +4911,69 @@ export type Database = {
           },
           {
             foreignKeyName: "recipes_workspace_id_fkey"
+            columns: ["workspace_id"]
+            isOneToOne: false
+            referencedRelation: "workspaces"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      revenuecat_webhook_events: {
+        Row: {
+          app_user_id: string | null
+          created_at: string
+          environment: string | null
+          error_message: string | null
+          event_type: string
+          id: string
+          member_profile_id: string | null
+          payload: Json
+          processed_at: string
+          processing_status: string
+          product_identifier: string | null
+          transaction_id: string | null
+          workspace_id: string
+        }
+        Insert: {
+          app_user_id?: string | null
+          created_at?: string
+          environment?: string | null
+          error_message?: string | null
+          event_type: string
+          id: string
+          member_profile_id?: string | null
+          payload: Json
+          processed_at?: string
+          processing_status: string
+          product_identifier?: string | null
+          transaction_id?: string | null
+          workspace_id: string
+        }
+        Update: {
+          app_user_id?: string | null
+          created_at?: string
+          environment?: string | null
+          error_message?: string | null
+          event_type?: string
+          id?: string
+          member_profile_id?: string | null
+          payload?: Json
+          processed_at?: string
+          processing_status?: string
+          product_identifier?: string | null
+          transaction_id?: string | null
+          workspace_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "revenuecat_webhook_events_member_profile_id_fkey"
+            columns: ["member_profile_id"]
+            isOneToOne: false
+            referencedRelation: "member_profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "revenuecat_webhook_events_workspace_id_fkey"
             columns: ["workspace_id"]
             isOneToOne: false
             referencedRelation: "workspaces"
@@ -5964,6 +6166,18 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      adjust_member_session_balance: {
+        Args: {
+          p_actor_user_id: string | null
+          p_delta: number
+          p_event_type: string
+          p_expires_at: string | null
+          p_member_profile_id: string
+          p_note: string | null
+          p_workspace_id: string
+        }
+        Returns: number
+      }
       canonical_workspace_domain: {
         Args: { raw_domain: string }
         Returns: string
@@ -5986,6 +6200,35 @@ export type Database = {
       is_platform_owner: { Args: never; Returns: boolean }
       is_workspace_member: {
         Args: { target_workspace_id: string }
+        Returns: boolean
+      }
+      record_revenuecat_session_purchase: {
+        Args: {
+          p_customer_email: string | null
+          p_expires_at: string | null
+          p_external_event_id: string
+          p_external_transaction_id: string
+          p_member_profile_id: string | null
+          p_metadata: Json
+          p_product_identifier: string
+          p_purchased_at: string
+          p_revenuecat_app_user_id: string
+          p_total_sessions: number
+          p_workspace_id: string
+        }
+        Returns: {
+          assigned: boolean
+          created: boolean
+          pack_id: string
+        }[]
+      }
+      refund_revenuecat_session_purchase: {
+        Args: {
+          p_external_event_id: string
+          p_external_transaction_id: string
+          p_metadata: Json
+          p_workspace_id: string
+        }
         Returns: boolean
       }
       save_coach_member_adjustment: {
