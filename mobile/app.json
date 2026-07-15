@@ -9,7 +9,7 @@
     "scheme": "rgcoach",
     "userInterfaceStyle": "dark",
     "ios": {
-      "supportsTablet": false,
+      "supportsTablet": true,
       "bundleIdentifier": "com.rubengomezcoaching.app",
       "buildNumber": "1",
       "infoPlist": {

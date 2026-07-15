@@ -1,7 +1,7 @@
 import { LinearGradient } from "expo-linear-gradient";
 import { router } from "expo-router";
 import { CalendarClock, Check, ChevronRight, CircleUserRound, Dumbbell, MessageCircle, Salad, Sparkles } from "lucide-react-native";
-import { Pressable, RefreshControl, ScrollView, StyleSheet, Text, View } from "react-native";
+import { Linking, Pressable, RefreshControl, ScrollView, StyleSheet, Text, View } from "react-native";
 import { BrandBar, ErrorState, LoadingState, Metric, Screen } from "@/src/components/ui";
 import { programProgress } from "@/src/domain/member-home";
 import { t } from "@/src/i18n";
@@ -28,6 +28,11 @@ export default function TodayScreen() {
   const completedHabits = data.habits.filter((habit) => habit.done).length;
   const progress = data.program ? programProgress(data.program.currentWeek, data.program.totalWeeks) : 0;
 
+  async function messageCoach() {
+    const text = encodeURIComponent(t.home.messageCoachText);
+    await Linking.openURL(`https://wa.me/16452482325?text=${text}`);
+  }
+
   return (
     <Screen>
       <BrandBar demo={data.source === "demo"} />
@@ -40,9 +45,9 @@ export default function TodayScreen() {
           <View>
             <Text style={styles.date}>{formatDay(new Date(), { weekday: "long", day: "numeric", month: "long" }).toUpperCase()}</Text>
             <Text style={styles.greeting}>{greeting()}, {data.member.firstName}</Text>
-            <Text style={styles.introCopy}>{data.todayWorkout ? "Tu sesión está lista. Empieza por aquí." : "Tu coach mantiene tu plan actualizado desde su consola."}</Text>
+            <Text style={styles.introCopy}>{data.todayWorkout ? t.home.sessionReady : t.home.coachMaintains}</Text>
           </View>
-          <Pressable accessibilityLabel={t.home.messageCoach} style={styles.coachButton}><MessageCircle color={colors.text} size={19} /></Pressable>
+          <Pressable accessibilityLabel={t.home.messageCoach} accessibilityRole="button" onPress={messageCoach} style={styles.coachButton}><MessageCircle color={colors.text} size={19} /></Pressable>
         </View>
 
         <View style={styles.syncLine}>
@@ -64,11 +69,11 @@ export default function TodayScreen() {
           <LinearGradient colors={["#143D63", "#101922", colors.surface]} style={styles.primaryCard}>
             <View style={styles.primaryTop}>
               <View style={styles.primaryIcon}><Dumbbell color={colors.cyan} size={22} /></View>
-              <View style={styles.primaryState}><View style={styles.primaryStateDot} /><Text style={styles.primaryStateText}>{data.todayWorkout ? "LISTO" : "PENDIENTE"}</Text></View>
+              <View style={styles.primaryState}><View style={styles.primaryStateDot} /><Text style={styles.primaryStateText}>{data.todayWorkout ? t.home.readyState : t.home.pendingState}</Text></View>
             </View>
             <Text style={styles.cardEyebrow}>{t.home.workout}</Text>
             <Text style={styles.primaryTitle}>{data.todayWorkout?.title ?? t.home.workoutPending}</Text>
-            <Text style={styles.primaryMeta}>{data.todayWorkout ? `${data.todayWorkout.minutes} min  ·  ${data.todayWorkout.exerciseCount} ejercicios${data.todayWorkout.focus ? `  ·  ${data.todayWorkout.focus}` : ""}` : data.program?.name ?? t.common.preparing}</Text>
+            <Text style={styles.primaryMeta}>{data.todayWorkout ? `${data.todayWorkout.minutes} min  ·  ${data.todayWorkout.exerciseCount} ${t.home.exercises}${data.todayWorkout.focus ? `  ·  ${data.todayWorkout.focus}` : ""}` : data.program?.name ?? t.common.preparing}</Text>
             <Pressable onPress={() => router.push("/(tabs)/plan")} style={({ pressed }) => [styles.primaryAction, pressed && styles.pressed]}>
               <Text style={styles.primaryActionText}>{data.todayWorkout ? t.home.startWorkout : t.home.viewWeek}</Text><ChevronRight color={colors.ink} size={18} />
             </Pressable>

@@ -1,7 +1,7 @@
 import * as WebBrowser from "expo-web-browser";
-import { Copy, CreditCard, ExternalLink, LogOut, ShieldCheck } from "lucide-react-native";
+import { ChevronRight, Copy, CreditCard, ExternalLink, FileText, Headphones, LogOut, ShieldCheck, Trash2 } from "lucide-react-native";
 import { useState } from "react";
-import { ActivityIndicator, Alert, Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
+import { ActivityIndicator, Alert, Linking, Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
 import { BrandBar, Eyebrow, Metric, Screen } from "@/src/components/ui";
 import { t } from "@/src/i18n";
 import { useAuth } from "@/src/providers/auth-provider";
@@ -32,6 +32,17 @@ export default function ProfileScreen() {
     }
   }
 
+  async function openLegalPage(url: string) {
+    await WebBrowser.openBrowserAsync(url, {
+      presentationStyle: WebBrowser.WebBrowserPresentationStyle.PAGE_SHEET,
+      controlsColor: colors.accent,
+    });
+  }
+
+  async function email(subject: string) {
+    await Linking.openURL(`mailto:rubengomezesp@gmail.com?subject=${encodeURIComponent(subject)}`);
+  }
+
   return (
     <Screen>
       <BrandBar demo={data.source === "demo"} />
@@ -41,7 +52,7 @@ export default function ProfileScreen() {
 
         <View style={styles.identity}>
           <View style={styles.avatar}><Text style={styles.avatarText}>{data.member.firstName.slice(0, 1).toUpperCase()}</Text></View>
-          <View><Text style={styles.name}>{data.member.fullName}</Text><View style={styles.private}><ShieldCheck color={colors.success} size={13} /><Text style={styles.privateText}>Perfil privado</Text></View></View>
+          <View><Text style={styles.name}>{data.member.fullName}</Text><View style={styles.private}><ShieldCheck color={colors.success} size={13} /><Text style={styles.privateText}>{t.profile.privateLabel}</Text></View></View>
         </View>
 
         <View style={styles.metricRow}>
@@ -71,6 +82,22 @@ export default function ProfileScreen() {
         <View style={styles.idCard}>
           <View><Text style={styles.idLabel}>{t.profile.appUserId.toUpperCase()}</Text><Text numberOfLines={1} style={styles.idValue}>{data.member.id}</Text></View>
           <Copy color={colors.textSoft} size={18} />
+        </View>
+
+        <Text style={styles.legalTitle}>{t.profile.legalTitle}</Text>
+        <View style={styles.legalCard}>
+          <Pressable accessibilityRole="link" onPress={() => openLegalPage(t.profile.privacyUrl)} style={styles.legalRow}>
+            <ShieldCheck color={colors.cyan} size={18} /><Text style={styles.legalText}>{t.profile.privacy}</Text><ChevronRight color={colors.textSoft} size={17} />
+          </Pressable>
+          <Pressable accessibilityRole="link" onPress={() => openLegalPage(t.profile.termsUrl)} style={styles.legalRow}>
+            <FileText color={colors.cyan} size={18} /><Text style={styles.legalText}>{t.profile.terms}</Text><ChevronRight color={colors.textSoft} size={17} />
+          </Pressable>
+          <Pressable accessibilityRole="link" onPress={() => email(t.profile.supportSubject)} style={styles.legalRow}>
+            <Headphones color={colors.cyan} size={18} /><Text style={styles.legalText}>{t.profile.support}</Text><ChevronRight color={colors.textSoft} size={17} />
+          </Pressable>
+          <Pressable accessibilityRole="link" onPress={() => email(t.profile.dataRequestSubject)} style={[styles.legalRow, styles.legalRowLast]}>
+            <Trash2 color={colors.textMuted} size={18} /><Text style={styles.legalText}>{t.profile.dataRequest}</Text><ChevronRight color={colors.textSoft} size={17} />
+          </Pressable>
         </View>
 
         {demoMode ? <Text style={styles.demoNotice}>{t.profile.demoNotice}</Text> : null}
@@ -107,6 +134,11 @@ const styles = StyleSheet.create({
   idCard: { minHeight: 72, marginTop: spacing.sm, padding: spacing.md, borderRadius: radius.md, borderWidth: 1, borderColor: colors.line, backgroundColor: colors.surfaceRaised, flexDirection: "row", alignItems: "center", justifyContent: "space-between", gap: spacing.md },
   idLabel: { color: colors.textSoft, fontFamily: typography.bodyBold, fontSize: 9, letterSpacing: 0.9 },
   idValue: { color: colors.textMuted, fontFamily: typography.bodyMedium, fontSize: 11, marginTop: 4, maxWidth: 290 },
+  legalTitle: { color: colors.textSoft, fontFamily: typography.bodyBold, fontSize: 9, letterSpacing: 1.1, marginTop: spacing.xl, marginBottom: spacing.sm },
+  legalCard: { borderRadius: radius.md, borderWidth: 1, borderColor: colors.line, backgroundColor: colors.surface, overflow: "hidden" },
+  legalRow: { minHeight: 54, paddingHorizontal: spacing.md, flexDirection: "row", alignItems: "center", gap: spacing.sm, borderBottomWidth: 1, borderBottomColor: colors.line },
+  legalRowLast: { borderBottomWidth: 0 },
+  legalText: { flex: 1, color: colors.text, fontFamily: typography.bodyMedium, fontSize: 12 },
   demoNotice: { color: colors.warning, fontFamily: typography.body, fontSize: 12, lineHeight: 18, marginTop: spacing.md, padding: spacing.md, borderRadius: radius.md, backgroundColor: "#241D0E", borderWidth: 1, borderColor: "#665229" },
   leaveDemo: { minHeight: 50, marginTop: spacing.md, borderRadius: radius.md, borderWidth: 1, borderColor: "#24547C", backgroundColor: "#0D1A24", flexDirection: "row", justifyContent: "center", alignItems: "center", gap: spacing.xs },
   leaveDemoText: { color: colors.cyan, fontFamily: typography.bodyBold, fontSize: 13 },
