@@ -1,4 +1,5 @@
 import { MemberMobileHeader } from "@/components/member-mobile-header";
+import { MemberMusicPlayer } from "@/components/member-music-player";
 import { MobileBar } from "@/components/mobile-bar";
 import { MobileTabBar } from "@/components/mobile-tab-bar";
 import { Sidebar } from "@/components/sidebar";
@@ -57,7 +58,12 @@ export function PageShell({
       <main className="main" id="main" tabIndex={-1}>
         {children}
       </main>
-      {variant === "app" ? <MobileTabBar /> : null}
+      {variant === "app" ? (
+        <>
+          <MemberMusicPlayer locale={locale} />
+          <MobileTabBar />
+        </>
+      ) : null}
     </div>
   );
 }

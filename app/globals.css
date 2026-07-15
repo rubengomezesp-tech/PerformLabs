@@ -7151,6 +7151,44 @@ input[type="color"] {
   flex-direction: column;
   gap: 8px;
 }
+.quizPhase { color: var(--accent); font-size: 11px; font-weight: 850; letter-spacing: .08em; text-transform: uppercase; }
+.quizIntroTrust { display: grid; gap: 8px; margin-top: 6px; }
+.quizIntroTrust > div { display: flex; align-items: center; gap: 11px; min-height: 58px; padding: 11px 12px; border: 1px solid var(--border); border-radius: var(--radius); background: color-mix(in srgb, var(--bg) 56%, transparent); }
+.quizIntroTrust > div > svg { color: var(--accent); }
+.quizIntroTrust span { display: grid; }
+.quizIntroTrust strong { font-size: 14px; }
+.quizIntroTrust small { color: var(--text-muted); font-size: 12px; }
+.quizSafetyGrid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 9px; margin-top: 5px; }
+.quizSafetyQuestion { display: grid; gap: 6px; margin: 0; padding: 12px; border: 1px solid var(--border); border-radius: var(--radius); background: color-mix(in srgb, var(--bg) 55%, transparent); }
+.quizSafetyQuestion legend { padding: 0 4px; color: var(--text); font-size: 13px; font-weight: 750; }
+.quizSafetyQuestion p { min-height: 30px; margin: 0; color: var(--text-muted); font-size: 11px; line-height: 1.35; }
+.quizSafetyQuestion > div { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; }
+.quizSafetyQuestion button { display: flex; align-items: center; justify-content: center; gap: 5px; min-height: 42px; border: 1px solid var(--border); border-radius: var(--radius-sm); background: var(--surface-2); color: var(--text-soft); cursor: pointer; font-size: 12px; font-weight: 800; }
+.quizSafetyQuestion button.selected { border-color: color-mix(in srgb, var(--success) 55%, var(--border)); background: color-mix(in srgb, var(--success) 12%, var(--surface)); color: var(--success); }
+.quizSafetyQuestion button.selected.warning { border-color: color-mix(in srgb, var(--warning) 55%, var(--border)); background: color-mix(in srgb, var(--warning) 12%, var(--surface)); color: var(--warning); }
+.quizSafetyMedication { grid-column: 1 / -1; display: grid; gap: 6px; padding-top: 4px; color: var(--text-muted); font-size: 12px; font-weight: 700; }
+.quizSafetyMedication input { min-height: 44px; }
+.quizConsent { display: flex !important; align-items: flex-start; gap: 10px !important; margin: 2px 0 0 !important; padding: 12px; border: 1px solid var(--border); border-radius: var(--radius); background: color-mix(in srgb, var(--accent) 5%, var(--surface)); color: var(--text) !important; cursor: pointer; }
+.quizConsent > input { flex: 0 0 auto; width: 19px !important; height: 19px; margin-top: 2px; accent-color: var(--accent); }
+.quizConsent > span { display: flex; align-items: flex-start; gap: 8px; }
+.quizConsent > span > svg { flex: 0 0 auto; color: var(--accent); }
+.quizConsent > span > span { display: grid; }
+.quizConsent strong { font-size: 13px; }
+.quizConsent small { color: var(--text-muted); font-size: 11px; line-height: 1.4; }
+.quizError { margin: 0; padding: 12px 14px; border: 1px solid color-mix(in srgb, var(--danger) 45%, var(--border)); border-radius: var(--radius); background: color-mix(in srgb, var(--danger) 9%, var(--surface)); color: var(--danger); font-size: 13px; }
+.onboardingSubmitted { display: grid; justify-items: center; max-width: 660px; margin: 8vh auto 0; padding: clamp(24px, 5vw, 44px); border: 1px solid color-mix(in srgb, var(--success) 35%, var(--border)); border-radius: var(--radius-lg); background: color-mix(in srgb, var(--success) 5%, var(--surface)); text-align: center; }
+.onboardingSubmitted.medical { border-color: color-mix(in srgb, var(--warning) 42%, var(--border)); background: color-mix(in srgb, var(--warning) 6%, var(--surface)); }
+.onboardingSubmittedIcon { display: grid; place-items: center; width: 58px; height: 58px; margin-bottom: 14px; border-radius: 50%; background: color-mix(in srgb, var(--success) 15%, transparent); color: var(--success); }
+.onboardingSubmitted.medical .onboardingSubmittedIcon { background: color-mix(in srgb, var(--warning) 16%, transparent); color: var(--warning); }
+.onboardingSubmitted h1 { max-width: 560px; margin: 8px 0 10px; font-size: clamp(25px, 5vw, 38px); line-height: 1.1; }
+.onboardingSubmitted > p { max-width: 560px; margin: 0; color: var(--text-muted); font-size: 14px; line-height: 1.6; }
+.onboardingSubmitted ol { display: grid; width: 100%; gap: 8px; margin: 24px 0; padding: 0; list-style: none; text-align: left; }
+.onboardingSubmitted li { display: flex; align-items: center; gap: 11px; padding: 12px; border: 1px solid var(--border); border-radius: var(--radius); background: color-mix(in srgb, var(--bg) 52%, transparent); }
+.onboardingSubmitted li > svg { color: var(--accent); }
+.onboardingSubmitted li span { display: grid; }
+.onboardingSubmitted li strong { font-size: 13px; }
+.onboardingSubmitted li small { color: var(--text-muted); font-size: 12px; }
+.onboardingSubmitted .btn { min-height: 44px; }
 .quizStepCount {
   display: flex;
   align-items: center;
@@ -7249,9 +7287,20 @@ input[type="color"] {
 @media (max-width: 520px) {
   .quizOptions,
   .quizFields,
-  .quizSummary {
+  .quizSummary,
+  .quizSafetyGrid {
     grid-template-columns: 1fr;
   }
+  .quizSafetyMedication { grid-column: 1; }
+  .quizSafetyQuestion legend,
+  .quizSafetyQuestion p,
+  .quizSafetyQuestion button,
+  .quizConsent strong,
+  .quizConsent small,
+  .quizIntroTrust strong,
+  .quizIntroTrust small,
+  .quizError { font-size: 14px; }
+  .onboardingSubmitted { margin-top: 0; border-radius: var(--radius); }
 }
 
 /* ---- Macro strip (nutrition visibility) ---- */
@@ -8120,7 +8169,141 @@ a.diaryEntryTitle:hover {
 .mobileTab.active {
   color: var(--accent);
 }
+
+/* ---- Member music station — official Spotify playlists, loaded on demand ---- */
+.memberMusic {
+  position: fixed;
+  right: 20px;
+  bottom: 20px;
+  z-index: var(--z-float);
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 10px;
+  pointer-events: none;
+}
+.memberMusic > * { pointer-events: auto; }
+.memberMusicTrigger {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 46px;
+  padding: 10px 15px 10px 12px;
+  border: 1px solid color-mix(in srgb, var(--accent) 52%, var(--border-strong));
+  border-radius: var(--radius-pill);
+  background: color-mix(in srgb, var(--surface) 94%, transparent);
+  box-shadow: 0 14px 40px rgba(0, 0, 0, .42), inset 0 1px rgba(255, 255, 255, .05);
+  backdrop-filter: blur(18px);
+  color: var(--text);
+  font: inherit;
+  font-size: 13px;
+  font-weight: 800;
+  cursor: pointer;
+  transition: transform var(--dur-fast) var(--ease), border-color var(--dur-fast) var(--ease);
+}
+.memberMusicTrigger:hover { transform: translateY(-2px); border-color: var(--accent); }
+.memberMusicBars {
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  gap: 2px;
+  width: 18px;
+  height: 18px;
+  padding: 3px;
+  border-radius: 50%;
+  background: color-mix(in srgb, var(--accent) 18%, transparent);
+}
+.memberMusicBars i {
+  width: 2px;
+  border-radius: 2px;
+  background: var(--accent);
+}
+.memberMusicBars i:nth-child(1) { height: 45%; }
+.memberMusicBars i:nth-child(2) { height: 90%; }
+.memberMusicBars i:nth-child(3) { height: 65%; }
+.memberMusic.is-open .memberMusicBars i { animation: memberMusicLevel 1.1s ease-in-out infinite alternate; }
+.memberMusic.is-open .memberMusicBars i:nth-child(1) { animation-delay: -.4s; }
+.memberMusic.is-open .memberMusicBars i:nth-child(2) { animation-delay: -.15s; }
+.memberMusic.is-open .memberMusicBars i:nth-child(3) { animation-delay: -.65s; }
+@keyframes memberMusicLevel { to { height: 25%; } }
+.memberMusicPanel {
+  width: min(390px, calc(100vw - 32px));
+  max-height: calc(100dvh - 94px);
+  overflow: auto;
+  border: 1px solid color-mix(in srgb, var(--accent) 36%, var(--border-strong));
+  border-radius: 20px;
+  background: color-mix(in srgb, var(--surface) 97%, #000);
+  box-shadow: 0 28px 80px rgba(0, 0, 0, .65);
+  animation: memberMusicIn var(--dur) var(--ease) both;
+}
+@keyframes memberMusicIn {
+  from { opacity: 0; transform: translateY(10px) scale(.98); }
+}
+.memberMusicHead {
+  display: grid;
+  grid-template-columns: 38px 1fr 38px;
+  align-items: center;
+  gap: 10px;
+  padding: 14px;
+  border-bottom: 1px solid var(--border);
+}
+.memberMusicHead > div { display: grid; gap: 2px; min-width: 0; }
+.memberMusicHead strong { font-size: 15px; }
+.memberMusicHead small { color: var(--text-muted); font-size: 11px; }
+.memberMusicSignal,
+.memberMusicClose {
+  display: grid;
+  place-items: center;
+  width: 38px;
+  height: 38px;
+  border-radius: 12px;
+}
+.memberMusicSignal { background: color-mix(in srgb, var(--accent) 16%, transparent); color: var(--accent); }
+.memberMusicClose { border: 0; background: var(--surface-2); color: var(--text-muted); cursor: pointer; }
+.memberMusicClose:hover { color: var(--text); }
+.memberMusicModes {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 6px;
+  padding: 10px;
+}
+.memberMusicModes button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+  min-height: 42px;
+  border: 1px solid var(--border);
+  border-radius: 11px;
+  background: transparent;
+  color: var(--text-muted);
+  font: inherit;
+  font-size: 12px;
+  font-weight: 750;
+  cursor: pointer;
+}
+.memberMusicModes button.active {
+  border-color: color-mix(in srgb, var(--accent) 60%, var(--border));
+  background: color-mix(in srgb, var(--accent) 13%, transparent);
+  color: var(--text);
+}
+.memberMusicEmbed { display: block; border: 0; border-radius: 12px; padding: 0 10px; }
+.memberMusicFoot {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 10px 13px 13px;
+}
+.memberMusicFoot small { max-width: 210px; color: var(--text-soft); font-size: 10px; line-height: 1.35; }
+.memberMusicFoot a { display: inline-flex; align-items: center; gap: 5px; color: var(--text-muted); font-size: 11px; font-weight: 750; text-decoration: none; white-space: nowrap; }
+.memberMusicFoot a:hover { color: var(--text); }
 @media (max-width: 980px) {
+  .memberMusic { right: 12px; bottom: calc(84px + env(safe-area-inset-bottom, 0px)); }
+  .memberMusicPanel { max-height: calc(100dvh - 176px); }
+  .memberMusicTrigger { min-width: 46px; justify-content: center; padding: 10px; }
+  .memberMusicTrigger > span:last-child { display: none; }
   .mobileTabBar {
     position: fixed;
     left: 0;
@@ -8138,6 +8321,10 @@ a.diaryEntryTitle:hover {
   .shell--app .main {
     padding-bottom: 96px;
   }
+}
+@media (prefers-reduced-motion: reduce) {
+  .memberMusicBars i { animation: none; }
+  .memberMusicPanel { animation: none; }
 }
 
 /* ---- Panel (home) — mockup alignment ---- */
@@ -10873,6 +11060,30 @@ button[aria-busy="true"] {
 }
 
 /* ---- Private coach assessment ---- */
+.assessmentClientBrief { display: grid; gap: 12px; margin-bottom: 14px; padding: 16px; border: 1px solid var(--border); border-radius: 16px; background: var(--surface); }
+.assessmentClientBrief.ready { border-color: color-mix(in srgb, var(--accent) 32%, var(--border)); }
+.assessmentClientBrief > header { display: flex; align-items: center; justify-content: space-between; gap: 14px; }
+.assessmentClientBrief > header > div { display: flex; align-items: center; gap: 10px; }
+.assessmentClientBrief > header > div > svg { color: var(--accent); }
+.assessmentClientBrief > header span { display: grid; }
+.assessmentClientBrief > header small { color: var(--accent); font-size: 9px; font-weight: 850; letter-spacing: .08em; }
+.assessmentClientBrief > header strong { font-size: 14px; }
+.assessmentClientBrief > header time { color: var(--text-muted); font-size: 11px; }
+.assessmentClientBrief > dl { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); margin: 0; border: 1px solid var(--border); border-radius: 12px; }
+.assessmentClientBrief > dl > div { display: grid; grid-template-columns: auto 1fr; align-items: center; gap: 2px 8px; padding: 12px; }
+.assessmentClientBrief > dl > div + div { box-shadow: inset 1px 0 var(--border); }
+.assessmentClientBrief dt { color: var(--text-soft); font-size: 10px; font-weight: 750; }
+.assessmentClientBrief dd { grid-column: 2; overflow: hidden; margin: 0; font-size: 12px; font-weight: 800; text-overflow: ellipsis; white-space: nowrap; }
+.assessmentClientBrief dl svg { grid-row: 1 / 3; color: var(--accent); }
+.assessmentClientSafety { display: flex; align-items: flex-start; gap: 9px; padding: 11px 12px; border-radius: 10px; }
+.assessmentClientSafety.clear { background: color-mix(in srgb, var(--success) 8%, transparent); color: var(--success); }
+.assessmentClientSafety.review { border: 1px solid color-mix(in srgb, var(--warning) 32%, var(--border)); background: color-mix(in srgb, var(--warning) 8%, transparent); color: var(--warning); }
+.assessmentClientSafety > span { display: grid; }
+.assessmentClientSafety strong { font-size: 12px; }
+.assessmentClientSafety p { margin: 2px 0 0; color: var(--text-muted); font-size: 11px; }
+.assessmentClientNotes,
+.assessmentClientEmpty { margin: 0; color: var(--text-muted); font-size: 12px; line-height: 1.5; }
+.assessmentClientNotes { padding: 0 4px; }
 .assessmentStatusBar,
 .assessmentSaved,
 .assessmentRiskAlert {
@@ -10956,6 +11167,17 @@ button[aria-busy="true"] {
   .shell--coach .topbar .actions { justify-content: flex-start; }
   .shell--coach .topbar h1 { overflow-wrap: anywhere; }
   .assessmentStatusBar, .assessmentActions { align-items: stretch; flex-direction: column; }
+  .assessmentClientBrief > header { align-items: flex-start; }
+  .assessmentClientBrief > dl { grid-template-columns: 1fr 1fr; }
+  .assessmentClientBrief > dl > div + div { box-shadow: none; }
+  .assessmentClientBrief > dl > div:nth-child(even) { box-shadow: inset 1px 0 var(--border); }
+  .assessmentClientBrief > dl > div:nth-child(n+3) { border-top: 1px solid var(--border); }
+  .assessmentClientBrief dt,
+  .assessmentClientBrief dd,
+  .assessmentClientSafety strong,
+  .assessmentClientSafety p,
+  .assessmentClientNotes,
+  .assessmentClientEmpty { font-size: 14px; }
   .assessmentStatusBar > div { flex-wrap: wrap; }
   .assessmentStatusBar p { align-items: flex-start; white-space: normal; }
   .assessmentFields { grid-template-columns: 1fr; }

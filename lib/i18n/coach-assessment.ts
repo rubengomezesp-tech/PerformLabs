@@ -15,8 +15,8 @@ const es = {
   progress: "Completado",
   safetyAlert: "Hay una respuesta que requiere detener la prescripción y solicitar autorización médica antes de entrenar.",
   sections: {
-    visit: ["01 · Visita y objetivo", "Define qué quiere conseguir, por qué le importa y qué espera del proceso."],
-    safety: ["02 · Salud y seguridad", "Cribado previo. Una respuesta afirmativa no es un diagnóstico; indica que debes valorar derivación."],
+    visit: ["02 · Visita y objetivo", "Define qué quiere conseguir, por qué le importa y qué espera del proceso."],
+    safety: ["01 · Salud y seguridad", "Cribado previo. Una respuesta afirmativa no es un diagnóstico; indica que debes valorar derivación."],
     training: ["03 · Historial de entrenamiento", "Punto de partida, disponibilidad real y preferencias para diseñar adherencia."],
     lifestyle: ["04 · Estilo de vida y recuperación", "Sueño, estrés, trabajo y actividad fuera del gimnasio."],
     nutrition: ["05 · Alimentación y conducta", "Patrón actual, preferencias y barreras. Evita prometer resultados radicales."],
@@ -59,8 +59,8 @@ const en: typeof es = {
   clearance: "Medical clearance required", privateNote: "Visible only to the professional team. It is not shown to the client.", progress: "Complete",
   safetyAlert: "One or more answers require you to pause programming and request medical clearance before training.",
   sections: {
-    visit: ["01 · Visit and goal", "Clarify what they want, why it matters and what they expect from the process."],
-    safety: ["02 · Health and safety", "Pre-exercise screening. A positive answer is not a diagnosis; it may require referral."],
+    visit: ["02 · Visit and goal", "Clarify what they want, why it matters and what they expect from the process."],
+    safety: ["01 · Health and safety", "Pre-exercise screening. A positive answer is not a diagnosis; it may require referral."],
     training: ["03 · Training history", "Starting point, realistic availability and preferences for adherence."],
     lifestyle: ["04 · Lifestyle and recovery", "Sleep, stress, work and activity outside the gym."],
     nutrition: ["05 · Nutrition and behaviour", "Current pattern, preferences and barriers. Avoid promising radical results."],

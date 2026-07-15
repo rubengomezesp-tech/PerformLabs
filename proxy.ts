@@ -34,6 +34,7 @@ function buildContentSecurityPolicy(nonce: string): string {
     `script-src ${scriptSrc}`,
     "connect-src 'self' https: wss: ws: data:",
     "media-src 'self' blob: data: https:",
+    "frame-src 'self' https://open.spotify.com",
   ].join("; ");
 }
 

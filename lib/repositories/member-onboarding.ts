@@ -3,6 +3,7 @@ import { DAY_MS } from "@/lib/utils/dates";
 import { cloudinaryFetch, exerciseCardImage } from "@/lib/cloudinary";
 import { getSupabaseServiceEnv } from "@/lib/supabase/env";
 import { createServiceSupabaseClient } from "@/lib/supabase/server";
+import { isUuid } from "@/lib/utils/uuid";
 import { assignDietTemplateToMember, assignWorkoutTemplateToMember } from "@/lib/repositories/member-management";
 import { listManagedDietTemplates, type ManagedDietTemplate } from "@/lib/repositories/nutrition-management";
 import { seedSuggestedHabitsForMember } from "@/lib/repositories/habit-tracking";
@@ -87,6 +88,14 @@ export type MemberOnboardingInput = {
   timezone: string;
   injuries: string;
   healthConditions: string;
+  currentPain: string;
+  chestPain: string;
+  fainting: string;
+  uncontrolledBloodPressure: string;
+  medicalRestrictions: string;
+  medications: string;
+  eatingDisorderHistory: string;
+  healthConsent: boolean;
   experienceLevel: string;
   availableEquipment: string;
   preferredTrainingDays: string;
@@ -109,6 +118,23 @@ export type MemberOnboardingInput = {
   email?: string;
   /** Only true for an authenticated workspace admin/owner — gates self-provision. */
   allowProvision?: boolean;
+};
+
+export type ManagedMemberOnboardingBrief = {
+  id: string;
+  status: string;
+  goal: string;
+  trainingDaysPerWeek: number | null;
+  trainingLocation: string;
+  sessionMinutes: number | null;
+  mealsPerDay: number | null;
+  activityLevel: number | null;
+  submittedAt: string;
+  profile: Record<string, any>;
+  health: Record<string, any>;
+  training: Record<string, any>;
+  nutrition: Record<string, any>;
+  notes: string;
 };
 
 export type MemberTrainingContext = {
@@ -576,6 +602,9 @@ export async function saveMemberOnboarding(input: MemberOnboardingInput) {
   if (!input.workspaceId) {
     throw new Error("Falta la marca para guardar el onboarding.");
   }
+  if (!input.healthConsent) {
+    throw new Error("Confirma que la información de salud es correcta antes de enviarla.");
+  }
 
   let member = await getDefaultMemberProfile(input.workspaceId);
   if (!member) {
@@ -677,6 +706,23 @@ export async function saveMemberOnboarding(input: MemberOnboardingInput) {
     throw new Error(`No se pudieron guardar las preferencias de nutricion: ${dietPreferences.error.message}`);
   }
 
+  const healthScreening = {
+    currentPain: input.currentPain,
+    chestPain: input.chestPain,
+    fainting: input.fainting,
+    uncontrolledBloodPressure: input.uncontrolledBloodPressure,
+    medicalRestrictions: input.medicalRestrictions,
+    medications: input.medications,
+    eatingDisorderHistory: input.eatingDisorderHistory,
+    consentConfirmed: input.healthConsent,
+  };
+  const requiresCoachReview = [
+    input.chestPain,
+    input.fainting,
+    input.uncontrolledBloodPressure,
+    input.medicalRestrictions,
+  ].some((value) => ["yes", "si", "sí", "true", "1"].includes(value.trim().toLowerCase()));
+
   const onboardingPayload = {
     profile: {
       fullName,
@@ -688,7 +734,7 @@ export async function saveMemberOnboarding(input: MemberOnboardingInput) {
       timezone: input.timezone.trim() || "Europe/Madrid",
       healthConditions,
     },
-    health: { conditions: healthConditions },
+    health: { conditions: healthConditions, ...healthScreening },
     training: {
       daysPerWeek,
       sessionMinutes,
@@ -761,11 +807,44 @@ export async function saveMemberOnboarding(input: MemberOnboardingInput) {
     mealsPerDay,
     workoutTemplateId: recommendation.training.templateId,
     dietTemplateId: recommendation.nutrition.templateId,
+    requiresCoachReview,
   };
 }
 
 function toRecord(value: unknown): Record<string, any> {
   return value && typeof value === "object" && !Array.isArray(value) ? value as Record<string, any> : {};
+}
+
+export async function getManagedMemberOnboardingBrief(
+  workspaceId: string,
+  memberProfileId: string,
+): Promise<ManagedMemberOnboardingBrief | null> {
+  if (!getSupabaseServiceEnv().ok || !isUuid(workspaceId) || !isUuid(memberProfileId)) return null;
+  const result = await createServiceSupabaseClient()
+    .from("member_onboarding_responses")
+    .select("id,status,goal,training_days_per_week,training_location,session_minutes,meals_per_day,activity_level,submitted_at,onboarding_payload")
+    .eq("workspace_id", workspaceId)
+    .eq("member_profile_id", memberProfileId)
+    .maybeSingle();
+  if (result.error) throw new Error(`No se pudo leer el cuestionario del cliente: ${result.error.message}`);
+  if (!result.data) return null;
+  const payload = toRecord(result.data.onboarding_payload);
+  return {
+    id: result.data.id,
+    status: result.data.status,
+    goal: result.data.goal ?? "",
+    trainingDaysPerWeek: result.data.training_days_per_week,
+    trainingLocation: result.data.training_location ?? "",
+    sessionMinutes: result.data.session_minutes,
+    mealsPerDay: result.data.meals_per_day,
+    activityLevel: result.data.activity_level,
+    submittedAt: result.data.submitted_at,
+    profile: toRecord(payload.profile),
+    health: toRecord(payload.health),
+    training: toRecord(payload.training),
+    nutrition: toRecord(payload.nutrition),
+    notes: typeof payload.notes === "string" ? payload.notes : "",
+  };
 }
 
 function optionalInteger(value: unknown, fallback: number, min: number, max: number) {

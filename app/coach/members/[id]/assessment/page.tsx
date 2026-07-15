@@ -1,15 +1,16 @@
-import { AlertTriangle, ArrowLeft, CalendarDays, CheckCircle2, ClipboardCheck, LockKeyhole, Mail, ShieldAlert, TicketCheck } from "lucide-react";
+import { AlertTriangle, ArrowLeft, CalendarDays, CheckCircle2, ClipboardCheck, Clock3, Dumbbell, LockKeyhole, Mail, ShieldAlert, TicketCheck, Utensils } from "lucide-react";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { LocaleSwitcher } from "@/components/locale-switcher";
 import { Topbar } from "@/components/topbar";
 import { SubmitButton } from "@/components/ui";
-import type { AssessmentAnswerKey, CoachAssessmentAnswers } from "@/lib/domain/coach-assessment";
+import { calculateAssessmentCompletion, type AssessmentAnswerKey, type CoachAssessmentAnswers } from "@/lib/domain/coach-assessment";
 import { getLocale } from "@/lib/i18n/server";
 import { getCoachAssessmentDictionary } from "@/lib/i18n/coach-assessment";
 import { getSelectedMemberAppBrand } from "@/lib/member-app";
 import { getCoachMemberAssessment } from "@/lib/repositories/coach-assessments";
 import { listManagedMembers } from "@/lib/repositories/member-management";
+import { getManagedMemberOnboardingBrief } from "@/lib/repositories/member-onboarding";
 import { saveCoachAssessmentAction } from "./actions";
 
 export const dynamic = "force-dynamic";
@@ -44,25 +45,75 @@ function Section({ title, description, children }: { title: string; description:
   return <fieldset className="assessmentSection"><legend>{title}</legend><p className="assessmentSectionIntro">{description}</p><div className="assessmentFields">{children}</div></fieldset>;
 }
 
+function textValue(value: unknown) {
+  return typeof value === "string" ? value.trim() : typeof value === "number" ? String(value) : "";
+}
+
+function listValue(value: unknown) {
+  return Array.isArray(value) ? value.map(textValue).filter(Boolean).join(", ") : textValue(value);
+}
+
+function yesNoValue(value: unknown) {
+  const normalized = textValue(value).toLowerCase();
+  if (["yes", "si", "sí", "true", "1"].includes(normalized)) return "yes";
+  if (["no", "false", "0"].includes(normalized)) return "no";
+  return "";
+}
+
 export default async function CoachAssessmentPage({ params, searchParams }: Props) {
   const [{ id: rawId }, query, locale, brand] = await Promise.all([params, searchParams, getLocale(), getSelectedMemberAppBrand()]);
   const id = decodeURIComponent(rawId);
-  const [members, assessment] = await Promise.all([
+  const [members, assessment, clientBrief] = await Promise.all([
     listManagedMembers(brand.id),
     getCoachMemberAssessment(brand.id, id),
+    getManagedMemberOnboardingBrief(brand.id, id),
   ]);
   const member = members.find((candidate) => candidate.id === id);
   if (!member) notFound();
 
   const t = getCoachAssessmentDictionary(locale);
+  const english = locale === "en";
   const storedAnswers = assessment?.answers ?? {};
+  const clientAnswers: CoachAssessmentAnswers = clientBrief ? {
+    primaryGoal: clientBrief.goal,
+    weeklyAvailability: textValue(clientBrief.trainingDaysPerWeek),
+    sessionMinutes: textValue(clientBrief.sessionMinutes),
+    trainingExperience: textValue(clientBrief.training.experienceLevel),
+    currentPain: yesNoValue(clientBrief.health.currentPain),
+    medicalConditions: listValue(clientBrief.health.conditions),
+    medications: textValue(clientBrief.health.medications),
+    medicalRestrictions: yesNoValue(clientBrief.health.medicalRestrictions),
+    chestPain: yesNoValue(clientBrief.health.chestPain),
+    fainting: yesNoValue(clientBrief.health.fainting),
+    uncontrolledBloodPressure: yesNoValue(clientBrief.health.uncontrolledBloodPressure),
+    eatingDisorderHistory: yesNoValue(clientBrief.health.eatingDisorderHistory),
+    averageSleep: textValue(clientBrief.training.sleepHours),
+    dailySteps: textValue(clientBrief.training.stepsTarget),
+    mealPattern: clientBrief.mealsPerDay ? `${clientBrief.mealsPerDay} comidas al día` : "",
+    foodPreferences: listValue(clientBrief.nutrition.preferredFoods),
+    foodAvoidances: listValue(clientBrief.nutrition.dislikedFoods),
+    allergies: listValue(clientBrief.nutrition.allergies),
+    dietApproach: textValue(clientBrief.nutrition.dietStyle).toLowerCase().includes("flex") ? "flexible" : "discuss",
+    bodyWeightKg: textValue(clientBrief.profile.weightKg),
+  } : {};
   const answers: CoachAssessmentAnswers = {
+    ...clientAnswers,
     ...storedAnswers,
     primaryGoal: storedAnswers.primaryGoal || member.goal || "",
     bodyWeightKg: storedAnswers.bodyWeightKg || (member.startingWeightKg ? String(member.startingWeightKg) : ""),
   };
+  const clientCriticalRiskLabels = clientBrief ? [
+    [clientBrief.health.chestPain, english ? "Chest pain during exertion" : "Dolor en el pecho con esfuerzo"],
+    [clientBrief.health.fainting, english ? "Recent dizziness or fainting" : "Mareos o desmayos recientes"],
+    [clientBrief.health.uncontrolledBloodPressure, english ? "Uncontrolled blood pressure" : "Tensión arterial sin controlar"],
+    [clientBrief.health.medicalRestrictions, english ? "Declared medical restriction" : "Restricción médica declarada"],
+  ].filter(([value]) => yesNoValue(value) === "yes").map(([, label]) => String(label)) : [];
+  const clientRiskLabels = clientBrief && yesNoValue(clientBrief.health.currentPain) === "yes"
+    ? [...clientCriticalRiskLabels, english ? "Current pain" : "Dolor actual"]
+    : clientCriticalRiskLabels;
   const statusLabel = assessment?.status === "complete" ? t.complete : assessment?.status === "medical_clearance_required" ? t.clearance : t.draft;
-  const hasCriticalRisk = assessment?.status === "medical_clearance_required";
+  const hasCriticalRisk = assessment?.status === "medical_clearance_required" || clientCriticalRiskLabels.length > 0;
+  const visibleCompletion = assessment?.completionPercent ?? calculateAssessmentCompletion(answers);
   const interviewAt = assessment?.interviewAt ? assessment.interviewAt.slice(0, 16) : new Date().toISOString().slice(0, 16);
 
   return <>
@@ -87,8 +138,22 @@ export default async function CoachAssessmentPage({ params, searchParams }: Prop
       {query.setup === "partial" || query.access === "failed" ? <Link className="btn ghost" href={`/coach/members/${member.id}`}>Revisar ficha</Link> : null}
     </section> : null}
 
+    <section className={`assessmentClientBrief ${clientBrief ? "ready" : "pending"}`} aria-label={english ? "Client questionnaire" : "Cuestionario del cliente"}>
+      <header><div><ClipboardCheck size={20} /><span><small>{english ? "CLIENT DECLARED" : "DECLARADO POR EL CLIENTE"}</small><strong>{clientBrief ? (english ? "Questionnaire received" : "Cuestionario recibido") : (english ? "Questionnaire pending" : "Cuestionario pendiente")}</strong></span></div>{clientBrief ? <time>{new Intl.DateTimeFormat(english ? "en-US" : "es-ES", { day: "numeric", month: "short", year: "numeric" }).format(new Date(clientBrief.submittedAt))}</time> : <Link className="btn ghost sm" href={`/coach/members/${member.id}`}>{english ? "Open profile" : "Abrir ficha"}</Link>}</header>
+      {clientBrief ? <>
+        <dl>
+          <div><TicketCheck size={16} /><dt>{english ? "Goal" : "Objetivo"}</dt><dd>{clientBrief.goal || "—"}</dd></div>
+          <div><Dumbbell size={16} /><dt>{english ? "Training" : "Entreno"}</dt><dd>{clientBrief.trainingDaysPerWeek ?? "—"} {english ? "days" : "días"} · {clientBrief.sessionMinutes ?? "—"} min</dd></div>
+          <div><Clock3 size={16} /><dt>{english ? "Location" : "Lugar"}</dt><dd>{clientBrief.trainingLocation || "—"}</dd></div>
+          <div><Utensils size={16} /><dt>{english ? "Meals" : "Comidas"}</dt><dd>{clientBrief.mealsPerDay ?? "—"} / {english ? "day" : "día"}</dd></div>
+        </dl>
+        <div className={`assessmentClientSafety ${clientRiskLabels.length ? "review" : "clear"}`}><ShieldAlert size={18} /><span><strong>{clientRiskLabels.length ? (english ? "Review before prescribing" : "Revisar antes de prescribir") : (english ? "No declared safety alerts" : "Sin alertas de seguridad declaradas")}</strong><p>{clientRiskLabels.length ? clientRiskLabels.join(" · ") : (english ? "Confirm during the interview and continue with your private assessment." : "Confírmalo en la entrevista y continúa con tu valoración privada.")}</p></span></div>
+        {clientBrief.notes ? <p className="assessmentClientNotes"><strong>{english ? "Client note:" : "Nota del cliente:"}</strong> {clientBrief.notes}</p> : null}
+      </> : <p className="assessmentClientEmpty">{english ? "The private assessment is ready, but client answers will appear here once submitted." : "La valoración privada está preparada; las respuestas aparecerán aquí cuando el cliente las envíe."}</p>}
+    </section>
+
     <section className="assessmentStatusBar" aria-label={statusLabel}>
-      <div><ClipboardCheck aria-hidden="true" size={18} /><strong>{statusLabel}</strong><span>{assessment?.completionPercent ?? 0}% {t.progress.toLowerCase()}</span></div>
+      <div><ClipboardCheck aria-hidden="true" size={18} /><strong>{statusLabel}</strong><span>{visibleCompletion}% {t.progress.toLowerCase()}</span></div>
       <p><LockKeyhole aria-hidden="true" size={15} />{t.privateNote}</p>
     </section>
 
@@ -100,14 +165,6 @@ export default async function CoachAssessmentPage({ params, searchParams }: Prop
       <input name="memberProfileId" type="hidden" value={member.id} />
       <input name="locale" type="hidden" value={locale === "en" ? "en" : "es"} />
 
-      <Section title={t.sections.visit[0]} description={t.sections.visit[1]}>
-        <label>{t.labels.interviewAt}<input defaultValue={interviewAt} name="interviewAt" type="datetime-local" /></label>
-        <TextField name="primaryGoal" labels={t.labels} answers={answers} placeholder={t.placeholders.primaryGoal} />
-        <LongField name="goalWhy" labels={t.labels} answers={answers} placeholder={t.placeholders.goalWhy} />
-        <TextField name="targetTimeline" labels={t.labels} answers={answers} />
-        <TextField name="motivation" labels={t.labels} answers={answers} type="number" min="1" max="10" />
-      </Section>
-
       <Section title={t.sections.safety[0]} description={t.sections.safety[1]}>
         <YesNo name="currentPain" labels={t.labels} answers={answers} yes={t.yes} no={t.no} />
         <LongField name="painDetails" labels={t.labels} answers={answers} />
@@ -118,6 +175,14 @@ export default async function CoachAssessmentPage({ params, searchParams }: Prop
         <YesNo name="fainting" labels={t.labels} answers={answers} yes={t.yes} no={t.no} />
         <YesNo name="uncontrolledBloodPressure" labels={t.labels} answers={answers} yes={t.yes} no={t.no} unknown={t.unknown} />
         <YesNo name="eatingDisorderHistory" labels={t.labels} answers={answers} yes={t.yes} no={t.no} />
+      </Section>
+
+      <Section title={t.sections.visit[0]} description={t.sections.visit[1]}>
+        <label>{t.labels.interviewAt}<input defaultValue={interviewAt} name="interviewAt" type="datetime-local" /></label>
+        <TextField name="primaryGoal" labels={t.labels} answers={answers} placeholder={t.placeholders.primaryGoal} />
+        <LongField name="goalWhy" labels={t.labels} answers={answers} placeholder={t.placeholders.goalWhy} />
+        <TextField name="targetTimeline" labels={t.labels} answers={answers} />
+        <TextField name="motivation" labels={t.labels} answers={answers} type="number" min="1" max="10" />
       </Section>
 
       <Section title={t.sections.training[0]} description={t.sections.training[1]}>

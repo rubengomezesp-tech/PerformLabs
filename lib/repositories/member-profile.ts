@@ -22,6 +22,7 @@ export type MemberProfileSummary = {
   dietStyle: string | null;
   trainingGoal: string | null;
   hideMacros: boolean;
+  timezone: string | null;
 };
 
 /**
@@ -56,7 +57,7 @@ export async function getMemberProfileSummary(
   const [profileResult, dietResult, fitnessResult, user] = await Promise.all([
     supabase
       .from("member_profiles")
-      .select("full_name,goal,subscription_status")
+      .select("full_name,goal,subscription_status,timezone")
       .eq("id", scope.memberProfileId)
       .maybeSingle(),
     supabase
@@ -92,6 +93,7 @@ export async function getMemberProfileSummary(
     dietStyle: diet?.diet_style?.trim() || null,
     trainingGoal: fitness?.training_goal?.trim() || null,
     hideMacros: Boolean(diet?.hide_macros),
+    timezone: profile?.timezone?.trim() || null,
   };
 }
 
