@@ -5,6 +5,7 @@ import { redirect } from "next/navigation";
 import { requireWorkspaceMutationAccess } from "@/lib/auth/access-control";
 import { sendTenantMagicLinkIfConfigured } from "@/lib/auth/tenant-magic-link";
 import { localDateTimeToUtc, sessionDurationEnd } from "@/lib/domain/personal-training-schedule";
+import { getCoachMemberAssessment } from "@/lib/repositories/coach-assessments";
 import { assignPlansToMember, createManagedMember, listManagedMembers } from "@/lib/repositories/member-management";
 import { scheduleManagedPersonalTrainingSession } from "@/lib/repositories/personal-training-sessions";
 import { adjustManagedMemberSessions } from "@/lib/repositories/session-credits";
@@ -14,6 +15,11 @@ import { resolveWorkspaceBrand } from "@/lib/repositories/workspaces";
 function readText(formData: FormData, key: string) {
   const value = formData.get(key);
   return typeof value === "string" ? value.trim() : "";
+}
+
+async function assessmentAllowsPublication(workspaceId: string, memberProfileId: string) {
+  const assessment = await getCoachMemberAssessment(workspaceId, memberProfileId);
+  return assessment?.status === "complete";
 }
 
 export async function createCoachMemberAction(formData: FormData) {
@@ -119,11 +125,15 @@ export async function createCoachMemberAction(formData: FormData) {
 
 export async function assignCoachMemberPlansAction(formData: FormData) {
   const workspaceId = readText(formData, "workspaceId");
+  const memberProfileId = readText(formData, "memberProfileId");
   const session = await requireWorkspaceMutationAccess(workspaceId);
+  if (!await assessmentAllowsPublication(workspaceId, memberProfileId)) {
+    throw new Error("Completa la valoración profesional antes de publicar un plan.");
+  }
 
   await assignPlansToMember({
     workspaceId,
-    memberProfileId: readText(formData, "memberProfileId"),
+    memberProfileId,
     workoutTemplateId: readText(formData, "workoutTemplateId"),
     dietTemplateId: readText(formData, "dietTemplateId"),
     assignmentGoal: readText(formData, "assignmentGoal"),
@@ -139,7 +149,7 @@ export async function assignCoachMemberPlansAction(formData: FormData) {
     actorUserId: session.mode === "authenticated" ? session.user.id : null,
     action: "coach.member.plan_assigned",
     entityType: "member_profile",
-    entityId: readText(formData, "memberProfileId") || null,
+    entityId: memberProfileId || null,
     metadata: {
       workoutTemplateId: readText(formData, "workoutTemplateId"),
       dietTemplateId: readText(formData, "dietTemplateId"),
@@ -212,8 +222,15 @@ export async function bulkAssignCoachMemberPlansAction(formData: FormData) {
 
   const members = await listManagedMembers(workspaceId);
   const ownIds = new Set(members.map((member) => member.id));
-  const targetIds = requestedIds.filter((id) => ownIds.has(id));
-  if (!targetIds.length) return;
+  const ownTargetIds = requestedIds.filter((id) => ownIds.has(id));
+  if (!ownTargetIds.length) return;
+  const readiness = await Promise.all(ownTargetIds.map(async (memberProfileId) => ({
+    memberProfileId,
+    ready: await assessmentAllowsPublication(workspaceId, memberProfileId),
+  })));
+  const targetIds = readiness.filter((item) => item.ready).map((item) => item.memberProfileId);
+  const skipped = readiness.length - targetIds.length;
+  if (!targetIds.length) throw new Error("Ningún cliente seleccionado tiene la valoración completa.");
 
   const assignedBy = session.mode === "authenticated" ? session.user.id : null;
   for (const memberProfileId of targetIds) {
@@ -236,7 +253,7 @@ export async function bulkAssignCoachMemberPlansAction(formData: FormData) {
     actorUserId: assignedBy,
     action: "coach.member.plan_assigned_bulk",
     entityType: "member_profile",
-    metadata: { count: targetIds.length, workoutTemplateId, dietTemplateId },
+    metadata: { count: targetIds.length, skipped, workoutTemplateId, dietTemplateId },
   });
 
   revalidatePath("/coach/members");

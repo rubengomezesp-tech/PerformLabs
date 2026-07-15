@@ -31,6 +31,7 @@ export type CoachAdjustmentHistoryItem = {
   nextReviewOn: string;
   rationale: string;
   memberMessage: string;
+  calculationSnapshot: Record<string, Json | undefined>;
   createdAt: string;
 };
 
@@ -67,6 +68,7 @@ export type CoachMemberControlSnapshot = {
     mealsPerDay: number | null;
     nextReviewOn: string;
     version: number;
+    sourceTemplateId: string;
   } | null;
   workoutPlan: {
     id: string;
@@ -75,6 +77,7 @@ export type CoachMemberControlSnapshot = {
     currentWeek: number;
     nextReviewOn: string;
     version: number;
+    sourceTemplateId: string;
   } | null;
   preferences: {
     daysPerWeek: number | null;
@@ -146,7 +149,7 @@ export async function getCoachMemberControlSnapshot(
       .single(),
     supabase
       .from("assigned_meal_plans")
-      .select("id,name,target_calories,target_protein_g,target_carbs_g,target_fat_g,water_target_ml,fiber_target_g,meals_per_day,next_review_on,version")
+      .select("id,name,target_calories,target_protein_g,target_carbs_g,target_fat_g,water_target_ml,fiber_target_g,meals_per_day,next_review_on,version,source_template_id")
       .eq("workspace_id", workspaceId)
       .eq("member_profile_id", memberProfileId)
       .eq("status", "active")
@@ -155,7 +158,7 @@ export async function getCoachMemberControlSnapshot(
       .maybeSingle(),
     supabase
       .from("assigned_workout_plans")
-      .select("id,name,days_per_week,current_week,next_review_on,version")
+      .select("id,name,days_per_week,current_week,next_review_on,version,source_template_id")
       .eq("workspace_id", workspaceId)
       .eq("member_profile_id", memberProfileId)
       .eq("status", "active")
@@ -175,7 +178,7 @@ export async function getCoachMemberControlSnapshot(
       .maybeSingle(),
     supabase
       .from("coach_member_adjustments")
-      .select("id,version,status,goal,effective_on,target_calories,target_protein_g,target_carbs_g,target_fat_g,daily_steps_target,training_days_per_week,current_training_week,next_review_on,rationale,member_message,created_at")
+      .select("id,version,status,goal,effective_on,target_calories,target_protein_g,target_carbs_g,target_fat_g,daily_steps_target,training_days_per_week,current_training_week,next_review_on,rationale,member_message,calculation_snapshot,created_at")
       .eq("workspace_id", workspaceId)
       .eq("member_profile_id", memberProfileId)
       .order("version", { ascending: false })
@@ -235,6 +238,7 @@ export async function getCoachMemberControlSnapshot(
       mealsPerDay: mealResult.data.meals_per_day,
       nextReviewOn: mealResult.data.next_review_on ?? "",
       version: mealResult.data.version,
+      sourceTemplateId: mealResult.data.source_template_id ?? "",
     } : null,
     workoutPlan: workoutResult.data ? {
       id: workoutResult.data.id,
@@ -243,6 +247,7 @@ export async function getCoachMemberControlSnapshot(
       currentWeek: workoutResult.data.current_week,
       nextReviewOn: workoutResult.data.next_review_on ?? "",
       version: workoutResult.data.version,
+      sourceTemplateId: workoutResult.data.source_template_id ?? "",
     } : null,
     preferences: {
       daysPerWeek: preferencesResult.data?.days_per_week ?? null,
@@ -271,6 +276,9 @@ export async function getCoachMemberControlSnapshot(
       nextReviewOn: item.next_review_on ?? "",
       rationale: item.rationale ?? "",
       memberMessage: item.member_message ?? "",
+      calculationSnapshot: item.calculation_snapshot && typeof item.calculation_snapshot === "object" && !Array.isArray(item.calculation_snapshot)
+        ? item.calculation_snapshot as Record<string, Json | undefined>
+        : {},
       createdAt: item.created_at,
     })),
   };

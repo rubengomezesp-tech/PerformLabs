@@ -10,7 +10,6 @@ import {
   History,
   Mail,
   MessageSquareText,
-  Plus,
   Rocket,
   ShieldAlert,
   ShieldCheck,
@@ -22,17 +21,14 @@ import {
 } from "lucide-react";
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { Dialog } from "@/components/dialog";
 import { Topbar } from "@/components/topbar";
 import { SubmitButton } from "@/components/ui";
 import { getSelectedMemberAppBrand } from "@/lib/member-app";
 import { listManagedCheckins } from "@/lib/repositories/checkin-management";
 import { listManagedMembers } from "@/lib/repositories/member-management";
 import { getRetentionRadar, type RetentionTier } from "@/lib/repositories/member-retention";
-import { listManagedDietTemplates } from "@/lib/repositories/nutrition-management";
-import { listManagedWorkoutTemplates } from "@/lib/repositories/training-management";
 import { getManagedMemberSessionBalance, type SessionLedgerEventType } from "@/lib/repositories/session-credits";
-import { adjustCoachMemberSessionsAction, assignCoachMemberPlansAction } from "../actions";
+import { adjustCoachMemberSessionsAction } from "../actions";
 
 export const dynamic = "force-dynamic";
 
@@ -62,12 +58,10 @@ function prettyDate(value: string | null) {
 export default async function CoachMemberDetailPage({ params }: MemberDetailPageProps) {
   const { id } = await params;
   const brand = await getSelectedMemberAppBrand();
-  const [members, radar, allCheckins, workoutTemplates, dietTemplates, sessionBalance] = await Promise.all([
+  const [members, radar, allCheckins, sessionBalance] = await Promise.all([
     listManagedMembers(brand.id),
     getRetentionRadar(brand.id),
     listManagedCheckins(brand.id),
-    listManagedWorkoutTemplates(brand.id),
-    listManagedDietTemplates(brand.id),
     getManagedMemberSessionBalance(brand.id, id),
   ]);
 
@@ -110,7 +104,7 @@ export default async function CoachMemberDetailPage({ params }: MemberDetailPage
         <div className="coachMemberLaunchTitle"><Rocket size={20} /><div><strong>Activa a {member.fullName} en 3 pasos</strong><p>El recorrido completo de la cita, sin buscar por el panel.</p></div></div>
         <div className="coachMemberLaunchSteps">
           <Link className="coachMemberLaunchStep" href={`/coach/members/${member.id}/assessment`}><span>{member.onboardingStatus === "complete" ? <CheckCircle2 size={17} /> : "1"}</span><div><small>Primero</small><strong>Valoración</strong></div><ArrowLeft className="launchArrow" size={16} /></Link>
-          <a className="coachMemberLaunchStep" href="#plans"><span>{plan ? <CheckCircle2 size={17} /> : "2"}</span><div><small>Después</small><strong>Asignar planes</strong></div><ArrowLeft className="launchArrow" size={16} /></a>
+          <Link className="coachMemberLaunchStep" href={`/coach/members/${member.id}/control`}><span>{plan ? <CheckCircle2 size={17} /> : "2"}</span><div><small>Después</small><strong>Preparar y publicar plan</strong></div><ArrowLeft className="launchArrow" size={16} /></Link>
           <a className="coachMemberLaunchStep" href={memberAccessHref} rel="noreferrer" target="_blank"><span>3</span><div><small>Enséñale</small><strong>Abrir su acceso</strong></div><ExternalLink size={16} /></a>
         </div>
       </section>
@@ -274,60 +268,7 @@ export default async function CoachMemberDetailPage({ params }: MemberDetailPage
               <p>Sin entrenamiento asignado todavía.</p>
             )}
           </div>
-          <Dialog
-            triggerClassName="btn"
-            trigger={<>Asignar / editar planes <Plus size={16} /></>}
-            title={`Planes de ${member.fullName}`}
-            description="Entrenamiento, nutrición, fase del bloque y próxima revisión."
-          >
-            <form action={assignCoachMemberPlansAction} className="coachAssignForm">
-              <input name="workspaceId" type="hidden" value={brand.id} />
-              <input name="memberProfileId" type="hidden" value={member.id} />
-              <label>
-                Entrenamiento
-                <select name="workoutTemplateId" defaultValue="">
-                  <option value="">Sin cambio</option>
-                  {workoutTemplates.map((template) => (
-                    <option key={template.id} value={template.id}>{template.name}</option>
-                  ))}
-                </select>
-              </label>
-              <label>
-                Objetivo de fase
-                <input name="assignmentGoal" defaultValue={plan?.assignmentGoal ?? member.goal} placeholder="Definición, fuerza, adherencia..." />
-              </label>
-              <label>
-                Mes
-                <select name="currentMonth" defaultValue={String(plan?.currentMonth ?? 1)}>
-                  <option value="1">Mes 1</option>
-                  <option value="2">Mes 2</option>
-                  <option value="3">Mes 3</option>
-                </select>
-              </label>
-              <label>
-                Semana
-                <input name="currentWeek" defaultValue={String(plan?.currentWeek ?? 1)} min="1" max="12" type="number" inputMode="numeric" />
-              </label>
-              <label>
-                Próxima revisión
-                <input name="nextReviewOn" defaultValue={plan?.nextReviewOn ?? ""} type="date" />
-              </label>
-              <label>
-                Nutrición
-                <select name="dietTemplateId" defaultValue="">
-                  <option value="">Sin cambio</option>
-                  {dietTemplates.map((template) => (
-                    <option key={template.id} value={template.id}>{template.name}</option>
-                  ))}
-                </select>
-              </label>
-              <label className="spanFull">
-                Notas internas
-                <input name="assignmentNotes" placeholder="Contexto, molestias, preferencias, foco de la fase..." />
-              </label>
-              <SubmitButton variant="primary" className="spanFull" successToast="Planes asignados">Asignar planes</SubmitButton>
-            </form>
-          </Dialog>
+          <Link className="btn primary" href={`/coach/members/${member.id}/control`}><SlidersHorizontal size={16} /> Preparar y publicar plan</Link>
         </article>
 
         {/* Check-ins recientes */}

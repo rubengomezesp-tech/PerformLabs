@@ -1,4 +1,4 @@
-import { ArrowLeft, ClipboardCheck, Dumbbell, History, LockKeyhole, Salad, ShieldCheck } from "lucide-react";
+import { AlertTriangle, ArrowLeft, CheckCircle2, ClipboardCheck, Dumbbell, History, LockKeyhole, Salad, ShieldAlert, ShieldCheck } from "lucide-react";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { CoachingControlForm, type CoachingControlDefaults } from "@/components/coach/coaching-control-form";
@@ -9,12 +9,15 @@ import { getLocale } from "@/lib/i18n/server";
 import { getCoachingControlDictionary } from "@/lib/i18n/coaching-control";
 import { getSelectedMemberAppBrand } from "@/lib/member-app";
 import { getCoachMemberControlSnapshot } from "@/lib/repositories/coaching-control";
+import { SUGGESTED_HABITS } from "@/lib/repositories/habit-tracking";
+import { listManagedDietTemplates } from "@/lib/repositories/nutrition-management";
+import { listManagedWorkoutTemplates } from "@/lib/repositories/training-management";
 
 export const dynamic = "force-dynamic";
 
 type Props = {
   params: Promise<{ id: string }>;
-  searchParams: Promise<{ saved?: string; scope?: string }>;
+  searchParams: Promise<{ saved?: string; scope?: string; error?: string }>;
 };
 
 function addDays(days: number) {
@@ -26,10 +29,29 @@ function addDays(days: number) {
 export default async function CoachMemberControlPage({ params, searchParams }: Props) {
   const [{ id: rawId }, query, locale, brand] = await Promise.all([params, searchParams, getLocale(), getSelectedMemberAppBrand()]);
   const memberId = decodeURIComponent(rawId);
-  const snapshot = await getCoachMemberControlSnapshot(brand.id, memberId);
+  const [snapshot, workoutTemplates, dietTemplates] = await Promise.all([
+    getCoachMemberControlSnapshot(brand.id, memberId),
+    listManagedWorkoutTemplates(brand.id),
+    listManagedDietTemplates(brand.id),
+  ]);
   if (!snapshot) notFound();
   const t = getCoachingControlDictionary(locale);
   const latest = snapshot.history[0] ?? null;
+  const latestDraft = snapshot.history.find((item) => item.status === "draft") ?? null;
+  const planSelectionValue = latestDraft?.calculationSnapshot.planSelection;
+  const planSelection = planSelectionValue && typeof planSelectionValue === "object" && !Array.isArray(planSelectionValue)
+    ? planSelectionValue as Record<string, unknown>
+    : {};
+  const habitSelectionValue = latestDraft?.calculationSnapshot.habitSelection;
+  const defaultHabitNames = Array.isArray(habitSelectionValue)
+    ? habitSelectionValue.filter((value): value is string => typeof value === "string")
+    : SUGGESTED_HABITS.map((habit) => habit.name);
+  const suggestedHabitNames = SUGGESTED_HABITS.map((habit) => habit.name);
+  const defaultCustomHabits = defaultHabitNames.filter((name) => !suggestedHabitNames.includes(name)).join(", ");
+  const savedWorkoutTemplateId = typeof planSelection.workoutTemplateId === "string" ? planSelection.workoutTemplateId : "";
+  const savedDietTemplateId = typeof planSelection.dietTemplateId === "string" ? planSelection.dietTemplateId : "";
+  const defaultWorkoutTemplateId = workoutTemplates.some((template) => template.id === savedWorkoutTemplateId) ? savedWorkoutTemplateId : "";
+  const defaultDietTemplateId = dietTemplates.some((template) => template.id === savedDietTemplateId) ? savedDietTemplateId : "";
   const weightKg = snapshot.signals.latestWeightKg ?? snapshot.member.startingWeightKg ?? 75;
   const heightCm = snapshot.member.heightCm ?? 175;
   const goal = latest?.goal ?? (snapshot.member.goal.toLowerCase().includes("manten") ? "maintenance" : "fat_loss");
@@ -72,6 +94,14 @@ export default async function CoachMemberControlPage({ params, searchParams }: P
   };
   const confidence = snapshot.signals.confidence;
   const dateLocale = locale === "en" ? "en-US" : "es-ES";
+  const assessmentStatus = snapshot.assessment?.status ?? "pending";
+  const canPublish = assessmentStatus === "complete";
+  const publishBlockReason = assessmentStatus === "medical_clearance_required" ? t.medicalBlock : t.assessmentPending;
+  const errorMessage = query.error === "medical_clearance" ? t.medicalBlock
+    : query.error === "assessment_incomplete" ? t.assessmentPending
+      : query.error === "workout_required" ? t.workoutMissing
+        : query.error === "nutrition_required" ? t.nutritionMissing
+          : "";
 
   return <>
     <Topbar
@@ -85,7 +115,15 @@ export default async function CoachMemberControlPage({ params, searchParams }: P
 
     {query.saved ? <div className={`controlSaved ${query.saved === "published" ? "published" : ""}`} role="status"><ShieldCheck size={19} /><div><strong>{query.saved === "published" ? t.savedPublished : t.savedDraft}</strong>{query.saved === "published" && query.scope === "partial" ? <p>{t.partialPublish}</p> : null}</div></div> : null}
 
+    {errorMessage ? <div className="controlPublishError" role="alert"><AlertTriangle size={19} /><div><strong>{t.blockedPublish}</strong><p>{errorMessage}</p></div><Link href={`/coach/members/${memberId}/assessment`}>{t.assessment} <ArrowLeft size={14} /></Link></div> : null}
+
     <nav aria-label="Workflow" className="controlRoute">{t.route.map((step, index) => <span className={index === 0 ? "active" : ""} key={step}>{step}</span>)}</nav>
+
+    <section className="controlPrescriptionStatus" aria-label={locale === "en" ? "Publication readiness" : "Estado de publicación"}>
+      <article className={canPublish ? "ready" : "blocked"}>{canPublish ? <CheckCircle2 size={18} /> : <ShieldAlert size={18} />}<span><small>{t.assessment}</small><strong>{canPublish ? t.assessmentComplete : publishBlockReason}</strong></span></article>
+      <article className={snapshot.workoutPlan ? "ready" : "pending"}><Dumbbell size={18} /><span><small>{t.workoutPlan}</small><strong>{snapshot.workoutPlan?.name ?? t.noPlan}</strong></span></article>
+      <article className={snapshot.mealPlan ? "ready" : "pending"}><Salad size={18} /><span><small>{t.mealPlan}</small><strong>{snapshot.mealPlan?.name ?? t.noPlan}</strong></span></article>
+    </section>
 
     <section className="controlReadingPanel">
       <div className="controlReadingHeader"><div><span className="controlStepNumber">1</span><div><h2>{t.reading}</h2><p>{t.readingText}</p></div></div><span className={`controlConfidence ${confidence}`}>{t.confidenceLabels[confidence]}</span></div>
@@ -101,7 +139,23 @@ export default async function CoachMemberControlPage({ params, searchParams }: P
       </div>
     </section>
 
-    <CoachingControlForm workspaceId={brand.id} memberProfileId={memberId} defaults={defaults} dict={t} />
+    <CoachingControlForm
+      workspaceId={brand.id}
+      memberProfileId={memberId}
+      defaults={defaults}
+      dict={t}
+      workoutTemplates={workoutTemplates.map((template) => ({ id: template.id, name: template.name, goal: template.goal, level: template.level, daysPerWeek: template.daysPerWeek }))}
+      dietTemplates={dietTemplates.map((template) => ({ id: template.id, name: template.name, goal: template.goal, caloriesMin: template.caloriesMin, caloriesMax: template.caloriesMax, meals: template.meals.length }))}
+      defaultWorkoutTemplateId={defaultWorkoutTemplateId}
+      defaultDietTemplateId={defaultDietTemplateId}
+      hasActiveWorkout={Boolean(snapshot.workoutPlan)}
+      hasActiveDiet={Boolean(snapshot.mealPlan)}
+      suggestedHabits={suggestedHabitNames}
+      defaultHabitNames={defaultHabitNames}
+      defaultCustomHabits={defaultCustomHabits}
+      canPublish={canPublish}
+      publishBlockReason={publishBlockReason}
+    />
 
     <section className="controlHistoryPanel">
       <div className="controlReadingHeader"><div><History size={20} /><div><h2>{t.history}</h2><p>{t.historyText}</p></div></div></div>

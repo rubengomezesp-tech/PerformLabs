@@ -1,7 +1,7 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import { Calculator, LockKeyhole, Minus, Plus, Save, Send } from "lucide-react";
+import { Calculator, CheckCircle2, Dumbbell, Footprints, Layers3, LockKeyhole, Minus, Plus, Salad, Save, Send, Sparkles } from "lucide-react";
 import { saveCoachAdjustmentAction } from "@/app/coach/members/[id]/control/actions";
 import { SubmitButton } from "@/components/ui";
 import { calculateNutritionTargets, type ActivityLevel, type Gender, type NutritionGoal } from "@/lib/domain/nutrition-engine";
@@ -27,6 +27,23 @@ export type CoachingControlDefaults = {
   memberMessage: string;
 };
 
+export type ControlWorkoutTemplate = {
+  id: string;
+  name: string;
+  goal: string;
+  level: string;
+  daysPerWeek: number;
+};
+
+export type ControlDietTemplate = {
+  id: string;
+  name: string;
+  goal: string;
+  caloriesMin: number | null;
+  caloriesMax: number | null;
+  meals: number;
+};
+
 function numberFrom(value: string, fallback: number) {
   const parsed = Number.parseFloat(value.replace(",", "."));
   return Number.isFinite(parsed) ? parsed : fallback;
@@ -37,11 +54,33 @@ export function CoachingControlForm({
   memberProfileId,
   defaults,
   dict: t,
+  workoutTemplates,
+  dietTemplates,
+  defaultWorkoutTemplateId,
+  defaultDietTemplateId,
+  hasActiveWorkout,
+  hasActiveDiet,
+  suggestedHabits,
+  defaultHabitNames,
+  defaultCustomHabits,
+  canPublish,
+  publishBlockReason,
 }: {
   workspaceId: string;
   memberProfileId: string;
   defaults: CoachingControlDefaults;
   dict: CoachingControlDictionary;
+  workoutTemplates: ControlWorkoutTemplate[];
+  dietTemplates: ControlDietTemplate[];
+  defaultWorkoutTemplateId: string;
+  defaultDietTemplateId: string;
+  hasActiveWorkout: boolean;
+  hasActiveDiet: boolean;
+  suggestedHabits: string[];
+  defaultHabitNames: string[];
+  defaultCustomHabits: string;
+  canPublish: boolean;
+  publishBlockReason: string;
 }) {
   const [goal, setGoal] = useState(defaults.goal);
   const [gender, setGender] = useState(defaults.gender);
@@ -54,6 +93,8 @@ export function CoachingControlForm({
   const [mealsPerDay, setMealsPerDay] = useState(defaults.mealsPerDay);
   const [trainingDaysPerWeek, setTrainingDaysPerWeek] = useState(defaults.trainingDaysPerWeek);
   const [calorieOffset, setCalorieOffset] = useState(defaults.calorieOffset);
+  const [workoutTemplateId, setWorkoutTemplateId] = useState(defaultWorkoutTemplateId);
+  const [dietTemplateId, setDietTemplateId] = useState(defaultDietTemplateId);
 
   const target = useMemo(() => calculateNutritionTargets({
     gender,
@@ -69,6 +110,16 @@ export function CoachingControlForm({
   }), [activityLevel, age, fatRatioPercent, gender, goal, heightCm, mealsPerDay, proteinPerKg, trainingDaysPerWeek, weightKg]);
   const finalCalories = Math.max(800, target.targetCalories + calorieOffset);
   const finalCarbs = Math.max(0, Math.round((finalCalories - (target.proteinG * 4) - (target.fatG * 9)) / 4));
+  const selectedWorkout = workoutTemplates.find((template) => template.id === workoutTemplateId) ?? null;
+  const selectedDiet = dietTemplates.find((template) => template.id === dietTemplateId) ?? null;
+  const workoutReady = hasActiveWorkout || Boolean(workoutTemplateId);
+  const dietReady = hasActiveDiet || Boolean(dietTemplateId);
+  const publishReady = canPublish && workoutReady && dietReady;
+  const resolvedBlockReason = !canPublish
+    ? publishBlockReason
+    : !workoutReady
+      ? t.workoutMissing
+      : t.nutritionMissing;
 
   return (
     <form action={saveCoachAdjustmentAction} className="controlDecisionForm">
@@ -121,10 +172,51 @@ export function CoachingControlForm({
         <p className="controlFormulaNotice">{t.sourceWarning}</p>
       </section>
 
-      <section className="controlFormSection">
+      <section className="controlFormSection controlPlanBuilder">
         <div className="controlSectionHeading">
           <span className="controlStepNumber">3</span>
-          <div><h2>{t.training}</h2><p>{t.publishHelp}</p></div>
+          <div><h2>{t.planBuilder}</h2><p>{t.planBuilderText}</p></div>
+          <Layers3 aria-hidden="true" size={22} />
+        </div>
+
+        <div className="controlPlanSelectors">
+          <article>
+            <div className="controlPlanSelectorTitle"><Dumbbell size={18} /><span><small>{t.workoutPlan}</small><strong>{t.workoutTemplate}</strong></span></div>
+            <label>
+              <select name="workoutTemplateId" value={workoutTemplateId} onChange={(event) => setWorkoutTemplateId(event.target.value)}>
+                <option value="">{hasActiveWorkout ? t.keepCurrent : t.chooseWorkout}</option>
+                {workoutTemplates.map((template) => <option key={template.id} value={template.id}>{template.name}</option>)}
+              </select>
+            </label>
+            {selectedWorkout ? <dl><div><dt>{t.templateDays}</dt><dd>{selectedWorkout.daysPerWeek}</dd></div><div><dt>{t.templateLevel}</dt><dd>{selectedWorkout.level || "—"}</dd></div><div><dt>{t.goal}</dt><dd>{selectedWorkout.goal || "—"}</dd></div></dl> : <p>{hasActiveWorkout ? t.keepCurrent : workoutTemplates.length ? t.chooseWorkout : t.templatesEmpty}</p>}
+            <a href="/coach/programs">{t.workoutTemplate} <Plus size={13} /></a>
+          </article>
+
+          <article>
+            <div className="controlPlanSelectorTitle"><Salad size={18} /><span><small>{t.mealPlan}</small><strong>{t.dietTemplate}</strong></span></div>
+            <label>
+              <select name="dietTemplateId" value={dietTemplateId} onChange={(event) => setDietTemplateId(event.target.value)}>
+                <option value="">{hasActiveDiet ? t.keepCurrent : t.chooseNutrition}</option>
+                {dietTemplates.map((template) => <option key={template.id} value={template.id}>{template.name}</option>)}
+              </select>
+            </label>
+            {selectedDiet ? <dl><div><dt>{t.calories}</dt><dd>{selectedDiet.caloriesMin ?? "—"}–{selectedDiet.caloriesMax ?? "—"}</dd></div><div><dt>{t.templateMeals}</dt><dd>{selectedDiet.meals}</dd></div><div><dt>{t.goal}</dt><dd>{selectedDiet.goal || "—"}</dd></div></dl> : <p>{hasActiveDiet ? t.keepCurrent : dietTemplates.length ? t.chooseNutrition : t.templatesEmpty}</p>}
+            <a href="/coach/nutrition">{t.dietTemplate} <Plus size={13} /></a>
+          </article>
+        </div>
+
+        <fieldset className="controlHabitPlan">
+          <legend><Footprints size={17} /><span><strong>{t.habitPlan}</strong><small>{t.habitPlanText}</small></span></legend>
+          <div>{suggestedHabits.map((habit) => <label key={habit}><input name="habitNames" type="checkbox" value={habit} defaultChecked={defaultHabitNames.includes(habit)} /><span><CheckCircle2 size={15} />{habit}</span></label>)}</div>
+          <label className="controlCustomHabits">{t.customHabits}<input name="customHabits" defaultValue={defaultCustomHabits} placeholder={t.customHabitsPlaceholder} /></label>
+        </fieldset>
+      </section>
+
+      <section className="controlFormSection">
+        <div className="controlSectionHeading">
+          <span className="controlStepNumber">4</span>
+          <div><h2>{t.delivery}</h2><p>{t.deliveryText}</p></div>
+          <Sparkles aria-hidden="true" size={22} />
         </div>
         <div className="controlInputGrid decision">
           <label>{t.trainingDays}<input min="1" max="7" name="trainingDaysPerWeek" type="number" value={trainingDaysPerWeek} onChange={(event) => setTrainingDaysPerWeek(numberFrom(event.target.value, trainingDaysPerWeek))} /></label>
@@ -140,10 +232,10 @@ export function CoachingControlForm({
       </section>
 
       <section className="controlPublishBar">
-        <div><LockKeyhole aria-hidden="true" size={18} /><span><strong>{t.privateTitle}</strong><small>{t.privateText}</small></span></div>
+        <div className={publishReady ? "ready" : "blocked"}><LockKeyhole aria-hidden="true" size={18} /><span><strong>{publishReady ? t.readyToPublish : t.blockedPublish}</strong><small>{publishReady ? t.publishHelp : resolvedBlockReason}</small></span></div>
         <div className="controlPublishActions">
           <SubmitButton name="intent" value="draft"><Save size={16} />{t.draft}</SubmitButton>
-          <SubmitButton name="intent" value="published" variant="primary"><Send size={16} />{t.publish}</SubmitButton>
+          <SubmitButton name="intent" value="published" variant="primary" disabled={!publishReady} title={!publishReady ? resolvedBlockReason : undefined}><Send size={16} />{t.publish}</SubmitButton>
         </div>
       </section>
     </form>

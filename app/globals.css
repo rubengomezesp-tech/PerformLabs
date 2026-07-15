@@ -15643,9 +15643,25 @@ code.leadAttributionValue {
 .controlSaved { display: flex; align-items: flex-start; gap: 10px; margin-bottom: 12px; padding: 12px 15px; border: 1px solid color-mix(in srgb, var(--accent) 38%, var(--border)); border-radius: 13px; background: color-mix(in srgb, var(--accent) 9%, var(--surface)); color: var(--accent); }
 .controlSaved.published { border-color: color-mix(in srgb, #35c976 42%, var(--border)); background: color-mix(in srgb, #35c976 9%, var(--surface)); color: #77dda0; }
 .controlSaved p { margin: 3px 0 0; color: var(--text-muted); font-size: 12px; }
+.controlPublishError { display: flex; align-items: center; gap: 11px; margin-bottom: 12px; padding: 12px 15px; border: 1px solid color-mix(in srgb, var(--danger) 44%, var(--border)); border-radius: 13px; background: color-mix(in srgb, var(--danger) 7%, var(--surface)); }
+.controlPublishError > svg { flex: 0 0 auto; color: var(--danger); }
+.controlPublishError > div { display: grid; flex: 1; min-width: 0; }
+.controlPublishError p { margin: 2px 0 0; color: var(--text-muted); font-size: 12px; }
+.controlPublishError a { display: inline-flex; align-items: center; gap: 5px; color: var(--text); font-size: 12px; font-weight: 750; text-decoration: none; white-space: nowrap; }
 .controlRoute { display: grid; grid-template-columns: repeat(4, 1fr); gap: 1px; margin: 0 0 12px; padding: 4px; border: 1px solid var(--border); border-radius: 13px; background: color-mix(in srgb, var(--surface) 88%, transparent); }
 .controlRoute span { padding: 8px 10px; border-radius: 9px; color: var(--text-soft); font-size: 11px; font-weight: 750; text-align: center; text-transform: uppercase; letter-spacing: .04em; }
 .controlRoute span.active { background: color-mix(in srgb, var(--accent) 15%, transparent); color: var(--accent); }
+.controlPrescriptionStatus { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; margin-bottom: 12px; }
+.controlPrescriptionStatus article { display: flex; align-items: center; gap: 10px; min-height: 64px; padding: 11px 13px; border: 1px solid var(--border); border-radius: 13px; background: color-mix(in srgb, var(--surface) 91%, transparent); }
+.controlPrescriptionStatus article > svg { flex: 0 0 auto; color: var(--text-soft); }
+.controlPrescriptionStatus article > span { display: grid; min-width: 0; }
+.controlPrescriptionStatus small { color: var(--text-soft); font-size: 9px; font-weight: 800; text-transform: uppercase; letter-spacing: .07em; }
+.controlPrescriptionStatus strong { overflow: hidden; color: var(--text-muted); font-size: 12px; text-overflow: ellipsis; white-space: nowrap; }
+.controlPrescriptionStatus article.ready { border-color: color-mix(in srgb, var(--success) 30%, var(--border)); }
+.controlPrescriptionStatus article.ready > svg { color: var(--success); }
+.controlPrescriptionStatus article.ready strong { color: var(--text); }
+.controlPrescriptionStatus article.blocked { border-color: color-mix(in srgb, var(--danger) 38%, var(--border)); }
+.controlPrescriptionStatus article.blocked > svg { color: var(--danger); }
 
 .controlReadingPanel,
 .controlFormSection,
@@ -15715,12 +15731,48 @@ code.leadAttributionValue {
 .controlTargets .controlTargetPrimary { border-color: color-mix(in srgb, var(--accent) 42%, var(--border)); background: color-mix(in srgb, var(--accent) 12%, transparent); }
 .controlTargets .controlTargetPrimary strong { color: var(--accent); font-size: 27px; line-height: 1; }
 .controlFormulaNotice { margin: 10px 0 0; color: var(--text-soft); font-size: 11px; }
+.controlPlanSelectors { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
+.controlPlanSelectors > article { display: grid; gap: 12px; min-width: 0; padding: 14px; border: 1px solid var(--border); border-radius: 15px; background: color-mix(in srgb, var(--bg) 62%, transparent); }
+.controlPlanSelectorTitle { display: flex; align-items: center; gap: 9px; }
+.controlPlanSelectorTitle > svg { flex: 0 0 auto; color: var(--accent); }
+.controlPlanSelectorTitle > span { display: grid; }
+.controlPlanSelectorTitle small { color: var(--text-soft); font-size: 9px; font-weight: 800; text-transform: uppercase; letter-spacing: .07em; }
+.controlPlanSelectorTitle strong { font-size: 13px; }
+.controlPlanSelectors select,
+.controlCustomHabits input { width: 100%; min-height: 44px; border: 1px solid var(--border-strong); border-radius: 11px; background: var(--surface); color: var(--text); padding: 9px 11px; font: inherit; }
+.controlPlanSelectors dl { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 6px; margin: 0; }
+.controlPlanSelectors dl > div { display: grid; gap: 2px; min-width: 0; padding: 8px; border-radius: 9px; background: color-mix(in srgb, var(--accent) 6%, transparent); }
+.controlPlanSelectors dt { color: var(--text-soft); font-size: 8.5px; font-weight: 750; text-transform: uppercase; }
+.controlPlanSelectors dd { overflow: hidden; margin: 0; color: var(--text); font-size: 11px; font-weight: 750; text-overflow: ellipsis; white-space: nowrap; }
+.controlPlanSelectors article > p { margin: 0; color: var(--text-muted); font-size: 11px; }
+.controlPlanSelectors article > a { display: inline-flex; align-items: center; gap: 4px; justify-self: start; color: var(--text-muted); font-size: 10px; font-weight: 750; text-decoration: none; }
+.controlPlanSelectors article > a:hover { color: var(--accent); }
+.controlHabitPlan { display: grid; gap: 12px; margin: 12px 0 0; padding: 14px; border: 1px solid var(--border); border-radius: 15px; background: color-mix(in srgb, var(--accent) 4%, transparent); }
+.controlHabitPlan legend { padding: 0 7px; }
+.controlHabitPlan legend,
+.controlHabitPlan legend > span { align-items: center; }
+.controlHabitPlan legend { display: inline-flex; gap: 8px; }
+.controlHabitPlan legend > svg { color: var(--accent); }
+.controlHabitPlan legend > span { display: inline-grid; }
+.controlHabitPlan legend strong { font-size: 12px; }
+.controlHabitPlan legend small { color: var(--text-soft); font-size: 9px; font-weight: 450; }
+.controlHabitPlan > div { display: flex; flex-wrap: wrap; gap: 7px; }
+.controlHabitPlan > div > label { position: relative; cursor: pointer; }
+.controlHabitPlan > div input { position: absolute; width: 1px; height: 1px; opacity: 0; }
+.controlHabitPlan > div label > span { display: inline-flex; align-items: center; gap: 6px; min-height: 38px; padding: 8px 10px; border: 1px solid var(--border); border-radius: 10px; color: var(--text-muted); font-size: 10.5px; font-weight: 700; transition: border-color var(--dur-fast) var(--ease), background var(--dur-fast) var(--ease); }
+.controlHabitPlan > div label > span > svg { color: var(--text-soft); }
+.controlHabitPlan > div input:checked + span { border-color: color-mix(in srgb, var(--accent) 48%, var(--border)); background: color-mix(in srgb, var(--accent) 10%, transparent); color: var(--text); }
+.controlHabitPlan > div input:checked + span > svg { color: var(--accent); }
+.controlHabitPlan > div input:focus-visible + span { outline: 2px solid var(--accent); outline-offset: 2px; }
+.controlCustomHabits { display: grid; gap: 6px; color: var(--text); font-size: 11px; font-weight: 700; }
 .controlNotesGrid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; margin-top: 14px; }
 .controlNotesGrid label small { min-height: 34px; color: var(--text-soft); font-size: 11px; font-weight: 450; line-height: 1.4; }
 .controlNotesGrid textarea { min-height: 118px; resize: vertical; line-height: 1.5; }
 .controlPublishBar { position: sticky; bottom: 12px; z-index: 8; display: flex; align-items: center; justify-content: space-between; gap: 20px; padding: 13px 15px; border: 1px solid var(--border-strong); border-radius: 15px; background: color-mix(in srgb, var(--surface) 91%, transparent); box-shadow: 0 24px 60px rgba(0,0,0,.38); backdrop-filter: blur(18px); }
 .controlPublishBar > div:first-child { display: flex; align-items: center; gap: 9px; min-width: 0; }
 .controlPublishBar > div:first-child > svg { color: var(--accent); }
+.controlPublishBar > div:first-child.ready > svg { color: var(--success); }
+.controlPublishBar > div:first-child.blocked > svg { color: var(--warning); }
 .controlPublishBar span { display: grid; }
 .controlPublishBar small { color: var(--text-muted); font-size: 11px; }
 .controlPublishActions { display: flex; gap: 8px; flex-shrink: 0; }
@@ -15741,6 +15793,7 @@ code.leadAttributionValue {
   .controlSignalGrid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
   .controlInputGrid.decision { grid-template-columns: repeat(3, minmax(0, 1fr)); }
   .controlTargets { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+  .controlPlanSelectors { grid-template-columns: 1fr; }
 }
 @media (max-width: 720px) {
   .coachQuickStartBar { align-items: flex-start; flex-direction: column; gap: 10px; }
@@ -15779,7 +15832,10 @@ code.leadAttributionValue {
   .controlPrivacyBar a { margin-left: 29px; }
   .controlRoute { grid-template-columns: repeat(2, 1fr); }
   .controlReadingPanel, .controlFormSection, .controlHistoryPanel { padding: 15px; }
-  .controlSignalGrid, .controlConnectedPlans, .controlInputGrid, .controlInputGrid.decision, .controlFineTune, .controlNotesGrid { grid-template-columns: 1fr; }
+  .controlSignalGrid, .controlConnectedPlans, .controlInputGrid, .controlInputGrid.decision, .controlFineTune, .controlNotesGrid, .controlPrescriptionStatus { grid-template-columns: 1fr; }
+  .controlPublishError { align-items: flex-start; flex-wrap: wrap; }
+  .controlPublishError a { margin-left: 30px; }
+  .controlPrescriptionStatus strong { white-space: normal; }
   .controlTargets { grid-template-columns: repeat(2, minmax(0, 1fr)); }
   .controlPublishBar { align-items: stretch; flex-direction: column; }
   .controlPublishActions { display: grid; grid-template-columns: 1fr 1fr; }

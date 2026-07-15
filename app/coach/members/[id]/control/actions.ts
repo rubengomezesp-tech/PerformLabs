@@ -5,7 +5,10 @@ import { redirect } from "next/navigation";
 import { z } from "zod";
 import { requireWorkspaceMutationAccess } from "@/lib/auth/access-control";
 import { calculateNutritionTargets } from "@/lib/domain/nutrition-engine";
-import { saveCoachMemberAdjustment } from "@/lib/repositories/coaching-control";
+import { getCoachMemberAssessment } from "@/lib/repositories/coach-assessments";
+import { getCoachMemberControlSnapshot, saveCoachMemberAdjustment } from "@/lib/repositories/coaching-control";
+import { ensureManagedMemberHabits } from "@/lib/repositories/habit-tracking";
+import { assignPlansToMember } from "@/lib/repositories/member-management";
 import { recordSecurityAuditEvent } from "@/lib/repositories/security-management";
 
 const adjustmentSchema = z.object({
@@ -28,6 +31,9 @@ const adjustmentSchema = z.object({
   nextReviewOn: z.string().date(),
   rationale: z.string().max(5000),
   memberMessage: z.string().max(2000),
+  workoutTemplateId: z.union([z.string().uuid(), z.literal("")]),
+  dietTemplateId: z.union([z.string().uuid(), z.literal("")]),
+  customHabits: z.string().max(500),
   intent: z.enum(["draft", "published"]),
 });
 
@@ -37,6 +43,10 @@ function readText(formData: FormData, key: string) {
 }
 
 export async function saveCoachAdjustmentAction(formData: FormData) {
+  const selectedHabits = formData
+    .getAll("habitNames")
+    .map((value) => typeof value === "string" ? value.trim() : "")
+    .filter(Boolean);
   const parsed = adjustmentSchema.parse({
     workspaceId: readText(formData, "workspaceId"),
     memberProfileId: readText(formData, "memberProfileId"),
@@ -57,9 +67,50 @@ export async function saveCoachAdjustmentAction(formData: FormData) {
     nextReviewOn: readText(formData, "nextReviewOn"),
     rationale: readText(formData, "rationale"),
     memberMessage: readText(formData, "memberMessage"),
+    workoutTemplateId: readText(formData, "workoutTemplateId"),
+    dietTemplateId: readText(formData, "dietTemplateId"),
+    customHabits: readText(formData, "customHabits"),
     intent: readText(formData, "intent"),
   });
   const session = await requireWorkspaceMutationAccess(parsed.workspaceId);
+  const customHabits = parsed.customHabits.split(",").map((value) => value.trim()).filter(Boolean);
+  const habitNames = [...new Set([...selectedHabits, ...customHabits])].slice(0, 12);
+  if (habitNames.some((name) => name.length > 80)) throw new Error("Cada hábito debe tener 80 caracteres o menos.");
+
+  if (parsed.intent === "published") {
+    const [assessment, current] = await Promise.all([
+      getCoachMemberAssessment(parsed.workspaceId, parsed.memberProfileId),
+      getCoachMemberControlSnapshot(parsed.workspaceId, parsed.memberProfileId),
+    ]);
+    if (assessment?.status === "medical_clearance_required") {
+      redirect(`/coach/members/${parsed.memberProfileId}/control?error=medical_clearance`);
+    }
+    if (assessment?.status !== "complete") {
+      redirect(`/coach/members/${parsed.memberProfileId}/control?error=assessment_incomplete`);
+    }
+    if (!current?.workoutPlan && !parsed.workoutTemplateId) {
+      redirect(`/coach/members/${parsed.memberProfileId}/control?error=workout_required`);
+    }
+    if (!current?.mealPlan && !parsed.dietTemplateId) {
+      redirect(`/coach/members/${parsed.memberProfileId}/control?error=nutrition_required`);
+    }
+
+    if (parsed.workoutTemplateId || parsed.dietTemplateId) {
+      await assignPlansToMember({
+        workspaceId: parsed.workspaceId,
+        memberProfileId: parsed.memberProfileId,
+        workoutTemplateId: parsed.workoutTemplateId,
+        dietTemplateId: parsed.dietTemplateId,
+        assignmentGoal: parsed.goal,
+        assignmentNotes: parsed.rationale,
+        currentMonth: String(Math.floor((parsed.currentTrainingWeek - 1) / 4) + 1),
+        currentWeek: String(parsed.currentTrainingWeek),
+        nextReviewOn: parsed.nextReviewOn,
+        assignedBy: session.mode === "authenticated" ? session.user.id : null,
+      });
+    }
+  }
+
   const target = calculateNutritionTargets({
     gender: parsed.gender,
     age: parsed.age,
@@ -111,9 +162,26 @@ export async function saveCoachAdjustmentAction(formData: FormData) {
       base: { bmr: target.bmr, tdee: target.tdee, targetCalories: target.targetCalories },
       calorieOffset: parsed.calorieOffset,
       final: { targetCalories, proteinG: target.proteinG, carbsG: targetCarbsG, fatG: target.fatG },
+      planSelection: {
+        workoutTemplateId: parsed.workoutTemplateId,
+        dietTemplateId: parsed.dietTemplateId,
+      },
+      habitSelection: habitNames,
     },
     actorUserId,
   });
+
+  let habitResult = { created: 0 };
+  if (parsed.intent === "published") {
+    try {
+      habitResult = await ensureManagedMemberHabits(parsed.workspaceId, parsed.memberProfileId, habitNames);
+    } catch (error) {
+      // The training/nutrition decision is already published at this point.
+      // Do not report the whole publication as failed for an optional habit;
+      // preserve the error for operations and allow the coach to retry safely.
+      console.error("No se pudieron completar los hábitos del plan publicado", error);
+    }
+  }
 
   await recordSecurityAuditEvent({
     workspaceId: parsed.workspaceId,
@@ -125,6 +193,9 @@ export async function saveCoachAdjustmentAction(formData: FormData) {
       version: result.version,
       mealPlanUpdated: result.mealPlanUpdated,
       workoutPlanUpdated: result.workoutPlanUpdated,
+      workoutTemplateId: parsed.workoutTemplateId || null,
+      dietTemplateId: parsed.dietTemplateId || null,
+      habitsCreated: habitResult.created,
     },
   });
 
@@ -134,6 +205,7 @@ export async function saveCoachAdjustmentAction(formData: FormData) {
   revalidatePath("/app/workouts");
   revalidatePath("/app/meals");
   revalidatePath("/app/cardio");
+  revalidatePath("/app/habits");
 
   const scope = result.mealPlanUpdated && result.workoutPlanUpdated ? "full" : "partial";
   redirect(`/coach/members/${parsed.memberProfileId}/control?saved=${parsed.intent}&scope=${scope}`);

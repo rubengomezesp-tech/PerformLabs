@@ -168,6 +168,52 @@ export async function seedSuggestedHabitsForMember(workspaceId: string, memberPr
   if (error) console.error("Unable to seed suggested habits", error.message);
 }
 
+/**
+ * Adds coach-selected habits without deleting or overwriting anything the
+ * member already tracks. This makes publication idempotent and protects prior
+ * logs when a plan is revised.
+ */
+export async function ensureManagedMemberHabits(
+  workspaceId: string,
+  memberProfileId: string,
+  names: string[],
+) {
+  if (!isUuid(workspaceId) || !isUuid(memberProfileId)) return { created: 0 };
+  const cleanNames = [...new Set(names.map((name) => name.trim()).filter(Boolean))].slice(0, 12);
+  if (!cleanNames.length) return { created: 0 };
+
+  const supabase = createServiceSupabaseClient();
+  const member = await supabase
+    .from("member_profiles")
+    .select("id")
+    .eq("workspace_id", workspaceId)
+    .eq("id", memberProfileId)
+    .maybeSingle();
+  if (member.error || !member.data) throw new Error("Ese cliente no pertenece a tu marca.");
+
+  const existing = await supabase
+    .from("member_habits")
+    .select("name")
+    .eq("workspace_id", workspaceId)
+    .eq("member_profile_id", memberProfileId);
+  if (existing.error) throw new Error(`No se pudieron leer los hábitos: ${existing.error.message}`);
+  const existingNames = new Set((existing.data ?? []).map((habit) => habit.name.trim().toLocaleLowerCase("es")));
+  const iconByName = new Map(SUGGESTED_HABITS.map((habit) => [habit.name.toLocaleLowerCase("es"), habit.icon]));
+  const missing = cleanNames.filter((name) => !existingNames.has(name.toLocaleLowerCase("es")));
+  if (!missing.length) return { created: 0 };
+
+  const result = await supabase.from("member_habits").insert(missing.map((name, index) => ({
+    workspace_id: workspaceId,
+    member_profile_id: memberProfileId,
+    name,
+    icon: iconByName.get(name.toLocaleLowerCase("es")) ?? "check",
+    is_suggested: iconByName.has(name.toLocaleLowerCase("es")),
+    sort_order: 20 + index,
+  })));
+  if (result.error) throw new Error(`No se pudieron activar los hábitos: ${result.error.message}`);
+  return { created: missing.length };
+}
+
 export async function createCustomHabit(workspaceId: string, name: string) {
   if (!isUuid(workspaceId)) throw new Error("No se pudo identificar la app del cliente.");
   const cleanName = name.trim();
