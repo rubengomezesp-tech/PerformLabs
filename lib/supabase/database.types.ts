@@ -12,6 +12,31 @@ export type Database = {
   __InternalSupabase: {
     PostgrestVersion: "14.5"
   }
+  graphql_public: {
+    Tables: {
+      [_ in never]: never
+    }
+    Views: {
+      [_ in never]: never
+    }
+    Functions: {
+      graphql: {
+        Args: {
+          extensions?: Json
+          operationName?: string
+          query?: string
+          variables?: Json
+        }
+        Returns: Json
+      }
+    }
+    Enums: {
+      [_ in never]: never
+    }
+    CompositeTypes: {
+      [_ in never]: never
+    }
+  }
   public: {
     Tables: {
       ai_usage_events: {
@@ -1390,8 +1415,8 @@ export type Database = {
       coach_inquiries: {
         Row: {
           answers: Json
-          contact_consent_at: string | null
           consent_version: string | null
+          contact_consent_at: string | null
           contacted_at: string | null
           created_at: string
           elapsed_ms: number | null
@@ -1422,8 +1447,8 @@ export type Database = {
           submission_id: string | null
           training_level: string | null
           updated_at: string
-          utm_campaign: string | null
           utm_adgroup: string | null
+          utm_campaign: string | null
           utm_content: string | null
           utm_device: string | null
           utm_id: string | null
@@ -1438,8 +1463,8 @@ export type Database = {
         }
         Insert: {
           answers?: Json
-          contact_consent_at?: string | null
           consent_version?: string | null
+          contact_consent_at?: string | null
           contacted_at?: string | null
           created_at?: string
           elapsed_ms?: number | null
@@ -1470,8 +1495,8 @@ export type Database = {
           submission_id?: string | null
           training_level?: string | null
           updated_at?: string
-          utm_campaign?: string | null
           utm_adgroup?: string | null
+          utm_campaign?: string | null
           utm_content?: string | null
           utm_device?: string | null
           utm_id?: string | null
@@ -1486,8 +1511,8 @@ export type Database = {
         }
         Update: {
           answers?: Json
-          contact_consent_at?: string | null
           consent_version?: string | null
+          contact_consent_at?: string | null
           contacted_at?: string | null
           created_at?: string
           elapsed_ms?: number | null
@@ -1518,8 +1543,8 @@ export type Database = {
           submission_id?: string | null
           training_level?: string | null
           updated_at?: string
-          utm_campaign?: string | null
           utm_adgroup?: string | null
+          utm_campaign?: string | null
           utm_content?: string | null
           utm_device?: string | null
           utm_id?: string | null
@@ -1535,6 +1560,84 @@ export type Database = {
         Relationships: [
           {
             foreignKeyName: "coach_inquiries_workspace_id_fkey"
+            columns: ["workspace_id"]
+            isOneToOne: false
+            referencedRelation: "workspaces"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      coach_member_assessments: {
+        Row: {
+          answers: Json
+          assessment_kind: string
+          coach_summary: string | null
+          completion_percent: number
+          created_at: string
+          created_by: string | null
+          id: string
+          interview_at: string
+          locale: string
+          member_profile_id: string
+          next_review_on: string | null
+          nutrition_strategy: string | null
+          risk_flags: string[]
+          status: string
+          training_priorities: string | null
+          updated_at: string
+          updated_by: string | null
+          workspace_id: string
+        }
+        Insert: {
+          answers?: Json
+          assessment_kind?: string
+          coach_summary?: string | null
+          completion_percent?: number
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          interview_at?: string
+          locale?: string
+          member_profile_id: string
+          next_review_on?: string | null
+          nutrition_strategy?: string | null
+          risk_flags?: string[]
+          status?: string
+          training_priorities?: string | null
+          updated_at?: string
+          updated_by?: string | null
+          workspace_id: string
+        }
+        Update: {
+          answers?: Json
+          assessment_kind?: string
+          coach_summary?: string | null
+          completion_percent?: number
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          interview_at?: string
+          locale?: string
+          member_profile_id?: string
+          next_review_on?: string | null
+          nutrition_strategy?: string | null
+          risk_flags?: string[]
+          status?: string
+          training_priorities?: string | null
+          updated_at?: string
+          updated_by?: string | null
+          workspace_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "coach_member_assessments_member_profile_id_fkey"
+            columns: ["member_profile_id"]
+            isOneToOne: false
+            referencedRelation: "member_profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "coach_member_assessments_workspace_id_fkey"
             columns: ["workspace_id"]
             isOneToOne: false
             referencedRelation: "workspaces"
@@ -5793,6 +5896,10 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      canonical_workspace_domain: {
+        Args: { raw_domain: string }
+        Returns: string
+      }
       consume_rate_limit: {
         Args: { p_bucket: string; p_max: number; p_window_ms: number }
         Returns: boolean
@@ -5974,6 +6081,9 @@ export type CompositeTypes<
     : never
 
 export const Constants = {
+  graphql_public: {
+    Enums: {},
+  },
   public: {
     Enums: {
       delivery_status: ["queued", "sent", "delivered", "failed", "cancelled"],

@@ -139,6 +139,7 @@ export default async function CoachMemberDetailPage({ params }: MemberDetailPage
             ) : null}
           </ul>
           <div className="memberQuickLinks">
+            <Link className="btn primary sm" href={`/coach/members/${member.id}/assessment`}><ClipboardCheck size={15} /> Primera valoración</Link>
             <Link className="btn ghost sm" href="/coach/messages"><MessageSquareText size={15} /> Mensajes</Link>
             <Link className="btn ghost sm" href="/coach/checkins"><ClipboardCheck size={15} /> Check-ins</Link>
           </div>
