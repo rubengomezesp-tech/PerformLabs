@@ -15475,4 +15475,83 @@ code.leadAttributionValue {
   .controlHistoryList div { grid-column: 1 / -1; grid-row: 2; }
   .controlHistoryList time { grid-column: 2; grid-row: 1; }
 }
+
+/* ---- Private session-flow test lab ---- */
+.flowTestLayout { display: grid; gap: 14px; }
+.flowTestSafety {
+  display: flex;
+  align-items: center;
+  gap: 11px;
+  padding: 13px 15px;
+  border: 1px solid color-mix(in srgb, #35c976 38%, var(--border));
+  border-radius: 14px;
+  background: color-mix(in srgb, #35c976 7%, var(--surface));
+}
+.flowTestSafety > svg { flex: 0 0 auto; color: #77dda0; }
+.flowTestSafety > div { display: grid; flex: 1; }
+.flowTestSafety p { margin: 2px 0 0; color: var(--text-muted); font-size: 12px; }
+.flowTestSafety > span { padding: 5px 8px; border: 1px solid color-mix(in srgb, #35c976 35%, var(--border)); border-radius: 999px; color: #77dda0; font-size: 9px; font-weight: 900; letter-spacing: .08em; white-space: nowrap; }
+.flowTestMetrics { display: grid; grid-template-columns: 1.6fr repeat(3, 1fr); gap: 9px; }
+.flowTestMetrics article { display: grid; align-content: center; min-height: 104px; padding: 15px; border: 1px solid var(--border); border-radius: 15px; background: var(--surface); }
+.flowTestMetrics article > span { color: var(--text-soft); font-size: 10px; font-weight: 800; text-transform: uppercase; letter-spacing: .06em; }
+.flowTestMetrics article > strong { margin-top: 7px; font-size: 30px; font-variant-numeric: tabular-nums; line-height: 1; }
+.flowTestMetrics .flowTestBalance { grid-template-columns: auto 1fr; align-items: center; gap: 12px; border-color: color-mix(in srgb, var(--accent) 38%, var(--border)); }
+.flowTestBalance > svg { color: var(--accent); }
+.flowTestBalance > div { display: grid; grid-template-columns: auto 1fr; align-items: end; column-gap: 8px; }
+.flowTestBalance span { grid-column: 1 / -1; color: var(--text-soft); font-size: 10px; font-weight: 800; text-transform: uppercase; letter-spacing: .06em; }
+.flowTestBalance strong { color: var(--accent); font-size: 46px; font-variant-numeric: tabular-nums; line-height: .9; }
+.flowTestBalance small { color: var(--text-muted); font-size: 11px; }
+.flowTestActions,
+.flowTestChecks,
+.flowTestHistory { padding: 18px; border: 1px solid var(--border); border-radius: 17px; background: var(--surface); }
+.flowTestHeading { display: flex; align-items: center; justify-content: space-between; gap: 16px; }
+.flowTestHeading > div { display: flex; align-items: center; gap: 9px; }
+.flowTestHeading > div:first-child > svg { color: var(--accent); }
+.flowTestHeading span { display: grid; }
+.flowTestHeading small { margin-top: 2px; color: var(--text-muted); font-size: 11px; }
+.flowTestSteps { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; margin-top: 15px; }
+.flowTestSteps button { display: flex; align-items: center; gap: 8px; min-height: 50px; padding: 10px 12px; border: 1px solid var(--border); border-radius: 11px; background: color-mix(in srgb, var(--bg) 64%, transparent); color: var(--text); font: inherit; font-size: 11px; font-weight: 750; text-align: left; cursor: pointer; }
+.flowTestSteps button > svg { flex: 0 0 auto; color: var(--accent); }
+.flowTestSteps button:hover:not(:disabled) { border-color: color-mix(in srgb, var(--accent) 52%, var(--border)); background: color-mix(in srgb, var(--accent) 7%, var(--surface)); }
+.flowTestSteps button:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+.flowTestSteps button:disabled { opacity: .4; cursor: not-allowed; }
+.flowTestColumns { display: grid; grid-template-columns: minmax(320px, .9fr) minmax(380px, 1.1fr); gap: 14px; }
+.flowTestPanelTitle { display: flex; align-items: center; gap: 8px; }
+.flowTestPanelTitle > svg { color: var(--accent); }
+.flowTestPanelTitle h2 { flex: 1; margin: 0; font-size: 15px; }
+.flowTestPanelTitle > span { padding: 5px 8px; border: 1px solid var(--border); border-radius: 999px; color: var(--text-muted); font-size: 9.5px; font-weight: 850; }
+.flowTestPanelTitle > span.passed { border-color: color-mix(in srgb, #35c976 40%, var(--border)); color: #77dda0; }
+.flowTestChecks ul,
+.flowTestHistory ol { display: grid; gap: 5px; margin: 13px 0 0; padding: 0; list-style: none; }
+.flowTestChecks li,
+.flowTestHistory li { display: flex; align-items: center; gap: 9px; padding: 9px 10px; border: 1px solid var(--border); border-radius: 10px; background: color-mix(in srgb, var(--bg) 61%, transparent); }
+.flowTestChecks li > span,
+.flowTestChecks li > svg,
+.flowTestHistory li > span { display: grid; place-items: center; flex: 0 0 25px; height: 25px; border-radius: 8px; background: color-mix(in srgb, var(--text-soft) 10%, transparent); color: var(--text-muted); font-size: 10px; font-weight: 900; }
+.flowTestChecks li.passed { border-color: color-mix(in srgb, #35c976 25%, var(--border)); }
+.flowTestChecks li.passed > svg { padding: 5px; background: color-mix(in srgb, #35c976 12%, transparent); color: #77dda0; }
+.flowTestChecks li div,
+.flowTestHistory li div { display: grid; min-width: 0; }
+.flowTestChecks li strong,
+.flowTestHistory li strong { font-size: 11.5px; }
+.flowTestChecks li small,
+.flowTestHistory li small { color: var(--text-soft); font-size: 10px; }
+.flowTestHistory > p { margin: 17px 0 0; color: var(--text-muted); font-size: 12px; }
+.flowTestHistory ol { max-height: 340px; overflow: auto; padding-right: 3px; }
+
+@media (max-width: 900px) {
+  .flowTestMetrics { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .flowTestColumns { grid-template-columns: 1fr; }
+}
+@media (max-width: 680px) {
+  .flowTestSafety { align-items: flex-start; flex-wrap: wrap; }
+  .flowTestSafety > span { margin-left: 30px; }
+  .flowTestMetrics { grid-template-columns: 1fr 1fr; }
+  .flowTestMetrics .flowTestBalance { grid-column: 1 / -1; }
+  .flowTestHeading { align-items: flex-start; flex-direction: column; }
+  .flowTestHeading > div:last-child { width: 100%; }
+  .flowTestHeading .btn { flex: 1; min-width: 0; white-space: normal; }
+  .flowTestSteps { grid-template-columns: 1fr; }
+  .flowTestActions, .flowTestChecks, .flowTestHistory { padding: 14px; }
+}
 /* ===== END Coach quick start + private member control ===== */
