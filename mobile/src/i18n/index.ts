@@ -104,9 +104,13 @@ const es = {
     terms: "Términos de compra y cancelación",
     termsUrl: "https://rubengomezcoaching.com/terminos-compra",
     support: "Contactar con soporte",
-    dataRequest: "Solicitar acceso o eliminación de datos",
+    dataRequest: "Eliminar mi cuenta y mis datos",
     supportSubject: "Soporte RG Coach",
     dataRequestSubject: "Solicitud de acceso o eliminación de datos de RG Coach",
+    dataDeleteTitle: "Eliminar cuenta y datos",
+    dataDeleteText: "Se abrirá una solicitud dirigida a soporte. Verificaremos tu identidad y confirmaremos la eliminación, salvo los registros que debamos conservar por ley.",
+    cancel: "Cancelar",
+    continue: "Continuar",
   },
 };
 
@@ -214,9 +218,13 @@ const en: typeof es = {
     terms: "Purchase and cancellation terms",
     termsUrl: "https://rubengomezcoaching.com/purchase-terms",
     support: "Contact support",
-    dataRequest: "Request data access or deletion",
+    dataRequest: "Delete my account and data",
     supportSubject: "RG Coach support",
     dataRequestSubject: "RG Coach data access or deletion request",
+    dataDeleteTitle: "Delete account and data",
+    dataDeleteText: "A request to support will open. We will verify your identity and confirm deletion, except for records we must retain by law.",
+    cancel: "Cancel",
+    continue: "Continue",
   },
 };
 

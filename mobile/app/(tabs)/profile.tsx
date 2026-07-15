@@ -43,6 +43,13 @@ export default function ProfileScreen() {
     await Linking.openURL(`mailto:rubengomezesp@gmail.com?subject=${encodeURIComponent(subject)}`);
   }
 
+  function requestDataDeletion() {
+    Alert.alert(t.profile.dataDeleteTitle, t.profile.dataDeleteText, [
+      { text: t.profile.cancel, style: "cancel" },
+      { text: t.profile.continue, style: "destructive", onPress: () => email(t.profile.dataRequestSubject) },
+    ]);
+  }
+
   return (
     <Screen>
       <BrandBar demo={data.source === "demo"} />
@@ -95,7 +102,7 @@ export default function ProfileScreen() {
           <Pressable accessibilityRole="link" onPress={() => email(t.profile.supportSubject)} style={styles.legalRow}>
             <Headphones color={colors.cyan} size={18} /><Text style={styles.legalText}>{t.profile.support}</Text><ChevronRight color={colors.textSoft} size={17} />
           </Pressable>
-          <Pressable accessibilityRole="link" onPress={() => email(t.profile.dataRequestSubject)} style={[styles.legalRow, styles.legalRowLast]}>
+          <Pressable accessibilityRole="button" onPress={requestDataDeletion} style={[styles.legalRow, styles.legalRowLast]}>
             <Trash2 color={colors.textMuted} size={18} /><Text style={styles.legalText}>{t.profile.dataRequest}</Text><ChevronRight color={colors.textSoft} size={17} />
           </Pressable>
         </View>
