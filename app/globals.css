@@ -6014,6 +6014,8 @@ input[type="color"] {
 @media (max-width: 980px) {
   .shell {
     grid-template-columns: 1fr;
+    grid-template-rows: auto minmax(0, 1fr);
+    align-content: start;
   }
 
   .sidebar {
@@ -15555,119 +15557,163 @@ code.leadAttributionValue {
   .flowTestActions, .flowTestChecks, .flowTestHistory { padding: 14px; }
 }
 
-/* ---- Personal training agenda: coach operations ---- */
-.coachAgendaMetrics { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 10px; margin-bottom: 14px; }
-.coachAgendaMetrics article { display: grid; grid-template-columns: auto 1fr; align-items: center; gap: 5px 10px; min-height: 92px; padding: 15px; border: 1px solid var(--border); border-radius: 15px; background: var(--surface); }
-.coachAgendaMetrics svg { grid-row: 1 / 3; color: var(--accent); }
-.coachAgendaMetrics span { color: var(--text-soft); font-size: 10px; font-weight: 850; letter-spacing: .055em; text-transform: uppercase; }
-.coachAgendaMetrics strong { font-size: 27px; font-variant-numeric: tabular-nums; line-height: 1; }
-.coachAgendaMetrics article.warning { border-color: color-mix(in srgb, #f5a524 42%, var(--border)); background: color-mix(in srgb, #f5a524 6%, var(--surface)); }
-.coachAgendaMetrics article.warning svg { color: #f5b746; }
-.coachAgendaComposer { display: grid; gap: 15px; padding: 18px; border: 1px solid color-mix(in srgb, var(--accent) 34%, var(--border)); border-radius: 17px; background: linear-gradient(145deg, color-mix(in srgb, var(--accent) 6%, var(--surface)), var(--surface)); }
-.coachAgendaComposer > div:first-child { display: flex; align-items: center; gap: 10px; }
-.coachAgendaComposer > div:first-child > div { display: grid; }
-.coachAgendaComposer > div:first-child strong { font-size: 14px; }
-.coachAgendaComposer > div:first-child small { color: var(--text-muted); font-size: 11px; }
-.coachSessionScheduleForm { display: grid; grid-template-columns: 1.2fr 1.1fr .65fr 1fr 1fr .85fr; align-items: end; gap: 9px; }
-.coachSessionScheduleForm label { display: grid; gap: 5px; color: var(--text-soft); font-size: 9.5px; font-weight: 850; letter-spacing: .04em; text-transform: uppercase; }
-.coachSessionScheduleForm input,
-.coachSessionScheduleForm select { width: 100%; min-width: 0; min-height: 41px; padding: 8px 10px; border: 1px solid var(--border); border-radius: 10px; background: color-mix(in srgb, var(--bg) 74%, var(--surface)); color: var(--text); font: inherit; font-size: 11px; text-transform: none; }
-.coachSessionScheduleForm input:focus,
-.coachSessionScheduleForm select:focus { border-color: var(--accent); outline: 2px solid color-mix(in srgb, var(--accent) 16%, transparent); }
-.coachSessionScheduleForm .coachScheduleNotes { grid-column: 1 / -2; }
-.coachSessionScheduleForm > .btn { min-height: 41px; }
-.coachSessionScheduleForm.compact { grid-template-columns: 1.5fr .7fr 1fr 1fr; }
-.coachSessionScheduleForm .spanFull { grid-column: 1 / -1; }
-.coachAgendaBoard { display: grid; gap: 13px; margin-top: 14px; }
-.coachAgendaLane { display: grid; gap: 7px; padding: 16px; border: 1px solid var(--border); border-radius: 17px; background: var(--surface); }
-.coachAgendaLane > header { display: flex; align-items: center; gap: 9px; margin-bottom: 4px; }
+/* ---- Personal training agenda: five-second operations ---- */
+.coachAgendaPulse { display: grid; grid-template-columns: minmax(290px, .9fr) minmax(420px, 1.1fr); gap: var(--space-3); margin-bottom: var(--space-3); padding: var(--space-3); border: 1px solid var(--border); border-radius: var(--radius-lg); background: var(--surface); }
+.coachAgendaPulse.warning { border-color: color-mix(in srgb, var(--warning) 42%, var(--border)); background: color-mix(in srgb, var(--warning) 6%, var(--surface)); }
+.coachAgendaPulsePrimary { display: flex; align-items: center; gap: var(--space-3); min-height: 54px; padding: 0 var(--space-2); }
+.coachAgendaPulsePrimary > svg { color: var(--success); }
+.coachAgendaPulse.warning .coachAgendaPulsePrimary > svg { color: var(--warning); }
+.coachAgendaPulsePrimary > div { display: flex; align-items: baseline; gap: var(--space-2); flex: 1; }
+.coachAgendaPulsePrimary span { color: var(--text-soft); font-size: 12px; font-weight: 800; }
+.coachAgendaPulsePrimary strong { font-size: 26px; font-variant-numeric: tabular-nums; line-height: 1; }
+.coachAgendaPulsePrimary a { min-height: 40px; padding: 10px 13px; border-radius: var(--radius-sm); background: var(--text); color: var(--bg); font-size: 12px; font-weight: 850; text-decoration: none; }
+.coachAgendaPulse dl { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); margin: 0; border: 1px solid var(--border); border-radius: var(--radius-sm); }
+.coachAgendaPulse dl > div { display: flex; align-items: center; justify-content: space-between; gap: var(--space-2); padding: var(--space-3); }
+.coachAgendaPulse dl > div + div { box-shadow: inset 1px 0 var(--border); }
+.coachAgendaPulse dt { display: flex; align-items: center; gap: 6px; color: var(--text-soft); font-size: 11px; font-weight: 750; }
+.coachAgendaPulse dt svg { color: var(--accent); }
+.coachAgendaPulse dd { margin: 0; font-size: 18px; font-weight: 900; font-variant-numeric: tabular-nums; }
+.coachAgendaBoard { display: grid; gap: var(--space-3); }
+.coachAgendaLane { display: grid; gap: var(--space-2); padding: var(--space-4); border: 1px solid var(--border); border-radius: var(--radius-lg); background: var(--surface); scroll-margin-top: var(--space-4); }
+.coachAgendaLane > header { display: flex; align-items: center; gap: var(--space-2); margin-bottom: var(--space-1); }
 .coachAgendaLane > header > svg { color: var(--accent); }
 .coachAgendaLane > header > div { display: grid; flex: 1; }
-.coachAgendaLane > header h2 { margin: 0; font-size: 14px; }
-.coachAgendaLane > header p { margin: 1px 0 0; color: var(--text-muted); font-size: 10.5px; }
-.coachAgendaLane > header > span { display: grid; place-items: center; min-width: 27px; height: 27px; padding: 0 7px; border: 1px solid var(--border); border-radius: 9px; color: var(--text-soft); font-size: 10px; font-weight: 900; }
-.coachAgendaLane.attention { border-color: color-mix(in srgb, #f5a524 32%, var(--border)); }
-.coachAgendaLane.attention > header > svg { color: #f5b746; }
-.coachAgendaLane.history { background: color-mix(in srgb, var(--surface) 72%, var(--bg)); }
-.coachAgendaEmpty { margin: 4px 0; padding: 18px; border: 1px dashed var(--border); border-radius: 11px; color: var(--text-muted); font-size: 11px; text-align: center; }
-.coachAgendaSession { display: grid; grid-template-columns: 125px minmax(180px, 1.2fr) minmax(180px, 1fr) auto; align-items: center; gap: 12px; padding: 12px; border: 1px solid var(--border); border-radius: 12px; background: color-mix(in srgb, var(--bg) 61%, transparent); }
-.coachAgendaSession.status-scheduled { border-left: 3px solid var(--accent); }
+.coachAgendaLane > header h2 { margin: 0; font-size: 15px; }
+.coachAgendaLane > header p { margin: 2px 0 0; color: var(--text-muted); font-size: 12px; }
+.coachAgendaLane > header > span,
+.coachAgendaHistory summary > em,
+.memberSessionsDisclosure summary > em { display: grid; place-items: center; min-width: 30px; height: 30px; padding: 0 var(--space-2); border: 1px solid var(--border); border-radius: var(--radius-sm); color: var(--text-soft); font-size: 11px; font-style: normal; font-weight: 900; }
+.coachAgendaLane.attention { border-color: color-mix(in srgb, var(--warning) 38%, var(--border)); background: color-mix(in srgb, var(--warning) 4%, var(--surface)); }
+.coachAgendaLane.attention > header > svg { color: var(--warning); }
+.coachAgendaEmpty { margin: 0; padding: var(--space-4); border: 1px dashed var(--border); border-radius: var(--radius-sm); color: var(--text-muted); font-size: 12px; text-align: center; }
+.coachAgendaComposer { border: 1px solid color-mix(in srgb, var(--accent) 36%, var(--border)); border-radius: var(--radius-lg); background: color-mix(in srgb, var(--accent) 4%, var(--surface)); }
+.coachAgendaComposer > summary,
+.coachAgendaHistory > summary,
+.memberSessionsDisclosure > summary { display: flex; align-items: center; gap: var(--space-3); min-height: 62px; padding: var(--space-3) var(--space-4); cursor: pointer; list-style: none; }
+.coachAgendaComposer > summary::-webkit-details-marker,
+.coachAgendaHistory > summary::-webkit-details-marker,
+.memberSessionsDisclosure > summary::-webkit-details-marker { display: none; }
+.coachAgendaComposer > summary > span:nth-child(2),
+.coachAgendaHistory > summary > span,
+.memberSessionsDisclosure > summary > span { display: grid; flex: 1; }
+.coachAgendaComposer > summary strong,
+.coachAgendaHistory > summary strong,
+.memberSessionsDisclosure > summary strong { font-size: 14px; }
+.coachAgendaComposer > summary small,
+.coachAgendaHistory > summary small,
+.memberSessionsDisclosure > summary small { color: var(--text-muted); font-size: 11px; }
+.coachAgendaComposer > summary > svg:last-child,
+.coachAgendaHistory > summary > svg:last-child,
+.memberSessionsDisclosure > summary > svg:last-child { color: var(--text-soft); transition: transform var(--motion-fast); }
+.coachAgendaComposer[open] > summary > svg:last-child,
+.coachAgendaHistory[open] > summary > svg:last-child,
+.memberSessionsDisclosure[open] > summary > svg:last-child { transform: rotate(180deg); }
+.coachAgendaComposer[open] > summary { border-bottom: 1px solid var(--border); }
+.coachSessionScheduleForm { display: grid; gap: var(--space-3); padding: var(--space-4); }
+.coachSchedulePrimary { display: grid; grid-template-columns: 1.25fr 1.1fr .65fr 1fr auto; align-items: end; gap: var(--space-2); }
+.coachSessionScheduleForm label { display: grid; gap: 6px; color: var(--text-soft); font-size: 11px; font-weight: 800; }
+.coachSessionScheduleForm input,
+.coachSessionScheduleForm select { width: 100%; min-width: 0; min-height: 44px; padding: 9px 11px; border: 1px solid var(--border); border-radius: var(--radius-sm); background: color-mix(in srgb, var(--bg) 74%, var(--surface)); color: var(--text); font: inherit; font-size: 12px; }
+.coachSessionScheduleForm input:focus,
+.coachSessionScheduleForm select:focus { border-color: var(--accent); outline: 2px solid color-mix(in srgb, var(--accent) 16%, transparent); }
+.coachSchedulePrimary > .btn { min-height: 44px; }
+.coachScheduleAdvanced { border-top: 1px solid var(--border); }
+.coachScheduleAdvanced > summary { display: flex; align-items: center; gap: var(--space-2); width: fit-content; min-height: 44px; padding-top: var(--space-2); color: var(--text-muted); cursor: pointer; font-size: 12px; font-weight: 750; list-style: none; }
+.coachScheduleAdvanced > summary::-webkit-details-marker { display: none; }
+.coachScheduleAdvanced > summary svg:last-child { transition: transform var(--motion-fast); }
+.coachScheduleAdvanced[open] > summary svg:last-child { transform: rotate(180deg); }
+.coachScheduleAdvanced > div { display: grid; grid-template-columns: .8fr .8fr 1.4fr; gap: var(--space-2); padding-top: var(--space-2); }
+.coachScheduleBlocked { display: flex; align-items: center; gap: var(--space-3); padding: var(--space-4); }
+.coachScheduleBlocked > svg { color: var(--warning); }
+.coachScheduleBlocked > div { display: grid; flex: 1; }
+.coachScheduleBlocked strong { font-size: 13px; }
+.coachScheduleBlocked p { margin: 2px 0 0; color: var(--text-muted); font-size: 12px; }
+.coachScheduleBlocked .btn { min-height: 44px; }
+.coachSessionScheduleForm.compact { grid-template-columns: 1.5fr .7fr 1fr 1fr; align-items: end; }
+.coachSessionScheduleForm .spanFull { grid-column: 1 / -1; }
+.coachAgendaSession { display: grid; grid-template-columns: 125px minmax(180px, 1.2fr) minmax(180px, 1fr) auto; align-items: center; gap: var(--space-3); padding: var(--space-3); border: 1px solid var(--border); border-radius: var(--radius-sm); background: color-mix(in srgb, var(--bg) 61%, transparent); }
+.coachAgendaSession.status-scheduled { border-color: color-mix(in srgb, var(--accent) 32%, var(--border)); background: color-mix(in srgb, var(--accent) 3%, var(--bg)); }
 .coachAgendaDate,
 .coachAgendaPerson > div,
 .coachAgendaPlace { display: grid; min-width: 0; }
-.coachAgendaDate strong { font-size: 11.5px; text-transform: capitalize; }
-.coachAgendaDate span { color: var(--text-muted); font-size: 10.5px; font-variant-numeric: tabular-nums; }
-.coachAgendaPerson { display: flex; align-items: center; gap: 8px; min-width: 0; }
-.coachAgendaPerson strong { overflow: hidden; font-size: 11.5px; text-overflow: ellipsis; white-space: nowrap; }
-.coachAgendaPerson small { color: var(--text-soft); font-size: 9.5px; }
-.coachAgendaPlace > span { display: flex; align-items: center; gap: 5px; font-size: 10.5px; }
-.coachAgendaPlace > small { overflow: hidden; color: var(--text-muted); font-size: 9.5px; text-overflow: ellipsis; white-space: nowrap; }
-.coachAgendaStatus { padding: 5px 8px; border: 1px solid var(--border); border-radius: 999px; color: var(--text-soft); font-size: 9px; font-weight: 850; white-space: nowrap; }
+.coachAgendaDate strong { font-size: 12px; text-transform: capitalize; }
+.coachAgendaDate span { color: var(--text-muted); font-size: 12px; font-variant-numeric: tabular-nums; }
+.coachAgendaPerson { display: flex; align-items: center; gap: var(--space-2); min-width: 0; }
+.coachAgendaPerson strong { overflow: hidden; font-size: 12px; text-overflow: ellipsis; white-space: nowrap; }
+.coachAgendaPerson small { color: var(--text-soft); font-size: 11px; }
+.coachAgendaPlace > span { display: flex; align-items: center; gap: 5px; font-size: 12px; }
+.coachAgendaPlace > small { overflow: hidden; color: var(--text-muted); font-size: 11px; text-overflow: ellipsis; white-space: nowrap; }
+.coachAgendaStatus { padding: 6px 9px; border: 1px solid var(--border); border-radius: var(--radius-pill); color: var(--text-soft); font-size: 10px; font-weight: 850; white-space: nowrap; }
 .coachAgendaStatus.scheduled { border-color: color-mix(in srgb, var(--accent) 35%, var(--border)); color: var(--accent); }
-.coachAgendaStatus.completed { border-color: color-mix(in srgb, #35c976 35%, var(--border)); color: #77dda0; }
+.coachAgendaStatus.completed { border-color: color-mix(in srgb, var(--success) 35%, var(--border)); color: var(--success); }
 .coachAgendaStatus.cancelled_late,
-.coachAgendaStatus.no_show { border-color: color-mix(in srgb, #f05c68 35%, var(--border)); color: #ff9098; }
-.coachAgendaControls { grid-column: 2 / -1; display: flex; align-items: center; justify-content: flex-end; gap: 7px; padding-top: 9px; border-top: 1px solid var(--border); }
+.coachAgendaStatus.no_show { border-color: color-mix(in srgb, var(--danger) 35%, var(--border)); color: var(--danger); }
+.coachAgendaControls { grid-column: 2 / -1; display: flex; align-items: center; justify-content: flex-end; gap: var(--space-2); padding-top: var(--space-2); border-top: 1px solid var(--border); }
 .sessionResolutionActions { display: flex; flex-wrap: wrap; gap: 6px; }
 .sessionResolutionActions form { display: contents; }
+.sessionResolutionActions .btn,
+.coachAgendaControls > .btn { min-height: 40px; }
+.coachAgendaHistory { border: 1px solid var(--border); border-radius: var(--radius-lg); background: color-mix(in srgb, var(--surface) 72%, var(--bg)); }
+.coachAgendaHistory > summary > svg:first-child { color: var(--accent); }
+.coachAgendaHistory > div { display: grid; gap: var(--space-2); padding: 0 var(--space-4) var(--space-4); }
 
-/* ---- Member sessions and transparent wallet ---- */
-.memberSessionsWallet { display: grid; grid-template-columns: 1fr .8fr .8fr 1.65fr; gap: 10px; margin-bottom: 14px; }
-.memberSessionsWallet > div { display: grid; align-content: center; min-height: 116px; padding: 17px; border: 1px solid var(--border); border-radius: 17px; background: var(--surface); }
-.memberSessionsWallet > div > span { color: var(--soft); font-size: 10px; font-weight: 850; letter-spacing: .06em; text-transform: uppercase; }
-.memberSessionsWallet > div > strong { margin-top: 6px; font-size: 32px; font-variant-numeric: tabular-nums; line-height: 1; }
-.memberSessionsWallet > div > small { margin-top: 5px; color: var(--muted); font-size: 10px; }
-.memberSessionsWallet .memberSessionsBalance { grid-template-columns: auto 1fr; column-gap: 11px; border-color: color-mix(in srgb, var(--accent) 42%, var(--border)); background: linear-gradient(145deg, color-mix(in srgb, var(--accent) 8%, var(--surface)), var(--surface)); }
-.memberSessionsBalance svg { grid-row: 1 / 3; color: var(--accent); }
-.memberSessionsBalance strong { color: var(--accent); font-size: 48px !important; }
-.memberSessionsPolicy { grid-template-columns: auto 1fr; align-items: start; gap: 6px 9px; }
-.memberSessionsPolicy svg { grid-row: 1 / 3; color: #77dda0; }
-.memberSessionsPolicy strong { margin: 0 !important; font-size: 12px !important; }
-.memberSessionsPolicy p { grid-column: 2; margin: 0; color: var(--muted); font-size: 10.5px; line-height: 1.45; }
-.memberSessionsGrid { display: grid; grid-template-columns: 1.12fr .88fr; gap: 14px; }
-.memberSessionsPanel { padding: 18px; border: 1px solid var(--border); border-radius: 18px; background: var(--surface); }
-.memberSessionsPanel > header { display: flex; align-items: center; gap: 9px; padding-bottom: 14px; border-bottom: 1px solid var(--border); }
-.memberSessionsPanel > header > svg { color: var(--accent); }
-.memberSessionsPanel > header > div { display: grid; flex: 1; }
-.memberSessionsPanel > header span { color: var(--soft); font-size: 9px; font-weight: 850; letter-spacing: .06em; text-transform: uppercase; }
-.memberSessionsPanel > header h2 { margin: 1px 0 0; font-size: 16px; }
-.memberSessionsPanel > header > strong { display: grid; place-items: center; min-width: 29px; height: 29px; border: 1px solid var(--border); border-radius: 9px; font-size: 10px; }
-.memberSessionsPanel ul { display: grid; gap: 7px; margin: 13px 0 0; padding: 0; list-style: none; }
-.memberSessionsPanel li { display: flex; align-items: center; gap: 11px; padding: 12px; border: 1px solid var(--border); border-radius: 12px; background: color-mix(in srgb, var(--bg) 58%, transparent); }
-.memberSessionsPanel li > div { display: grid; min-width: 0; }
-.memberSessionsPanel li > div > strong { display: flex; align-items: center; gap: 5px; font-size: 11px; }
-.memberSessionsPanel li p { margin: 2px 0; color: var(--muted); font-size: 10px; }
-.memberSessionsPanel li small { display: flex; align-items: center; gap: 4px; color: var(--soft); font-size: 9.5px; }
-.memberSessionDate { display: grid; flex: 0 0 128px; }
-.memberSessionDate strong { font-size: 11px; text-transform: capitalize; }
-.memberSessionDate em { color: var(--accent); font-size: 13px; font-style: normal; font-weight: 850; }
-.memberSessionOutcome { display: grid; place-items: center; flex: 0 0 32px; height: 32px; border-radius: 10px; background: color-mix(in srgb, var(--text-soft) 9%, transparent); color: var(--soft); }
-.memberSessionOutcome.completed { background: color-mix(in srgb, #35c976 12%, transparent); color: #77dda0; }
+/* ---- Member sessions: next appointment first ---- */
+.memberSessionAtGlance { display: grid; grid-template-columns: minmax(0, 1.4fr) minmax(310px, .6fr); overflow: hidden; margin-bottom: var(--space-3); border: 1px solid color-mix(in srgb, var(--accent) 38%, var(--border)); border-radius: var(--radius-lg); background: color-mix(in srgb, var(--accent) 4%, var(--surface)); }
+.memberNextSession { display: grid; align-content: center; min-height: 218px; padding: var(--space-6); }
+.memberNextSession > span { display: flex; align-items: center; gap: var(--space-2); color: var(--accent); font-size: 12px; font-weight: 850; }
+.memberNextSession h2 { margin: var(--space-3) 0 0; font-size: clamp(22px, 3vw, 34px); line-height: 1.08; }
+.memberNextSession h2.sessionDateTitle { text-transform: capitalize; }
+.memberNextSession > strong { margin-top: var(--space-1); color: var(--accent); font-size: 25px; }
+.memberNextSession > p { display: flex; align-items: center; gap: 6px; margin: var(--space-3) 0 0; font-size: 14px; font-weight: 750; }
+.memberNextSession > small { margin-top: var(--space-1); color: var(--text-muted); font-size: 12px; }
+.memberNextSession > em { display: flex; align-items: center; gap: 6px; margin-top: var(--space-4); color: var(--text-soft); font-size: 11px; font-style: normal; }
+.memberSessionCreditSummary { display: grid; align-content: center; margin: 0; padding: var(--space-5); border-left: 1px solid var(--border); background: color-mix(in srgb, var(--bg) 45%, transparent); }
+.memberSessionCreditSummary > div { display: flex; align-items: center; justify-content: space-between; min-height: 48px; border-bottom: 1px solid var(--border); }
+.memberSessionCreditSummary > div:last-child { border-bottom: 0; }
+.memberSessionCreditSummary dt { color: var(--text-soft); font-size: 12px; font-weight: 750; }
+.memberSessionCreditSummary dd { margin: 0; font-size: 20px; font-weight: 900; font-variant-numeric: tabular-nums; }
+.memberSessionCreditSummary .available dd { color: var(--accent); font-size: 30px; }
+.memberSessionPending { display: flex; align-items: center; gap: var(--space-2); margin: 0 0 var(--space-3); padding: var(--space-3); border: 1px solid color-mix(in srgb, var(--warning) 30%, var(--border)); border-radius: var(--radius-sm); background: color-mix(in srgb, var(--warning) 8%, transparent); color: var(--warning); font-size: 12px; }
+.memberSessionsDetails { display: grid; gap: var(--space-2); }
+.memberSessionsDisclosure { border: 1px solid var(--border); border-radius: var(--radius-lg); background: var(--surface); }
+.memberSessionsDisclosure > summary > svg:first-child { color: var(--accent); }
+.memberSessionsDisclosure.policy > summary > svg:first-child { color: var(--success); }
+.memberSessionsDisclosure > p { margin: 0; padding: 0 var(--space-4) var(--space-4) 50px; color: var(--text-muted); font-size: 13px; line-height: 1.55; }
+.memberSessionsDisclosure > ul { display: grid; gap: var(--space-2); margin: 0; padding: 0 var(--space-4) var(--space-4); list-style: none; }
+.memberSessionsDisclosure li { display: flex; align-items: center; gap: var(--space-3); padding: var(--space-3); border: 1px solid var(--border); border-radius: var(--radius-sm); background: color-mix(in srgb, var(--bg) 58%, transparent); }
+.memberSessionsDisclosure li > div { display: grid; min-width: 0; }
+.memberSessionsDisclosure li > div > strong { display: flex; align-items: center; gap: 5px; font-size: 12px; }
+.memberSessionsDisclosure li p { margin: 2px 0; color: var(--text-muted); font-size: 11px; }
+.memberSessionsDisclosure li small { display: flex; align-items: center; gap: 4px; color: var(--text-soft); font-size: 11px; }
+.memberSessionDate { display: grid; flex: 0 0 150px; }
+.memberSessionDate strong { font-size: 12px; text-transform: capitalize; }
+.memberSessionDate em { color: var(--accent); font-size: 14px; font-style: normal; font-weight: 850; }
+.memberSessionOutcome { display: grid; place-items: center; flex: 0 0 36px; height: 36px; border-radius: var(--radius-sm); background: color-mix(in srgb, var(--text-soft) 9%, transparent); color: var(--text-soft); }
+.memberSessionOutcome.completed { background: color-mix(in srgb, var(--success) 12%, transparent); color: var(--success); }
 .memberSessionOutcome.cancelled_late,
-.memberSessionOutcome.no_show { background: color-mix(in srgb, #f05c68 11%, transparent); color: #ff9098; }
-.memberSessionsEmpty { display: grid; justify-items: center; gap: 5px; padding: 30px 15px; color: var(--muted); text-align: center; }
-.memberSessionsEmpty svg { color: var(--soft); }
-.memberSessionsEmpty strong { color: var(--text); font-size: 12px; }
-.memberSessionsEmpty p { margin: 0; font-size: 10.5px; }
-.memberSessionPending { display: flex; align-items: center; gap: 6px; margin: 12px 0 0; padding: 9px 10px; border-radius: 10px; background: color-mix(in srgb, #f5a524 8%, transparent); color: #d9a446; font-size: 10px; }
+.memberSessionOutcome.no_show { background: color-mix(in srgb, var(--danger) 11%, transparent); color: var(--danger); }
+.memberSessionsEmpty { display: grid; justify-items: center; gap: var(--space-2); padding: var(--space-6); color: var(--text-muted); text-align: center; }
+.memberSessionsEmpty svg { color: var(--text-soft); }
+.memberSessionsEmpty strong { color: var(--text); font-size: 13px; }
+.memberSessionsEmpty p { margin: 0; font-size: 12px; }
 .memberPersonalSessionCard { border-color: color-mix(in srgb, var(--accent) 35%, var(--border)); }
 
 @media (max-width: 1100px) {
-  .coachSessionScheduleForm { grid-template-columns: repeat(3, minmax(0, 1fr)); }
-  .coachSessionScheduleForm .coachScheduleNotes { grid-column: 1 / 3; }
+  .coachAgendaPulse { grid-template-columns: 1fr; }
+  .coachSchedulePrimary { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .coachSchedulePrimary > .btn { grid-column: 1 / -1; }
   .coachAgendaSession { grid-template-columns: 115px 1fr 1fr; }
   .coachAgendaStatus { justify-self: end; grid-column: 3; grid-row: 1; }
   .coachAgendaPlace { grid-column: 2 / -1; }
-  .memberSessionsWallet { grid-template-columns: repeat(3, 1fr); }
-  .memberSessionsPolicy { grid-column: 1 / -1; }
+  .memberSessionAtGlance { grid-template-columns: minmax(0, 1.2fr) minmax(250px, .8fr); }
 }
 @media (max-width: 760px) {
-  .coachAgendaMetrics { grid-template-columns: repeat(2, minmax(0, 1fr)); }
-  .coachSessionScheduleForm,
-  .coachSessionScheduleForm.compact { grid-template-columns: 1fr 1fr; }
-  .coachSessionScheduleForm .coachScheduleNotes,
-  .coachSessionScheduleForm > .btn { grid-column: 1 / -1; }
-  .coachAgendaSession { grid-template-columns: 1fr auto; gap: 9px; }
+  .coachAgendaPulse dl { grid-template-columns: 1fr; }
+  .coachAgendaPulse dl > div + div { border-top: 1px solid var(--border); box-shadow: none; }
+  .coachSessionScheduleForm.compact,
+  .coachScheduleAdvanced > div { grid-template-columns: 1fr 1fr; }
+  .coachScheduleAdvanced > div > label:last-child { grid-column: 1 / -1; }
+  .coachAgendaSession { grid-template-columns: 1fr auto; gap: var(--space-2); }
   .coachAgendaDate,
   .coachAgendaPerson,
   .coachAgendaPlace { grid-column: 1; }
@@ -15675,21 +15721,60 @@ code.leadAttributionValue {
   .coachAgendaControls { grid-column: 1 / -1; align-items: stretch; flex-direction: column; }
   .sessionResolutionActions { display: grid; grid-template-columns: repeat(3, 1fr); }
   .sessionResolutionActions .btn { width: 100%; min-width: 0; white-space: normal; }
-  .memberSessionsWallet { grid-template-columns: 1fr 1fr; }
-  .memberSessionsWallet .memberSessionsBalance,
-  .memberSessionsPolicy { grid-column: 1 / -1; }
-  .memberSessionsGrid { grid-template-columns: 1fr; }
+  .memberSessionAtGlance { grid-template-columns: 1fr; }
+  .memberNextSession { min-height: 0; }
+  .memberSessionCreditSummary { grid-template-columns: repeat(3, 1fr); padding: 0 var(--space-4) var(--space-4); border-top: 1px solid var(--border); border-left: 0; }
+  .memberSessionCreditSummary > div { display: grid; justify-items: center; padding-top: var(--space-3); border-right: 1px solid var(--border); border-bottom: 0; }
+  .memberSessionCreditSummary > div:last-child { border-right: 0; }
 }
 @media (max-width: 500px) {
-  .coachAgendaComposer,
-  .coachAgendaLane,
-  .memberSessionsPanel { padding: 14px; }
-  .coachSessionScheduleForm,
-  .coachSessionScheduleForm.compact { grid-template-columns: 1fr; }
-  .coachSessionScheduleForm > *,
-  .coachSessionScheduleForm .coachScheduleNotes { grid-column: 1 !important; }
+  .coachAgendaPulse,
+  .coachAgendaLane { padding: var(--space-3); }
+  .coachAgendaPulsePrimary { padding: 0; }
+  .coachAgendaPulsePrimary > div { display: grid; gap: 2px; }
+  .coachAgendaPulsePrimary a { min-height: 44px; }
+  .coachAgendaComposer > summary,
+  .coachAgendaHistory > summary,
+  .memberSessionsDisclosure > summary { min-height: 64px; padding: var(--space-3); }
+  .coachSessionScheduleForm { padding: var(--space-3); }
+  .coachSchedulePrimary,
+  .coachSessionScheduleForm.compact,
+  .coachScheduleAdvanced > div { grid-template-columns: 1fr; }
+  .coachScheduleAdvanced > div > label:last-child { grid-column: 1; }
+  .coachSessionScheduleForm label,
+  .coachSessionScheduleForm input,
+  .coachSessionScheduleForm select { font-size: 14px; }
+  .coachScheduleBlocked { align-items: flex-start; flex-wrap: wrap; padding: var(--space-3); }
+  .coachScheduleBlocked .btn { width: 100%; }
+  .coachAgendaLane > header p,
+  .coachAgendaEmpty,
+  .coachAgendaDate strong,
+  .coachAgendaDate span,
+  .coachAgendaPerson strong,
+  .coachAgendaPerson small,
+  .coachAgendaPlace > span,
+  .coachAgendaPlace > small { font-size: 14px; }
+  .coachAgendaStatus { font-size: 12px; }
   .sessionResolutionActions { grid-template-columns: 1fr; }
-  .memberSessionsWallet { grid-template-columns: 1fr 1fr; }
-  .memberSessionDate { flex-basis: 92px; }
+  .sessionResolutionActions .btn,
+  .coachAgendaControls > .btn { min-height: 44px; }
+  .memberNextSession { padding: var(--space-5) var(--space-4); }
+  .memberNextSession > span,
+  .memberNextSession > p,
+  .memberNextSession > small,
+  .memberNextSession > em,
+  .memberSessionCreditSummary dt,
+  .memberSessionPending,
+  .memberSessionsDisclosure > p,
+  .memberSessionsDisclosure li > div > strong,
+  .memberSessionsDisclosure li p,
+  .memberSessionsDisclosure li small,
+  .memberSessionDate strong,
+  .memberSessionDate em,
+  .memberSessionsEmpty strong,
+  .memberSessionsEmpty p { font-size: 14px; }
+  .memberSessionDate { flex-basis: 105px; }
+  .memberSessionsDisclosure > ul { padding: 0 var(--space-3) var(--space-3); }
+  .memberSessionsDisclosure > p { padding: 0 var(--space-3) var(--space-3); }
 }
  /* ===== END Coach quick start + private member control ===== */

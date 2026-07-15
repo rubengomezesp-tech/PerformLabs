@@ -1,4 +1,5 @@
-import { CalendarClock, CalendarDays, CheckCircle2, Clock3, MapPin, Plus, RotateCw, ShieldCheck, TicketCheck, TriangleAlert, UserRound } from "lucide-react";
+import Link from "next/link";
+import { CalendarClock, CalendarDays, CheckCircle2, ChevronDown, Clock3, MapPin, Plus, RotateCw, Settings2, ShieldCheck, TicketCheck, TriangleAlert, UserRound } from "lucide-react";
 import { Dialog } from "@/components/dialog";
 import { SessionResolutionActions } from "@/components/coach/session-resolution-actions";
 import { Topbar } from "@/components/topbar";
@@ -111,47 +112,65 @@ export default async function CoachSessionsPage({ searchParams }: { searchParams
   const history = sessions.filter((session) => session.status !== "scheduled").sort((a, b) => b.startsAt.localeCompare(a.startsAt)).slice(0, 24);
   const availableTotal = balances.reduce((sum, [, balance]) => sum + balance.available, 0);
   const defaultMember = members.some((member) => member.id === requestedMember && (balanceByMember.get(member.id)?.available ?? 0) > 0) ? requestedMember : "";
+  const eligibleMembers = members.filter((member) => (balanceByMember.get(member.id)?.available ?? 0) > 0);
 
   const copy = locale === "en" ? {
     eyebrow: "Personal training operations", title: "Agenda and session control.", text: "Book, reschedule and close every session with the pack balance protected automatically.",
-    newSession: "Book session", today: "Today", upcoming: "Upcoming", attention: "Needs closure", history: "Recent history", empty: "Nothing here yet.",
+    newSession: "Book session", today: "Today", upcoming: "Upcoming", attention: "Needs closure", history: "Recent history",
   } : {
     eyebrow: "Operativa de entrenamiento personal", title: "Agenda y control de sesiones.", text: "Reserva, mueve y cierra cada entrenamiento con el saldo del bono protegido automáticamente.",
-    newSession: "Reservar sesión", today: "Hoy", upcoming: "Próximas", attention: "Requieren cierre", history: "Historial reciente", empty: "Todavía no hay sesiones aquí.",
+    newSession: "Reservar sesión", today: "Hoy", upcoming: "Próximas", attention: "Requieren cierre", history: "Historial reciente",
   };
 
   return (
     <>
       <Topbar eyebrow={copy.eyebrow} title={copy.title} text={copy.text} actions={<span className="tag"><ShieldCheck size={14} /> {locale === "en" ? "Audited balance" : "Saldo auditado"}</span>} />
 
-      <section className="coachAgendaMetrics">
-        <article><CalendarDays size={18} /><span>{copy.today}</span><strong>{today.length}</strong></article>
-        <article><CalendarClock size={18} /><span>{locale === "en" ? "Reserved" : "Reservadas"}</span><strong>{scheduled.length}</strong></article>
-        <article className={attention.length ? "warning" : ""}><TriangleAlert size={18} /><span>{copy.attention}</span><strong>{attention.length}</strong></article>
-        <article><TicketCheck size={18} /><span>{locale === "en" ? "Free credits" : "Créditos libres"}</span><strong>{availableTotal}</strong></article>
-      </section>
-
-      <section className="coachAgendaComposer">
-        <div><span className="uiIconChip"><Plus size={18} /></span><div><strong>{copy.newSession}</strong><small>{locale === "en" ? "The credit is reserved, not consumed." : "El crédito queda reservado, no consumido."}</small></div></div>
-        <form action={schedulePersonalTrainingSessionAction} className="coachSessionScheduleForm">
-          <input name="workspaceId" type="hidden" value={brand.id} />
-          <input name="eventId" type="hidden" value={crypto.randomUUID()} />
-          <label>{locale === "en" ? "Client" : "Cliente"}<select name="memberProfileId" required defaultValue={defaultMember}><option value="" disabled>{locale === "en" ? "Select client" : "Selecciona cliente"}</option>{members.map((member) => { const balance = balanceByMember.get(member.id); return <option value={member.id} key={member.id} disabled={!balance?.available}>{member.fullName} · {balance?.available ?? 0} {locale === "en" ? "free" : "libres"}</option>; })}</select></label>
-          <label>{locale === "en" ? "Date and time" : "Fecha y hora"}<input name="startLocal" type="datetime-local" defaultValue={utcToLocalDateTime(roundedStart, defaultZone)} required /></label>
-          <label>{locale === "en" ? "Duration" : "Duración"}<select name="durationMinutes" defaultValue="60"><option value="30">30 min</option><option value="45">45 min</option><option value="60">60 min</option><option value="90">90 min</option></select></label>
-          <label>{locale === "en" ? "Timezone" : "Zona horaria"}<select name="timezone" defaultValue={defaultZone}>{ZONES.map(([value, label]) => <option value={value} key={value}>{label}</option>)}</select></label>
-          <label>{locale === "en" ? "Location" : "Lugar"}<input name="location" placeholder={locale === "en" ? "Building gym, online…" : "Gym del edificio, online…"} /></label>
-          <label>{locale === "en" ? "Cancellation policy" : "Política de cancelación"}<select name="cancellationWindowHours" defaultValue="24"><option value="12">12 h</option><option value="24">24 h</option><option value="48">48 h</option></select></label>
-          <label className="coachScheduleNotes">{locale === "en" ? "Note visible to client" : "Nota visible para el cliente"}<input name="memberNotes" placeholder={locale === "en" ? "Bring a towel; lower-body session…" : "Traer toalla; sesión de pierna…"} /></label>
-          <SubmitButton variant="primary" successToast={locale === "en" ? "Session booked" : "Sesión reservada"}><CalendarDays size={15} /> {copy.newSession}</SubmitButton>
-        </form>
+      <section className={`coachAgendaPulse ${attention.length ? "warning" : "clear"}`} aria-label={locale === "en" ? "Agenda summary" : "Resumen de agenda"}>
+        <div className="coachAgendaPulsePrimary">
+          {attention.length ? <TriangleAlert size={20} /> : <CheckCircle2 size={20} />}
+          <div>
+            <span>{attention.length ? copy.attention : (locale === "en" ? "Nothing awaiting closure" : "Nada pendiente de cierre")}</span>
+            {attention.length ? <strong>{attention.length}</strong> : null}
+          </div>
+          {attention.length ? <a href="#needs-closure">{locale === "en" ? "Close now" : "Cerrar ahora"}</a> : null}
+        </div>
+        <dl>
+          <div><dt><CalendarDays size={15} /> {copy.today}</dt><dd>{today.length}</dd></div>
+          <div><dt><CalendarClock size={15} /> {locale === "en" ? "Reserved" : "Reservadas"}</dt><dd>{scheduled.length}</dd></div>
+          <div><dt><TicketCheck size={15} /> {locale === "en" ? "Free credits" : "Créditos libres"}</dt><dd>{availableTotal}</dd></div>
+        </dl>
       </section>
 
       <section className="coachAgendaBoard">
-        {attention.length ? <div className="coachAgendaLane attention"><header><TriangleAlert size={17} /><div><h2>{copy.attention}</h2><p>{locale === "en" ? "Close these to keep balances exact." : "Ciérralas para mantener los saldos exactos."}</p></div><span>{attention.length}</span></header>{attention.map((session) => <SessionCard key={session.id} session={session} workspaceId={brand.id} locale={locale} now={now} />)}</div> : null}
-        <div className="coachAgendaLane"><header><Clock3 size={17} /><div><h2>{copy.today}</h2><p>{locale === "en" ? "Your immediate working queue." : "Tu cola de trabajo inmediata."}</p></div><span>{today.length}</span></header>{today.length ? today.map((session) => <SessionCard key={session.id} session={session} workspaceId={brand.id} locale={locale} now={now} />) : <p className="coachAgendaEmpty">{copy.empty}</p>}</div>
-        <div className="coachAgendaLane"><header><CalendarClock size={17} /><div><h2>{copy.upcoming}</h2><p>{locale === "en" ? "All confirmed bookings." : "Todas las reservas confirmadas."}</p></div><span>{upcoming.length}</span></header>{upcoming.length ? upcoming.map((session) => <SessionCard key={session.id} session={session} workspaceId={brand.id} locale={locale} now={now} />) : <p className="coachAgendaEmpty">{copy.empty}</p>}</div>
-        <div className="coachAgendaLane history"><header><CheckCircle2 size={17} /><div><h2>{copy.history}</h2><p>{locale === "en" ? "Completed and cancelled sessions." : "Realizadas y canceladas."}</p></div><span>{history.length}</span></header>{history.length ? history.map((session) => <SessionCard key={session.id} session={session} workspaceId={brand.id} locale={locale} now={now} />) : <p className="coachAgendaEmpty">{copy.empty}</p>}</div>
+        {attention.length ? <div className="coachAgendaLane attention" id="needs-closure"><header><TriangleAlert size={17} /><div><h2>{copy.attention}</h2><p>{locale === "en" ? "Close these first to keep balances exact." : "Ciérralas primero para mantener los saldos exactos."}</p></div><span>{attention.length}</span></header>{attention.map((session) => <SessionCard key={session.id} session={session} workspaceId={brand.id} locale={locale} now={now} />)}</div> : null}
+        <div className="coachAgendaLane"><header><Clock3 size={17} /><div><h2>{copy.today}</h2><p>{locale === "en" ? "What you need for today." : "Lo que necesitas para trabajar hoy."}</p></div><span>{today.length}</span></header>{today.length ? today.map((session) => <SessionCard key={session.id} session={session} workspaceId={brand.id} locale={locale} now={now} />) : <p className="coachAgendaEmpty">{locale === "en" ? "Nothing pending today. Book a session or review what is next." : "Nada pendiente hoy. Reserva una sesión o revisa las próximas."}</p>}</div>
+
+        <details className="coachAgendaComposer" open={Boolean(defaultMember)}>
+          <summary><span className="uiIconChip"><Plus size={18} /></span><span><strong>{copy.newSession}</strong><small>{eligibleMembers.length} {locale === "en" ? "clients with free credits" : "clientes con créditos libres"}</small></span><ChevronDown size={18} /></summary>
+          {eligibleMembers.length ? <form action={schedulePersonalTrainingSessionAction} className="coachSessionScheduleForm">
+            <input name="workspaceId" type="hidden" value={brand.id} />
+            <input name="eventId" type="hidden" value={crypto.randomUUID()} />
+            <div className="coachSchedulePrimary">
+              <label>{locale === "en" ? "Client" : "Cliente"}<select name="memberProfileId" required defaultValue={defaultMember}><option value="" disabled>{locale === "en" ? "Select client" : "Selecciona cliente"}</option>{eligibleMembers.map((member) => { const balance = balanceByMember.get(member.id); return <option value={member.id} key={member.id}>{member.fullName} · {balance?.available ?? 0} {locale === "en" ? "free" : "libres"}</option>; })}</select></label>
+              <label>{locale === "en" ? "Date and time" : "Fecha y hora"}<input name="startLocal" type="datetime-local" defaultValue={utcToLocalDateTime(roundedStart, defaultZone)} required /></label>
+              <label>{locale === "en" ? "Duration" : "Duración"}<select name="durationMinutes" defaultValue="60"><option value="30">30 min</option><option value="45">45 min</option><option value="60">60 min</option><option value="90">90 min</option></select></label>
+              <label>{locale === "en" ? "Location" : "Lugar"}<input name="location" placeholder={locale === "en" ? "Building gym, online…" : "Gym del edificio, online…"} /></label>
+              <SubmitButton variant="primary" successToast={locale === "en" ? "Session booked" : "Sesión reservada"}><CalendarDays size={15} /> {copy.newSession}</SubmitButton>
+            </div>
+            <details className="coachScheduleAdvanced">
+              <summary><Settings2 size={15} /> {locale === "en" ? "Policy and optional details" : "Política y detalles opcionales"}<ChevronDown size={15} /></summary>
+              <div>
+                <label>{locale === "en" ? "Timezone" : "Zona horaria"}<select name="timezone" defaultValue={defaultZone}>{ZONES.map(([value, label]) => <option value={value} key={value}>{label}</option>)}</select></label>
+                <label>{locale === "en" ? "Cancellation policy" : "Política de cancelación"}<select name="cancellationWindowHours" defaultValue="24"><option value="12">12 h</option><option value="24">24 h</option><option value="48">48 h</option></select></label>
+                <label>{locale === "en" ? "Note visible to client" : "Nota visible para el cliente"}<input name="memberNotes" placeholder={locale === "en" ? "Bring a towel; lower-body session…" : "Traer toalla; sesión de pierna…"} /></label>
+              </div>
+            </details>
+          </form> : <div className="coachScheduleBlocked"><TicketCheck size={19} /><div><strong>{locale === "en" ? "No client has free credits" : "Ningún cliente tiene créditos libres"}</strong><p>{locale === "en" ? "Add a pack before booking a session." : "Añade un bono antes de reservar una sesión."}</p></div><Link className="btn ghost" href="/coach/members">{locale === "en" ? "Open clients" : "Abrir clientes"}</Link></div>}
+        </details>
+
+        <div className="coachAgendaLane"><header><CalendarClock size={17} /><div><h2>{copy.upcoming}</h2><p>{locale === "en" ? "Confirmed bookings after today." : "Reservas confirmadas después de hoy."}</p></div><span>{upcoming.length}</span></header>{upcoming.length ? upcoming.map((session) => <SessionCard key={session.id} session={session} workspaceId={brand.id} locale={locale} now={now} />) : <p className="coachAgendaEmpty">{locale === "en" ? "No more bookings. Use “Book session” when you agree on the next one." : "No hay más reservas. Usa «Reservar sesión» cuando acuerdes la siguiente."}</p>}</div>
+        <details className="coachAgendaHistory"><summary><CheckCircle2 size={17} /><span><strong>{copy.history}</strong><small>{locale === "en" ? "Completed and cancelled sessions" : "Sesiones realizadas y canceladas"}</small></span><em>{history.length}</em><ChevronDown size={17} /></summary><div>{history.length ? history.map((session) => <SessionCard key={session.id} session={session} workspaceId={brand.id} locale={locale} now={now} />) : <p className="coachAgendaEmpty">{locale === "en" ? "History will appear after closing the first session." : "El historial aparecerá al cerrar la primera sesión."}</p>}</div></details>
       </section>
     </>
   );

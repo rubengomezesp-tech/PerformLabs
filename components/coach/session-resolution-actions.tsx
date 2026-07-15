@@ -68,7 +68,13 @@ export function SessionResolutionActions({
             <input name="sessionId" type="hidden" value={sessionId} />
             <input name="resolution" type="hidden" value={action.resolution} />
             <input name="eventId" type="hidden" value={eventIds[action.resolution]} />
-            <SubmitButton size="sm" variant={action.tone as "primary" | "danger" | "ghost"} disabled={action.disabled}>
+            <SubmitButton
+              size="sm"
+              variant={action.tone as "primary" | "danger" | "ghost"}
+              disabled={action.disabled}
+              aria-label={`${action.label}${action.disabled ? (english ? ": available after the session starts" : ": disponible cuando empiece la sesión") : ""}`}
+              title={action.disabled ? (english ? "Available after the session starts" : "Disponible cuando empiece la sesión") : undefined}
+            >
               <Icon size={14} /> {action.label}
             </SubmitButton>
           </form>

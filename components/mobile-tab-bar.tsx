@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Dumbbell, Home, LineChart, MessageSquare, Utensils } from "lucide-react";
+import { CalendarDays, Dumbbell, Home, LineChart, MessageSquare, Utensils } from "lucide-react";
 
 type Tab = {
   label: string;
@@ -21,10 +21,13 @@ const TABS: Tab[] = [
 
 export function MobileTabBar() {
   const pathname = usePathname() || "/app";
+  const tabs = pathname.startsWith("/app/sessions")
+    ? TABS.map((tab) => tab.label === "Entreno" ? { ...tab, label: "Sesiones", href: "/app/sessions", icon: CalendarDays } : tab)
+    : TABS;
 
   return (
     <nav className="mobileTabBar" aria-label="Navegación principal">
-      {TABS.map((tab) => {
+      {tabs.map((tab) => {
         const Icon = tab.icon;
         const active = tab.match(pathname);
         return (
