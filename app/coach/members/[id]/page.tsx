@@ -168,8 +168,8 @@ export default async function CoachMemberDetailPage({ params }: MemberDetailPage
             <div><CreditCard size={17} /><span><strong>Enviar pago</strong><small>El bono se asigna a este cliente al completarse.</small></span></div>
             <div className="coachSessionPurchaseLinks">
               <a href={`${purchaseBase}?package_id=single_session`} target="_blank" rel="noreferrer">1 sesión · $70 <ExternalLink size={13} /></a>
-              <a href={`${purchaseBase}?package_id=pack_8`} target="_blank" rel="noreferrer">8 sesiones · $440 <ExternalLink size={13} /></a>
-              <a href={`${purchaseBase}?package_id=pack_12`} target="_blank" rel="noreferrer">12 sesiones · $600 <ExternalLink size={13} /></a>
+              <a href={`${purchaseBase}?package_id=pack_10`} target="_blank" rel="noreferrer">10 sesiones · $600 pago único <ExternalLink size={13} /></a>
+              <span className="disabled" aria-disabled="true">12 sesiones · No disponible</span>
             </div>
           </div>
 

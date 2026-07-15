@@ -6,9 +6,11 @@ import {
 } from "./session-credits";
 
 describe("session credit products", () => {
-  it("maps every live one-time RevenueCat product to its sessions", () => {
+  it("maps current and historical one-time RevenueCat products to their sessions", () => {
     expect(getSessionCreditProduct("rg_session_single_usd_70")).toEqual({ sessions: 1, validityDays: 30 });
     expect(getSessionCreditProduct("rg_pack_8_usd_440")).toEqual({ sessions: 8, validityDays: 90 });
+    expect(getSessionCreditProduct("rg_pack_8_usd_480")).toEqual({ sessions: 8, validityDays: 90 });
+    expect(getSessionCreditProduct("rg_pack_10_usd_600")).toEqual({ sessions: 10, validityDays: 90 });
     expect(getSessionCreditProduct("rg_pack_12_usd_600")).toEqual({ sessions: 12, validityDays: 90 });
     expect(getSessionCreditProduct("rg_starter_monthly_usd_149")).toBeNull();
   });
