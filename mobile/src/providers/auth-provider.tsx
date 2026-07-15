@@ -5,8 +5,11 @@ import { isSupabaseConfigured, supabase } from "@/src/infrastructure/supabase/cl
 type AuthContextValue = {
   loading: boolean;
   demoMode: boolean;
+  canSignIn: boolean;
   session: Session | null;
   user: User | null;
+  enterDemo(): void;
+  leaveDemo(): void;
   signIn(email: string, password: string): Promise<void>;
   signOut(): Promise<void>;
 };
@@ -16,6 +19,7 @@ const AuthContext = createContext<AuthContextValue | null>(null);
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [loading, setLoading] = useState(isSupabaseConfigured);
   const [session, setSession] = useState<Session | null>(null);
+  const [demoMode, setDemoMode] = useState(!isSupabaseConfigured);
 
   useEffect(() => {
     if (!supabase) {
@@ -30,6 +34,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     });
     const { data: subscription } = supabase.auth.onAuthStateChange((_event, nextSession) => {
       setSession(nextSession);
+      if (nextSession) setDemoMode(false);
       setLoading(false);
     });
     return () => {
@@ -42,6 +47,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     if (!supabase) return;
     const { error } = await supabase.auth.signInWithPassword({ email: email.trim(), password });
     if (error) throw error;
+    setDemoMode(false);
   }, []);
 
   const signOut = useCallback(async () => {
@@ -52,12 +58,15 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const value = useMemo<AuthContextValue>(() => ({
     loading,
-    demoMode: !isSupabaseConfigured,
+    demoMode,
+    canSignIn: isSupabaseConfigured,
     session,
     user: session?.user ?? null,
+    enterDemo: () => setDemoMode(true),
+    leaveDemo: () => setDemoMode(!isSupabaseConfigured),
     signIn,
     signOut,
-  }), [loading, session, signIn, signOut]);
+  }), [demoMode, loading, session, signIn, signOut]);
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 }

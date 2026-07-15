@@ -1,6 +1,6 @@
 import { LinearGradient } from "expo-linear-gradient";
 import { Redirect } from "expo-router";
-import { LockKeyhole, Mail } from "lucide-react-native";
+import { Eye, LockKeyhole, Mail } from "lucide-react-native";
 import { useState } from "react";
 import { KeyboardAvoidingView, Platform, Pressable, StyleSheet, Text, TextInput, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
@@ -10,7 +10,7 @@ import { useAuth } from "@/src/providers/auth-provider";
 import { colors, radius, spacing, typography } from "@/src/theme/tokens";
 
 export default function SignInScreen() {
-  const { demoMode, session, signIn } = useAuth();
+  const { demoMode, enterDemo, session, signIn } = useAuth();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [submitting, setSubmitting] = useState(false);
@@ -72,6 +72,10 @@ export default function SignInScreen() {
           <Pressable disabled={submitting || !email || !password} onPress={submit} style={({ pressed }) => [styles.action, pressed && styles.pressed, (submitting || !email || !password) && styles.disabled]}>
             <Text style={styles.actionText}>{submitting ? t.auth.loading : t.auth.action}</Text>
           </Pressable>
+          <Pressable disabled={submitting} onPress={enterDemo} style={({ pressed }) => [styles.demoAction, pressed && styles.pressed]}>
+            <Eye color={colors.cyan} size={17} />
+            <View style={styles.demoCopy}><Text style={styles.demoActionText}>{t.auth.demoAction}</Text><Text style={styles.demoHint}>{t.auth.demoHint}</Text></View>
+          </Pressable>
           <View style={styles.secure}><LockKeyhole color={colors.success} size={14} /><Text style={styles.secureText}>{t.auth.secure}</Text></View>
         </View>
       </KeyboardAvoidingView>
@@ -91,6 +95,10 @@ const styles = StyleSheet.create({
   input: { flex: 1, color: colors.text, fontFamily: typography.bodyMedium, fontSize: 15, paddingVertical: 0 },
   action: { minHeight: 54, alignItems: "center", justifyContent: "center", backgroundColor: colors.accent, borderRadius: radius.md, marginTop: spacing.xs },
   actionText: { color: colors.ink, fontFamily: typography.bodyBold, fontSize: 15 },
+  demoAction: { minHeight: 54, paddingHorizontal: spacing.md, flexDirection: "row", alignItems: "center", gap: spacing.sm, borderWidth: 1, borderColor: "#24547C", backgroundColor: "#0D1A24", borderRadius: radius.md },
+  demoCopy: { flex: 1 },
+  demoActionText: { color: colors.text, fontFamily: typography.bodyBold, fontSize: 13 },
+  demoHint: { color: colors.textSoft, fontFamily: typography.body, fontSize: 10, marginTop: 2 },
   error: { color: colors.danger, fontFamily: typography.bodyMedium, fontSize: 12, lineHeight: 17 },
   secure: { flexDirection: "row", gap: spacing.xs, justifyContent: "center", alignItems: "center", paddingTop: spacing.xs },
   secureText: { color: colors.textMuted, fontFamily: typography.body, fontSize: 11 },

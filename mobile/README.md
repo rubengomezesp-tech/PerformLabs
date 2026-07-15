@@ -27,6 +27,8 @@ pnpm mobile:typecheck
 
 Sin variables de Supabase la aplicación abre automáticamente el modo demostración. Esto permite revisar la experiencia y después servirá como base para la cuenta de demostración de App Review.
 
+Cuando Supabase está configurado, la pantalla de acceso conserva un recorrido de demostración independiente con datos ficticios. Apple puede revisar la experiencia sin credenciales y el pago permanece desactivado dentro de ese modo.
+
 ## Datos conectados en la fase 1
 
 - Perfil del miembro.
@@ -36,9 +38,12 @@ Sin variables de Supabase la aplicación abre automáticamente el modo demostrac
 - Hábitos diarios con marcado optimista y persistencia.
 - Bonos, saldo de entrenamientos y próxima caducidad.
 - Próxima sesión personal reservada.
+- Compra segura del bono activo de 10 sesiones, vinculada al ID privado del miembro para que el webhook asigne los créditos automáticamente.
 
 ## Publicación
 
 `eas.json` contiene perfiles de desarrollo, preview y producción. Antes del primer build se debe ejecutar `eas init` para registrar el proyecto, configurar el equipo de Apple y añadir las variables públicas como secretos del proyecto EAS.
 
-RevenueCat se integrará sobre el UUID privado del miembro como App User ID. Sus claves públicas ya están reservadas en `.env.example`; no se utilizarán correos electrónicos como identificador.
+`store.config.json` deja preparada la ficha bilingüe de App Store, las categorías, URLs legales y notas para revisión. EAS Metadata podrá sincronizarla cuando la aplicación exista en App Store Connect.
+
+RevenueCat usa el UUID privado del perfil del miembro como App User ID. El bono presencial abre el checkout web seguro con ese identificador, por lo que nunca se utiliza el correo como clave de asignación. Las claves públicas del SDK quedan reservadas en `.env.example` para futuras prestaciones digitales que sí requieran compras nativas.

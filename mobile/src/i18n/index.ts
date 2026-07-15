@@ -10,6 +10,8 @@ const es = {
     email: "Correo electrónico",
     password: "Contraseña",
     action: "Entrar en mi plan",
+    demoAction: "Explorar la app de demostración",
+    demoHint: "Recorrido seguro con datos ficticios",
     loading: "Entrando…",
     error: "No hemos podido iniciar sesión. Revisa el correo y la contraseña.",
     secure: "Acceso privado conectado a tu coach",
@@ -69,7 +71,17 @@ const es = {
     balance: "Entrenos restantes",
     purchased: "Total contratado",
     appUserId: "ID de cliente",
+    offerEyebrow: "AMPLIAR MI BONO",
+    offerTitle: "10 sesiones privadas",
+    offerPrice: "$600 en un solo pago",
+    offerMeta: "$60 por sesión · sin suscripción · validez de 90 días",
+    offerAction: "Comprar 10 sesiones",
+    openingPayment: "Abriendo pago seguro…",
+    offerLegal: "La disponibilidad se confirma antes del pago. Se aplican los términos de compra y cancelación.",
+    offerError: "No hemos podido abrir el pago seguro. Inténtalo de nuevo o contacta con tu coach.",
+    demoOffer: "El pago se activa al entrar con una cuenta de cliente real.",
     signOut: "Cerrar sesión",
+    leaveDemo: "Volver al acceso de clientes",
     demoNotice: "Estás viendo datos de demostración. Añade las claves de Supabase para acceder con un cliente real.",
   },
 };
@@ -84,6 +96,8 @@ const en: typeof es = {
     email: "Email address",
     password: "Password",
     action: "Open my plan",
+    demoAction: "Explore the demo app",
+    demoHint: "Safe walkthrough with fictional data",
     loading: "Signing in…",
     error: "We could not sign you in. Check your email and password.",
     secure: "Private access connected to your coach",
@@ -143,7 +157,17 @@ const en: typeof es = {
     balance: "Sessions remaining",
     purchased: "Total purchased",
     appUserId: "Customer ID",
+    offerEyebrow: "ADD MORE SESSIONS",
+    offerTitle: "10 private sessions",
+    offerPrice: "$600 one-time payment",
+    offerMeta: "$60 per session · no subscription · valid for 90 days",
+    offerAction: "Buy 10 sessions",
+    openingPayment: "Opening secure payment…",
+    offerLegal: "Availability is confirmed before payment. Purchase and cancellation terms apply.",
+    offerError: "We could not open secure payment. Try again or contact your coach.",
+    demoOffer: "Payment is enabled when you sign in with a real client account.",
     signOut: "Sign out",
+    leaveDemo: "Return to client sign-in",
     demoNotice: "You are viewing demo data. Add Supabase keys to sign in as a real client.",
   },
 };
@@ -155,4 +179,3 @@ export function getDictionary(): Dictionary {
 }
 
 export const t = getDictionary();
-

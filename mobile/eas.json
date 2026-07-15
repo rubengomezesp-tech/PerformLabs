@@ -16,6 +16,13 @@
     }
   },
   "submit": {
-    "production": {}
+    "production": {
+      "ios": {
+        "appName": "RG Coach",
+        "bundleIdentifier": "com.rubengomezcoaching.app",
+        "language": "en-US",
+        "metadataPath": "./store.config.json"
+      }
+    }
   }
 }
