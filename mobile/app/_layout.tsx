@@ -3,6 +3,7 @@ import { Inter_400Regular, Inter_600SemiBold, Inter_700Bold } from "@expo-google
 import { useFonts } from "expo-font";
 import { DarkTheme, Stack, ThemeProvider } from "expo-router";
 import * as SplashScreen from "expo-splash-screen";
+import { StatusBar } from "expo-status-bar";
 import { useEffect } from "react";
 import "react-native-reanimated";
 import { AuthProvider } from "@/src/providers/auth-provider";
@@ -20,6 +21,7 @@ export const unstable_settings = {
 
 // Prevent the splash screen from auto-hiding before asset loading is complete.
 SplashScreen.preventAutoHideAsync();
+SplashScreen.setOptions({ duration: 320, fade: true });
 
 export default function RootLayout() {
   const [loaded, error] = useFonts({
@@ -47,6 +49,7 @@ export default function RootLayout() {
   return (
     <AuthProvider>
       <MemberHomeProvider>
+        <StatusBar style="light" />
         <ThemeProvider value={{ ...DarkTheme, colors: { ...DarkTheme.colors, background: colors.ink, card: colors.surface, border: colors.line, primary: colors.accent, text: colors.text } }}>
           <Stack screenOptions={{ contentStyle: { backgroundColor: colors.ink }, headerShown: false }}>
             <Stack.Screen name="(tabs)" />

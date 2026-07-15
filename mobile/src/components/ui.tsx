@@ -12,13 +12,12 @@ export function Screen({ children, style }: { children: ReactNode; style?: ViewS
 export function BrandBar({ demo = false }: { demo?: boolean }) {
   return (
     <View style={styles.brandBar}>
-      <View style={styles.brandIdentity}>
-        <Image source={require("../../assets/images/icon.png")} style={styles.brandIcon} />
-        <View>
-          <Text style={styles.brandEyebrow}>{t.auth.eyebrow}</Text>
-          <Text style={styles.brandName}>RG COACH</Text>
-        </View>
-      </View>
+      <Image
+        accessibilityLabel="Rubén Gómez Coaching"
+        resizeMode="contain"
+        source={require("../../assets/images/splash-icon.png")}
+        style={styles.brandLockup}
+      />
       <View style={[styles.connectionPill, demo && styles.demoPill]}>
         <View style={[styles.connectionDot, demo && styles.demoDot]} />
         <Text style={styles.connectionText}>{demo ? t.common.demo.toUpperCase() : t.home.live.toUpperCase()}</Text>
@@ -43,6 +42,12 @@ export function PrimaryButton({ children, style, ...props }: PressableProps & { 
 export function LoadingState() {
   return (
     <View style={styles.stateWrap}>
+      <Image
+        accessibilityLabel="Rubén Gómez Coaching"
+        resizeMode="contain"
+        source={require("../../assets/images/splash-icon.png")}
+        style={styles.loadingLockup}
+      />
       <ActivityIndicator color={colors.accent} size="large" />
       <Text style={styles.stateText}>Preparando tu día…</Text>
     </View>
@@ -83,10 +88,7 @@ const styles = StyleSheet.create({
     borderBottomWidth: StyleSheet.hairlineWidth,
     borderBottomColor: colors.line,
   },
-  brandIdentity: { flexDirection: "row", alignItems: "center", gap: 10 },
-  brandIcon: { width: 36, height: 36, borderRadius: 9 },
-  brandEyebrow: { color: colors.textSoft, fontFamily: typography.bodyBold, fontSize: 9, letterSpacing: 1.2 },
-  brandName: { color: colors.text, fontFamily: typography.display, fontSize: 20, letterSpacing: 0.7 },
+  brandLockup: { width: 154, height: 32 },
   connectionPill: { flexDirection: "row", alignItems: "center", gap: 6, borderRadius: radius.pill, borderWidth: 1, borderColor: "#1B6045", paddingHorizontal: 9, paddingVertical: 6, backgroundColor: "#0B241B" },
   demoPill: { borderColor: "#665229", backgroundColor: "#241D0E" },
   connectionDot: { width: 6, height: 6, borderRadius: 3, backgroundColor: colors.success },
@@ -97,6 +99,7 @@ const styles = StyleSheet.create({
   primaryButtonText: { color: colors.ink, fontFamily: typography.bodyBold, fontSize: 15 },
   pressed: { opacity: 0.82, transform: [{ scale: 0.99 }] },
   stateWrap: { flex: 1, alignItems: "center", justifyContent: "center", paddingHorizontal: spacing.xxl, gap: spacing.sm },
+  loadingLockup: { width: 190, height: 42, marginBottom: spacing.md },
   stateTitle: { color: colors.text, fontFamily: typography.display, fontSize: 32, textAlign: "center" },
   stateText: { color: colors.textMuted, fontFamily: typography.body, fontSize: 14, lineHeight: 21, textAlign: "center" },
   errorMark: { width: 44, height: 44, borderRadius: 22, alignItems: "center", justifyContent: "center", backgroundColor: "#35141C", borderWidth: 1, borderColor: colors.danger },
