@@ -44,6 +44,13 @@
     ],
     "experiments": {
       "typedRoutes": true
-    }
+    },
+    "extra": {
+      "router": {},
+      "eas": {
+        "projectId": "89529c7d-964a-4ed3-a10b-55fff966a14e"
+      }
+    },
+    "owner": "fitcontrol"
   }
 }
