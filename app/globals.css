@@ -16181,3 +16181,104 @@ code.leadAttributionValue {
   .memberSessionsDisclosure > p { padding: 0 var(--space-3) var(--space-3); }
 }
  /* ===== END Coach quick start + private member control ===== */
+
+/* ===== RevenueCat purchase reconciliation ===== */
+.revenueOps { align-items: start; }
+.revenueOpsBanner {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  font-size: 14px;
+  font-weight: 650;
+}
+.revenueOpsBanner.ok {
+  color: var(--success);
+  border-color: color-mix(in srgb, var(--success) 38%, var(--line));
+  background: color-mix(in srgb, var(--success) 10%, var(--surface));
+}
+.revenueOpsBanner.err {
+  color: var(--danger);
+  border-color: color-mix(in srgb, var(--danger) 38%, var(--line));
+  background: color-mix(in srgb, var(--danger) 10%, var(--surface));
+}
+.revenueRail {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr) auto minmax(0, 1fr);
+  align-items: center;
+  gap: clamp(10px, 2vw, 24px);
+  padding: clamp(16px, 2vw, 24px);
+  background:
+    linear-gradient(100deg, color-mix(in srgb, var(--accent) 9%, transparent), transparent 62%),
+    var(--surface);
+}
+.revenueRailStep { display: flex; align-items: center; gap: 12px; min-width: 0; }
+.revenueRailStep > svg {
+  width: 36px;
+  height: 36px;
+  padding: 9px;
+  flex: 0 0 auto;
+  border-radius: 50%;
+  color: var(--text-soft);
+  background: var(--surface-2);
+  border: 1px solid var(--line);
+}
+.revenueRailStep.done > svg { color: var(--accent); border-color: color-mix(in srgb, var(--accent) 42%, var(--line)); }
+.revenueRailStep.current > svg { color: var(--warning); }
+.revenueRailStep span { display: grid; gap: 2px; color: var(--text-muted); font-size: 12px; text-transform: uppercase; letter-spacing: .06em; }
+.revenueRailStep b { color: var(--text); font-size: clamp(20px, 2.5vw, 30px); line-height: 1; letter-spacing: -.04em; }
+.revenueRailArrow { color: var(--text-soft); opacity: .55; }
+.revenuePendingPanel { border-color: color-mix(in srgb, var(--accent) 28%, var(--line)); }
+.revenuePendingList { display: grid; gap: 12px; }
+.revenuePendingItem {
+  display: grid;
+  grid-template-columns: minmax(230px, .9fr) minmax(260px, 1fr) minmax(320px, 1.25fr);
+  gap: 18px;
+  align-items: center;
+  padding: 16px;
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  background: var(--surface-2);
+}
+.revenuePurchaseIdentity { display: flex; align-items: center; gap: 12px; min-width: 0; }
+.revenueProductMark { display: grid; place-items: center; width: 42px; height: 42px; flex: 0 0 auto; color: var(--accent); border-radius: 12px; background: color-mix(in srgb, var(--accent) 12%, transparent); }
+.revenuePurchaseIdentity > div:last-child { min-width: 0; }
+.revenuePurchaseTitle { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+.revenuePurchaseTitle strong { font-size: 15px; }
+.revenuePurchaseIdentity p { margin: 5px 0 0; color: var(--text-muted); font-size: 13px; }
+.revenuePurchaseFacts { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 10px; margin: 0; }
+.revenuePurchaseFacts div { min-width: 0; }
+.revenuePurchaseFacts dt { color: var(--text-soft); font-size: 10px; font-weight: 700; letter-spacing: .06em; text-transform: uppercase; }
+.revenuePurchaseFacts dd { margin: 4px 0 0; color: var(--text); font-size: 12px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.revenueAssignForm { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 8px; align-items: end; }
+.revenueAssignForm label { min-width: 0; color: var(--text-muted); font-size: 11px; font-weight: 650; }
+.revenueAssignForm select { width: 100%; margin-top: 6px; }
+.revenueAssignForm .btn.ghost { grid-column: 1 / -1; justify-self: end; min-height: 32px; }
+.revenueEmpty { display: flex; align-items: center; gap: 12px; min-height: 82px; padding: 14px 16px; color: var(--success); border: 1px dashed color-mix(in srgb, var(--success) 38%, var(--line)); border-radius: var(--radius); }
+.revenueEmpty strong { color: var(--text); }
+.revenueEmpty p { margin: 3px 0 0; color: var(--text-muted); font-size: 13px; }
+.revenueHistory { display: grid; }
+.revenueHistoryRow { display: grid; grid-template-columns: 1fr 1fr minmax(100px, .35fr) auto; gap: 16px; align-items: center; min-height: 64px; padding: 10px 2px; border-top: 1px solid var(--line); }
+.revenueHistoryRow:first-child { border-top: 0; }
+.revenueHistoryRow > div { display: grid; gap: 4px; min-width: 0; }
+.revenueHistoryRow strong { overflow: hidden; color: var(--text); font-size: 13px; text-overflow: ellipsis; white-space: nowrap; }
+.revenueHistoryRow span:not(.tag) { overflow: hidden; color: var(--text-soft); font-size: 11px; text-overflow: ellipsis; white-space: nowrap; }
+.revenueHistoryAmount { text-align: right; }
+
+@media (max-width: 1120px) {
+  .revenuePendingItem { grid-template-columns: 1fr 1fr; }
+  .revenueAssignForm { grid-column: 1 / -1; }
+}
+@media (max-width: 720px) {
+  .revenueRail { grid-template-columns: 1fr; gap: 8px; }
+  .revenueRailArrow { margin-left: 12px; transform: rotate(90deg); }
+  .revenuePendingItem { grid-template-columns: 1fr; }
+  .revenuePurchaseFacts { grid-template-columns: 1fr; }
+  .revenueAssignForm { grid-template-columns: 1fr; }
+  .revenueAssignForm .btn,
+  .revenueAssignForm .btn.ghost { width: 100%; grid-column: 1; justify-self: stretch; }
+  .revenueHistoryRow { grid-template-columns: 1fr auto; }
+  .revenueHistoryRow > div:nth-child(2) { grid-column: 1; }
+  .revenueHistoryAmount { grid-column: 2; grid-row: 1; }
+  .revenueHistoryRow > .tag { grid-column: 2; grid-row: 2; }
+}
+/* ===== END RevenueCat purchase reconciliation ===== */

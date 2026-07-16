@@ -216,17 +216,57 @@ export async function resolveRevenueCatWorkspaceId(): Promise<string | null> {
 export async function resolveRevenueCatMemberId(
   workspaceId: string,
   appUserIds: Array<string | null | undefined>,
+  customerEmail?: string | null,
 ): Promise<string | null> {
-  const candidates = [...new Set(appUserIds.filter((value): value is string => isUuid(value)))];
-  if (!candidates.length || !getSupabaseServiceEnv().ok) return null;
+  if (!getSupabaseServiceEnv().ok) return null;
   const supabase = createServiceSupabaseClient();
-  const { data } = await supabase
+  const identityCandidates = [...new Set(appUserIds
+    .map((value) => value?.trim())
+    .filter((value): value is string => Boolean(value)))];
+  const directCandidates = identityCandidates.filter(isUuid);
+  if (directCandidates.length) {
+    const { data, error } = await supabase
+      .from("member_profiles")
+      .select("id")
+      .eq("workspace_id", workspaceId)
+      .in("id", directCandidates)
+      .limit(1)
+      .maybeSingle();
+    if (error) throw new Error(`Unable to resolve RevenueCat member: ${error.message}`);
+    if (data?.id) return data.id;
+  }
+
+  if (identityCandidates.length) {
+    const { data, error } = await supabase
+      .from("revenuecat_customer_links")
+      .select("member_profile_id")
+      .eq("workspace_id", workspaceId)
+      .in("app_user_id", identityCandidates)
+      .limit(1)
+      .maybeSingle();
+    if (error) throw new Error(`Unable to resolve RevenueCat identity link: ${error.message}`);
+    if (data?.member_profile_id) return data.member_profile_id;
+  }
+
+  const normalizedEmail = customerEmail?.trim().toLowerCase();
+  if (!normalizedEmail) return null;
+  let matchedUserId: string | null = null;
+  for (let page = 1; page <= 10; page += 1) {
+    const users = await supabase.auth.admin.listUsers({ page, perPage: 1000 });
+    if (users.error) throw new Error(`Unable to resolve RevenueCat customer email: ${users.error.message}`);
+    const matches = users.data.users.filter((user) => user.email?.trim().toLowerCase() === normalizedEmail);
+    if (matches.length > 1 || (matches.length && matchedUserId)) return null;
+    if (matches[0]) matchedUserId = matches[0].id;
+    if (users.data.users.length < 1000) break;
+  }
+  if (!matchedUserId) return null;
+  const { data, error } = await supabase
     .from("member_profiles")
     .select("id")
     .eq("workspace_id", workspaceId)
-    .in("id", candidates)
-    .limit(1)
+    .eq("user_id", matchedUserId)
     .maybeSingle();
+  if (error) throw new Error(`Unable to match RevenueCat email to member: ${error.message}`);
   return data?.id ?? null;
 }
 
@@ -308,4 +348,16 @@ export async function recordRevenueCatWebhookEvent(input: {
     processed_at: new Date().toISOString(),
   });
   if (error) throw new Error(`Unable to record RevenueCat webhook: ${error.message}`);
+}
+
+export async function getRevenueCatWebhookEventStatus(eventId: string): Promise<string | null> {
+  if (!getSupabaseServiceEnv().ok) return null;
+  const supabase = createServiceSupabaseClient();
+  const { data, error } = await supabase
+    .from("revenuecat_webhook_events")
+    .select("processing_status")
+    .eq("id", eventId)
+    .maybeSingle();
+  if (error) throw new Error(`Unable to verify RevenueCat webhook: ${error.message}`);
+  return data?.processing_status ?? null;
 }

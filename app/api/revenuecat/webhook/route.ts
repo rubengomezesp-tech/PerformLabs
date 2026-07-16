@@ -4,6 +4,7 @@ import { z } from "zod";
 import type { Json } from "@/lib/supabase/database.types";
 import {
   getSessionCreditProduct,
+  getRevenueCatWebhookEventStatus,
   recordRevenueCatSessionPurchase,
   recordRevenueCatWebhookEvent,
   refundRevenueCatSessionPurchase,
@@ -13,6 +14,16 @@ import {
   type SessionCreditProductId,
 } from "@/lib/repositories/session-credits";
 import { setMemberSubscriptionStatus } from "@/lib/repositories/member-subscriptions";
+import {
+  linkRevenueCatCustomer,
+  recordRevenueCatCoachingAccess,
+  updateRevenueCatCoachingAccess,
+} from "@/lib/repositories/revenuecat-purchases";
+import {
+  getRevenueCatProduct,
+  isRevenueCatPurchaseEvent,
+  revenueCatAccessEnd,
+} from "@/lib/revenuecat/products";
 
 export const runtime = "nodejs";
 
@@ -80,13 +91,22 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: "RevenueCat workspace is not configured" }, { status: 503 });
   }
 
-  const memberProfileId = await resolveRevenueCatMemberId(workspaceId, [
+  const existingStatus = await getRevenueCatWebhookEventStatus(event.id);
+  if (existingStatus && existingStatus !== "failed") {
+    return NextResponse.json({ received: true, status: existingStatus, duplicate: true });
+  }
+
+  const appUserIds = [
     event.app_user_id,
     event.original_app_user_id,
     ...(event.aliases ?? []),
-  ]);
-  const product = getSessionCreditProduct(event.product_id);
+  ];
+  const customerEmail = revenueCatCustomerEmail(event.subscriber_attributes);
+  const memberProfileId = await resolveRevenueCatMemberId(workspaceId, appUserIds, customerEmail);
+  const sessionProduct = getSessionCreditProduct(event.product_id);
+  const coachingProduct = getRevenueCatProduct(event.product_id);
   const transactionId = event.transaction_id ?? event.original_transaction_id ?? null;
+  const purchasedAtMs = event.purchased_at_ms ?? event.event_timestamp_ms ?? Date.now();
 
   try {
     if (!isAcceptedEnvironment(event.environment)) {
@@ -107,8 +127,18 @@ export async function POST(request: Request) {
 
     let processingStatus: "processed" | "pending_assignment" | "ignored" = "ignored";
 
-    const grantsSessionCredits = product
-      && (product.grantEvents as readonly string[]).includes(event.type);
+    if (memberProfileId) {
+      await linkRevenueCatCustomer({
+        workspaceId,
+        appUserIds,
+        memberProfileId,
+        customerEmail,
+        source: appUserIds.some((value) => value === memberProfileId) ? "direct_id" : customerEmail ? "email" : "automatic",
+      });
+    }
+
+    const grantsSessionCredits = sessionProduct
+      && (sessionProduct.grantEvents as readonly string[]).includes(event.type);
 
     if (grantsSessionCredits && transactionId) {
       const result = await recordRevenueCatSessionPurchase({
@@ -118,18 +148,37 @@ export async function POST(request: Request) {
         transactionId,
         eventId: event.id,
         appUserId: event.app_user_id ?? event.original_app_user_id ?? "unknown",
-        customerEmail: revenueCatCustomerEmail(event.subscriber_attributes),
-        purchasedAtMs: event.purchased_at_ms ?? event.event_timestamp_ms ?? Date.now(),
+        customerEmail,
+        purchasedAtMs,
         payload,
       });
       processingStatus = result.assigned ? "processed" : "pending_assignment";
-      if (memberProfileId && ["INITIAL_PURCHASE", "RENEWAL"].includes(event.type)) {
-        await setMemberSubscriptionStatus(memberProfileId, "active");
-      }
+    }
+
+    if (coachingProduct && isRevenueCatPurchaseEvent(event.product_id, event.type) && transactionId) {
+      const accessEnd = revenueCatAccessEnd({
+        productId: event.product_id as string,
+        purchasedAtMs,
+        expirationAtMs: event.expiration_at_ms,
+      }) ?? new Date(purchasedAtMs + 35 * 86_400_000).toISOString();
+      await recordRevenueCatCoachingAccess({
+        workspaceId,
+        memberProfileId,
+        productIdentifier: event.product_id as string,
+        transactionId,
+        originalTransactionId: event.original_transaction_id ?? null,
+        appUserId: event.app_user_id ?? event.original_app_user_id ?? null,
+        customerEmail,
+        startsAt: new Date(purchasedAtMs).toISOString(),
+        endsAt: accessEnd,
+        payload,
+      });
+      if (memberProfileId) await setMemberSubscriptionStatus(memberProfileId, "active");
+      processingStatus = memberProfileId ? "processed" : "pending_assignment";
     } else if (
       event.type === "CANCELLATION"
-      && product
-      && (product.grantEvents as readonly string[]).includes("NON_RENEWING_PURCHASE")
+      && sessionProduct
+      && (sessionProduct.grantEvents as readonly string[]).includes("NON_RENEWING_PURCHASE")
       && transactionId
     ) {
       let refunded = false;
@@ -143,18 +192,38 @@ export async function POST(request: Request) {
         });
         if (refunded) break;
       }
+      await updateRevenueCatCoachingAccess({
+        workspaceId,
+        appUserIds,
+        transactionIds: [event.original_transaction_id, event.transaction_id],
+        status: "refunded",
+      });
       processingStatus = refunded ? "processed" : "pending_assignment";
-    } else if (memberProfileId && (event.type === "INITIAL_PURCHASE" || event.type === "RENEWAL")) {
-      await setMemberSubscriptionStatus(memberProfileId, "active");
-      processingStatus = "processed";
-    } else if (memberProfileId && event.type === "BILLING_ISSUE") {
-      await setMemberSubscriptionStatus(memberProfileId, "past_due");
-      processingStatus = "processed";
-    } else if (memberProfileId && event.type === "EXPIRATION") {
-      await setMemberSubscriptionStatus(memberProfileId, "expired");
-      processingStatus = "processed";
-    } else if (!memberProfileId && ["INITIAL_PURCHASE", "RENEWAL"].includes(event.type)) {
-      processingStatus = "pending_assignment";
+    } else if (event.type === "CANCELLATION" && coachingProduct?.purchaseType === "subscription") {
+      const changed = await updateRevenueCatCoachingAccess({
+        workspaceId,
+        appUserIds,
+        transactionIds: [event.original_transaction_id, event.transaction_id],
+        status: "cancelled",
+      });
+      processingStatus = changed > 0 ? "processed" : memberProfileId ? "processed" : "pending_assignment";
+    } else if (event.type === "BILLING_ISSUE") {
+      const changed = await updateRevenueCatCoachingAccess({
+        workspaceId,
+        appUserIds,
+        transactionIds: [event.original_transaction_id, event.transaction_id],
+        status: "past_due",
+      });
+      if (memberProfileId) await setMemberSubscriptionStatus(memberProfileId, "past_due");
+      processingStatus = changed > 0 || memberProfileId ? "processed" : "pending_assignment";
+    } else if (event.type === "EXPIRATION") {
+      const changed = await updateRevenueCatCoachingAccess({
+        workspaceId,
+        appUserIds,
+        transactionIds: [event.original_transaction_id, event.transaction_id],
+        status: "expired",
+      });
+      processingStatus = changed > 0 || memberProfileId ? "processed" : "pending_assignment";
     }
 
     await recordRevenueCatWebhookEvent({

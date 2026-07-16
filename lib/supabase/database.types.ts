@@ -3721,6 +3721,75 @@ export type Database = {
           },
         ]
       }
+      member_coaching_access: {
+        Row: {
+          created_at: string
+          customer_email: string | null
+          ends_at: string
+          external_transaction_id: string
+          id: string
+          member_profile_id: string | null
+          metadata: Json
+          original_transaction_id: string | null
+          product_identifier: string
+          revenuecat_app_user_id: string | null
+          source: string
+          starts_at: string
+          status: string
+          updated_at: string
+          workspace_id: string
+        }
+        Insert: {
+          created_at?: string
+          customer_email?: string | null
+          ends_at: string
+          external_transaction_id: string
+          id?: string
+          member_profile_id?: string | null
+          metadata?: Json
+          original_transaction_id?: string | null
+          product_identifier: string
+          revenuecat_app_user_id?: string | null
+          source?: string
+          starts_at: string
+          status?: string
+          updated_at?: string
+          workspace_id: string
+        }
+        Update: {
+          created_at?: string
+          customer_email?: string | null
+          ends_at?: string
+          external_transaction_id?: string
+          id?: string
+          member_profile_id?: string | null
+          metadata?: Json
+          original_transaction_id?: string | null
+          product_identifier?: string
+          revenuecat_app_user_id?: string | null
+          source?: string
+          starts_at?: string
+          status?: string
+          updated_at?: string
+          workspace_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "member_coaching_access_member_profile_id_fkey"
+            columns: ["member_profile_id"]
+            isOneToOne: false
+            referencedRelation: "member_profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "member_coaching_access_workspace_id_fkey"
+            columns: ["workspace_id"]
+            isOneToOne: false
+            referencedRelation: "workspaces"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       member_session_ledger: {
         Row: {
           actor_user_id: string | null
@@ -5133,6 +5202,57 @@ export type Database = {
           },
         ]
       }
+      revenuecat_customer_links: {
+        Row: {
+          app_user_id: string
+          assigned_by: string | null
+          assignment_source: string
+          created_at: string
+          customer_email: string | null
+          id: string
+          member_profile_id: string
+          updated_at: string
+          workspace_id: string
+        }
+        Insert: {
+          app_user_id: string
+          assigned_by?: string | null
+          assignment_source?: string
+          created_at?: string
+          customer_email?: string | null
+          id?: string
+          member_profile_id: string
+          updated_at?: string
+          workspace_id: string
+        }
+        Update: {
+          app_user_id?: string
+          assigned_by?: string | null
+          assignment_source?: string
+          created_at?: string
+          customer_email?: string | null
+          id?: string
+          member_profile_id?: string
+          updated_at?: string
+          workspace_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "revenuecat_customer_links_member_profile_id_fkey"
+            columns: ["member_profile_id"]
+            isOneToOne: false
+            referencedRelation: "member_profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "revenuecat_customer_links_workspace_id_fkey"
+            columns: ["workspace_id"]
+            isOneToOne: false
+            referencedRelation: "workspaces"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       revenuecat_webhook_events: {
         Row: {
           app_user_id: string | null
@@ -6341,6 +6461,19 @@ export type Database = {
           p_workspace_id: string
         }
         Returns: number
+      }
+      assign_revenuecat_purchase: {
+        Args: {
+          p_actor_user_id: string | null
+          p_event_id: string
+          p_member_profile_id: string
+          p_workspace_id: string
+        }
+        Returns: {
+          assigned_access: number
+          assigned_events: number
+          assigned_packs: number
+        }[]
       }
       canonical_workspace_domain: {
         Args: { raw_domain: string }

@@ -16,6 +16,7 @@ import {
   MessagesSquare,
   Palette,
   Pill,
+  ReceiptText,
   Salad,
   Sparkles,
   Trophy,
@@ -65,6 +66,7 @@ const coachNavEs = [
   { label: "Avisos", href: "/coach/notifications", icon: Bell, group: "Marca y contenido" },
   { label: "Analítica", href: "/coach/analytics", icon: BarChart3, group: "Rendimiento" },
   { label: "Facturación", href: "/coach/billing", icon: CreditCard, group: "Negocio" },
+  { label: "Compras RG", href: "/coach/purchases", icon: ReceiptText, group: "Negocio" },
 ];
 
 const coachNavEn = [
@@ -96,6 +98,7 @@ const coachNavEn = [
   { label: "Notifications", href: "/coach/notifications", icon: Bell, group: "Brand and content" },
   { label: "Analytics", href: "/coach/analytics", icon: BarChart3, group: "Performance" },
   { label: "Billing", href: "/coach/billing", icon: CreditCard, group: "Business" },
+  { label: "RG purchases", href: "/coach/purchases", icon: ReceiptText, group: "Business" },
 ];
 
 export const coachNav = coachNavEs;
