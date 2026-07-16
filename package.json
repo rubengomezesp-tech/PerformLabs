@@ -10,6 +10,7 @@
     "lint": "eslint .",
     "test": "vitest run",
     "test:watch": "vitest",
+    "test:revenuecat:remote": "node scripts/qa-revenuecat-reconciliation.mjs",
     "typecheck": "next typegen && tsc --noEmit",
     "mobile:start": "pnpm --filter @rgcoach/mobile start",
     "mobile:ios": "pnpm --filter @rgcoach/mobile ios",
