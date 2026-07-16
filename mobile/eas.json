@@ -18,6 +18,7 @@
   "submit": {
     "production": {
       "ios": {
+        "ascAppId": "6791298615",
         "appName": "RG Coach",
         "bundleIdentifier": "com.rubengomezcoaching.app",
         "language": "en-US",
