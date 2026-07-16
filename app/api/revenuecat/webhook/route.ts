@@ -107,7 +107,10 @@ export async function POST(request: Request) {
 
     let processingStatus: "processed" | "pending_assignment" | "ignored" = "ignored";
 
-    if (event.type === "NON_RENEWING_PURCHASE" && product && transactionId) {
+    const grantsSessionCredits = product
+      && (product.grantEvents as readonly string[]).includes(event.type);
+
+    if (grantsSessionCredits && transactionId) {
       const result = await recordRevenueCatSessionPurchase({
         workspaceId,
         memberProfileId,
@@ -120,7 +123,15 @@ export async function POST(request: Request) {
         payload,
       });
       processingStatus = result.assigned ? "processed" : "pending_assignment";
-    } else if (event.type === "CANCELLATION" && product && transactionId) {
+      if (memberProfileId && ["INITIAL_PURCHASE", "RENEWAL"].includes(event.type)) {
+        await setMemberSubscriptionStatus(memberProfileId, "active");
+      }
+    } else if (
+      event.type === "CANCELLATION"
+      && product
+      && (product.grantEvents as readonly string[]).includes("NON_RENEWING_PURCHASE")
+      && transactionId
+    ) {
       let refunded = false;
       const refundCandidates = [...new Set([event.original_transaction_id, event.transaction_id].filter((value): value is string => Boolean(value)))];
       for (const candidate of refundCandidates) {

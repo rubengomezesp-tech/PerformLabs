@@ -5,12 +5,14 @@ import type { Json } from "@/lib/supabase/database.types";
 import { isUuid } from "@/lib/utils/uuid";
 
 export const SESSION_CREDIT_PRODUCTS = {
-  rg_session_single_usd_70: { sessions: 1, validityDays: 30 },
+  rg_10_bundle_usd_799: { sessions: 10, validityDays: 90, grantEvents: ["NON_RENEWING_PURCHASE"] },
+  rg_20_monthly_usd_1399: { sessions: 20, validityDays: 35, grantEvents: ["INITIAL_PURCHASE", "RENEWAL"] },
+  rg_session_single_usd_70: { sessions: 1, validityDays: 30, grantEvents: ["NON_RENEWING_PURCHASE"] },
   // Keep retired identifiers so delayed/historical RevenueCat webhooks remain idempotent.
-  rg_pack_8_usd_440: { sessions: 8, validityDays: 90 },
-  rg_pack_8_usd_480: { sessions: 8, validityDays: 90 },
-  rg_pack_10_usd_600: { sessions: 10, validityDays: 90 },
-  rg_pack_12_usd_600: { sessions: 12, validityDays: 90 },
+  rg_pack_8_usd_440: { sessions: 8, validityDays: 90, grantEvents: ["NON_RENEWING_PURCHASE"] },
+  rg_pack_8_usd_480: { sessions: 8, validityDays: 90, grantEvents: ["NON_RENEWING_PURCHASE"] },
+  rg_pack_10_usd_600: { sessions: 10, validityDays: 90, grantEvents: ["NON_RENEWING_PURCHASE"] },
+  rg_pack_12_usd_600: { sessions: 12, validityDays: 90, grantEvents: ["NON_RENEWING_PURCHASE"] },
 } as const;
 
 export type SessionCreditProductId = keyof typeof SESSION_CREDIT_PRODUCTS;

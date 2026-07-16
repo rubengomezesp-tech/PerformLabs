@@ -7,11 +7,13 @@ import {
 
 describe("session credit products", () => {
   it("maps current and historical one-time RevenueCat products to their sessions", () => {
-    expect(getSessionCreditProduct("rg_session_single_usd_70")).toEqual({ sessions: 1, validityDays: 30 });
-    expect(getSessionCreditProduct("rg_pack_8_usd_440")).toEqual({ sessions: 8, validityDays: 90 });
-    expect(getSessionCreditProduct("rg_pack_8_usd_480")).toEqual({ sessions: 8, validityDays: 90 });
-    expect(getSessionCreditProduct("rg_pack_10_usd_600")).toEqual({ sessions: 10, validityDays: 90 });
-    expect(getSessionCreditProduct("rg_pack_12_usd_600")).toEqual({ sessions: 12, validityDays: 90 });
+    expect(getSessionCreditProduct("rg_10_bundle_usd_799")).toMatchObject({ sessions: 10, validityDays: 90, grantEvents: ["NON_RENEWING_PURCHASE"] });
+    expect(getSessionCreditProduct("rg_20_monthly_usd_1399")).toMatchObject({ sessions: 20, validityDays: 35, grantEvents: ["INITIAL_PURCHASE", "RENEWAL"] });
+    expect(getSessionCreditProduct("rg_session_single_usd_70")).toMatchObject({ sessions: 1, validityDays: 30 });
+    expect(getSessionCreditProduct("rg_pack_8_usd_440")).toMatchObject({ sessions: 8, validityDays: 90 });
+    expect(getSessionCreditProduct("rg_pack_8_usd_480")).toMatchObject({ sessions: 8, validityDays: 90 });
+    expect(getSessionCreditProduct("rg_pack_10_usd_600")).toMatchObject({ sessions: 10, validityDays: 90 });
+    expect(getSessionCreditProduct("rg_pack_12_usd_600")).toMatchObject({ sessions: 12, validityDays: 90 });
     expect(getSessionCreditProduct("rg_starter_monthly_usd_149")).toBeNull();
   });
 

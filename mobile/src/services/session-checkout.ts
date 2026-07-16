@@ -1,10 +1,11 @@
 const DEFAULT_PURCHASE_URL = "https://pay.rev.cat/yvcgmrwpgqphcyyq";
 
 export const SESSION_PACK = Object.freeze({
-  packageId: "pack_10",
-  productId: "rg_pack_10_usd_600",
+  packageId: "rg_10_bundle",
+  productId: "rg_10_bundle_usd_799",
   sessions: 10,
-  priceUsd: 600,
+  priceUsd: 799,
+  coachingAccessDays: 30,
   validityDays: 90,
 });
 

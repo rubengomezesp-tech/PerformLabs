@@ -165,11 +165,11 @@ export default async function CoachMemberDetailPage({ params }: MemberDetailPage
           </form>
 
           <div className="coachSessionPurchase">
-            <div><CreditCard size={17} /><span><strong>Enviar pago</strong><small>El bono se asigna a este cliente al completarse.</small></span></div>
+            <div><CreditCard size={17} /><span><strong>Enviar pago</strong><small>La compra queda vinculada a este cliente al completarse.</small></span></div>
             <div className="coachSessionPurchaseLinks">
-              <a href={`${purchaseBase}?package_id=single_session`} target="_blank" rel="noreferrer">1 sesión · $70 <ExternalLink size={13} /></a>
-              <a href={`${purchaseBase}?package_id=pack_10`} target="_blank" rel="noreferrer">10 sesiones · $600 pago único <ExternalLink size={13} /></a>
-              <span className="disabled" aria-disabled="true">12 sesiones · No disponible</span>
+              <a href={`${purchaseBase}?package_id=rg_10_bundle`} target="_blank" rel="noreferrer">RG 10 · $799 pago único <ExternalLink size={13} /></a>
+              <a href={`${purchaseBase}?package_id=rg_20_monthly`} target="_blank" rel="noreferrer">RG 20 · $1,399/mes <ExternalLink size={13} /></a>
+              <a href={`${purchaseBase}?package_id=rg_360_monthly`} target="_blank" rel="noreferrer">RG 360 · $199/mes <ExternalLink size={13} /></a>
             </div>
           </div>
 
