@@ -4,6 +4,7 @@ import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { requireWorkspaceMutationAccess } from "@/lib/auth/access-control";
 import { assignRevenueCatPurchase } from "@/lib/repositories/revenuecat-purchases";
+import { fireMemberEventNotification } from "@/lib/notifications/events";
 import { isUuid } from "@/lib/utils/uuid";
 
 function readText(formData: FormData, key: string): string {
@@ -29,6 +30,7 @@ export async function assignRevenueCatPurchaseAction(formData: FormData) {
       memberProfileId,
       actorUserId: session.mode === "authenticated" ? session.user.id : null,
     });
+    await fireMemberEventNotification({ workspaceId, memberProfileId, eventKey: "payment.succeeded" });
     revalidatePath("/coach/purchases");
     revalidatePath(`/coach/members/${memberProfileId}`);
     revalidatePath("/app");

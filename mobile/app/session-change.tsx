@@ -1,6 +1,6 @@
 import { router } from "expo-router";
 import { CalendarClock, ChevronLeft, ShieldCheck } from "lucide-react-native";
-import { useMemo, useState } from "react";
+import { useState } from "react";
 import { Alert, Pressable, StyleSheet, Text, TextInput, View } from "react-native";
 import { BrandBar, Screen } from "@/src/components/ui";
 import { t } from "@/src/i18n";
@@ -11,12 +11,9 @@ function two(value: number) { return String(value).padStart(2, "0"); }
 
 export default function SessionChangeScreen() {
   const { data, requestSessionChange } = useMemberHome();
-  const initial = useMemo(() => {
-    const date = data?.nextSession ? new Date(data.nextSession.startsAt) : new Date(Date.now() + 86_400_000);
-    return { date: `${date.getFullYear()}-${two(date.getMonth() + 1)}-${two(date.getDate())}`, time: `${two(date.getHours())}:${two(date.getMinutes())}` };
-  }, [data?.nextSession]);
-  const [date, setDate] = useState(initial.date);
-  const [time, setTime] = useState(initial.time);
+  const suggested = data?.nextSession ? new Date(data.nextSession.startsAt) : null;
+  const [date, setDate] = useState(suggested ? `${suggested.getFullYear()}-${two(suggested.getMonth() + 1)}-${two(suggested.getDate())}` : "");
+  const [time, setTime] = useState(suggested ? `${two(suggested.getHours())}:${two(suggested.getMinutes())}` : "");
   const [message, setMessage] = useState("");
   const [sending, setSending] = useState(false);
 

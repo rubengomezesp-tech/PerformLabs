@@ -6,6 +6,9 @@ export const REVENUECAT_PRODUCTS = {
     purchaseType: "one_time",
     purchaseEvents: ["NON_RENEWING_PURCHASE"],
     sessions: 10,
+    sessionUnitPriceCents: 6_000,
+    trainingSubtotalCents: 60_000,
+    coachingSubtotalCents: 19_900,
     sessionValidityDays: 90,
     coachingAccessDays: 30,
   },
@@ -16,6 +19,9 @@ export const REVENUECAT_PRODUCTS = {
     purchaseType: "subscription",
     purchaseEvents: ["INITIAL_PURCHASE", "RENEWAL"],
     sessions: 20,
+    sessionUnitPriceCents: 6_000,
+    trainingSubtotalCents: 120_000,
+    coachingSubtotalCents: 19_900,
     sessionValidityDays: 35,
     coachingAccessDays: null,
   },
@@ -26,10 +32,16 @@ export const REVENUECAT_PRODUCTS = {
     purchaseType: "subscription",
     purchaseEvents: ["INITIAL_PURCHASE", "RENEWAL"],
     sessions: 0,
+    sessionUnitPriceCents: 0,
+    trainingSubtotalCents: 0,
+    coachingSubtotalCents: 19_900,
     sessionValidityDays: null,
     coachingAccessDays: null,
   },
 } as const;
+
+export const RG_PURCHASE_TERMS_URL = "https://rubengomezcoaching.com/terminos-compra";
+export const RG_PURCHASE_TERMS_VERSION = "rg-purchase-terms-2026-07-16";
 
 export type RevenueCatProductId = keyof typeof REVENUECAT_PRODUCTS;
 export type RevenueCatProduct = (typeof REVENUECAT_PRODUCTS)[RevenueCatProductId];

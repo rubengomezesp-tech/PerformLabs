@@ -1,4 +1,4 @@
-import { AlertTriangle, ArrowRight, Check, CircleDollarSign, Clock3, ReceiptText, UserCheck } from "lucide-react";
+import { AlertTriangle, ArrowRight, Check, CircleDollarSign, Clock3, MailCheck, ReceiptText, UserCheck } from "lucide-react";
 import Link from "next/link";
 import { Topbar } from "@/components/topbar";
 import { getLocale } from "@/lib/i18n/server";
@@ -39,6 +39,7 @@ export default async function CoachPurchasesPage({ searchParams }: PurchasesPage
   const pending = purchases.filter((purchase) => !purchase.memberProfileId || purchase.processingStatus === "pending_assignment");
   const identified = purchases.filter((purchase) => Boolean(purchase.memberProfileId)).length;
   const activated = purchases.filter((purchase) => purchase.processingStatus === "processed" && purchase.memberProfileId).length;
+  const notified = purchases.filter((purchase) => purchase.coachDeliveryStatus === "sent" && (!purchase.customerEmail || purchase.customerDeliveryStatus === "sent")).length;
   const formatter = new Intl.DateTimeFormat(isEn ? "en-US" : "es-US", {
     dateStyle: "medium",
     timeStyle: "short",
@@ -51,6 +52,7 @@ export default async function CoachPurchasesPage({ searchParams }: PurchasesPage
     charged: "Charged",
     identified: "Identified",
     activated: "Activated",
+    notified: "Notified",
     pending: "Needs your attention",
     pendingText: "Match each payment once. Future renewals will be linked automatically.",
     history: "Purchase history",
@@ -68,6 +70,9 @@ export default async function CoachPurchasesPage({ searchParams }: PurchasesPage
     assignedTag: "Activated",
     failedTag: "Review",
     event: "Event",
+    remaining: "remaining",
+    emailSent: "Emails sent",
+    emailPending: "Email pending",
   } : {
     eyebrow: "Operaciones de cobro",
     title: "Cada pago, con dueño.",
@@ -75,6 +80,7 @@ export default async function CoachPurchasesPage({ searchParams }: PurchasesPage
     charged: "Cobrado",
     identified: "Identificado",
     activated: "Activado",
+    notified: "Notificado",
     pending: "Requiere tu atención",
     pendingText: "Vincula cada pago una sola vez. Las próximas renovaciones se asignarán solas.",
     history: "Historial de compras",
@@ -92,6 +98,9 @@ export default async function CoachPurchasesPage({ searchParams }: PurchasesPage
     assignedTag: "Activado",
     failedTag: "Revisar",
     event: "Evento",
+    remaining: "restantes",
+    emailSent: "Emails enviados",
+    emailPending: "Email pendiente",
   };
 
   return (
@@ -113,6 +122,8 @@ export default async function CoachPurchasesPage({ searchParams }: PurchasesPage
           <div className={`revenueRailStep ${identified === purchases.length ? "done" : "current"}`}><UserCheck /><span><b>{identified}</b>{copy.identified}</span></div>
           <ArrowRight className="revenueRailArrow" />
           <div className={`revenueRailStep ${activated === purchases.length ? "done" : "current"}`}><Check /><span><b>{activated}</b>{copy.activated}</span></div>
+          <ArrowRight className="revenueRailArrow" />
+          <div className={`revenueRailStep ${notified === purchases.length ? "done" : "current"}`}><MailCheck /><span><b>{notified}</b>{copy.notified}</span></div>
         </article>
 
         <article className="card span12 revenuePendingPanel">
@@ -179,8 +190,8 @@ export default async function CoachPurchasesPage({ searchParams }: PurchasesPage
               {purchases.map((purchase) => (
                 <div className="revenueHistoryRow" role="row" key={purchase.id}>
                   <div><strong>{purchase.productLabel}</strong><span>{formatter.format(new Date(purchase.purchasedAt))}</span></div>
-                  <div><strong>{purchase.memberName ?? purchase.customerEmail ?? copy.pendingTag}</strong><span>{shortId(purchase.transactionId)}</span></div>
-                  <div className="revenueHistoryAmount"><strong>{money(purchase.amountCents, purchase.currency, locale)}</strong><span>{purchase.eventType === "RENEWAL" ? (isEn ? "Renewal" : "Renovación") : copy.event}</span></div>
+                  <div><strong>{purchase.memberName ?? purchase.customerEmail ?? copy.pendingTag}</strong><span>{shortId(purchase.transactionId)}{purchase.remainingSessions !== null ? ` · ${purchase.remainingSessions} ${copy.remaining}` : ""}</span></div>
+                  <div className="revenueHistoryAmount"><strong>{money(purchase.amountCents, purchase.currency, locale)}</strong><span>{purchase.eventType === "RENEWAL" ? (isEn ? "Renewal" : "Renovación") : copy.event} · {purchase.coachDeliveryStatus === "sent" && (!purchase.customerEmail || purchase.customerDeliveryStatus === "sent") ? copy.emailSent : copy.emailPending}</span></div>
                   <span className={`tag ${purchase.processingStatus === "processed" && purchase.memberProfileId ? "" : "danger"}`}>
                     {purchase.processingStatus === "processed" && purchase.memberProfileId ? copy.assignedTag : copy.pendingTag}
                   </span>

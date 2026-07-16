@@ -12,6 +12,7 @@ const sessionCredits = vi.hoisted(() => ({
 }));
 
 const purchases = vi.hoisted(() => ({
+  enqueueRevenueCatPurchaseDeliveries: vi.fn(),
   linkRevenueCatCustomer: vi.fn(),
   recordRevenueCatCoachingAccess: vi.fn(),
   updateRevenueCatCoachingAccess: vi.fn(),
@@ -21,9 +22,14 @@ const subscriptions = vi.hoisted(() => ({
   setMemberSubscriptionStatus: vi.fn(),
 }));
 
+const notifications = vi.hoisted(() => ({
+  fireMemberEventNotification: vi.fn(),
+}));
+
 vi.mock("@/lib/repositories/session-credits", () => sessionCredits);
 vi.mock("@/lib/repositories/revenuecat-purchases", () => purchases);
 vi.mock("@/lib/repositories/member-subscriptions", () => subscriptions);
+vi.mock("@/lib/notifications/events", () => notifications);
 
 const workspaceId = "10000000-0000-4000-8000-000000000001";
 const memberId = "20000000-0000-4000-8000-000000000002";
@@ -71,9 +77,11 @@ describe("RevenueCat webhook purchase lifecycle", () => {
     sessionCredits.recordRevenueCatWebhookEvent.mockResolvedValue(undefined);
     sessionCredits.refundRevenueCatSessionPurchase.mockResolvedValue(true);
     purchases.linkRevenueCatCustomer.mockResolvedValue(undefined);
+    purchases.enqueueRevenueCatPurchaseDeliveries.mockResolvedValue(2);
     purchases.recordRevenueCatCoachingAccess.mockResolvedValue(undefined);
     purchases.updateRevenueCatCoachingAccess.mockResolvedValue(1);
     subscriptions.setMemberSubscriptionStatus.mockResolvedValue(undefined);
+    notifications.fireMemberEventNotification.mockResolvedValue(undefined);
   });
 
   afterEach(() => {
@@ -102,6 +110,11 @@ describe("RevenueCat webhook purchase lifecycle", () => {
     expect(sessionCredits.recordRevenueCatWebhookEvent).toHaveBeenLastCalledWith(expect.objectContaining({
       processingStatus: "pending_assignment",
     }));
+    expect(purchases.enqueueRevenueCatPurchaseDeliveries).toHaveBeenCalledWith(expect.objectContaining({
+      eventId: "evt_qa_1",
+      processingStatus: "pending_assignment",
+      customerEmail: "qa@example.com",
+    }));
   });
 
   it("links and activates an identified RG 20 renewal", async () => {
@@ -126,6 +139,11 @@ describe("RevenueCat webhook purchase lifecycle", () => {
       endsAt: new Date(expirationAtMs).toISOString(),
     }));
     expect(subscriptions.setMemberSubscriptionStatus).toHaveBeenCalledWith(memberId, "active");
+    expect(notifications.fireMemberEventNotification).toHaveBeenCalledWith({
+      workspaceId,
+      memberProfileId: memberId,
+      eventKey: "payment.succeeded",
+    });
   });
 
   it("stops an already processed retry before granting anything again", async () => {
@@ -137,6 +155,7 @@ describe("RevenueCat webhook purchase lifecycle", () => {
     expect(sessionCredits.resolveRevenueCatMemberId).not.toHaveBeenCalled();
     expect(sessionCredits.recordRevenueCatSessionPurchase).not.toHaveBeenCalled();
     expect(purchases.recordRevenueCatCoachingAccess).not.toHaveBeenCalled();
+    expect(purchases.enqueueRevenueCatPurchaseDeliveries).not.toHaveBeenCalled();
   });
 
   it("marks an identified member past due on a billing issue", async () => {
@@ -168,5 +187,19 @@ describe("RevenueCat webhook purchase lifecycle", () => {
     await expect(response.json()).resolves.toEqual({ received: true, ignored: "sandbox" });
     expect(sessionCredits.recordRevenueCatSessionPurchase).not.toHaveBeenCalled();
     expect(sessionCredits.recordRevenueCatWebhookEvent).toHaveBeenCalledWith(expect.objectContaining({ processingStatus: "ignored" }));
+    expect(purchases.enqueueRevenueCatPurchaseDeliveries).not.toHaveBeenCalled();
+  });
+
+  it("marks the event failed so RevenueCat retries when durable communication enqueueing fails", async () => {
+    purchases.enqueueRevenueCatPurchaseDeliveries.mockRejectedValueOnce(new Error("queue unavailable"));
+
+    const response = await post();
+
+    expect(response.status).toBe(500);
+    await expect(response.json()).resolves.toEqual({ error: "RevenueCat processing failed" });
+    expect(sessionCredits.recordRevenueCatWebhookEvent).toHaveBeenLastCalledWith(expect.objectContaining({
+      processingStatus: "failed",
+      errorMessage: "queue unavailable",
+    }));
   });
 });

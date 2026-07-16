@@ -15,10 +15,12 @@ import {
 } from "@/lib/repositories/session-credits";
 import { setMemberSubscriptionStatus } from "@/lib/repositories/member-subscriptions";
 import {
+  enqueueRevenueCatPurchaseDeliveries,
   linkRevenueCatCustomer,
   recordRevenueCatCoachingAccess,
   updateRevenueCatCoachingAccess,
 } from "@/lib/repositories/revenuecat-purchases";
+import { fireMemberEventNotification } from "@/lib/notifications/events";
 import {
   getRevenueCatProduct,
   isRevenueCatPurchaseEvent,
@@ -238,6 +240,25 @@ export async function POST(request: Request) {
       processingStatus,
       payload,
     });
+
+    if (coachingProduct && isRevenueCatPurchaseEvent(event.product_id, event.type) && transactionId) {
+      await enqueueRevenueCatPurchaseDeliveries({
+        workspaceId,
+        eventId: event.id,
+        memberProfileId,
+        productIdentifier: event.product_id as string,
+        transactionId,
+        appUserId: event.app_user_id ?? event.original_app_user_id ?? null,
+        customerEmail,
+        purchasedAt: new Date(purchasedAtMs).toISOString(),
+        processingStatus: processingStatus === "processed" ? "processed" : "pending_assignment",
+      });
+      await fireMemberEventNotification({
+        workspaceId,
+        memberProfileId,
+        eventKey: "payment.succeeded",
+      });
+    }
 
     return NextResponse.json({ received: true, status: processingStatus });
   } catch (error) {

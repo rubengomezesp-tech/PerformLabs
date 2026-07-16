@@ -1,7 +1,11 @@
+import type { SupabaseClient } from "@supabase/supabase-js";
 import type { Json } from "@/lib/supabase/database.types";
 import { createServiceSupabaseClient } from "@/lib/supabase/server";
+import { resolveRevenueCatMemberId } from "@/lib/repositories/session-credits";
 import {
   getRevenueCatProduct,
+  RG_PURCHASE_TERMS_URL,
+  RG_PURCHASE_TERMS_VERSION,
   revenueCatProductLabel,
 } from "@/lib/revenuecat/products";
 
@@ -25,6 +29,35 @@ export type RevenueCatPurchase = {
   purchasedAt: string;
   createdAt: string;
   errorMessage: string | null;
+  remainingSessions: number | null;
+  accessStatus: string | null;
+  accessEndsAt: string | null;
+  customerDeliveryStatus: string | null;
+  coachDeliveryStatus: string | null;
+};
+
+export type RevenueCatPurchaseDelivery = {
+  id: string;
+  workspaceId: string;
+  eventId: string;
+  memberProfileId: string | null;
+  audience: "customer" | "coach";
+  deliveryType: "purchase_confirmation" | "coach_purchase_alert";
+  recipientEmail: string;
+  attemptCount: number;
+  payload: Record<string, Json | undefined>;
+};
+
+type PurchaseDeliveryRow = {
+  id: string;
+  workspace_id: string;
+  event_id: string;
+  member_profile_id: string | null;
+  audience: RevenueCatPurchaseDelivery["audience"];
+  delivery_type: RevenueCatPurchaseDelivery["deliveryType"];
+  recipient_email: string;
+  attempt_count: number;
+  payload: Json;
 };
 
 function payloadObject(payload: Json): Record<string, Json | undefined> {
@@ -43,6 +76,11 @@ function payloadNumber(payload: Json, key: string): number | null {
   return typeof value === "number" && Number.isFinite(value) ? value : null;
 }
 
+function validEmail(value: string | null | undefined): string | null {
+  const normalized = value?.trim().toLowerCase() ?? "";
+  return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(normalized) ? normalized : null;
+}
+
 export function purchaseEmailFromPayload(payload: Json): string | null {
   const attributes = payloadEvent(payload).subscriber_attributes;
   if (!attributes || typeof attributes !== "object" || Array.isArray(attributes)) return null;
@@ -50,6 +88,116 @@ export function purchaseEmailFromPayload(payload: Json): string | null {
   if (!email || typeof email !== "object" || Array.isArray(email)) return null;
   const value = email.value;
   return typeof value === "string" && value.includes("@") ? value.trim().toLowerCase() : null;
+}
+
+export async function enqueueRevenueCatPurchaseDeliveries(input: {
+  workspaceId: string;
+  eventId: string;
+  memberProfileId: string | null;
+  productIdentifier: string;
+  transactionId: string;
+  appUserId: string | null;
+  customerEmail: string | null;
+  purchasedAt: string;
+  processingStatus: "processed" | "pending_assignment";
+}): Promise<number> {
+  const product = getRevenueCatProduct(input.productIdentifier);
+  if (!product) return 0;
+  const customerEmail = validEmail(input.customerEmail);
+  const coachEmail = validEmail(process.env.RG_COACH_PURCHASES_TO) ?? "rubengomezesp@gmail.com";
+  const payload = {
+    productIdentifier: input.productIdentifier,
+    productLabel: product.name,
+    priceCents: product.priceCents,
+    currency: product.currency,
+    purchaseType: product.purchaseType,
+    sessions: product.sessions,
+    sessionUnitPriceCents: product.sessionUnitPriceCents,
+    trainingSubtotalCents: product.trainingSubtotalCents,
+    coachingSubtotalCents: product.coachingSubtotalCents,
+    sessionValidityDays: product.sessionValidityDays,
+    coachingAccessDays: product.coachingAccessDays,
+    transactionId: input.transactionId,
+    appUserId: input.appUserId,
+    customerEmail,
+    purchasedAt: input.purchasedAt,
+    processingStatus: input.processingStatus,
+    termsUrl: RG_PURCHASE_TERMS_URL,
+    termsVersion: RG_PURCHASE_TERMS_VERSION,
+    checkoutProvider: "RevenueCat Billing",
+  } satisfies Record<string, Json | undefined>;
+  const rows = [{
+    workspace_id: input.workspaceId,
+    event_id: input.eventId,
+    member_profile_id: input.memberProfileId,
+    audience: "coach",
+    delivery_type: "coach_purchase_alert",
+    recipient_email: coachEmail,
+    payload,
+  }];
+  if (customerEmail) {
+    rows.push({
+      workspace_id: input.workspaceId,
+      event_id: input.eventId,
+      member_profile_id: input.memberProfileId,
+      audience: "customer",
+      delivery_type: "purchase_confirmation",
+      recipient_email: customerEmail,
+      payload,
+    });
+  }
+  const db: SupabaseClient = createServiceSupabaseClient();
+  const { data, error } = await db
+    .from("revenuecat_purchase_deliveries")
+    .upsert(rows, { onConflict: "event_id,audience", ignoreDuplicates: true })
+    .select("id");
+  if (error) throw new Error(`Unable to queue purchase communications: ${error.message}`);
+  return data?.length ?? 0;
+}
+
+export async function claimRevenueCatPurchaseDeliveries(limit = 20): Promise<RevenueCatPurchaseDelivery[]> {
+  const db: SupabaseClient = createServiceSupabaseClient();
+  const { data, error } = await db.rpc("claim_revenuecat_purchase_deliveries", { p_limit: limit });
+  if (error) throw new Error(`Unable to claim purchase communications: ${error.message}`);
+  return ((data ?? []) as PurchaseDeliveryRow[]).map((row) => ({
+    id: row.id,
+    workspaceId: row.workspace_id,
+    eventId: row.event_id,
+    memberProfileId: row.member_profile_id,
+    audience: row.audience,
+    deliveryType: row.delivery_type,
+    recipientEmail: row.recipient_email,
+    attemptCount: row.attempt_count,
+    payload: payloadObject(row.payload),
+  }));
+}
+
+export async function markRevenueCatPurchaseDelivery(input: {
+  id: string;
+  status: "sent" | "failed";
+  providerMessageId?: string | null;
+  error?: string | null;
+  attemptCount: number;
+}): Promise<void> {
+  const db: SupabaseClient = createServiceSupabaseClient();
+  const retryMinutes = Math.min(240, 5 * 2 ** Math.max(0, input.attemptCount - 1));
+  const { error } = await db
+    .from("revenuecat_purchase_deliveries")
+    .update(input.status === "sent" ? {
+      status: "sent",
+      sent_at: new Date().toISOString(),
+      provider_message_id: input.providerMessageId ?? null,
+      last_error: null,
+      updated_at: new Date().toISOString(),
+    } : {
+      status: "failed",
+      last_error: input.error?.slice(0, 240) || "delivery_failed",
+      next_attempt_at: new Date(Date.now() + retryMinutes * 60_000).toISOString(),
+      updated_at: new Date().toISOString(),
+    })
+    .eq("id", input.id)
+    .eq("status", "sending");
+  if (error) throw new Error(`Unable to update purchase communication: ${error.message}`);
 }
 
 export async function listRevenueCatPurchases(workspaceId: string): Promise<RevenueCatPurchase[]> {
@@ -66,6 +214,10 @@ export async function listRevenueCatPurchases(workspaceId: string): Promise<Reve
   const memberIds = [...new Set((data ?? [])
     .map((event) => event.member_profile_id)
     .filter((id): id is string => Boolean(id)))];
+  const eventIds = (data ?? []).map((event) => event.id);
+  const transactionIds = [...new Set((data ?? [])
+    .map((event) => event.transaction_id)
+    .filter((id): id is string => Boolean(id)))];
   const memberNameById = new Map<string, string>();
   if (memberIds.length) {
     const members = await supabase.from("member_profiles").select("id,full_name").in("id", memberIds);
@@ -73,10 +225,46 @@ export async function listRevenueCatPurchases(workspaceId: string): Promise<Reve
     for (const member of members.data ?? []) memberNameById.set(member.id, member.full_name);
   }
 
+  const deliveryStatusByEvent = new Map<string, { customer: string | null; coach: string | null }>();
+  const packByTransaction = new Map<string, { remaining: number; status: string }>();
+  const accessByTransaction = new Map<string, { status: string; endsAt: string }>();
+  const db: SupabaseClient = supabase;
+  if (eventIds.length) {
+    const deliveries = await db
+      .from("revenuecat_purchase_deliveries")
+      .select("event_id,audience,status")
+      .in("event_id", eventIds);
+    if (deliveries.error) throw new Error(`Unable to load purchase deliveries: ${deliveries.error.message}`);
+    for (const delivery of deliveries.data ?? []) {
+      const state = deliveryStatusByEvent.get(delivery.event_id) ?? { customer: null, coach: null };
+      if (delivery.audience === "customer") state.customer = delivery.status;
+      if (delivery.audience === "coach") state.coach = delivery.status;
+      deliveryStatusByEvent.set(delivery.event_id, state);
+    }
+  }
+  if (transactionIds.length) {
+    const [packs, access] = await Promise.all([
+      db.from("member_session_packs").select("external_transaction_id,remaining_sessions,status").eq("workspace_id", workspaceId).in("external_transaction_id", transactionIds),
+      db.from("member_coaching_access").select("external_transaction_id,status,ends_at").eq("workspace_id", workspaceId).in("external_transaction_id", transactionIds),
+    ]);
+    if (packs.error || access.error) {
+      throw new Error(`Unable to load purchase fulfillment: ${packs.error?.message ?? access.error?.message}`);
+    }
+    for (const pack of packs.data ?? []) if (pack.external_transaction_id) {
+      packByTransaction.set(pack.external_transaction_id, { remaining: pack.remaining_sessions, status: pack.status });
+    }
+    for (const period of access.data ?? []) if (period.external_transaction_id) {
+      accessByTransaction.set(period.external_transaction_id, { status: period.status, endsAt: period.ends_at });
+    }
+  }
+
   return (data ?? []).map((event) => {
     const product = getRevenueCatProduct(event.product_identifier);
     const purchasedAtMs = payloadNumber(event.payload, "purchased_at_ms")
       ?? payloadNumber(event.payload, "event_timestamp_ms");
+    const delivery = deliveryStatusByEvent.get(event.id);
+    const pack = event.transaction_id ? packByTransaction.get(event.transaction_id) : null;
+    const access = event.transaction_id ? accessByTransaction.get(event.transaction_id) : null;
     return {
       id: event.id,
       eventType: event.event_type,
@@ -94,6 +282,11 @@ export async function listRevenueCatPurchases(workspaceId: string): Promise<Reve
       purchasedAt: purchasedAtMs ? new Date(purchasedAtMs).toISOString() : event.created_at,
       createdAt: event.created_at,
       errorMessage: event.error_message,
+      remainingSessions: pack?.remaining ?? null,
+      accessStatus: access?.status ?? null,
+      accessEndsAt: access?.endsAt ?? null,
+      customerDeliveryStatus: delivery?.customer ?? null,
+      coachDeliveryStatus: delivery?.coach ?? null,
     };
   });
 }
@@ -270,4 +463,45 @@ export async function reconcileExpiredRevenueCatAccess(): Promise<{ expired: num
   for (const row of data ?? []) if (row.member_profile_id) members.set(row.member_profile_id, row.workspace_id);
   await Promise.all([...members].map(([memberId, workspaceId]) => syncMemberAccessStatus(workspaceId, memberId)));
   return { expired: data?.length ?? 0, members: members.size };
+}
+
+export async function reconcilePendingRevenueCatPurchases(limit = 100): Promise<{
+  checked: number;
+  assigned: number;
+  unmatched: number;
+  failed: number;
+}> {
+  const supabase = createServiceSupabaseClient();
+  const { data, error } = await supabase
+    .from("revenuecat_webhook_events")
+    .select("id,workspace_id,app_user_id,payload")
+    .eq("processing_status", "pending_assignment")
+    .eq("environment", "PRODUCTION")
+    .in("event_type", [...PURCHASE_EVENTS])
+    .order("created_at", { ascending: true })
+    .limit(Math.min(Math.max(limit, 1), 250));
+  if (error) throw new Error(`Unable to load pending RevenueCat purchases: ${error.message}`);
+
+  const result = { checked: data?.length ?? 0, assigned: 0, unmatched: 0, failed: 0 };
+  for (const event of data ?? []) {
+    try {
+      const email = purchaseEmailFromPayload(event.payload);
+      const memberProfileId = await resolveRevenueCatMemberId(event.workspace_id, [event.app_user_id], email);
+      if (!memberProfileId) {
+        result.unmatched += 1;
+        continue;
+      }
+      await assignRevenueCatPurchase({
+        workspaceId: event.workspace_id,
+        eventId: event.id,
+        memberProfileId,
+        actorUserId: null,
+      });
+      result.assigned += 1;
+    } catch (assignmentError) {
+      result.failed += 1;
+      console.error("Unable to auto-assign RevenueCat purchase", event.id, assignmentError);
+    }
+  }
+  return result;
 }
