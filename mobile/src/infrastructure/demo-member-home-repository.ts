@@ -57,7 +57,10 @@ export class DemoMemberHomeRepository implements MemberHomeRepository {
       nextSession: {
         id: "demo-session",
         startsAt: inDays(1, 18),
+        endsAt: inDays(1, 19),
+        timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
         location: "Gimnasio del edificio",
+        changeRequestPending: false,
       },
     };
   }
@@ -65,5 +68,6 @@ export class DemoMemberHomeRepository implements MemberHomeRepository {
   async toggleHabit(_member: MemberHome["member"], habitId: string, _date: string, done: boolean): Promise<void> {
     demoHabits = demoHabits.map((habit) => habit.id === habitId ? { ...habit, done } : habit);
   }
-}
 
+  async requestSessionChange(): Promise<void> {}
+}

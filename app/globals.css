@@ -16043,6 +16043,12 @@ code.leadAttributionValue {
 .memberSessionCreditSummary dd { margin: 0; font-size: 20px; font-weight: 900; font-variant-numeric: tabular-nums; }
 .memberSessionCreditSummary .available dd { color: var(--accent); font-size: 30px; }
 .memberSessionPending { display: flex; align-items: center; gap: var(--space-2); margin: 0 0 var(--space-3); padding: var(--space-3); border: 1px solid color-mix(in srgb, var(--warning) 30%, var(--border)); border-radius: var(--radius-sm); background: color-mix(in srgb, var(--warning) 8%, transparent); color: var(--warning); font-size: 12px; }
+.memberChangePending { display: inline-flex; align-items: center; gap: 6px; width: fit-content; margin-top: var(--space-3); padding: 8px 10px; border: 1px solid color-mix(in srgb, var(--warning) 34%, var(--border)); border-radius: var(--radius-sm); background: color-mix(in srgb, var(--warning) 8%, transparent); color: var(--warning); font-size: 11px; font-style: normal; font-weight: 800; }
+.memberChangeTrigger { width: fit-content; margin-top: var(--space-3); }
+.memberChangeForm { display: grid; gap: var(--space-3); }
+.memberChangeForm textarea { resize: vertical; }
+.memberChangeForm p { display: flex; align-items: center; gap: 7px; margin: 0; color: var(--text-muted); font-size: 11px; line-height: 1.5; }
+.memberChangeForm p svg { flex: 0 0 auto; color: var(--success); }
 .memberSessionsDetails { display: grid; gap: var(--space-2); }
 .memberSessionsDisclosure { border: 1px solid var(--border); border-radius: var(--radius-lg); background: var(--surface); }
 .memberSessionsDisclosure > summary > svg:first-child { color: var(--accent); }
@@ -16065,10 +16071,33 @@ code.leadAttributionValue {
 .memberSessionsEmpty svg { color: var(--text-soft); }
 .memberSessionsEmpty strong { color: var(--text); font-size: 13px; }
 .memberSessionsEmpty p { margin: 0; font-size: 12px; }
+.coachChangeQueue { display: grid; gap: var(--space-3); margin-bottom: var(--space-3); padding: var(--space-4); border: 1px solid color-mix(in srgb, var(--accent) 42%, var(--border)); border-radius: var(--radius-lg); background: color-mix(in srgb, var(--accent) 5%, var(--surface)); }
+.coachChangeQueue > header { display: flex; align-items: center; gap: var(--space-3); }
+.coachChangeQueue > header > div { flex: 1; }
+.coachChangeQueue h2 { margin: 0; font-size: 17px; }
+.coachChangeQueue header p { margin: 3px 0 0; color: var(--text-muted); font-size: 12px; }
+.coachChangeQueue > header > strong { display: grid; place-items: center; min-width: 34px; height: 34px; border-radius: var(--radius-sm); background: var(--accent); color: var(--bg); font-size: 14px; }
+.coachChangeQueueList { display: grid; gap: var(--space-2); }
+.coachChangeQueueList article { display: grid; grid-template-columns: minmax(180px, .8fr) minmax(360px, 1.4fr) auto; align-items: center; gap: var(--space-3); padding: var(--space-3); border: 1px solid var(--border); border-radius: var(--radius-sm); background: var(--surface); }
+.coachChangePerson { display: flex; align-items: center; gap: var(--space-2); min-width: 0; }
+.coachChangePerson > svg { flex: 0 0 auto; color: var(--accent); }
+.coachChangePerson div { display: grid; min-width: 0; }
+.coachChangePerson strong { font-size: 12px; }
+.coachChangePerson small { overflow: hidden; color: var(--text-muted); font-size: 10px; text-overflow: ellipsis; white-space: nowrap; }
+.coachChangeTimes { display: grid; grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr); align-items: center; gap: var(--space-2); }
+.coachChangeTimes > svg { color: var(--text-soft); }
+.coachChangeTimes span { display: grid; gap: 2px; color: var(--text-muted); font-size: 11px; font-weight: 750; }
+.coachChangeTimes span.requested { color: var(--text); }
+.coachChangeTimes em { color: var(--text-soft); font-size: 9px; font-style: normal; font-weight: 850; letter-spacing: .8px; text-transform: uppercase; }
+.coachChangeTimes .requested em { color: var(--accent); }
+.coachChangeActions { display: flex; gap: var(--space-2); }
+.coachChangeActions form { display: contents; }
 .memberPersonalSessionCard { border-color: color-mix(in srgb, var(--accent) 35%, var(--border)); }
 
 @media (max-width: 1100px) {
   .coachAgendaPulse { grid-template-columns: 1fr; }
+  .coachChangeQueueList article { grid-template-columns: 1fr; }
+  .coachChangeActions { justify-content: flex-end; }
   .coachSchedulePrimary { grid-template-columns: repeat(2, minmax(0, 1fr)); }
   .coachSchedulePrimary > .btn { grid-column: 1 / -1; }
   .coachAgendaSession { grid-template-columns: 115px 1fr 1fr; }
@@ -16091,6 +16120,11 @@ code.leadAttributionValue {
   .sessionResolutionActions { display: grid; grid-template-columns: repeat(3, 1fr); }
   .sessionResolutionActions .btn { width: 100%; min-width: 0; white-space: normal; }
   .memberSessionAtGlance { grid-template-columns: 1fr; }
+  .coachChangeQueue { padding: var(--space-3); }
+  .coachChangeTimes { grid-template-columns: 1fr; }
+  .coachChangeTimes > svg { transform: rotate(90deg); }
+  .coachChangeActions { display: grid; grid-template-columns: 1fr 1fr; }
+  .coachChangeActions button { width: 100%; }
   .memberNextSession { min-height: 0; }
   .memberSessionCreditSummary { grid-template-columns: repeat(3, 1fr); padding: 0 var(--space-4) var(--space-4); border-top: 1px solid var(--border); border-left: 0; }
   .memberSessionCreditSummary > div { display: grid; justify-items: center; padding-top: var(--space-3); border-right: 1px solid var(--border); border-bottom: 0; }

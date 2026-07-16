@@ -1,6 +1,6 @@
 import { LinearGradient } from "expo-linear-gradient";
 import { router } from "expo-router";
-import { CalendarClock, Check, ChevronRight, CircleUserRound, Dumbbell, MessageCircle, Salad, Sparkles } from "lucide-react-native";
+import { CalendarClock, Check, ChevronRight, CircleUserRound, Dumbbell, MessageCircle, RotateCw, Salad, Sparkles } from "lucide-react-native";
 import { Linking, Pressable, RefreshControl, ScrollView, StyleSheet, Text, View } from "react-native";
 import { BrandBar, ErrorState, LoadingState, Metric, Screen } from "@/src/components/ui";
 import { programProgress } from "@/src/domain/member-home";
@@ -123,11 +123,11 @@ export default function TodayScreen() {
           </View>
         </View>
 
-        <View style={styles.sessionCard}>
+        <Pressable disabled={!data.nextSession || data.nextSession.changeRequestPending} onPress={() => router.push("/session-change" as never)} style={({ pressed }) => [styles.sessionCard, pressed && styles.pressed]}>
           <CircleUserRound color={colors.accent} size={22} />
-          <View style={styles.sessionCopy}><Text style={styles.sessionLabel}>{t.home.nextSession}</Text><Text style={styles.sessionValue}>{data.nextSession ? formatDay(data.nextSession.startsAt, { weekday: "short", day: "numeric", hour: "2-digit", minute: "2-digit" }) : t.home.noSession}</Text>{data.nextSession?.location ? <Text style={styles.sessionLocation}>{data.nextSession.location}</Text> : null}</View>
-          <ChevronRight color={colors.textSoft} size={18} />
-        </View>
+          <View style={styles.sessionCopy}><Text style={styles.sessionLabel}>{t.home.nextSession}</Text><Text style={styles.sessionValue}>{data.nextSession ? formatDay(data.nextSession.startsAt, { weekday: "short", day: "numeric", hour: "2-digit", minute: "2-digit" }) : t.home.noSession}</Text>{data.nextSession?.location ? <Text style={styles.sessionLocation}>{data.nextSession.location}</Text> : null}{data.nextSession?.changeRequestPending ? <Text style={styles.sessionPending}>{t.home.changePending}</Text> : data.nextSession ? <Text style={styles.sessionAction}>{t.home.requestChange}</Text> : null}</View>
+          {data.nextSession?.changeRequestPending ? <RotateCw color={colors.warning} size={17} /> : <ChevronRight color={colors.textSoft} size={18} />}
+        </Pressable>
       </ScrollView>
     </Screen>
   );
@@ -198,4 +198,6 @@ const styles = StyleSheet.create({
   sessionLabel: { color: colors.textSoft, fontFamily: typography.bodyBold, fontSize: 9, letterSpacing: 0.8, textTransform: "uppercase" },
   sessionValue: { color: colors.text, fontFamily: typography.bodyBold, fontSize: 13 },
   sessionLocation: { color: colors.textMuted, fontFamily: typography.body, fontSize: 11 },
+  sessionAction: { marginTop: 4, color: colors.cyan, fontFamily: typography.bodyBold, fontSize: 10 },
+  sessionPending: { marginTop: 4, color: colors.warning, fontFamily: typography.bodyBold, fontSize: 10 },
 });

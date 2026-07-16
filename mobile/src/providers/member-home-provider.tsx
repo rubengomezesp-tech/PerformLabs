@@ -13,6 +13,7 @@ type MemberHomeContextValue = {
   error: Error | null;
   refresh(): Promise<void>;
   toggleHabit(habitId: string, done: boolean): Promise<void>;
+  requestSessionChange(requestedStartsAt: string, message: string): Promise<void>;
 };
 
 const MemberHomeContext = createContext<MemberHomeContextValue | null>(null);
@@ -63,6 +64,12 @@ export function MemberHomeProvider({ children }: { children: ReactNode }) {
     }
   }, [data, repository]);
 
+  const requestSessionChange = useCallback(async (requestedStartsAt: string, message: string) => {
+    if (!repository || !data?.nextSession) throw new Error("SESSION_NOT_AVAILABLE");
+    await repository.requestSessionChange(data.member, data.nextSession, requestedStartsAt, message);
+    await load(true);
+  }, [data, load, repository]);
+
   const value = useMemo<MemberHomeContextValue>(() => ({
     data,
     loading,
@@ -70,7 +77,8 @@ export function MemberHomeProvider({ children }: { children: ReactNode }) {
     error,
     refresh: () => load(true),
     toggleHabit,
-  }), [data, error, load, loading, refreshing, toggleHabit]);
+    requestSessionChange,
+  }), [data, error, load, loading, refreshing, requestSessionChange, toggleHabit]);
 
   return <MemberHomeContext.Provider value={value}>{children}</MemberHomeContext.Provider>;
 }
@@ -80,4 +88,3 @@ export function useMemberHome(): MemberHomeContextValue {
   if (!value) throw new Error("useMemberHome must be used inside MemberHomeProvider");
   return value;
 }
-

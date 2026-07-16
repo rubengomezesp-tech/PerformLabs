@@ -9,6 +9,7 @@ import {
   scheduleManagedPersonalTrainingSession,
   transitionManagedPersonalTrainingSession,
 } from "@/lib/repositories/personal-training-sessions";
+import { getManagedSessionChangeRequest, resolveManagedSessionChangeRequest } from "@/lib/repositories/session-change-requests";
 import { recordSecurityAuditEvent } from "@/lib/repositories/security-management";
 
 function readText(formData: FormData, key: string): string {
@@ -147,4 +148,56 @@ export async function reschedulePersonalTrainingSessionAction(formData: FormData
     metadata: { memberProfileId: appointment.memberProfileId, startsAt, endsAt },
   });
   refreshSessionViews(appointment.memberProfileId);
+}
+
+export async function resolveSessionChangeRequestAction(formData: FormData) {
+  const workspaceId = readText(formData, "workspaceId");
+  const requestId = readText(formData, "requestId");
+  const decision = readText(formData, "decision");
+  const session = await requireWorkspaceMutationAccess(workspaceId);
+  const request = await getManagedSessionChangeRequest(workspaceId, requestId);
+  if (!request || request.status !== "pending") throw new Error("La solicitud ya no está pendiente");
+  const appointment = await getManagedPersonalTrainingSession(workspaceId, request.sessionId);
+  if (!appointment || appointment.status !== "scheduled") throw new Error("La reserva original ya no está activa");
+
+  if (decision === "approve") {
+    await rescheduleManagedPersonalTrainingSession({
+      workspaceId,
+      sessionId: request.sessionId,
+      startsAt: request.requestedStartsAt,
+      endsAt: request.requestedEndsAt,
+      timezone: request.timezone,
+      location: appointment.location,
+      memberNotes: appointment.memberNotes,
+      actorUserId: actorId(session),
+      eventId: `change-request:${request.id}`,
+    });
+    await resolveManagedSessionChangeRequest({
+      workspaceId,
+      requestId,
+      status: "approved",
+      resolvedBy: actorId(session),
+      resolutionNote: readText(formData, "resolutionNote"),
+    });
+  } else if (decision === "decline") {
+    await resolveManagedSessionChangeRequest({
+      workspaceId,
+      requestId,
+      status: "declined",
+      resolvedBy: actorId(session),
+      resolutionNote: readText(formData, "resolutionNote"),
+    });
+  } else {
+    throw new Error("Decisión no válida");
+  }
+
+  await recordSecurityAuditEvent({
+    workspaceId,
+    actorUserId: actorId(session),
+    action: decision === "approve" ? "coach.session_change_request.approved" : "coach.session_change_request.declined",
+    entityType: "session_change_request",
+    entityId: request.id,
+    metadata: { sessionId: request.sessionId, memberProfileId: request.memberProfileId, requestedStartsAt: request.requestedStartsAt },
+  });
+  refreshSessionViews(request.memberProfileId);
 }

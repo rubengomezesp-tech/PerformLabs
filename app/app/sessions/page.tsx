@@ -1,9 +1,14 @@
-import { CalendarClock, CheckCircle2, ChevronDown, Clock3, History, MapPin, ShieldCheck } from "lucide-react";
+import { CalendarClock, CheckCircle2, ChevronDown, Clock3, History, MapPin, RotateCw, ShieldCheck } from "lucide-react";
+import { Dialog } from "@/components/dialog";
 import { Topbar } from "@/components/topbar";
+import { SubmitButton } from "@/components/ui";
+import { utcToLocalDateTime } from "@/lib/domain/personal-training-schedule";
 import { getLocale } from "@/lib/i18n/server";
 import { getSelectedMemberAppBrand } from "@/lib/member-app";
 import { listMemberPersonalTrainingSessions, type PersonalTrainingSession } from "@/lib/repositories/personal-training-sessions";
+import { listMemberSessionChangeRequests } from "@/lib/repositories/session-change-requests";
 import { getMemberSessionBalance } from "@/lib/repositories/session-credits";
+import { requestSessionChangeAction } from "./actions";
 
 export const dynamic = "force-dynamic";
 
@@ -15,9 +20,10 @@ function formatDateTime(session: PersonalTrainingSession, locale: string) {
 
 export default async function MemberSessionsPage() {
   const brand = await getSelectedMemberAppBrand();
-  const [sessions, balance, localeValue] = await Promise.all([
+  const [sessions, balance, requests, localeValue] = await Promise.all([
     listMemberPersonalTrainingSessions(brand.id),
     getMemberSessionBalance(brand.id),
+    listMemberSessionChangeRequests(brand.id),
     getLocale(),
   ]);
   const english = localeValue === "en";
@@ -25,6 +31,7 @@ export default async function MemberSessionsPage() {
   const now = new Date().getTime();
   const upcoming = sessions.filter((session) => session.status === "scheduled" && new Date(session.endsAt).getTime() >= now);
   const nextSession = upcoming[0];
+  const pendingRequestBySession = new Map(requests.filter((request) => request.status === "pending").map((request) => [request.sessionId, request]));
   const laterSessions = upcoming.slice(1);
   const pendingCoach = sessions.filter((session) => session.status === "scheduled" && new Date(session.endsAt).getTime() < now);
   const history = sessions.filter((session) => session.status !== "scheduled").sort((a, b) => b.startsAt.localeCompare(a.startsAt));
@@ -52,6 +59,26 @@ export default async function MemberSessionsPage() {
             <p><MapPin size={16} /> {nextSession.location || (english ? "Location pending" : "Lugar pendiente")}</p>
             {nextSession.memberNotes ? <small>{nextSession.memberNotes}</small> : null}
             <em><Clock3 size={14} /> {english ? "Cancel without using a credit until" : "Cancela sin consumir crédito hasta"} {new Intl.DateTimeFormat(locale, { timeZone: nextSession.timezone, day: "numeric", month: "short", hour: "numeric", minute: "2-digit" }).format(cutoff)}</em>
+            {pendingRequestBySession.has(nextSession.id) ? (
+              <span className="memberChangePending"><Clock3 size={14} /> {english ? "Change requested · awaiting coach approval" : "Cambio solicitado · pendiente de aprobación"}</span>
+            ) : (
+              <Dialog
+                triggerClassName="btn ghost sm memberChangeTrigger"
+                trigger={<><RotateCw size={14} /> {english ? "Request a different time" : "Solicitar cambio de horario"}</>}
+                title={english ? "Request a schedule change" : "Solicitar cambio de horario"}
+                description={english ? "Your current booking stays confirmed until your coach approves the change." : "Tu reserva actual sigue confirmada hasta que el coach apruebe el cambio."}
+              >
+                <form action={requestSessionChangeAction} className="memberChangeForm">
+                  <input name="workspaceId" type="hidden" value={brand.id} />
+                  <input name="sessionId" type="hidden" value={nextSession.id} />
+                  <input name="timezone" type="hidden" value={nextSession.timezone} />
+                  <label>{english ? "Preferred date and time" : "Fecha y hora preferidas"}<input name="requestedStartLocal" type="datetime-local" defaultValue={utcToLocalDateTime(nextSession.startsAt, nextSession.timezone)} required /></label>
+                  <label>{english ? "Optional note" : "Nota opcional"}<textarea name="message" rows={3} placeholder={english ? "For example: I can do 6:00 or 7:00 pm." : "Por ejemplo: puedo a las 18:00 o a las 19:00."} /></label>
+                  <p><ShieldCheck size={14} /> {english ? "Submitting this does not cancel or consume a session." : "Enviar la solicitud no cancela ni consume ninguna sesión."}</p>
+                  <SubmitButton variant="primary" successToast={english ? "Request sent to your coach" : "Solicitud enviada al coach"}>{english ? "Send request" : "Enviar solicitud"}</SubmitButton>
+                </form>
+              </Dialog>
+            )}
           </div>;
         })() : <div className="memberNextSession"><span><CalendarClock size={17} /> {english ? "Next session" : "Próxima sesión"}</span><h2 id="next-session-title">{english ? "No booking yet" : "Todavía sin reserva"}</h2><p>{english ? "Your coach will confirm the next appointment here." : "Tu coach confirmará aquí la próxima cita."}</p></div>}
         <dl className="memberSessionCreditSummary">

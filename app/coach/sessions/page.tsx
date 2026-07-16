@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { CalendarClock, CalendarDays, CheckCircle2, ChevronDown, Clock3, MapPin, Plus, RotateCw, Settings2, ShieldCheck, TicketCheck, TriangleAlert, UserRound } from "lucide-react";
+import { BellRing, CalendarClock, CalendarDays, CheckCircle2, ChevronDown, Clock3, MapPin, Plus, RotateCw, Settings2, ShieldCheck, TicketCheck, TriangleAlert, UserRound, XCircle } from "lucide-react";
 import { Dialog } from "@/components/dialog";
 import { SessionResolutionActions } from "@/components/coach/session-resolution-actions";
 import { Topbar } from "@/components/topbar";
@@ -10,7 +10,8 @@ import { getSelectedMemberAppBrand } from "@/lib/member-app";
 import { listManagedMembers } from "@/lib/repositories/member-management";
 import { listManagedPersonalTrainingSessions, type PersonalTrainingSession } from "@/lib/repositories/personal-training-sessions";
 import { getManagedMemberSessionBalance } from "@/lib/repositories/session-credits";
-import { reschedulePersonalTrainingSessionAction, schedulePersonalTrainingSessionAction } from "./actions";
+import { listManagedSessionChangeRequests } from "@/lib/repositories/session-change-requests";
+import { reschedulePersonalTrainingSessionAction, resolveSessionChangeRequestAction, schedulePersonalTrainingSessionAction } from "./actions";
 
 export const dynamic = "force-dynamic";
 
@@ -94,9 +95,10 @@ export default async function CoachSessionsPage({ searchParams }: { searchParams
   const [brand, localeValue] = await Promise.all([getSelectedMemberAppBrand(), getLocale()]);
   const locale: "es" | "en" = localeValue === "en" ? "en" : "es";
   const members = await listManagedMembers(brand.id);
-  const [sessions, balances] = await Promise.all([
+  const [sessions, balances, changeRequests] = await Promise.all([
     listManagedPersonalTrainingSessions(brand.id, { limit: 300 }),
     Promise.all(members.map(async (member) => [member.id, await getManagedMemberSessionBalance(brand.id, member.id)] as const)),
+    listManagedSessionChangeRequests(brand.id, { status: "pending", limit: 100 }),
   ]);
   const balanceByMember = new Map(balances);
   const nowDate = new Date();
@@ -141,6 +143,31 @@ export default async function CoachSessionsPage({ searchParams }: { searchParams
           <div><dt><TicketCheck size={15} /> {locale === "en" ? "Free credits" : "Créditos libres"}</dt><dd>{availableTotal}</dd></div>
         </dl>
       </section>
+
+      {changeRequests.length ? (
+        <section className="coachChangeQueue" aria-labelledby="change-requests-title">
+          <header>
+            <span className="uiIconChip"><BellRing size={18} /></span>
+            <div><h2 id="change-requests-title">{locale === "en" ? "Schedule changes to review" : "Cambios de horario por revisar"}</h2><p>{locale === "en" ? "The original booking remains protected until you decide." : "La reserva original sigue protegida hasta que tú decidas."}</p></div>
+            <strong>{changeRequests.length}</strong>
+          </header>
+          <div className="coachChangeQueueList">
+            {changeRequests.map((request) => {
+              const current = new Date(request.currentStartsAt);
+              const requested = new Date(request.requestedStartsAt);
+              const formatter = new Intl.DateTimeFormat(locale === "en" ? "en-US" : "es-ES", { timeZone: request.timezone, weekday: "short", day: "numeric", month: "short", hour: "numeric", minute: "2-digit" });
+              return <article key={request.id}>
+                <div className="coachChangePerson"><UserRound size={17} /><div><strong>{request.memberName}</strong><small>{request.message || (locale === "en" ? "No note" : "Sin nota")}</small></div></div>
+                <div className="coachChangeTimes"><span><em>{locale === "en" ? "Current" : "Actual"}</em>{formatter.format(current)}</span><RotateCw size={15} /><span className="requested"><em>{locale === "en" ? "Requested" : "Solicita"}</em>{formatter.format(requested)}</span></div>
+                <div className="coachChangeActions">
+                  <form action={resolveSessionChangeRequestAction}><input name="workspaceId" type="hidden" value={brand.id} /><input name="requestId" type="hidden" value={request.id} /><input name="decision" type="hidden" value="decline" /><SubmitButton variant="ghost" successToast={locale === "en" ? "Request declined" : "Solicitud rechazada"}><XCircle size={14} /> {locale === "en" ? "Decline" : "Rechazar"}</SubmitButton></form>
+                  <form action={resolveSessionChangeRequestAction}><input name="workspaceId" type="hidden" value={brand.id} /><input name="requestId" type="hidden" value={request.id} /><input name="decision" type="hidden" value="approve" /><SubmitButton variant="primary" successToast={locale === "en" ? "New time confirmed" : "Nuevo horario confirmado"}><CheckCircle2 size={14} /> {locale === "en" ? "Approve" : "Aprobar"}</SubmitButton></form>
+                </div>
+              </article>;
+            })}
+          </div>
+        </section>
+      ) : null}
 
       <section className="coachAgendaBoard">
         {attention.length ? <div className="coachAgendaLane attention" id="needs-closure"><header><TriangleAlert size={17} /><div><h2>{copy.attention}</h2><p>{locale === "en" ? "Close these first to keep balances exact." : "Ciérralas primero para mantener los saldos exactos."}</p></div><span>{attention.length}</span></header>{attention.map((session) => <SessionCard key={session.id} session={session} workspaceId={brand.id} locale={locale} now={now} />)}</div> : null}

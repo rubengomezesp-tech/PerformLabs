@@ -47,13 +47,17 @@ export type MemberHome = {
   nextSession: {
     id: string;
     startsAt: string;
+    endsAt: string;
+    timezone: string;
     location: string | null;
+    changeRequestPending: boolean;
   } | null;
 };
 
 export interface MemberHomeRepository {
   load(userId: string): Promise<MemberHome>;
   toggleHabit(member: MemberHome["member"], habitId: string, date: string, done: boolean): Promise<void>;
+  requestSessionChange(member: MemberHome["member"], session: NonNullable<MemberHome["nextSession"]>, requestedStartsAt: string, message: string): Promise<void>;
 }
 
 export function todayKey(date = new Date()): string {
@@ -67,4 +71,3 @@ export function programProgress(currentWeek: number, totalWeeks: number): number
   if (totalWeeks <= 0) return 0;
   return Math.min(1, Math.max(0, currentWeek / totalWeeks));
 }
-

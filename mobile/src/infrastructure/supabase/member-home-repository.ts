@@ -42,7 +42,7 @@ export class SupabaseMemberHomeRepository implements MemberHomeRepository {
     const date = todayKey();
     const now = new Date().toISOString();
 
-    const [programResult, dayResult, nutritionResult, habitsResult, logsResult, packsResult, sessionResult] = await Promise.all([
+    const [programResult, dayResult, nutritionResult, habitsResult, logsResult, packsResult, sessionResult, changeRequestResult] = await Promise.all([
       this.client
         .from("assigned_workout_plans")
         .select("id,name,current_week,next_review_on,status,algorithm_snapshot,created_at")
@@ -91,7 +91,7 @@ export class SupabaseMemberHomeRepository implements MemberHomeRepository {
         .eq("status", "active"),
       this.client
         .from("personal_training_sessions")
-        .select("id,starts_at,location,status")
+        .select("id,starts_at,ends_at,timezone,location,status")
         .eq("workspace_id", workspaceId)
         .eq("member_profile_id", memberProfileId)
         .eq("status", "scheduled")
@@ -99,15 +99,22 @@ export class SupabaseMemberHomeRepository implements MemberHomeRepository {
         .order("starts_at", { ascending: true })
         .limit(1)
         .maybeSingle(),
+      this.client
+        .from("personal_training_session_change_requests")
+        .select("session_id")
+        .eq("workspace_id", workspaceId)
+        .eq("member_profile_id", memberProfileId)
+        .eq("status", "pending"),
     ]);
 
-    const requiredError = programResult.error ?? dayResult.error ?? nutritionResult.error ?? habitsResult.error ?? logsResult.error ?? packsResult.error ?? sessionResult.error;
+    const requiredError = programResult.error ?? dayResult.error ?? nutritionResult.error ?? habitsResult.error ?? logsResult.error ?? packsResult.error ?? sessionResult.error ?? changeRequestResult.error;
     if (requiredError) throw requiredError;
 
     const program = programResult.data as Row | null;
     const day = dayResult.data as Row | null;
     const nutrition = nutritionResult.data as Row | null;
     const session = sessionResult.data as Row | null;
+    const pendingSessionIds = new Set(((changeRequestResult.data ?? []) as Row[]).map((request) => textValue(request.session_id)));
     const habitLogs = new Map(((logsResult.data ?? []) as Row[]).map((log) => [textValue(log.habit_id), numberValue(log.count)]));
     const packs = activeRows((packsResult.data ?? []) as Row[]);
     const nextExpiry = packs
@@ -172,7 +179,10 @@ export class SupabaseMemberHomeRepository implements MemberHomeRepository {
       nextSession: session ? {
         id: textValue(session.id),
         startsAt: textValue(session.starts_at),
+        endsAt: textValue(session.ends_at),
+        timezone: textValue(session.timezone, Intl.DateTimeFormat().resolvedOptions().timeZone),
         location: textValue(session.location) || null,
+        changeRequestPending: pendingSessionIds.has(textValue(session.id)),
       } : null,
     };
   }
@@ -197,6 +207,21 @@ export class SupabaseMemberHomeRepository implements MemberHomeRepository {
       .eq("member_profile_id", member.id)
       .eq("habit_id", habitId)
       .eq("logged_on", date);
+    if (result.error) throw result.error;
+  }
+
+  async requestSessionChange(member: MemberHome["member"], session: NonNullable<MemberHome["nextSession"]>, requestedStartsAt: string, message: string): Promise<void> {
+    const duration = new Date(session.endsAt).getTime() - new Date(session.startsAt).getTime();
+    const requestedEndsAt = new Date(new Date(requestedStartsAt).getTime() + duration).toISOString();
+    const result = await this.client.from("personal_training_session_change_requests").insert({
+      workspace_id: member.workspaceId,
+      member_profile_id: member.id,
+      session_id: session.id,
+      requested_starts_at: requestedStartsAt,
+      requested_ends_at: requestedEndsAt,
+      timezone: session.timezone,
+      message: message.trim() || null,
+    });
     if (result.error) throw result.error;
   }
 }

@@ -54,6 +54,7 @@ export default function RootLayout() {
           <Stack screenOptions={{ contentStyle: { backgroundColor: colors.ink }, headerShown: false }}>
             <Stack.Screen name="(tabs)" />
             <Stack.Screen name="sign-in" options={{ animation: "fade" }} />
+            <Stack.Screen name="session-change" options={{ animation: "slide_from_right" }} />
           </Stack>
         </ThemeProvider>
       </MemberHomeProvider>
