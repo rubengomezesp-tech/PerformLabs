@@ -188,6 +188,7 @@ export const notificationEvents: NotificationEventDefinition[] = [
   { key: "payment.succeeded", title: "Pago correcto", channels: ["email", "in_app"], defaultEnabled: true, payload: ["member", "amount", "invoice"] },
   { key: "payment.failed", title: "Pago fallido", channels: ["email", "push", "in_app"], defaultEnabled: true, payload: ["member", "retry_url"] },
   { key: "checkin.reviewed", title: "Check-in revisado por el coach", channels: ["push", "in_app"], defaultEnabled: true, payload: ["member", "checkin"] },
+  { key: "plan.published", title: "Plan publicado", channels: ["push", "in_app"], defaultEnabled: true, payload: ["member", "plan"] },
   { key: "progress.update_due", title: "Check-in pendiente", channels: ["email", "push", "in_app"], defaultEnabled: true, payload: ["member", "due_date"] },
   { key: "progress.update_overdue", title: "Check-in atrasado", channels: ["email", "push", "in_app"], defaultEnabled: true, payload: ["member", "days_overdue"] },
   { key: "meal.swap_succeeded", title: "Cambio de comida generado", channels: ["push", "in_app"], defaultEnabled: true, payload: ["member", "meal"] },

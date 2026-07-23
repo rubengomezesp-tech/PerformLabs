@@ -3,6 +3,7 @@ import { DAY_MS } from "@/lib/utils/dates";
 import { cloudinaryFetch, exerciseCardImage } from "@/lib/cloudinary";
 import { getSupabaseServiceEnv } from "@/lib/supabase/env";
 import { createServiceSupabaseClient } from "@/lib/supabase/server";
+import { notifyMemberOfPlanPublished } from "@/lib/notifications/intake-notify";
 import { isUuid } from "@/lib/utils/uuid";
 import { assignDietTemplateToMember, assignWorkoutTemplateToMember } from "@/lib/repositories/member-management";
 import { listManagedDietTemplates, type ManagedDietTemplate } from "@/lib/repositories/nutrition-management";
@@ -1096,6 +1097,12 @@ export async function applyOnboardingPlanRecommendation(input: ApplyCoachBriefin
       mealsPerDay,
       hideMacros,
     },
+  });
+
+  // D-2: "tu plan está listo" — bandeja + push al cliente. Nunca lanza.
+  await notifyMemberOfPlanPublished({
+    workspaceId: input.workspaceId,
+    memberProfileId: response.data.member_profile_id,
   });
 
   return { ...workoutAssignment, ...mealAssignment };
