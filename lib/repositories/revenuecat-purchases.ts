@@ -438,7 +438,8 @@ export async function assignRevenueCatPurchase(input: {
     p_workspace_id: input.workspaceId,
     p_event_id: input.eventId,
     p_member_profile_id: input.memberProfileId,
-    p_actor_user_id: input.actorUserId,
+    // El tipo regenerado marca el arg como string, pero la función SQL acepta null.
+    p_actor_user_id: input.actorUserId as string,
   });
   if (error) throw new Error(`Unable to assign RevenueCat purchase: ${error.message}`);
   const result = data?.[0];
