@@ -1210,6 +1210,97 @@ export type Database = {
           },
         ]
       }
+      coach_agenda_automation_configs: {
+        Row: {
+          created_at: string
+          delivery_hour: number
+          enabled: boolean
+          recipient_email: string
+          timezone: string
+          updated_at: string
+          workspace_id: string
+        }
+        Insert: {
+          created_at?: string
+          delivery_hour?: number
+          enabled?: boolean
+          recipient_email: string
+          timezone?: string
+          updated_at?: string
+          workspace_id: string
+        }
+        Update: {
+          created_at?: string
+          delivery_hour?: number
+          enabled?: boolean
+          recipient_email?: string
+          timezone?: string
+          updated_at?: string
+          workspace_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "coach_agenda_automation_configs_workspace_id_fkey"
+            columns: ["workspace_id"]
+            isOneToOne: true
+            referencedRelation: "workspaces"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      coach_agenda_digest_deliveries: {
+        Row: {
+          attempt_count: number
+          created_at: string
+          error_code: string | null
+          id: string
+          local_date: string
+          pending_change_count: number
+          provider_message_id: string | null
+          sent_at: string | null
+          session_count: number
+          status: string
+          updated_at: string
+          workspace_id: string
+        }
+        Insert: {
+          attempt_count?: number
+          created_at?: string
+          error_code?: string | null
+          id?: string
+          local_date: string
+          pending_change_count?: number
+          provider_message_id?: string | null
+          sent_at?: string | null
+          session_count?: number
+          status?: string
+          updated_at?: string
+          workspace_id: string
+        }
+        Update: {
+          attempt_count?: number
+          created_at?: string
+          error_code?: string | null
+          id?: string
+          local_date?: string
+          pending_change_count?: number
+          provider_message_id?: string | null
+          sent_at?: string | null
+          session_count?: number
+          status?: string
+          updated_at?: string
+          workspace_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "coach_agenda_digest_deliveries_workspace_id_fkey"
+            columns: ["workspace_id"]
+            isOneToOne: false
+            referencedRelation: "workspaces"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       coach_ai_brains: {
         Row: {
           assistant_name: string
@@ -1355,6 +1446,57 @@ export type Database = {
           },
           {
             foreignKeyName: "coach_ai_plan_drafts_workspace_id_fkey"
+            columns: ["workspace_id"]
+            isOneToOne: false
+            referencedRelation: "workspaces"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      coach_checkin_email_deliveries: {
+        Row: {
+          checkin_id: string
+          created_at: string
+          error_code: string | null
+          id: string
+          provider_message_id: string | null
+          recipient_email: string
+          status: string
+          updated_at: string
+          workspace_id: string
+        }
+        Insert: {
+          checkin_id: string
+          created_at?: string
+          error_code?: string | null
+          id?: string
+          provider_message_id?: string | null
+          recipient_email: string
+          status?: string
+          updated_at?: string
+          workspace_id: string
+        }
+        Update: {
+          checkin_id?: string
+          created_at?: string
+          error_code?: string | null
+          id?: string
+          provider_message_id?: string | null
+          recipient_email?: string
+          status?: string
+          updated_at?: string
+          workspace_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "coach_checkin_email_deliveries_checkin_id_fkey"
+            columns: ["checkin_id"]
+            isOneToOne: true
+            referencedRelation: "customer_checkins"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "coach_checkin_email_deliveries_workspace_id_fkey"
             columns: ["workspace_id"]
             isOneToOne: false
             referencedRelation: "workspaces"
@@ -2953,6 +3095,75 @@ export type Database = {
           },
         ]
       }
+      member_coaching_access: {
+        Row: {
+          created_at: string
+          customer_email: string | null
+          ends_at: string
+          external_transaction_id: string
+          id: string
+          member_profile_id: string | null
+          metadata: Json
+          original_transaction_id: string | null
+          product_identifier: string
+          revenuecat_app_user_id: string | null
+          source: string
+          starts_at: string
+          status: string
+          updated_at: string
+          workspace_id: string
+        }
+        Insert: {
+          created_at?: string
+          customer_email?: string | null
+          ends_at: string
+          external_transaction_id: string
+          id?: string
+          member_profile_id?: string | null
+          metadata?: Json
+          original_transaction_id?: string | null
+          product_identifier: string
+          revenuecat_app_user_id?: string | null
+          source?: string
+          starts_at: string
+          status?: string
+          updated_at?: string
+          workspace_id: string
+        }
+        Update: {
+          created_at?: string
+          customer_email?: string | null
+          ends_at?: string
+          external_transaction_id?: string
+          id?: string
+          member_profile_id?: string | null
+          metadata?: Json
+          original_transaction_id?: string | null
+          product_identifier?: string
+          revenuecat_app_user_id?: string | null
+          source?: string
+          starts_at?: string
+          status?: string
+          updated_at?: string
+          workspace_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "member_coaching_access_member_profile_id_fkey"
+            columns: ["member_profile_id"]
+            isOneToOne: false
+            referencedRelation: "member_profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "member_coaching_access_workspace_id_fkey"
+            columns: ["workspace_id"]
+            isOneToOne: false
+            referencedRelation: "workspaces"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       member_cycle_logs: {
         Row: {
           created_at: string
@@ -3527,6 +3738,57 @@ export type Database = {
           },
         ]
       }
+      member_notifications: {
+        Row: {
+          body: string
+          created_at: string
+          id: string
+          kind: string
+          member_profile_id: string
+          read_at: string | null
+          title: string
+          url: string
+          workspace_id: string
+        }
+        Insert: {
+          body?: string
+          created_at?: string
+          id?: string
+          kind: string
+          member_profile_id: string
+          read_at?: string | null
+          title: string
+          url?: string
+          workspace_id: string
+        }
+        Update: {
+          body?: string
+          created_at?: string
+          id?: string
+          kind?: string
+          member_profile_id?: string
+          read_at?: string | null
+          title?: string
+          url?: string
+          workspace_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "member_notifications_member_profile_id_fkey"
+            columns: ["member_profile_id"]
+            isOneToOne: false
+            referencedRelation: "member_profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "member_notifications_workspace_id_fkey"
+            columns: ["workspace_id"]
+            isOneToOne: false
+            referencedRelation: "workspaces"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       member_nutrition_daily_logs: {
         Row: {
           created_at: string
@@ -3714,75 +3976,6 @@ export type Database = {
         Relationships: [
           {
             foreignKeyName: "member_profiles_workspace_id_fkey"
-            columns: ["workspace_id"]
-            isOneToOne: false
-            referencedRelation: "workspaces"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      member_coaching_access: {
-        Row: {
-          created_at: string
-          customer_email: string | null
-          ends_at: string
-          external_transaction_id: string
-          id: string
-          member_profile_id: string | null
-          metadata: Json
-          original_transaction_id: string | null
-          product_identifier: string
-          revenuecat_app_user_id: string | null
-          source: string
-          starts_at: string
-          status: string
-          updated_at: string
-          workspace_id: string
-        }
-        Insert: {
-          created_at?: string
-          customer_email?: string | null
-          ends_at: string
-          external_transaction_id: string
-          id?: string
-          member_profile_id?: string | null
-          metadata?: Json
-          original_transaction_id?: string | null
-          product_identifier: string
-          revenuecat_app_user_id?: string | null
-          source?: string
-          starts_at: string
-          status?: string
-          updated_at?: string
-          workspace_id: string
-        }
-        Update: {
-          created_at?: string
-          customer_email?: string | null
-          ends_at?: string
-          external_transaction_id?: string
-          id?: string
-          member_profile_id?: string | null
-          metadata?: Json
-          original_transaction_id?: string | null
-          product_identifier?: string
-          revenuecat_app_user_id?: string | null
-          source?: string
-          starts_at?: string
-          status?: string
-          updated_at?: string
-          workspace_id?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "member_coaching_access_member_profile_id_fkey"
-            columns: ["member_profile_id"]
-            isOneToOne: false
-            referencedRelation: "member_profiles"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "member_coaching_access_workspace_id_fkey"
             columns: ["workspace_id"]
             isOneToOne: false
             referencedRelation: "workspaces"
@@ -4362,6 +4555,79 @@ export type Database = {
         Relationships: [
           {
             foreignKeyName: "nutrition_formulas_workspace_id_fkey"
+            columns: ["workspace_id"]
+            isOneToOne: false
+            referencedRelation: "workspaces"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      personal_training_session_change_requests: {
+        Row: {
+          created_at: string
+          id: string
+          member_profile_id: string
+          message: string | null
+          requested_ends_at: string
+          requested_starts_at: string
+          resolution_note: string | null
+          resolved_at: string | null
+          resolved_by: string | null
+          session_id: string
+          status: string
+          timezone: string
+          updated_at: string
+          workspace_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          member_profile_id: string
+          message?: string | null
+          requested_ends_at: string
+          requested_starts_at: string
+          resolution_note?: string | null
+          resolved_at?: string | null
+          resolved_by?: string | null
+          session_id: string
+          status?: string
+          timezone?: string
+          updated_at?: string
+          workspace_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          member_profile_id?: string
+          message?: string | null
+          requested_ends_at?: string
+          requested_starts_at?: string
+          resolution_note?: string | null
+          resolved_at?: string | null
+          resolved_by?: string | null
+          session_id?: string
+          status?: string
+          timezone?: string
+          updated_at?: string
+          workspace_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "personal_training_session_change_request_member_profile_id_fkey"
+            columns: ["member_profile_id"]
+            isOneToOne: false
+            referencedRelation: "member_profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "personal_training_session_change_requests_session_id_fkey"
+            columns: ["session_id"]
+            isOneToOne: false
+            referencedRelation: "personal_training_sessions"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "personal_training_session_change_requests_workspace_id_fkey"
             columns: ["workspace_id"]
             isOneToOne: false
             referencedRelation: "workspaces"
@@ -5246,6 +5512,88 @@ export type Database = {
           },
           {
             foreignKeyName: "revenuecat_customer_links_workspace_id_fkey"
+            columns: ["workspace_id"]
+            isOneToOne: false
+            referencedRelation: "workspaces"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      revenuecat_purchase_deliveries: {
+        Row: {
+          attempt_count: number
+          audience: string
+          claimed_at: string | null
+          created_at: string
+          delivery_type: string
+          event_id: string
+          id: string
+          last_error: string | null
+          member_profile_id: string | null
+          next_attempt_at: string
+          payload: Json
+          provider_message_id: string | null
+          recipient_email: string
+          sent_at: string | null
+          status: string
+          updated_at: string
+          workspace_id: string
+        }
+        Insert: {
+          attempt_count?: number
+          audience: string
+          claimed_at?: string | null
+          created_at?: string
+          delivery_type: string
+          event_id: string
+          id?: string
+          last_error?: string | null
+          member_profile_id?: string | null
+          next_attempt_at?: string
+          payload?: Json
+          provider_message_id?: string | null
+          recipient_email: string
+          sent_at?: string | null
+          status?: string
+          updated_at?: string
+          workspace_id: string
+        }
+        Update: {
+          attempt_count?: number
+          audience?: string
+          claimed_at?: string | null
+          created_at?: string
+          delivery_type?: string
+          event_id?: string
+          id?: string
+          last_error?: string | null
+          member_profile_id?: string | null
+          next_attempt_at?: string
+          payload?: Json
+          provider_message_id?: string | null
+          recipient_email?: string
+          sent_at?: string | null
+          status?: string
+          updated_at?: string
+          workspace_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "revenuecat_purchase_deliveries_event_id_fkey"
+            columns: ["event_id"]
+            isOneToOne: false
+            referencedRelation: "revenuecat_webhook_events"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "revenuecat_purchase_deliveries_member_profile_id_fkey"
+            columns: ["member_profile_id"]
+            isOneToOne: false
+            referencedRelation: "member_profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "revenuecat_purchase_deliveries_workspace_id_fkey"
             columns: ["workspace_id"]
             isOneToOne: false
             referencedRelation: "workspaces"
@@ -6464,7 +6812,7 @@ export type Database = {
       }
       assign_revenuecat_purchase: {
         Args: {
-          p_actor_user_id: string | null
+          p_actor_user_id: string
           p_event_id: string
           p_member_profile_id: string
           p_workspace_id: string
@@ -6478,6 +6826,38 @@ export type Database = {
       canonical_workspace_domain: {
         Args: { raw_domain: string }
         Returns: string
+      }
+      claim_coach_agenda_digest: {
+        Args: { p_local_date: string; p_workspace_id: string }
+        Returns: string
+      }
+      claim_revenuecat_purchase_deliveries: {
+        Args: { p_limit?: number }
+        Returns: {
+          attempt_count: number
+          audience: string
+          claimed_at: string | null
+          created_at: string
+          delivery_type: string
+          event_id: string
+          id: string
+          last_error: string | null
+          member_profile_id: string | null
+          next_attempt_at: string
+          payload: Json
+          provider_message_id: string | null
+          recipient_email: string
+          sent_at: string | null
+          status: string
+          updated_at: string
+          workspace_id: string
+        }[]
+        SetofOptions: {
+          from: "*"
+          to: "revenuecat_purchase_deliveries"
+          isOneToOne: false
+          isSetofReturn: true
+        }
       }
       consume_rate_limit: {
         Args: { p_bucket: string; p_max: number; p_window_ms: number }
@@ -6498,6 +6878,10 @@ export type Database = {
       is_workspace_member: {
         Args: { target_workspace_id: string }
         Returns: boolean
+      }
+      mark_member_notification_read: {
+        Args: { p_notification_id: string }
+        Returns: undefined
       }
       record_revenuecat_session_purchase: {
         Args: {

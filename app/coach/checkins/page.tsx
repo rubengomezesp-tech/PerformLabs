@@ -85,7 +85,8 @@ export default async function CoachCheckinsPage() {
             ? checkin.values.weightKg - previousWithWeight.values.weightKg
             : null;
           return (
-          <article className="card span6 motionCard" key={checkin.id}>
+          // id = ancla del deep-link del email inmediato (#checkin-{id})
+          <article className="card span6 motionCard" id={`checkin-${checkin.id}`} key={checkin.id}>
             <div className="sectionHeader">
               <div>
                 <ClipboardCheck color="var(--gold)" aria-hidden="true" />

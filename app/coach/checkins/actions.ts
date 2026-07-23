@@ -1,7 +1,9 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
+import { after } from "next/server";
 import { requireWorkspaceMutationAccess } from "@/lib/auth/access-control";
+import { notifyMemberOfCheckinReview } from "@/lib/notifications/checkin-notify";
 import { reviewMemberCheckin } from "@/lib/repositories/checkin-management";
 import { advanceMemberWorkoutPlan } from "@/lib/repositories/member-management";
 import { recordSecurityAuditEvent } from "@/lib/repositories/security-management";
@@ -26,6 +28,14 @@ export async function reviewCoachCheckinAction(formData: FormData) {
 
   const planAction = readText(formData, "planAction");
   const memberProfileId = readText(formData, "memberProfileId");
+
+  // Cierra el bucle hacia el cliente (bandeja + push si lo permite) sin retrasar
+  // la respuesta del coach; after() garantiza ejecución tras enviar la respuesta.
+  if (memberProfileId) {
+    const coachFeedback = readText(formData, "coachFeedback");
+    after(() => notifyMemberOfCheckinReview({ workspaceId, memberProfileId, coachFeedback }));
+  }
+
   let planResult: { updated: boolean; currentWeek: number } | null = null;
   if (planAction === "advance" && memberProfileId) {
     const reviewInDays = Number.parseInt(readText(formData, "reviewInDays"), 10);

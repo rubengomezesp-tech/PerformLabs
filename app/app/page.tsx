@@ -19,6 +19,8 @@ import { PushOptIn } from "@/components/push-optin";
 import { Button } from "@/components/ui";
 import { getMemberContext } from "@/lib/auth/member-access";
 import { getSelectedMemberAppBrand } from "@/lib/member-app";
+import { listUnreadMemberNotifications } from "@/lib/repositories/member-notifications";
+import { dismissMemberNotificationAction } from "@/app/app/progress/actions";
 import { getMemberTrainingContext } from "@/lib/repositories/member-onboarding";
 import { getMemberMealPlanForToday } from "@/lib/repositories/nutrition-tracking";
 import { getMemberHabitDay } from "@/lib/repositories/habit-tracking";
@@ -58,12 +60,13 @@ function nextWeeklyCheckin(nextReviewOn?: string | null) {
 
 export default async function MemberDashboard() {
   const brand = await getSelectedMemberAppBrand();
-  const [member, trainingContext, mealPlan, habitDay, personalSessions] = await Promise.all([
+  const [member, trainingContext, mealPlan, habitDay, personalSessions, notifications] = await Promise.all([
     getMemberContext(brand.id),
     getMemberTrainingContext(brand.id),
     getMemberMealPlanForToday(brand.id),
     getMemberHabitDay(brand.id),
     listMemberPersonalTrainingSessions(brand.id, 20),
+    listUnreadMemberNotifications(brand.id, 3),
   ]);
 
   const now = new Date();
@@ -115,6 +118,29 @@ export default async function MemberDashboard() {
           <MessageSquare size={17} /> Hablar con mi coach
         </Link>
       </header>
+
+      {notifications.items.length ? (
+        <section className="memberNotificationsInbox" aria-label="Avisos de tu coach">
+          {notifications.items.map((notification) => (
+            <article className="memberNotificationRow" key={notification.id}>
+              <Link href={notification.url} className="memberNotificationBody">
+                <strong>{notification.title}</strong>
+                {notification.body ? <p>{notification.body}</p> : null}
+              </Link>
+              <form action={dismissMemberNotificationAction}>
+                <input name="workspaceId" type="hidden" value={brand.id} />
+                <input name="notificationId" type="hidden" value={notification.id} />
+                <button aria-label="Marcar aviso como leído" className="memberNotificationDismiss" type="submit">
+                  <Check size={15} />
+                </button>
+              </form>
+            </article>
+          ))}
+          {notifications.total > notifications.items.length ? (
+            <p className="muted">Y {notifications.total - notifications.items.length} aviso(s) más.</p>
+          ) : null}
+        </section>
+      ) : null}
 
       <div className="memberCommandLayout">
         <section className="memberTodayBoard" aria-labelledby="today-heading">
