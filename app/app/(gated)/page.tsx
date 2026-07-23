@@ -20,12 +20,12 @@ import { Button } from "@/components/ui";
 import { getMemberContext } from "@/lib/auth/member-access";
 import { getSelectedMemberAppBrand } from "@/lib/member-app";
 import { listUnreadMemberNotifications } from "@/lib/repositories/member-notifications";
-import { dismissMemberNotificationAction } from "@/app/app/progress/actions";
+import { dismissMemberNotificationAction } from "@/app/app/(gated)/progress/actions";
 import { getMemberTrainingContext } from "@/lib/repositories/member-onboarding";
 import { getMemberMealPlanForToday } from "@/lib/repositories/nutrition-tracking";
 import { getMemberHabitDay } from "@/lib/repositories/habit-tracking";
 import { listMemberPersonalTrainingSessions } from "@/lib/repositories/personal-training-sessions";
-import { toggleHabitAction } from "@/app/app/habits/actions";
+import { toggleHabitAction } from "@/app/app/(gated)/habits/actions";
 
 const HABIT_ICONS: Record<string, React.ComponentType<{ size?: number }>> = {
   droplets: Droplets,
@@ -101,9 +101,9 @@ export default async function MemberDashboard() {
       : {
           state: "En preparación",
           title: "Tu coach está preparando el plan",
-          description: "Tus datos ya están en revisión. Te avisaremos cuando entrenamiento y nutrición estén publicados.",
-          href: "/app/support",
-          action: "Escribir a mi coach",
+          description: "Valoración recibida ✓ · Tu coach revisa y publica entrenamiento y nutrición · Te avisaremos aquí en cuanto esté listo.",
+          href: "/app/progress?tab=medidas",
+          action: "Mientras tanto: envía tu punto de partida",
         };
 
   return (
