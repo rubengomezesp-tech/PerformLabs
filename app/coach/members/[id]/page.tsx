@@ -2,29 +2,33 @@ import {
   Activity,
   ArrowLeft,
   CalendarDays,
+  CheckCircle2,
   ClipboardCheck,
+  CreditCard,
   Dumbbell,
+  ExternalLink,
+  History,
   Mail,
   MessageSquareText,
-  Plus,
+  Rocket,
   ShieldAlert,
   ShieldCheck,
+  SlidersHorizontal,
   Target,
+  TicketCheck,
   TrendingDown,
   UserRound,
 } from "lucide-react";
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { Dialog } from "@/components/dialog";
 import { Topbar } from "@/components/topbar";
 import { SubmitButton } from "@/components/ui";
 import { getSelectedMemberAppBrand } from "@/lib/member-app";
 import { listManagedCheckins } from "@/lib/repositories/checkin-management";
 import { listManagedMembers } from "@/lib/repositories/member-management";
 import { getRetentionRadar, type RetentionTier } from "@/lib/repositories/member-retention";
-import { listManagedDietTemplates } from "@/lib/repositories/nutrition-management";
-import { listManagedWorkoutTemplates } from "@/lib/repositories/training-management";
-import { assignCoachMemberPlansAction } from "../actions";
+import { getManagedMemberSessionBalance, type SessionLedgerEventType } from "@/lib/repositories/session-credits";
+import { adjustCoachMemberSessionsAction } from "../actions";
 
 export const dynamic = "force-dynamic";
 
@@ -54,12 +58,11 @@ function prettyDate(value: string | null) {
 export default async function CoachMemberDetailPage({ params }: MemberDetailPageProps) {
   const { id } = await params;
   const brand = await getSelectedMemberAppBrand();
-  const [members, radar, allCheckins, workoutTemplates, dietTemplates] = await Promise.all([
+  const [members, radar, allCheckins, sessionBalance] = await Promise.all([
     listManagedMembers(brand.id),
     getRetentionRadar(brand.id),
     listManagedCheckins(brand.id),
-    listManagedWorkoutTemplates(brand.id),
-    listManagedDietTemplates(brand.id),
+    getManagedMemberSessionBalance(brand.id, id),
   ]);
 
   const member = members.find((candidate) => candidate.id === id);
@@ -71,6 +74,18 @@ export default async function CoachMemberDetailPage({ params }: MemberDetailPage
   const checkins = allCheckins.filter((checkin) => checkin.memberProfileId === id).slice(0, 5);
   const TierIcon = risk ? tierIcon[risk.tier] : ShieldCheck;
   const plan = member.activeWorkoutPlan;
+  const memberHost = brand.memberDomain || brand.fallbackSubdomain;
+  const memberAccessHref = memberHost ? `https://${memberHost}/m` : "/m";
+  const purchaseBase = `https://pay.rev.cat/yvcgmrwpgqphcyyq/${encodeURIComponent(member.id)}`;
+  const sessionEventLabels: Record<SessionLedgerEventType, string> = {
+    purchase: "Bono comprado",
+    session_used: "Entrenamiento realizado",
+    coach_credit: "Abono manual",
+    coach_debit: "Ajuste manual",
+    refund: "Reembolso",
+    pack_assigned: "Bono asignado",
+    void: "Bono anulado",
+  };
 
   return (
     <>
@@ -84,6 +99,15 @@ export default async function CoachMemberDetailPage({ params }: MemberDetailPage
           </Link>
         }
       />
+
+      <section className="coachMemberLaunchpad">
+        <div className="coachMemberLaunchTitle"><Rocket size={20} /><div><strong>Activa a {member.fullName} en 3 pasos</strong><p>El recorrido completo de la cita, sin buscar por el panel.</p></div></div>
+        <div className="coachMemberLaunchSteps">
+          <Link className="coachMemberLaunchStep" href={`/coach/members/${member.id}/assessment`}><span>{member.onboardingStatus === "complete" ? <CheckCircle2 size={17} /> : "1"}</span><div><small>Primero</small><strong>Valoración</strong></div><ArrowLeft className="launchArrow" size={16} /></Link>
+          <Link className="coachMemberLaunchStep" href={`/coach/members/${member.id}/control`}><span>{plan ? <CheckCircle2 size={17} /> : "2"}</span><div><small>Después</small><strong>Preparar y publicar plan</strong></div><ArrowLeft className="launchArrow" size={16} /></Link>
+          <a className="coachMemberLaunchStep" href={memberAccessHref} rel="noreferrer" target="_blank"><span>3</span><div><small>Enséñale</small><strong>Abrir su acceso</strong></div><ExternalLink size={16} /></a>
+        </div>
+      </section>
 
       <section className="grid">
         <article className="card span3 motionCard">
@@ -119,6 +143,44 @@ export default async function CoachMemberDetailPage({ params }: MemberDetailPage
           </p>
         </article>
 
+        <article className="card span12 coachSessionControl motionCard">
+          <div className="coachSessionSummary">
+            <span className="uiIconChip"><TicketCheck size={20} /></span>
+            <div><span className="eyebrow">Bono de entrenamiento personal</span><strong>{sessionBalance.available}</strong><p>sesiones disponibles</p></div>
+            <dl>
+              <div><dt>Reservadas</dt><dd>{sessionBalance.reserved}</dd></div>
+              <div><dt>Utilizadas</dt><dd>{sessionBalance.totalUsed}</dd></div>
+              <div><dt>Abonadas</dt><dd>{sessionBalance.totalGranted}</dd></div>
+              <div><dt>Caduca antes</dt><dd>{sessionBalance.nextExpiryAt ? prettyDate(sessionBalance.nextExpiryAt) : "Sin caducidad"}</dd></div>
+            </dl>
+          </div>
+
+          <form action={adjustCoachMemberSessionsAction} className="coachSessionForm">
+            <input name="workspaceId" type="hidden" value={brand.id} />
+            <input name="memberProfileId" type="hidden" value={member.id} />
+            <label>Movimiento<select name="operation" defaultValue="add"><option value="add">Añadir sesiones</option></select></label>
+            <label>Cantidad<input name="quantity" type="number" min="1" max="100" defaultValue="1" inputMode="numeric" /></label>
+            <label className="coachSessionNote">Nota visible para el cliente<input name="note" placeholder="Ej. Sesión del 15 de julio" /></label>
+            <SubmitButton variant="primary" successToast="Saldo actualizado">Guardar movimiento</SubmitButton>
+          </form>
+
+          <div className="coachSessionPurchase">
+            <div><CreditCard size={17} /><span><strong>Enviar pago</strong><small>La compra queda vinculada a este cliente al completarse.</small></span></div>
+            <div className="coachSessionPurchaseLinks">
+              <a href={`${purchaseBase}?package_id=rg_10_bundle`} target="_blank" rel="noreferrer">RG 10 · $799 pago único <ExternalLink size={13} /></a>
+              <a href={`${purchaseBase}?package_id=rg_20_monthly`} target="_blank" rel="noreferrer">RG 20 · $1,399/mes <ExternalLink size={13} /></a>
+              <a href={`${purchaseBase}?package_id=rg_360_monthly`} target="_blank" rel="noreferrer">RG 360 · $199/mes <ExternalLink size={13} /></a>
+            </div>
+          </div>
+
+          <div className="coachSessionHistory">
+            <h3><History size={16} /> Últimos movimientos</h3>
+            {sessionBalance.movements.length ? (
+              <ul>{sessionBalance.movements.slice(0, 5).map((movement) => <li key={movement.id}><span className={movement.delta > 0 ? "positive" : "negative"}>{movement.delta > 0 ? "+" : ""}{movement.delta}</span><div><strong>{sessionEventLabels[movement.eventType]}</strong><small>{prettyDate(movement.createdAt)}{movement.note ? ` · ${movement.note}` : ""}</small></div></li>)}</ul>
+            ) : <p>Aún no hay movimientos. Añade el bono inicial o envía un enlace de pago.</p>}
+          </div>
+        </article>
+
         {/* Datos del cliente */}
         <article className="card span5 motionCard">
           <div className="sectionHeader">
@@ -139,13 +201,16 @@ export default async function CoachMemberDetailPage({ params }: MemberDetailPage
             ) : null}
           </ul>
           <div className="memberQuickLinks">
+            <Link className="btn primary sm" href={`/coach/members/${member.id}/assessment`}><ClipboardCheck size={15} /> Primera valoración</Link>
+            <Link className="btn ghost sm" href={`/coach/members/${member.id}/control`}><SlidersHorizontal size={15} /> Centro de control</Link>
+            <Link className="btn ghost sm" href={`/coach/sessions?member=${member.id}`}><CalendarDays size={15} /> Reservar sesión</Link>
             <Link className="btn ghost sm" href="/coach/messages"><MessageSquareText size={15} /> Mensajes</Link>
             <Link className="btn ghost sm" href="/coach/checkins"><ClipboardCheck size={15} /> Check-ins</Link>
           </div>
         </article>
 
         {/* Retención */}
-        <article className="card span7 motionCard">
+        <article className="card span7 motionCard" id="plans">
           <div className="sectionHeader">
             <div>
               <TierIcon color="var(--accent)" aria-hidden="true" />
@@ -203,60 +268,7 @@ export default async function CoachMemberDetailPage({ params }: MemberDetailPage
               <p>Sin entrenamiento asignado todavía.</p>
             )}
           </div>
-          <Dialog
-            triggerClassName="btn"
-            trigger={<>Asignar / editar planes <Plus size={16} /></>}
-            title={`Planes de ${member.fullName}`}
-            description="Entrenamiento, nutrición, fase del bloque y próxima revisión."
-          >
-            <form action={assignCoachMemberPlansAction} className="coachAssignForm">
-              <input name="workspaceId" type="hidden" value={brand.id} />
-              <input name="memberProfileId" type="hidden" value={member.id} />
-              <label>
-                Entrenamiento
-                <select name="workoutTemplateId" defaultValue="">
-                  <option value="">Sin cambio</option>
-                  {workoutTemplates.map((template) => (
-                    <option key={template.id} value={template.id}>{template.name}</option>
-                  ))}
-                </select>
-              </label>
-              <label>
-                Objetivo de fase
-                <input name="assignmentGoal" defaultValue={plan?.assignmentGoal ?? member.goal} placeholder="Definición, fuerza, adherencia..." />
-              </label>
-              <label>
-                Mes
-                <select name="currentMonth" defaultValue={String(plan?.currentMonth ?? 1)}>
-                  <option value="1">Mes 1</option>
-                  <option value="2">Mes 2</option>
-                  <option value="3">Mes 3</option>
-                </select>
-              </label>
-              <label>
-                Semana
-                <input name="currentWeek" defaultValue={String(plan?.currentWeek ?? 1)} min="1" max="12" type="number" inputMode="numeric" />
-              </label>
-              <label>
-                Próxima revisión
-                <input name="nextReviewOn" defaultValue={plan?.nextReviewOn ?? ""} type="date" />
-              </label>
-              <label>
-                Nutrición
-                <select name="dietTemplateId" defaultValue="">
-                  <option value="">Sin cambio</option>
-                  {dietTemplates.map((template) => (
-                    <option key={template.id} value={template.id}>{template.name}</option>
-                  ))}
-                </select>
-              </label>
-              <label className="spanFull">
-                Notas internas
-                <input name="assignmentNotes" placeholder="Contexto, molestias, preferencias, foco de la fase..." />
-              </label>
-              <SubmitButton variant="primary" className="spanFull" successToast="Planes asignados">Asignar planes</SubmitButton>
-            </form>
-          </Dialog>
+          <Link className="btn primary" href={`/coach/members/${member.id}/control`}><SlidersHorizontal size={16} /> Preparar y publicar plan</Link>
         </article>
 
         {/* Check-ins recientes */}

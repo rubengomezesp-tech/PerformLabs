@@ -7,6 +7,8 @@ import { platformBrand } from "@/lib/brand";
 import type { ShellSession } from "@/components/page-shell";
 import type { WorkspaceBrand } from "@/lib/repositories/workspaces";
 import { workspaceBrandMarkUrl } from "@/lib/workspace-brand-assets";
+import { LocaleSwitcher } from "@/components/locale-switcher";
+import type { Locale } from "@/lib/i18n/config";
 
 type NavItem = {
   label: string;
@@ -21,12 +23,18 @@ export function Sidebar({
   productLabel,
   brand,
   session,
+  locale,
+  i18nLabels,
+  collapseFolders = false,
 }: {
   nav: NavItem[];
   active: string;
   productLabel: string;
   brand?: WorkspaceBrand;
   session?: ShellSession;
+  locale?: Locale;
+  i18nLabels?: { language: string; changeLanguage: string; signedIn: string; localMode: string; signOut: string };
+  collapseFolders?: boolean;
 }) {
   const displayBrand = brand ?? {
     appName: platformBrand.monogram,
@@ -53,6 +61,7 @@ export function Sidebar({
           <strong>{displayBrand.name}</strong>
         </span>
       </Link>
+      {locale ? <LocaleSwitcher className="sidebarLocale" current={locale} label={i18nLabels?.language ?? "Idioma"} changeLabel={i18nLabels?.changeLanguage ?? "Cambiar idioma"} supportedLocales={["es", "en"]} /> : null}
       <CommandPalette
         items={nav.flatMap((item) =>
           item.children?.length
@@ -68,7 +77,7 @@ export function Sidebar({
 
           if (item.children?.length) {
             return (
-              <details className="navFolder" key={item.label} open>
+              <details className="navFolder" key={item.label} open={!collapseFolders}>
                 <summary>
                   <Icon size={18} />
                   {item.label}
@@ -102,12 +111,12 @@ export function Sidebar({
       </nav>
       {session ? (
         <div className="sessionBadge">
-          <span>{session.mode === "authenticated" ? "Estás dentro" : "Modo local"}</span>
+          <span>{session.mode === "authenticated" ? (i18nLabels?.signedIn ?? "Estás dentro") : (i18nLabels?.localMode ?? "Modo local")}</span>
           <strong>{session.email}</strong>
           <small>{session.roleLabel}</small>
           {session.mode === "authenticated" ? (
             <form action={signOutAction}>
-              <button type="submit">Cerrar sesión</button>
+              <button type="submit">{i18nLabels?.signOut ?? "Cerrar sesión"}</button>
             </form>
           ) : null}
         </div>

@@ -34,6 +34,7 @@ const defaultAppPages: MemberAppPage[] = [
   { title: "Panel", route: "/app", pageType: "dashboard", menuArea: "main", sortOrder: 10, status: "active", isSystem: true },
   { title: "Inicio", route: "/app/onboarding", pageType: "onboarding", menuArea: "main", sortOrder: 15, status: "active", isSystem: true },
   { title: "Entreno", route: "/app/workouts", pageType: "workouts", menuArea: "main", sortOrder: 20, status: "active", isSystem: true },
+  { title: "Sesiones", route: "/app/sessions", pageType: "sessions", menuArea: "main", sortOrder: 22, status: "active", isSystem: true },
   { title: "Comida", route: "/app/meals", pageType: "nutrition", menuArea: "main", sortOrder: 30, status: "active", isSystem: true },
   { title: "Suplementos", route: "/app/supplements", pageType: "supplements", menuArea: "main", sortOrder: 32, status: "active", isSystem: true },
   { title: "Alimentos", route: "/app/foods", pageType: "foods", menuArea: "main", sortOrder: 34, status: "active", isSystem: true },

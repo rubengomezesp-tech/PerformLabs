@@ -6,10 +6,12 @@ import {
   Apple,
   BarChart3,
   BookOpen,
+  CalendarDays,
   ClipboardList,
   Dumbbell,
   Flame,
   LayoutDashboard,
+  Menu,
   MessageSquare,
   Pill,
   Salad,
@@ -27,14 +29,30 @@ const selectedWorkspaceCookie = "performlabs_workspace_id";
 
 type MemberNavItem = {
   label: string;
-  href: string;
+  href?: string;
   icon: React.ComponentType<{ size?: number }>;
+  children?: MemberNavItem[];
+};
+
+const primaryMemberPageTypes = ["dashboard", "workouts", "sessions", "nutrition", "progress", "habits", "support"];
+
+const memberPageLabels: Record<string, string> = {
+  dashboard: "Hoy",
+  onboarding: "Mi ficha",
+  workouts: "Entreno",
+  sessions: "Sesiones",
+  nutrition: "Comidas",
+  progress: "Progreso",
+  habits: "Hábitos",
+  support: "Mensajes",
+  content: "Guías",
 };
 
 const iconByPageType: Record<string, React.ComponentType<{ size?: number }>> = {
   dashboard: LayoutDashboard,
   onboarding: ClipboardList,
   workouts: Dumbbell,
+  sessions: CalendarDays,
   nutrition: Apple,
   supplements: Pill,
   foods: Salad,
@@ -67,7 +85,7 @@ async function getRequestHost() {
  */
 function toNavItem(page: MemberAppPage): MemberNavItem {
   return {
-    label: page.title,
+    label: memberPageLabels[page.pageType] ?? page.title,
     href: page.route,
     icon: iconByPageType[page.pageType] ?? LayoutDashboard,
   };
@@ -115,10 +133,20 @@ export async function getSelectedMemberAppShell(): Promise<{
 }> {
   const brand = await getSelectedMemberAppBrand();
   const pages = await listWorkspaceAppPages(brand.id);
-  const nav = pages
-    .filter((page) => page.menuArea === "main")
+  const visiblePages = pages
+    .filter((page) => page.menuArea === "main" && page.status === "active")
     .sort((left, right) => left.sortOrder - right.sortOrder)
+  const primaryPages = primaryMemberPageTypes.flatMap((pageType) => {
+    const page = visiblePages.find((candidate) => candidate.pageType === pageType);
+    return page ? [toNavItem(page)] : [];
+  });
+  const secondaryPages = visiblePages
+    .filter((page) => !primaryMemberPageTypes.includes(page.pageType))
     .map(toNavItem);
+  const nav: MemberNavItem[] = [
+    ...primaryPages,
+    ...(secondaryPages.length ? [{ label: "Más", icon: Menu, children: secondaryPages }] : []),
+  ];
 
   return {
     brand,

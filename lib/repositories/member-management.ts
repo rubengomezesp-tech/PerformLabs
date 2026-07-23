@@ -749,7 +749,7 @@ export async function createManagedMember(input: MemberInput) {
     throw new Error(`No se pudo crear el usuario: ${userResult.error?.message ?? "sin usuario"}`);
   }
 
-  const { error } = await supabase.from("member_profiles").insert({
+  const profileResult = await supabase.from("member_profiles").insert({
     workspace_id: input.workspaceId,
     user_id: userResult.data.user.id,
     full_name: fullName,
@@ -761,12 +761,14 @@ export async function createManagedMember(input: MemberInput) {
     timezone: input.timezone.trim() || "Europe/Madrid",
     subscription_status: "trialing",
     onboarding_status: "invited",
-  });
+  }).select("id").single();
 
-  if (error) {
+  if (profileResult.error || !profileResult.data) {
     await supabase.auth.admin.deleteUser(userResult.data.user.id);
-    throw new Error(`No se pudo crear el perfil: ${error.message}`);
+    throw new Error(`No se pudo crear el perfil: ${profileResult.error?.message ?? "sin respuesta"}`);
   }
+
+  return profileResult.data.id;
 }
 
 async function findAuthUserIdByEmail(

@@ -2,7 +2,7 @@
 
 import { useMemo, useState } from "react";
 import Link from "next/link";
-import { ClipboardCheck, Layers, Mail, MessageSquareText, Plus, Search, UserRound, Users } from "lucide-react";
+import { ClipboardCheck, Layers, Mail, MessageSquareText, Search, SlidersHorizontal, UserRound, Users } from "lucide-react";
 import { Dialog } from "@/components/dialog";
 import { EmptyState } from "@/components/empty-state";
 import { SubmitButton } from "@/components/ui";
@@ -25,14 +25,12 @@ export function MembersExplorer({
   members,
   workoutTemplates,
   dietTemplates,
-  assignAction,
   bulkAssignAction,
 }: {
   brandId: string;
   members: ManagedMember[];
   workoutTemplates: PlanOption[];
   dietTemplates: DietOption[];
-  assignAction: (formData: FormData) => void | Promise<void>;
   bulkAssignAction: (formData: FormData) => void | Promise<void>;
 }) {
   const [query, setQuery] = useState("");
@@ -161,8 +159,8 @@ export function MembersExplorer({
                   Objetivo de fase
                   <input name="assignmentGoal" placeholder="Definición, fuerza, adherencia..." />
                 </label>
-                <p className="membersBulkHint spanFull">Se asignará a {selected.size} miembro(s) · Mes 1 · Semana 1.</p>
-                <SubmitButton variant="primary" className="spanFull" successToast={`Planes asignados a ${selected.size} miembro(s)`}>
+                <p className="membersBulkHint spanFull">Solo se publicará en clientes con valoración profesional completa · Mes 1 · Semana 1.</p>
+                <SubmitButton variant="primary" className="spanFull" successToast="Asignación en lote procesada">
                   Asignar a {selected.size}
                 </SubmitButton>
               </form>
@@ -210,60 +208,7 @@ export function MembersExplorer({
             <Link className="btn ghost sm" href="/coach/messages"><MessageSquareText size={15} /> Mensajes</Link>
             <Link className="btn ghost sm" href="/coach/checkins"><ClipboardCheck size={15} /> Check-ins</Link>
           </div>
-          <Dialog
-            triggerClassName="btn"
-            trigger={<>Asignar / editar planes <Plus size={16} /></>}
-            title={`Planes de ${member.fullName}`}
-            description="Entrenamiento, nutrición, fase del bloque y próxima revisión."
-          >
-          <form action={assignAction} className="coachAssignForm">
-            <input name="workspaceId" type="hidden" value={brandId} />
-            <input name="memberProfileId" type="hidden" value={member.id} />
-            <label>
-              Entrenamiento
-              <select name="workoutTemplateId" defaultValue="">
-                <option value="">Sin cambio</option>
-                {workoutTemplates.map((template) => (
-                  <option key={template.id} value={template.id}>{template.name}</option>
-                ))}
-              </select>
-            </label>
-            <label>
-              Objetivo de fase
-              <input name="assignmentGoal" defaultValue={member.activeWorkoutPlan?.assignmentGoal ?? member.goal} placeholder="Definición, fuerza, adherencia..." />
-            </label>
-            <label>
-              Mes
-              <select name="currentMonth" defaultValue={String(member.activeWorkoutPlan?.currentMonth ?? 1)}>
-                <option value="1">Mes 1</option>
-                <option value="2">Mes 2</option>
-                <option value="3">Mes 3</option>
-              </select>
-            </label>
-            <label>
-              Semana
-              <input name="currentWeek" defaultValue={String(member.activeWorkoutPlan?.currentWeek ?? 1)} min="1" max="12" type="number" inputMode="numeric" />
-            </label>
-            <label>
-              Próxima revisión
-              <input name="nextReviewOn" defaultValue={member.activeWorkoutPlan?.nextReviewOn ?? ""} type="date" />
-            </label>
-            <label>
-              Nutrición
-              <select name="dietTemplateId" defaultValue="">
-                <option value="">Sin cambio</option>
-                {dietTemplates.map((template) => (
-                  <option key={template.id} value={template.id}>{template.name}</option>
-                ))}
-              </select>
-            </label>
-            <label className="spanFull">
-              Notas internas
-              <input name="assignmentNotes" placeholder="Contexto, molestias, preferencias, foco de la fase..." />
-            </label>
-            <SubmitButton variant="primary" className="spanFull" successToast="Planes asignados">Asignar planes</SubmitButton>
-          </form>
-          </Dialog>
+          <Link className="btn primary" href={`/coach/members/${member.id}/control`}><SlidersHorizontal size={16} /> Preparar y publicar plan</Link>
         </article>
       )) : (
         <EmptyState

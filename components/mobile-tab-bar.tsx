@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Dumbbell, Home, LineChart, MessageSquare, Utensils } from "lucide-react";
+import { CalendarDays, Dumbbell, Home, LineChart, MessageSquare, Utensils } from "lucide-react";
 
 type Tab = {
   label: string;
@@ -12,19 +12,22 @@ type Tab = {
 };
 
 const TABS: Tab[] = [
-  { label: "Panel", href: "/app", icon: Home, match: (p) => p === "/app" },
-  { label: "Entreno", href: "/app/workouts", icon: Dumbbell, match: (p) => p.startsWith("/app/workouts") || p.startsWith("/app/cardio") || p.startsWith("/app/recovery") },
-  { label: "Comida", href: "/app/meals", icon: Utensils, match: (p) => p.startsWith("/app/meals") || p.startsWith("/app/recipes") || p.startsWith("/app/diary") },
+  { label: "Hoy", href: "/app", icon: Home, match: (p) => p === "/app" },
+  { label: "Entreno", href: "/app/workouts", icon: Dumbbell, match: (p) => p.startsWith("/app/workouts") || p.startsWith("/app/sessions") || p.startsWith("/app/cardio") || p.startsWith("/app/recovery") },
+  { label: "Comidas", href: "/app/meals", icon: Utensils, match: (p) => p.startsWith("/app/meals") || p.startsWith("/app/recipes") || p.startsWith("/app/diary") },
   { label: "Progreso", href: "/app/progress", icon: LineChart, match: (p) => p.startsWith("/app/progress") },
   { label: "Soporte", href: "/app/support", icon: MessageSquare, match: (p) => p.startsWith("/app/support") || p.startsWith("/app/guides") },
 ];
 
 export function MobileTabBar() {
   const pathname = usePathname() || "/app";
+  const tabs = pathname.startsWith("/app/sessions")
+    ? TABS.map((tab) => tab.label === "Entreno" ? { ...tab, label: "Sesiones", href: "/app/sessions", icon: CalendarDays } : tab)
+    : TABS;
 
   return (
     <nav className="mobileTabBar" aria-label="Navegación principal">
-      {TABS.map((tab) => {
+      {tabs.map((tab) => {
         const Icon = tab.icon;
         const active = tab.match(pathname);
         return (

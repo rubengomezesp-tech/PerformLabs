@@ -1,13 +1,13 @@
-import { Plus, UserPlus } from "lucide-react";
-import { Dialog } from "@/components/dialog";
+import { ClipboardCheck, UserPlus } from "lucide-react";
+import { MemberExpressCreate } from "@/components/coach/member-express-create";
 import { MembersExplorer } from "@/components/coach/members-explorer";
 import { Topbar } from "@/components/topbar";
-import { SubmitButton } from "@/components/ui";
+import { utcToLocalDateTime } from "@/lib/domain/personal-training-schedule";
 import { getSelectedMemberAppBrand } from "@/lib/member-app";
 import { listManagedMembers } from "@/lib/repositories/member-management";
 import { listManagedDietTemplates } from "@/lib/repositories/nutrition-management";
 import { listManagedWorkoutTemplates } from "@/lib/repositories/training-management";
-import { assignCoachMemberPlansAction, bulkAssignCoachMemberPlansAction, createCoachMemberAction } from "./actions";
+import { bulkAssignCoachMemberPlansAction, createCoachMemberAction } from "./actions";
 
 export const dynamic = "force-dynamic";
 
@@ -18,54 +18,30 @@ export default async function CoachMembersPage() {
     listManagedWorkoutTemplates(brand.id),
     listManagedDietTemplates(brand.id),
   ]);
+  const now = new Date().getTime();
+  const roundedStart = new Date(Math.ceil((now + 30 * 60_000) / 1_800_000) * 1_800_000);
 
   return (
     <>
       <Topbar
         eyebrow="Miembros"
-        title="Clientes, acceso y seguimiento."
-        text="El entrenador ve quién está activo, qué plan tiene asignado y qué necesita revisión."
+        title="Clientes"
+        text="Da de alta, valora y activa el plan de cada cliente desde un único recorrido."
         actions={
-          <Dialog
-            triggerClassName="btn primary"
-            trigger={<>Crear miembro <Plus size={18} /></>}
-            title={`Crear miembro en ${brand.name}`}
-            description="Después podrás asignarle entrenamiento, nutrición y check-ins."
-          >
-            <form action={createCoachMemberAction} className="editForm">
-              <input name="workspaceId" type="hidden" value={brand.id} />
-              <label>
-                Nombre
-                <input name="fullName" placeholder="Cliente demo" required />
-              </label>
-              <label>
-                Email
-                <input name="email" placeholder="cliente@email.com" required type="email" />
-              </label>
-              <label>
-                Objetivo
-                <input name="goal" placeholder="Definición, fuerza..." />
-              </label>
-              <label>
-                Peso inicial (kg)
-                <input name="startingWeightKg" placeholder="82" />
-              </label>
-              <input name="phone" type="hidden" value="" />
-              <input name="heightCm" type="hidden" value="" />
-              <input name="sex" type="hidden" value="" />
-              <input name="timezone" type="hidden" value="Europe/Madrid" />
-              <SubmitButton variant="primary" className="spanFull" successToast="Miembro creado">Crear miembro <UserPlus size={18} /></SubmitButton>
-            </form>
-          </Dialog>
+          <MemberExpressCreate brandId={brand.id} brandName={brand.name} defaultStart={utcToLocalDateTime(roundedStart, "America/New_York")} action={createCoachMemberAction} />
         }
       />
       <section className="grid">
+        <article className="span12 coachQuickStartBar">
+          <span><UserPlus size={18} /><strong>Alta express</strong></span>
+          <ol><li><b>1</b> Crear cliente</li><li><b>2</b> Completar valoración</li><li><b>3</b> Publicar plan y abrir su acceso</li></ol>
+          <span className="coachQuickStartHint"><ClipboardCheck size={16} /> Al crearle, irás automáticamente al formulario.</span>
+        </article>
         <MembersExplorer
           brandId={brand.id}
           members={members}
           workoutTemplates={workoutTemplates}
           dietTemplates={dietTemplates}
-          assignAction={assignCoachMemberPlansAction}
           bulkAssignAction={bulkAssignCoachMemberPlansAction}
         />
       </section>

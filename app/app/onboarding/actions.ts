@@ -4,7 +4,7 @@ import { cookies } from "next/headers";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { canManageWorkspace, getConsoleSession } from "@/lib/auth/access-control";
-import { applyOnboardingPlanRecommendation, saveMemberOnboarding } from "@/lib/repositories/member-onboarding";
+import { saveMemberOnboarding } from "@/lib/repositories/member-onboarding";
 
 function readText(formData: FormData, key: string) {
   const value = formData.get(key);
@@ -20,6 +20,7 @@ export async function saveMemberOnboardingAction(formData: FormData) {
   const session = await getConsoleSession();
   const allowProvision = Boolean(session && canManageWorkspace(session, workspaceId));
   let errorMessage = "";
+  let reviewMode = "coach";
 
   try {
     const result = await saveMemberOnboarding({
@@ -35,6 +36,14 @@ export async function saveMemberOnboardingAction(formData: FormData) {
       timezone: readText(formData, "timezone"),
       injuries: readText(formData, "injuries"),
       healthConditions: readText(formData, "healthConditions"),
+      currentPain: readText(formData, "currentPain"),
+      chestPain: readText(formData, "chestPain"),
+      fainting: readText(formData, "fainting"),
+      uncontrolledBloodPressure: readText(formData, "uncontrolledBloodPressure"),
+      medicalRestrictions: readText(formData, "medicalRestrictions"),
+      medications: readText(formData, "medications"),
+      eatingDisorderHistory: readText(formData, "eatingDisorderHistory"),
+      healthConsent: readText(formData, "healthConsent") === "yes",
       experienceLevel: readText(formData, "experienceLevel"),
       availableEquipment: readText(formData, "availableEquipment"),
       preferredTrainingDays: readText(formData, "preferredTrainingDays"),
@@ -56,17 +65,7 @@ export async function saveMemberOnboardingAction(formData: FormData) {
       notes: readText(formData, "notes"),
     });
 
-    // Connect the branches: once the brief is saved, generate and assign the
-    // workout + meal plan automatically. Best-effort — if the workspace has no
-    // matching templates yet, the member stays "pending" (coach will publish)
-    // instead of failing the whole submit.
-    if (result.responseId) {
-      try {
-        await applyOnboardingPlanRecommendation({ workspaceId, responseId: result.responseId });
-      } catch (applyError) {
-        console.error("No se pudo generar el plan automáticamente:", applyError);
-      }
-    }
+    reviewMode = result.requiresCoachReview ? "medical" : "coach";
   } catch (error) {
     console.error("No se pudo guardar el onboarding del miembro:", error);
     errorMessage = error instanceof Error ? error.message : "No se pudo guardar tu cuestionario. Inténtalo de nuevo.";
@@ -82,5 +81,5 @@ export async function saveMemberOnboardingAction(formData: FormData) {
   if (errorMessage) {
     redirect(`/app/onboarding?error=${encodeURIComponent(errorMessage)}`);
   }
-  redirect("/app");
+  redirect(`/app/onboarding?submitted=1&review=${reviewMode}`);
 }

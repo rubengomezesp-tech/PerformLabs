@@ -11,11 +11,13 @@ export function LocaleSwitcher({
   label,
   changeLabel,
   className,
+  supportedLocales = locales,
 }: {
   current: Locale;
   label: string;
   changeLabel: string;
   className?: string;
+  supportedLocales?: readonly Locale[];
 }) {
   const [open, setOpen] = useState(false);
   const [pending, startTransition] = useTransition();
@@ -63,7 +65,7 @@ export function LocaleSwitcher({
       </button>
       {open ? (
         <div className="localeMenu" role="listbox" aria-label={label}>
-          {locales.map((locale) => (
+          {supportedLocales.map((locale) => (
             <button
               key={locale}
               type="button"

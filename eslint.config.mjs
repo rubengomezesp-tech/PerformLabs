@@ -7,6 +7,9 @@ const eslintConfig = [
     ignores: [
       ".next/**",
       "node_modules/**",
+      "mobile/.expo/**",
+      "mobile/dist/**",
+      "mobile/node_modules/**",
       "scripts/**",
       "supabase/**",
       "public/**",
@@ -22,6 +25,14 @@ const eslintConfig = [
     rules: {
       "react-hooks/set-state-in-effect": "warn",
       "react-hooks/purity": "warn",
+    },
+  },
+  {
+    files: ["mobile/**/*.{ts,tsx}"],
+    rules: {
+      // These web-oriented rules do not model React Native Image/effect patterns.
+      "jsx-a11y/alt-text": "off",
+      "react-hooks/set-state-in-effect": "off",
     },
   },
 ];

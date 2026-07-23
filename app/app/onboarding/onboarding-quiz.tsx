@@ -21,6 +21,7 @@ import {
   HeartPulse,
   Home,
   Leaf,
+  LockKeyhole,
   Moon,
   Mountain,
   PiggyBank,
@@ -35,6 +36,7 @@ import {
   UserRound,
   Wallet,
   Wheat,
+  Stethoscope,
 } from "lucide-react";
 import { saveMemberOnboardingAction } from "./actions";
 
@@ -59,6 +61,14 @@ type Answers = {
   injuriesOther: string;
   healthConditions: string[];
   healthOther: string;
+  currentPain: string;
+  chestPain: string;
+  fainting: string;
+  uncontrolledBloodPressure: string;
+  medicalRestrictions: string;
+  medications: string;
+  eatingDisorderHistory: string;
+  healthConsent: boolean;
   sleepHours: string;
   stepsTarget: string;
   dietStyle: string[];
@@ -73,6 +83,7 @@ type Answers = {
   budgetLevel: string;
   fullName: string;
   notes: string;
+  timezone: string;
 };
 
 const initialAnswers: Answers = {
@@ -93,6 +104,14 @@ const initialAnswers: Answers = {
   injuriesOther: "",
   healthConditions: [],
   healthOther: "",
+  currentPain: "",
+  chestPain: "",
+  fainting: "",
+  uncontrolledBloodPressure: "",
+  medicalRestrictions: "",
+  medications: "",
+  eatingDisorderHistory: "",
+  healthConsent: false,
   sleepHours: "",
   stepsTarget: "",
   dietStyle: [],
@@ -107,6 +126,7 @@ const initialAnswers: Answers = {
   budgetLevel: "",
   fullName: "",
   notes: "",
+  timezone: "America/New_York",
 };
 
 const sexOptions: Choice[] = [
@@ -358,6 +378,29 @@ function MultiSelect({
   );
 }
 
+function SafetyQuestion({
+  label,
+  hint,
+  value,
+  onChange,
+}: {
+  label: string;
+  hint: string;
+  value: string;
+  onChange: (value: string) => void;
+}) {
+  return (
+    <fieldset className="quizSafetyQuestion">
+      <legend>{label}</legend>
+      <p>{hint}</p>
+      <div>
+        <button type="button" className={value === "no" ? "selected" : ""} aria-pressed={value === "no"} onClick={() => onChange("no")}><Check size={14} /> No</button>
+        <button type="button" className={value === "yes" ? "selected warning" : ""} aria-pressed={value === "yes"} onClick={() => onChange("yes")}>Sí</button>
+      </div>
+    </fieldset>
+  );
+}
+
 function ageToBirthDate(answers: Answers): string {
   let age: number | null = null;
   const exact = Number.parseInt(answers.ageExact, 10);
@@ -396,6 +439,13 @@ function buildFormValues(answers: Answers): Record<string, string> {
     sessionMinutes: answers.sessionMinutes || "60",
     injuries: joinList(answers.injuries, answers.injuriesOther, ["Ninguna"]),
     healthConditions: joinList(answers.healthConditions, answers.healthOther, ["Ninguna"]),
+    currentPain: answers.currentPain,
+    chestPain: answers.chestPain,
+    fainting: answers.fainting,
+    uncontrolledBloodPressure: answers.uncontrolledBloodPressure,
+    medicalRestrictions: answers.medicalRestrictions,
+    medications: answers.medications,
+    eatingDisorderHistory: answers.eatingDisorderHistory,
     sleepHours: answers.sleepHours,
     stepsTarget: answers.stepsTarget || "8000",
     dietStyle: diet.length ? diet.join(", ") : "Flexible",
@@ -406,7 +456,7 @@ function buildFormValues(answers: Answers): Record<string, string> {
     cookingTimeMinutes: answers.cookingTimeMinutes || "20",
     budgetLevel: answers.budgetLevel || "Medio",
     // Sensible defaults for fields the coach can still refine later.
-    timezone: "Europe/Madrid",
+    timezone: answers.timezone,
     cardioPreference: "Caminar",
     preferredTrainingDays: "",
   };
@@ -421,8 +471,21 @@ type Screen = {
   content: React.ReactNode;
 };
 
-export function OnboardingQuiz({ workspaceId, appName }: { workspaceId: string; appName: string }) {
-  const [answers, setAnswers] = useState<Answers>(initialAnswers);
+function phaseForKey(key: string) {
+  if (["intro", "sex", "age", "measures", "activity", "goal"].includes(key)) return "Tu punto de partida";
+  if (["location", "equipment", "experience", "days", "session"].includes(key)) return "Tu entrenamiento";
+  if (["injuries", "health", "safety"].includes(key)) return "Seguridad y salud";
+  if (["recovery"].includes(key)) return "Recuperación";
+  if (["diet", "allergies", "meals", "foods", "kitchen"].includes(key)) return "Tu alimentación";
+  return "Revisión final";
+}
+
+export function OnboardingQuiz({ workspaceId, appName, defaultTimezone, initialFullName, error }: { workspaceId: string; appName: string; defaultTimezone: string; initialFullName: string; error?: string }) {
+  const [answers, setAnswers] = useState<Answers>(() => ({
+    ...initialAnswers,
+    fullName: initialFullName,
+    timezone: defaultTimezone || "America/New_York",
+  }));
   const [step, setStep] = useState(0);
 
   function update<K extends keyof Answers>(key: K, value: Answers[K]) {
@@ -435,6 +498,14 @@ export function OnboardingQuiz({ workspaceId, appName }: { workspaceId: string; 
   })();
 
   const screens: Screen[] = [
+    {
+      key: "intro",
+      icon: LockKeyhole,
+      title: "Vamos a conocerte bien",
+      subtitle: "Tu coach revisará personalmente esta información antes de publicar cualquier plan.",
+      valid: true,
+      content: <div className="quizIntroTrust"><div><Clock size={18} /><span><strong>6–8 minutos</strong><small>Puedes avanzar a tu ritmo</small></span></div><div><ShieldCheck size={18} /><span><strong>Información privada</strong><small>Solo la ve tu coach</small></span></div><div><Stethoscope size={18} /><span><strong>Seguridad primero</strong><small>Las alertas se revisan antes de entrenar</small></span></div></div>,
+    },
     {
       key: "sex",
       icon: UserRound,
@@ -622,6 +693,22 @@ export function OnboardingQuiz({ workspaceId, appName }: { workspaceId: string; 
       ),
     },
     {
+      key: "safety",
+      icon: Stethoscope,
+      title: "Cribado de seguridad",
+      subtitle: "Responde con sinceridad. Un “sí” no te excluye: indica que tu coach debe revisarlo antes de activar el plan.",
+      valid: [answers.currentPain, answers.chestPain, answers.fainting, answers.uncontrolledBloodPressure, answers.medicalRestrictions, answers.eatingDisorderHistory].every(Boolean),
+      content: <div className="quizSafetyGrid">
+        <SafetyQuestion label="¿Tienes dolor actualmente?" hint="Dolor que pueda afectar al ejercicio." value={answers.currentPain} onChange={(value) => update("currentPain", value)} />
+        <SafetyQuestion label="¿Dolor en el pecho con esfuerzo?" hint="Durante ejercicio o actividad cotidiana." value={answers.chestPain} onChange={(value) => update("chestPain", value)} />
+        <SafetyQuestion label="¿Mareos o desmayos recientes?" hint="Pérdida de conciencia o equilibrio sin causa clara." value={answers.fainting} onChange={(value) => update("fainting", value)} />
+        <SafetyQuestion label="¿Tensión arterial sin controlar?" hint="Diagnosticada o pendiente de revisión médica." value={answers.uncontrolledBloodPressure} onChange={(value) => update("uncontrolledBloodPressure", value)} />
+        <SafetyQuestion label="¿Alguna restricción médica?" hint="Una indicación profesional que limite el ejercicio." value={answers.medicalRestrictions} onChange={(value) => update("medicalRestrictions", value)} />
+        <SafetyQuestion label="¿Antecedentes de TCA?" hint="Para adaptar el enfoque nutricional con cuidado." value={answers.eatingDisorderHistory} onChange={(value) => update("eatingDisorderHistory", value)} />
+        <label className="quizSafetyMedication">Medicación actual (opcional)<input value={answers.medications} onChange={(event) => update("medications", event.target.value)} placeholder="Nombre y pauta, si es relevante" /></label>
+      </div>,
+    },
+    {
       key: "recovery",
       icon: Moon,
       title: "Descanso y movimiento",
@@ -725,8 +812,8 @@ export function OnboardingQuiz({ workspaceId, appName }: { workspaceId: string; 
     key: "final",
     icon: CheckCircle2,
     title: "¡Casi listo!",
-    subtitle: "Revisaremos esto para preparar tu entrenamiento y tu comida.",
-    valid: true,
+    subtitle: "Tu coach recibirá una lectura organizada y revisará cualquier alerta antes de publicar el plan.",
+    valid: answers.healthConsent,
     content: (
       <form action={saveMemberOnboardingAction} className="quizFinalForm">
         <input name="workspaceId" type="hidden" value={workspaceId} />
@@ -747,8 +834,12 @@ export function OnboardingQuiz({ workspaceId, appName }: { workspaceId: string; 
           <span><strong>Días</strong>{answers.daysPerWeek || "·"}/semana · {answers.sessionMinutes || "·"} min</span>
           <span><strong>Comidas</strong>{answers.mealsPerDay || "·"}/día</span>
         </div>
-        <button className="btn primary quizSubmit" type="submit">
-          <Sparkles size={16} /> Crear mi plan en {appName}
+        <label className="quizConsent">
+          <input name="healthConsent" type="checkbox" value="yes" checked={answers.healthConsent} onChange={(event) => update("healthConsent", event.target.checked)} required />
+          <span><ShieldCheck size={17} /><span><strong>Confirmo que la información es correcta</strong><small>Entiendo que este cuestionario no sustituye una evaluación o diagnóstico médico.</small></span></span>
+        </label>
+        <button className="btn primary quizSubmit" type="submit" disabled={!answers.healthConsent}>
+          <Sparkles size={16} /> Enviar mi valoración a {appName}
         </button>
       </form>
     ),
@@ -763,7 +854,9 @@ export function OnboardingQuiz({ workspaceId, appName }: { workspaceId: string; 
 
   return (
     <div className="onboardingQuiz">
+      {error ? <p className="quizError" role="alert">{error}</p> : null}
       <div className="quizHeader">
+        <span className="quizPhase">{phaseForKey(current.key)}</span>
         <div className="quizProgress" aria-hidden>
           <span style={{ width: `${progress}%` }} />
         </div>

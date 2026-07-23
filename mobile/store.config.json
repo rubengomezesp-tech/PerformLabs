@@ -1,0 +1,41 @@
+{
+  "configVersion": 0,
+  "apple": {
+    "copyright": "2026 Rubén Gómez",
+    "categories": ["HEALTH_AND_FITNESS", "LIFESTYLE"],
+    "release": {
+      "automaticRelease": false,
+      "phasedRelease": false
+    },
+    "info": {
+      "en-US": {
+        "title": "RG Coach",
+        "subtitle": "Your coaching plan, every day",
+        "description": "RG Coach is the private companion app for clients coached by Rubén Gómez.\n\nSee your most important action the moment you open the app. Follow the training and nutrition structure published by your coach, complete daily habits, review your current program and keep your personal-training session balance under control.\n\nYOUR PLAN, ALWAYS CLEAR\n• Today-first training route\n• Published training and nutrition plan\n• Daily habits and adherence\n• Program progress and next review\n• Remaining, purchased and expiring sessions\n• Upcoming personal-training appointment\n\nCONNECTED TO YOUR COACH\nChanges made from the coach console appear in the client app, keeping every adjustment in one private place.\n\nPRIVATE BY DESIGN\nEach client signs in to a private account. Access is scoped to that client's coaching workspace and profile. RG Coach does not sell personal data.\n\nAn optional secure checkout is available for purchasing ten live 1:1 or in-person training sessions. This is a one-time payment for a person-to-person service, not a digital subscription.",
+        "keywords": ["fitness", "personal trainer", "coaching", "workout", "nutrition", "habits", "progress"],
+        "promoText": "Your training, nutrition, habits and personal-coaching sessions in one clear private app.",
+        "marketingUrl": "https://rubengomezcoaching.com/?lang=en",
+        "supportUrl": "https://rubengomezcoaching.com/?lang=en#contacto",
+        "privacyPolicyUrl": "https://rubengomezcoaching.com/privacy"
+      },
+      "es-MX": {
+        "title": "RG Coach",
+        "subtitle": "Tu plan de coaching, cada día",
+        "description": "RG Coach es la app privada para los clientes de coaching de Rubén Gómez.\n\nAl abrirla verás de inmediato la acción más importante del día. Sigue la estructura de entrenamiento y alimentación publicada por tu coach, completa tus hábitos, revisa tu programa y controla el saldo de tus entrenamientos personales.\n\nTU PLAN, SIEMPRE CLARO\n• Ruta de entrenamiento centrada en hoy\n• Plan de entrenamiento y alimentación publicado\n• Hábitos diarios y adherencia\n• Progreso del programa y próxima revisión\n• Sesiones restantes, contratadas y próximas a caducar\n• Próxima cita de entrenamiento personal\n\nCONECTADO CON TU COACH\nLos cambios realizados desde la consola del coach aparecen en la app del cliente, manteniendo cada ajuste en un único espacio privado.\n\nPRIVACIDAD DESDE EL DISEÑO\nCada cliente accede a una cuenta privada. Los datos están limitados a su espacio y perfil de coaching. RG Coach no vende datos personales.\n\nLa app ofrece opcionalmente un pago seguro para adquirir diez sesiones de entrenamiento presencial o 1:1 en directo. Es un pago único por un servicio entre personas, no una suscripción digital.",
+        "keywords": ["fitness", "entrenador personal", "coaching", "gimnasio", "nutrición", "hábitos", "progreso"],
+        "promoText": "Entrenamiento, alimentación, hábitos y sesiones de coaching personal en una app privada y clara.",
+        "marketingUrl": "https://rubengomezcoaching.com/",
+        "supportUrl": "https://rubengomezcoaching.com/#contacto",
+        "privacyPolicyUrl": "https://rubengomezcoaching.com/privacidad"
+      }
+    },
+    "review": {
+      "firstName": "Rubén",
+      "lastName": "Gómez",
+      "email": "rubengomezesp@gmail.com",
+      "phone": "+16452482325",
+      "demoRequired": false,
+      "notes": "No login is required for review. Tap 'Explore the demo app' on the sign-in screen to review every tab with fictional data. The demo includes the Today route, published training and nutrition plan, habits, program progress, session balance, profile, privacy policy, purchase terms, support, and data-deletion request. External checkout is disabled in demo mode. For signed-in clients, the optional $600 checkout purchases ten live person-to-person or in-person fitness-training sessions delivered outside the app. It is a one-time payment for a real-world service, not digital content or a subscription (App Review Guidelines 3.1.3(d) and 3.1.3(e)). Privacy and purchase terms are available from Profile."
+    }
+  }
+}

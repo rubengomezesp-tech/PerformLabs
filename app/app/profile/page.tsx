@@ -1,7 +1,9 @@
-import { Bell, CheckCircle2, ClipboardCheck, Dumbbell, Eye, EyeOff, Mail, MessageSquare, Moon, Ruler, ShieldCheck, Smartphone, Trash2, UserRound, Utensils } from "lucide-react";
+import { Bell, CheckCircle2, ClipboardCheck, Clock3, Dumbbell, Eye, EyeOff, History, Mail, MessageSquare, Moon, Ruler, ShieldCheck, Smartphone, TicketCheck, Trash2, UserRound, Utensils } from "lucide-react";
 import { Topbar } from "@/components/topbar";
+import { getLocale } from "@/lib/i18n/server";
 import { getSelectedMemberAppBrand } from "@/lib/member-app";
 import { goalLabel, getMemberProfileSummary, subscriptionStatusLabel } from "@/lib/repositories/member-profile";
+import { getMemberSessionBalance, type SessionLedgerEventType } from "@/lib/repositories/session-credits";
 import { type ReactNode } from "react";
 import { getMemberNutritionVisibility } from "@/lib/repositories/nutrition-tracking";
 import { getMemberNotificationPreferences, type NotificationKey } from "@/lib/repositories/notification-preferences";
@@ -29,11 +31,65 @@ function NotifRow({ icon, label, hint, prefKey, on, workspaceId }: { icon: React
 
 export default async function ProfilePage() {
   const brand = await getSelectedMemberAppBrand();
-  const [visibility, summary, notif] = await Promise.all([
+  const [visibility, summary, notif, sessionBalance, locale] = await Promise.all([
     getMemberNutritionVisibility(brand.id),
     getMemberProfileSummary(brand.id),
     getMemberNotificationPreferences(brand.id),
+    getMemberSessionBalance(brand.id),
+    getLocale(),
   ]);
+
+  const isEnglish = locale === "en";
+  const sessionCopy = isEnglish ? {
+    eyebrow: "Personal training",
+    title: "Your sessions",
+    available: "sessions available",
+    reserved: "reserved",
+    used: "used",
+    granted: "purchased or credited",
+    nextExpiry: "Next expiry",
+    noExpiry: "No expiry",
+    activePacks: "Active packs",
+    history: "Recent activity",
+    emptyTitle: "You do not have sessions yet",
+    emptyText: "When you purchase a pack or your coach adds sessions, your balance will appear here automatically.",
+    remaining: "remaining",
+    of: "of",
+  } : {
+    eyebrow: "Entrenamiento personal",
+    title: "Tus sesiones",
+    available: "sesiones disponibles",
+    reserved: "reservadas",
+    used: "utilizadas",
+    granted: "compradas o abonadas",
+    nextExpiry: "Próxima caducidad",
+    noExpiry: "Sin caducidad",
+    activePacks: "Bonos activos",
+    history: "Actividad reciente",
+    emptyTitle: "Todavía no tienes sesiones",
+    emptyText: "Cuando compres un bono o tu coach añada sesiones, el saldo aparecerá aquí automáticamente.",
+    remaining: "restantes",
+    of: "de",
+  };
+  const movementLabels: Record<SessionLedgerEventType, string> = isEnglish ? {
+    purchase: "Pack purchased",
+    session_used: "Session completed",
+    coach_credit: "Coach credit",
+    coach_debit: "Coach adjustment",
+    refund: "Refund",
+    pack_assigned: "Pack assigned",
+    void: "Pack voided",
+  } : {
+    purchase: "Bono comprado",
+    session_used: "Entrenamiento realizado",
+    coach_credit: "Abono del coach",
+    coach_debit: "Ajuste del coach",
+    refund: "Reembolso",
+    pack_assigned: "Bono asignado",
+    void: "Bono anulado",
+  };
+  const dateFormatter = new Intl.DateTimeFormat(isEnglish ? "en-US" : "es-ES", { day: "numeric", month: "short", year: "numeric" });
+  const activePacks = sessionBalance.packs.filter((pack) => pack.status === "active" && pack.remaining > 0);
 
   const displayName = summary?.fullName || "Tu cuenta";
   const displayEmail = summary?.email || "Sin email registrado";
@@ -63,6 +119,62 @@ export default async function ProfilePage() {
             <span className={`tag${planActive ? "" : " profileTagMuted"}`}>{planLabel}</span>
             <span className="tag">{objective}</span>
           </div>
+        </article>
+        <article className="card span12 sessionWalletCard uiSheen uiFadeUp" style={{ ["--i" as string]: 1 }}>
+          <div className="sessionWalletHeader">
+            <div>
+              <span className="uiIconChip"><TicketCheck size={19} /></span>
+              <div>
+                <span className="eyebrow">{sessionCopy.eyebrow}</span>
+                <h2>{sessionCopy.title}</h2>
+              </div>
+            </div>
+            <span className="sessionWalletLive"><span aria-hidden="true" /> {isEnglish ? "Live balance" : "Saldo en tiempo real"}</span>
+          </div>
+
+          {sessionBalance.remaining > 0 ? (
+            <div className="sessionWalletGrid">
+              <div className="sessionWalletBalance">
+                <strong>{sessionBalance.available}</strong>
+                <span>{sessionCopy.available}</span>
+                <dl>
+                  <div><dt>{sessionCopy.used}</dt><dd>{sessionBalance.totalUsed}</dd></div>
+                  <div><dt>{sessionCopy.reserved}</dt><dd>{sessionBalance.reserved}</dd></div>
+                  <div><dt>{sessionCopy.granted}</dt><dd>{sessionBalance.totalGranted}</dd></div>
+                  <div><dt>{sessionCopy.nextExpiry}</dt><dd>{sessionBalance.nextExpiryAt ? dateFormatter.format(new Date(sessionBalance.nextExpiryAt)) : sessionCopy.noExpiry}</dd></div>
+                </dl>
+              </div>
+              <div className="sessionWalletPacks">
+                <h3>{sessionCopy.activePacks}</h3>
+                {activePacks.map((pack) => {
+                  const percent = Math.max(0, Math.min(100, (pack.remaining / pack.total) * 100));
+                  return (
+                    <div className="sessionPackRow" key={pack.id}>
+                      <div><strong>{pack.remaining} {sessionCopy.of} {pack.total}</strong><span>{sessionCopy.remaining}</span></div>
+                      <div className="sessionPackTrack" aria-label={`${pack.remaining} ${sessionCopy.of} ${pack.total}`}><span style={{ width: `${percent}%` }} /></div>
+                      <small><Clock3 size={13} /> {pack.expiresAt ? dateFormatter.format(new Date(pack.expiresAt)) : sessionCopy.noExpiry}</small>
+                    </div>
+                  );
+                })}
+              </div>
+              <div className="sessionWalletHistory">
+                <h3><History size={16} /> {sessionCopy.history}</h3>
+                <ul>
+                  {sessionBalance.movements.slice(0, 4).map((movement) => (
+                    <li key={movement.id}>
+                      <span className={movement.delta > 0 ? "positive" : "negative"}>{movement.delta > 0 ? "+" : ""}{movement.delta}</span>
+                      <div><strong>{movementLabels[movement.eventType]}</strong><small>{dateFormatter.format(new Date(movement.createdAt))}{movement.note ? ` · ${movement.note}` : ""}</small></div>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            </div>
+          ) : (
+            <div className="sessionWalletEmpty">
+              <TicketCheck size={28} />
+              <div><strong>{sessionCopy.emptyTitle}</strong><p>{sessionCopy.emptyText}</p></div>
+            </div>
+          )}
         </article>
         <article className="card span4 profileInfoCard uiSheen uiFadeUp" style={{ ["--i" as string]: 0 }}>
           <span className="uiIconChip"><UserRound size={18} /></span>

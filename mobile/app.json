@@ -1,0 +1,61 @@
+{
+  "expo": {
+    "name": "RG Coach",
+    "slug": "rg-coach",
+    "version": "1.0.0",
+    "primaryColor": "#168BFF",
+    "orientation": "portrait",
+    "icon": "./assets/images/icon.png",
+    "scheme": "rgcoach",
+    "userInterfaceStyle": "dark",
+    "ios": {
+      "supportsTablet": true,
+      "bundleIdentifier": "com.rubengomezcoaching.app",
+      "buildNumber": "1",
+      "infoPlist": {
+        "ITSAppUsesNonExemptEncryption": false
+      }
+    },
+    "android": {
+      "adaptiveIcon": {
+        "backgroundColor": "#080909",
+        "foregroundImage": "./assets/images/android-icon-foreground.png"
+      },
+      "predictiveBackGestureEnabled": false,
+      "package": "com.rubengomezcoaching.app",
+      "versionCode": 1
+    },
+    "web": {
+      "bundler": "metro",
+      "output": "static",
+      "favicon": "./assets/images/favicon.png"
+    },
+    "plugins": [
+      "expo-router",
+      [
+        "expo-splash-screen",
+        {
+          "image": "./assets/images/splash-icon.png",
+          "imageWidth": 260,
+          "resizeMode": "contain",
+          "backgroundColor": "#080909",
+          "dark": {
+            "image": "./assets/images/splash-icon.png",
+            "backgroundColor": "#080909"
+          }
+        }
+      ],
+      "expo-localization"
+    ],
+    "experiments": {
+      "typedRoutes": true
+    },
+    "extra": {
+      "router": {},
+      "eas": {
+        "projectId": "89529c7d-964a-4ed3-a10b-55fff966a14e"
+      }
+    },
+    "owner": "fitcontrol"
+  }
+}
