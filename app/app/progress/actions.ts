@@ -2,19 +2,32 @@
 
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
+import { after } from "next/server";
 import { requireMemberWorkspaceId } from "@/lib/auth/member-access";
-import { createMemberCheckin } from "@/lib/repositories/checkin-management";
+import { notifyCoachOfCheckin } from "@/lib/notifications/checkin-notify";
+import { CHECKIN_PHOTO_ANGLES, createMemberCheckin, type LabeledCheckinPhoto } from "@/lib/repositories/checkin-management";
+import { markMemberNotificationRead } from "@/lib/repositories/member-notifications";
 
 function readText(formData: FormData, key: string) {
   const value = formData.get(key);
   return typeof value === "string" ? value.trim() : "";
 }
 
+function readLabeledPhotos(formData: FormData): LabeledCheckinPhoto[] {
+  const photos: LabeledCheckinPhoto[] = [];
+  for (const angle of CHECKIN_PHOTO_ANGLES) {
+    const value = formData.get(`photo_${angle}`);
+    if (value instanceof File && value.size > 0) photos.push({ file: value, angle });
+  }
+  return photos;
+}
+
 export async function createMemberCheckinAction(formData: FormData) {
   const workspaceId = await requireMemberWorkspaceId(readText(formData, "workspaceId") || undefined);
-  const photos = formData.getAll("photos").filter((value): value is File => value instanceof File && value.size > 0);
+  const photos = readLabeledPhotos(formData);
+  let created: { id: string; memberProfileId: string };
   try {
-    await createMemberCheckin({
+    created = await createMemberCheckin({
       workspaceId,
       photos,
       weightKg: readText(formData, "weightKg"),
@@ -32,9 +45,26 @@ export async function createMemberCheckinAction(formData: FormData) {
     });
   } catch (error) {
     console.error("createMemberCheckinAction failed", (error as Error).message);
-    redirect("/app/progress?error=" + encodeURIComponent("No se pudo enviar el check-in. Inténtalo de nuevo."));
+    redirect("/app/progress?tab=medidas&error=" + encodeURIComponent("No se pudo enviar el check-in. Inténtalo de nuevo."));
   }
+
+  // El email al coach nunca bloquea ni rompe el guardado: after() lo ejecuta
+  // tras enviar la respuesta, y notifyCoachOfCheckin deja cada intento en su
+  // ledger (coach_checkin_email_deliveries) — nada de promesas sueltas.
+  after(() => notifyCoachOfCheckin({
+    workspaceId,
+    memberProfileId: created.memberProfileId,
+    checkinId: created.id,
+  }));
 
   revalidatePath("/app/progress");
   revalidatePath("/coach/checkins");
+  redirect("/app/progress?tab=medidas&enviado=1");
+}
+
+export async function dismissMemberNotificationAction(formData: FormData) {
+  const workspaceId = await requireMemberWorkspaceId(readText(formData, "workspaceId") || undefined);
+  const notificationId = readText(formData, "notificationId");
+  if (notificationId) await markMemberNotificationRead(workspaceId, notificationId);
+  revalidatePath("/app");
 }

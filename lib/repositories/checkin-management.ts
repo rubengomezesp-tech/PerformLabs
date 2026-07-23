@@ -16,9 +16,27 @@ export type MemberCheckinInput = {
   nutritionAdherence: string;
   notes: string;
   photosAvailable: boolean;
-  /** Progress photos uploaded with the check-in (server-action File objects). */
-  photos?: File[];
+  /** Progress photos uploaded with the check-in, labeled by angle. */
+  photos?: LabeledCheckinPhoto[];
 };
+
+export type CheckinPhotoAngle = "frontal" | "lateral" | "espalda";
+
+export type LabeledCheckinPhoto = { file: File; angle: CheckinPhotoAngle };
+
+export const CHECKIN_PHOTO_ANGLES: CheckinPhotoAngle[] = ["frontal", "lateral", "espalda"];
+
+/**
+ * El ángulo viaja codificado en el nombre del archivo ({stamp}-{angle}-{n}.{ext})
+ * para conservar `photoPaths: string[]` — cero rupturas en lectores existentes
+ * (coach, cliente y app nativa) y metadato recuperable para el comparador
+ * antes/después. Las fotos previas a este cambio devuelven null (legacy).
+ */
+export function parseCheckinPhotoAngle(path: string): CheckinPhotoAngle | null {
+  const file = path.split("/").pop() ?? "";
+  const match = CHECKIN_PHOTO_ANGLES.find((angle) => file.includes(`-${angle}-`));
+  return match ?? null;
+}
 
 export type CoachCheckinReviewInput = {
   workspaceId: string;
@@ -147,7 +165,7 @@ export async function createMemberCheckin(input: MemberCheckinInput) {
     ...(photoPaths.length ? { photoPaths } : {}),
   };
 
-  const { error } = await supabase.from("customer_checkins").insert({
+  const { data, error } = await supabase.from("customer_checkins").insert({
     workspace_id: input.workspaceId,
     member_profile_id: memberProfileId,
     status: "submitted",
@@ -155,26 +173,33 @@ export async function createMemberCheckin(input: MemberCheckinInput) {
     photos_available: input.photosAvailable || photoPaths.length > 0,
     key_values: keyValues,
     submitted_at: new Date().toISOString(),
-  });
+  }).select("id").single();
 
-  if (error) throw new Error(`No se pudo guardar el check-in: ${error.message}`);
+  if (error) {
+    // 23505 = índice único (member, minuto): doble submit — no es un fallo real.
+    if (error.code === "23505") throw new Error("Ya registramos este check-in hace un momento.");
+    throw new Error(`No se pudo guardar el check-in: ${error.message}`);
+  }
+  return { id: data.id as string, memberProfileId };
 }
 
 async function uploadCheckinPhotos(
   supabase: ReturnType<typeof createServiceSupabaseClient>,
   workspaceId: string,
   memberProfileId: string,
-  photos: File[],
+  photos: LabeledCheckinPhoto[],
 ): Promise<string[]> {
-  const usable = photos.filter((file) => file && typeof file.arrayBuffer === "function" && file.size > 0).slice(0, 5);
+  const usable = photos
+    .filter(({ file }) => file && typeof file.arrayBuffer === "function" && file.size > 0)
+    .slice(0, 5);
   if (!usable.length) return [];
   const paths: string[] = [];
   const stamp = Date.now();
   for (let index = 0; index < usable.length; index += 1) {
-    const file = usable[index];
+    const { file, angle } = usable[index];
     if (file.size > 8 * 1024 * 1024) continue; // skip > 8 MB
     const ext = (file.type.split("/")[1] || "jpg").replace(/[^a-z0-9]/gi, "").slice(0, 5) || "jpg";
-    const path = `${workspaceId}/${memberProfileId}/${stamp}-${index}.${ext}`;
+    const path = `${workspaceId}/${memberProfileId}/${stamp}-${angle}-${index}.${ext}`;
     const buffer = Buffer.from(await file.arrayBuffer());
     const { error } = await supabase.storage.from("member-progress").upload(path, buffer, {
       contentType: file.type || "image/jpeg",

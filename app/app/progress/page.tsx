@@ -1,5 +1,8 @@
 import { Camera, CheckCircle2, ClipboardCheck, LineChart, Ruler, Scale, TrendingDown, TrendingUp } from "lucide-react";
 import Link from "next/link";
+import { CheckinPhotosField } from "@/components/member/checkin-photos-field";
+import { PushOptIn } from "@/components/push-optin";
+import { SubmitButton } from "@/components/ui";
 import { Topbar } from "@/components/topbar";
 import { getSelectedMemberAppBrand } from "@/lib/member-app";
 import { type ReactNode } from "react";
@@ -132,12 +135,14 @@ function MetricCard({ measure, icon, i }: { measure: MeasurementSummary; icon: R
 }
 
 type ProgressPageProps = {
-  searchParams?: Promise<{ tab?: string }>;
+  searchParams?: Promise<{ tab?: string; enviado?: string; error?: string }>;
 };
 
 export default async function ProgressPage({ searchParams }: ProgressPageProps) {
   const params = await searchParams;
   const tab = TABS.some(([key]) => key === params?.tab) ? (params!.tab as string) : "resumen";
+  const justSubmitted = params?.enviado === "1";
+  const submitError = typeof params?.error === "string" ? params.error : "";
 
   const brand = await getSelectedMemberAppBrand();
   // Member-scoped: a member only ever sees their OWN check-ins, measurements and photos.
@@ -296,7 +301,29 @@ export default async function ProgressPage({ searchParams }: ProgressPageProps) 
           </article>
         ) : null}
 
-        {tab === "medidas" ? (
+        {tab === "medidas" && justSubmitted ? (
+          <article className="card span12 uiGlass checkinSubmittedCard" aria-live="polite">
+            <div className="sectionHeader">
+              <div>
+                <span className="uiIconChip"><CheckCircle2 size={18} /></span>
+                <h2>Check-in enviado.</h2>
+                <p>Tu coach acaba de recibirlo. Esto es lo que pasa ahora:</p>
+              </div>
+            </div>
+            <ol className="list checkinSubmittedSteps">
+              <li className="row"><strong>1.</strong> Recibido — tus medidas, fotos y notas ya están guardadas.</li>
+              <li className="row"><strong>2.</strong> Tu coach lo revisa y te deja feedback con la siguiente acción.</li>
+              <li className="row"><strong>3.</strong> Te avisamos en cuanto lo revise.</li>
+            </ol>
+            <div className="checkinSubmittedPush">
+              <p>¿Quieres saber al instante cuando tu coach lo revise?</p>
+              <PushOptIn />
+            </div>
+            <Link className="btn" href="/app/progress?tab=historial">Ver mi historial <TrendingUp size={16} /></Link>
+          </article>
+        ) : null}
+
+        {tab === "medidas" && !justSubmitted ? (
           <article className="card span12 checkinFormCard">
             <div className="sectionHeader">
               <div>
@@ -306,6 +333,7 @@ export default async function ProgressPage({ searchParams }: ProgressPageProps) 
               </div>
               <span className="tag">{brand.appName}</span>
             </div>
+            {submitError ? <p className="fieldError" role="alert">{submitError}</p> : null}
             <form action={createMemberCheckinAction} className="checkinGridForm">
               <input name="workspaceId" type="hidden" value={brand.id} />
               <label>Peso kg<input name="weightKg" inputMode="decimal" placeholder="82.4" /></label>
@@ -336,11 +364,11 @@ export default async function ProgressPage({ searchParams }: ProgressPageProps) 
               </label>
               <label>Entreno %<input name="trainingAdherence" inputMode="decimal" placeholder="85" /></label>
               <label>Nutrición %<input name="nutritionAdherence" inputMode="decimal" placeholder="90" /></label>
-              <label className="spanFull">Fotos de progreso (frontal, lateral, espalda)<input name="photos" type="file" accept="image/*" multiple /></label>
+              <CheckinPhotosField />
               <label className="spanFull">Sensaciones y notas
                 <textarea name="notes" rows={4} placeholder="Hambre, estrés, molestias, entrenamiento, comidas, ciclo, energía..." />
               </label>
-              <button className="btn primary" type="submit">Enviar check-in <CheckCircle2 size={16} /></button>
+              <SubmitButton variant="primary">Enviar check-in <CheckCircle2 size={16} /></SubmitButton>
             </form>
           </article>
         ) : null}
