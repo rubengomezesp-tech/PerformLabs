@@ -2,14 +2,16 @@ import Link from "next/link";
 import { ArrowRight, CheckCircle2, ClipboardCheck, ShieldAlert, ShieldCheck } from "lucide-react";
 import { getSelectedMemberAppBrand } from "@/lib/member-app";
 import { getMemberProfileSummary } from "@/lib/repositories/member-profile";
+import { getOnboardingDraft } from "@/lib/repositories/member-onboarding-drafts";
 import { OnboardingQuiz } from "./onboarding-quiz";
 
 export const dynamic = "force-dynamic";
 
-export default async function MemberOnboardingPage({ searchParams }: { searchParams: Promise<{ submitted?: string; review?: string; error?: string }> }) {
+export default async function MemberOnboardingPage({ searchParams }: { searchParams: Promise<{ submitted?: string; review?: string; error?: string; gate?: string }> }) {
   const query = await searchParams;
   const brand = await getSelectedMemberAppBrand();
   const profile = await getMemberProfileSummary(brand.id);
+  const draft = query.submitted ? null : await getOnboardingDraft(brand.id);
 
   if (query.submitted) {
     const medicalReview = query.review === "medical";
@@ -23,5 +25,5 @@ export default async function MemberOnboardingPage({ searchParams }: { searchPar
     </section>;
   }
 
-  return <OnboardingQuiz workspaceId={brand.id} appName={brand.appName} defaultTimezone={profile?.timezone ?? "America/New_York"} initialFullName={profile?.fullName ?? ""} error={query.error} />;
+  return <OnboardingQuiz workspaceId={brand.id} appName={brand.appName} defaultTimezone={profile?.timezone ?? "America/New_York"} initialFullName={profile?.fullName ?? ""} error={query.error} gated={query.gate === "1"} draftAnswers={draft?.answers} draftStep={draft?.step} />;
 }
