@@ -60,7 +60,8 @@ function emailAddress(value: string | null | undefined) {
   return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(normalized) ? normalized : "";
 }
 
-function brandedEmail(workspace: WorkspaceBrand, actionLink: string) {
+function brandedEmail(workspace: WorkspaceBrand, actionLink: string, intent: "access" | "invitation" = "access") {
+  const isInvitation = intent === "invitation";
   const brandName = (workspace.appName || workspace.name || "Tu coach")
     .replace(/[\u0000-\u001f\u007f]+/g, " ")
     .replace(/\s+/g, " ")
@@ -73,8 +74,14 @@ function brandedEmail(workspace: WorkspaceBrand, actionLink: string) {
     ? `¿Necesitas ayuda? <a href="mailto:${escapeHtml(supportEmail)}" style="color:#00d4ff;text-decoration:underline">Escribe directamente a Rubén</a>.`
     : "Si necesitas ayuda, responde a este correo.";
 
+  const invitationSteps = `<table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0" style="margin-top:26px">
+                      <tr><td style="padding:10px 0;border-bottom:1px solid #1a263b"><span style="color:#00d4ff;font-weight:900;font-size:13px">1&nbsp;&nbsp;</span><span style="color:#d7deea;font-size:14px">Entra con tu enlace personal (un toque, sin contraseña)</span></td></tr>
+                      <tr><td style="padding:10px 0;border-bottom:1px solid #1a263b"><span style="color:#00d4ff;font-weight:900;font-size:13px">2&nbsp;&nbsp;</span><span style="color:#d7deea;font-size:14px">Completa tu valoración inicial (3–5 minutos)</span></td></tr>
+                      <tr><td style="padding:10px 0"><span style="color:#00d4ff;font-weight:900;font-size:13px">3&nbsp;&nbsp;</span><span style="color:#d7deea;font-size:14px">Rubén revisa tus respuestas y publica tu plan personalizado</span></td></tr>
+                    </table>`;
+
   return {
-    subject: `Tu acceso a ${brandName}`,
+    subject: isInvitation ? `Rubén Gómez te invita a ${brandName}` : `Tu acceso a ${brandName}`,
     html: `<!doctype html>
 <html lang="es">
 <head>
@@ -112,14 +119,14 @@ function brandedEmail(workspace: WorkspaceBrand, actionLink: string) {
                       </tr>
                     </table>
 
-                    <div style="margin-top:38px;color:#00d4ff;font-size:11px;font-weight:800;letter-spacing:1.8px">TU ESPACIO DE CLIENTE</div>
-                    <h1 class="rg-title" style="margin:10px 0 14px;color:#ffffff;font-size:38px;line-height:1.08;letter-spacing:-1.2px">Tu espacio<br>está listo.</h1>
-                    <p style="margin:0;color:#a9b4c7;font-size:16px;line-height:1.65">Entra en tu app privada para ver tu entrenamiento, nutrición y seguimiento. Este acceso es personal y de un solo uso.</p>
+                    <div style="margin-top:38px;color:#00d4ff;font-size:11px;font-weight:800;letter-spacing:1.8px">${isInvitation ? "INVITACIÓN PERSONAL" : "TU ESPACIO DE CLIENTE"}</div>
+                    <h1 class="rg-title" style="margin:10px 0 14px;color:#ffffff;font-size:38px;line-height:1.08;letter-spacing:-1.2px">${isInvitation ? "Tu coach te ha<br>invitado a su aula." : "Tu espacio<br>está listo."}</h1>
+                    <p style="margin:0;color:#a9b4c7;font-size:16px;line-height:1.65">${isInvitation ? "Rubén te ha preparado un espacio privado con tu entrenamiento, tu nutrición y tu seguimiento. Así empieza:" : "Entra en tu app privada para ver tu entrenamiento, nutrición y seguimiento. Este acceso es personal y de un solo uso."}</p>${isInvitation ? invitationSteps : ""}
 
                     <table role="presentation" cellspacing="0" cellpadding="0" border="0" style="margin-top:28px">
                       <tr>
                         <td bgcolor="#2f6bff" style="background:#2f6bff;border-radius:12px;mso-padding-alt:16px 24px">
-                          <a href="${safeActionLink}" style="display:inline-block;padding:16px 24px;color:#ffffff;text-decoration:none;font-size:14px;font-weight:800;letter-spacing:.3px">ABRIR MI APP RG&nbsp;&nbsp;→</a>
+                          <a href="${safeActionLink}" style="display:inline-block;padding:16px 24px;color:#ffffff;text-decoration:none;font-size:14px;font-weight:800;letter-spacing:.3px">${isInvitation ? "ACEPTAR INVITACIÓN" : "ABRIR MI APP RG"}&nbsp;&nbsp;→</a>
                         </td>
                       </tr>
                     </table>
@@ -163,7 +170,9 @@ function brandedEmail(workspace: WorkspaceBrand, actionLink: string) {
   </table>
 </body>
 </html>`,
-    text: `${brandName}\n\nTu espacio está listo.\n\nEntra en tu app privada para ver tu entrenamiento, nutrición y seguimiento:\n${actionLink}\n\nEste enlace es personal y de un solo uso.\n\nAquí tienes todo lo que trabajamos, organizado para que sepas qué toca hoy. Nos vemos dentro.\nRubén Gómez · Tu coach${supportEmail ? `\n\n¿Necesitas ayuda? ${supportEmail}` : ""}\n\nSi no pediste este acceso, puedes ignorar este correo.`,
+    text: isInvitation
+      ? `${brandName}\n\nRubén Gómez te ha invitado a su aula privada.\n\n1. Entra con tu enlace personal: ${actionLink}\n2. Completa tu valoración inicial (3-5 minutos)\n3. Rubén revisa tus respuestas y publica tu plan personalizado\n\nEl enlace es personal y de un solo uso.\n\nRubén Gómez · Tu coach${supportEmail ? `\n\n¿Necesitas ayuda? ${supportEmail}` : ""}`
+      : `${brandName}\n\nTu espacio está listo.\n\nEntra en tu app privada para ver tu entrenamiento, nutrición y seguimiento:\n${actionLink}\n\nEste enlace es personal y de un solo uso.\n\nAquí tienes todo lo que trabajamos, organizado para que sepas qué toca hoy. Nos vemos dentro.\nRubén Gómez · Tu coach${supportEmail ? `\n\n¿Necesitas ayuda? ${supportEmail}` : ""}\n\nSi no pediste este acceso, puedes ignorar este correo.`,
   };
 }
 
@@ -215,10 +224,14 @@ async function findAuthUserIdByEmail(
  * resolved workspace matches the server-only workspace id. Other tenants are
  * explicitly left unhandled so their existing transport remains unchanged.
  */
+export type TenantMagicLinkIntent = "access" | "invitation";
+
 export async function sendTenantMagicLinkIfConfigured(input: {
   workspace: WorkspaceBrand;
   email: string;
   callbackUrl: string;
+  /** "invitation" = primer contacto ("tu coach te ha invitado"); "access" = re-entrada. */
+  intent?: TenantMagicLinkIntent;
 }): Promise<TenantMagicLinkDelivery> {
   const configured = rgCoachResendConfig(input.workspace.id);
   if (!configured.targeted) return { handled: false };
@@ -287,7 +300,7 @@ export async function sendTenantMagicLinkIfConfigured(input: {
     };
   }
 
-  const message = brandedEmail(input.workspace, actionLink);
+  const message = brandedEmail(input.workspace, actionLink, input.intent ?? "access");
   try {
     const response = await fetch(RESEND_EMAILS_URL, {
       method: "POST",

@@ -35,6 +35,7 @@ export type ManagedMember = {
   startingWeightKg: number | null;
   subscriptionStatus: string;
   onboardingStatus: string;
+  invitationSentAt: string | null;
   timezone: string;
   createdAt: string;
   activeWorkoutPlan: {
@@ -91,6 +92,7 @@ function fallbackMembers(): ManagedMember[] {
     startingWeightKg: null,
     subscriptionStatus: member.status.toLowerCase(),
     onboardingStatus: "demo",
+    invitationSentAt: null,
     timezone: "Europe/Madrid",
     createdAt: new Date().toISOString(),
     activeWorkoutPlan: null,
@@ -664,7 +666,7 @@ export async function listManagedMembers(workspaceId?: string): Promise<ManagedM
   const supabase = createServiceSupabaseClient();
   const { data, error } = await supabase
     .from("member_profiles")
-    .select("id,user_id,full_name,phone,goal,height_cm,starting_weight_kg,subscription_status,onboarding_status,timezone,created_at")
+    .select("id,user_id,full_name,phone,goal,height_cm,starting_weight_kg,subscription_status,onboarding_status,invitation_sent_at,timezone,created_at")
     .eq("workspace_id", workspaceId)
     .order("created_at", { ascending: false });
 
@@ -724,6 +726,7 @@ export async function listManagedMembers(workspaceId?: string): Promise<ManagedM
     startingWeightKg: member.starting_weight_kg,
     subscriptionStatus: member.subscription_status,
     onboardingStatus: member.onboarding_status,
+    invitationSentAt: (member as { invitation_sent_at?: string | null }).invitation_sent_at ?? null,
     timezone: member.timezone,
     createdAt: member.created_at,
     activeWorkoutPlan: assignmentByMember.get(member.id) ?? null,

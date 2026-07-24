@@ -3,14 +3,13 @@
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { requireWorkspaceMutationAccess } from "@/lib/auth/access-control";
-import { sendTenantMagicLinkIfConfigured } from "@/lib/auth/tenant-magic-link";
+import { sendMemberInvitation } from "@/lib/repositories/member-invitations";
 import { localDateTimeToUtc, sessionDurationEnd } from "@/lib/domain/personal-training-schedule";
 import { getCoachMemberAssessment } from "@/lib/repositories/coach-assessments";
 import { assignPlansToMember, createManagedMember, listManagedMembers } from "@/lib/repositories/member-management";
 import { scheduleManagedPersonalTrainingSession } from "@/lib/repositories/personal-training-sessions";
 import { adjustManagedMemberSessions } from "@/lib/repositories/session-credits";
 import { recordSecurityAuditEvent } from "@/lib/repositories/security-management";
-import { resolveWorkspaceBrand } from "@/lib/repositories/workspaces";
 
 function readText(formData: FormData, key: string) {
   const value = formData.get(key);
@@ -89,23 +88,14 @@ export async function createCoachMemberAction(formData: FormData) {
   let accessStatus: "sent" | "manual" | "failed" = "manual";
   if (readText(formData, "sendAccess") === "yes") {
     try {
-      const brand = await resolveWorkspaceBrand(workspaceId);
-      const memberHost = brand.memberDomain || brand.fallbackSubdomain;
-      if (memberHost) {
-        const delivery = await sendTenantMagicLinkIfConfigured({
-          workspace: brand,
-          email,
-          callbackUrl: `https://${memberHost}/auth/callback`,
-        });
-        accessStatus = delivery.handled && delivery.status === "sent"
-          ? "sent"
-          : delivery.handled && delivery.status === "failed"
-            ? "failed"
-            : "manual";
+      const delivery = await sendMemberInvitation({ workspaceId, memberProfileId });
+      accessStatus = delivery.status === "sent" ? "sent" : delivery.status === "failed" ? "failed" : "manual";
+      if (delivery.status === "failed") {
+        console.error("Unable to send express member invitation", { workspaceId, memberProfileId, reason: delivery.reason });
       }
     } catch (error) {
       accessStatus = "failed";
-      console.error("Unable to send express member access", { workspaceId, memberProfileId, error });
+      console.error("Unable to send express member invitation", { workspaceId, memberProfileId, error });
     }
   }
 
@@ -259,4 +249,28 @@ export async function bulkAssignCoachMemberPlansAction(formData: FormData) {
   revalidatePath("/coach/members");
   revalidatePath("/app/workouts");
   revalidatePath("/app/meals");
+}
+
+
+export async function resendMemberInvitationAction(formData: FormData) {
+  const workspaceId = readText(formData, "workspaceId");
+  const memberProfileId = readText(formData, "memberProfileId");
+  const session = await requireWorkspaceMutationAccess(workspaceId);
+  if (!memberProfileId) return;
+
+  const result = await sendMemberInvitation({ workspaceId, memberProfileId });
+  if (result.status === "failed") {
+    console.error("resendMemberInvitationAction failed", { workspaceId, memberProfileId, reason: result.reason });
+  }
+
+  await recordSecurityAuditEvent({
+    workspaceId,
+    actorUserId: session.mode === "authenticated" ? session.user.id : null,
+    action: "coach.member.invitation_sent",
+    entityType: "member_profile",
+    entityId: memberProfileId,
+    metadata: { status: result.status, reason: result.status === "failed" ? result.reason : null },
+  });
+
+  revalidatePath("/coach/members");
 }
