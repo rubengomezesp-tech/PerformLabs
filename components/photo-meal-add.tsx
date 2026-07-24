@@ -2,7 +2,7 @@
 
 import { useRef, useState } from "react";
 import { Camera, CheckCircle2, Loader2, RefreshCw } from "lucide-react";
-import { smartAddMealPhotoAction } from "@/app/app/diary/actions";
+import { smartAddMealPhotoAction } from "@/app/app/(gated)/diary/actions";
 
 type State = "idle" | "working" | "done" | "error";
 

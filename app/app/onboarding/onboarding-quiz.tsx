@@ -38,7 +38,7 @@ import {
   Wheat,
   Stethoscope,
 } from "lucide-react";
-import { saveMemberOnboardingAction } from "./actions";
+import { saveMemberOnboardingAction, saveOnboardingDraftAction } from "./actions";
 
 type IconType = React.ComponentType<{ size?: number }>;
 type Choice = { value: string; label: string; hint?: string; icon?: IconType };
@@ -473,20 +473,32 @@ type Screen = {
 
 function phaseForKey(key: string) {
   if (["intro", "sex", "age", "measures", "activity", "goal"].includes(key)) return "Tu punto de partida";
-  if (["location", "equipment", "experience", "days", "session"].includes(key)) return "Tu entrenamiento";
-  if (["injuries", "health", "safety"].includes(key)) return "Seguridad y salud";
+  if (["location", "equipment", "experience", "availability"].includes(key)) return "Tu entrenamiento";
+  if (["injuries-health", "safety"].includes(key)) return "Seguridad y salud";
   if (["recovery"].includes(key)) return "Recuperación";
   if (["diet", "allergies", "meals", "foods", "kitchen"].includes(key)) return "Tu alimentación";
   return "Revisión final";
 }
 
-export function OnboardingQuiz({ workspaceId, appName, defaultTimezone, initialFullName, error }: { workspaceId: string; appName: string; defaultTimezone: string; initialFullName: string; error?: string }) {
+export function OnboardingQuiz({ workspaceId, appName, defaultTimezone, initialFullName, error, gated, draftAnswers, draftStep }: { workspaceId: string; appName: string; defaultTimezone: string; initialFullName: string; error?: string; gated?: boolean; draftAnswers?: Record<string, unknown>; draftStep?: number }) {
   const [answers, setAnswers] = useState<Answers>(() => ({
     ...initialAnswers,
     fullName: initialFullName,
     timezone: defaultTimezone || "America/New_York",
+    ...((draftAnswers as Partial<Answers> | undefined) ?? {}),
   }));
-  const [step, setStep] = useState(0);
+  const [step, setStep] = useState(draftStep ?? 0);
+  const resumed = (draftStep ?? 0) > 0;
+
+  // Guardado por-paso: un refresh o una sesión caducada ya no pierden el quiz.
+  function advanceTo(next: number) {
+    setStep(next);
+    const payload = new FormData();
+    payload.set("workspaceId", workspaceId);
+    payload.set("step", String(next));
+    payload.set("answers", JSON.stringify(answers));
+    void saveOnboardingDraftAction(payload);
+  }
 
   function update<K extends keyof Answers>(key: K, value: Answers[K]) {
     setAnswers((prev) => ({ ...prev, [key]: value }));
@@ -501,10 +513,12 @@ export function OnboardingQuiz({ workspaceId, appName, defaultTimezone, initialF
     {
       key: "intro",
       icon: LockKeyhole,
-      title: "Vamos a conocerte bien",
-      subtitle: "Tu coach revisará personalmente esta información antes de publicar cualquier plan.",
+      title: gated ? "Antes de entrar, cuéntanos de ti" : "Vamos a conocerte bien",
+      subtitle: gated
+        ? "Para abrir tu aula, tu coach necesita esta valoración inicial. Se guarda a cada paso: puedes retomarla cuando quieras."
+        : "Tu coach revisará personalmente esta información antes de publicar cualquier plan.",
       valid: true,
-      content: <div className="quizIntroTrust"><div><Clock size={18} /><span><strong>6–8 minutos</strong><small>Puedes avanzar a tu ritmo</small></span></div><div><ShieldCheck size={18} /><span><strong>Información privada</strong><small>Solo la ve tu coach</small></span></div><div><Stethoscope size={18} /><span><strong>Seguridad primero</strong><small>Las alertas se revisan antes de entrenar</small></span></div></div>,
+      content: <div className="quizIntroTrust"><div><Clock size={18} /><span><strong>3–5 minutos lo esencial</strong><small>Se guarda a cada paso; lo retomas cuando quieras</small></span></div><div><ShieldCheck size={18} /><span><strong>Información privada</strong><small>Solo la ve tu coach</small></span></div><div><Stethoscope size={18} /><span><strong>Seguridad primero</strong><small>Las alertas se revisan antes de entrenar</small></span></div></div>,
     },
     {
       key: "sex",
@@ -645,51 +659,49 @@ export function OnboardingQuiz({ workspaceId, appName, defaultTimezone, initialF
       content: <SingleSelect options={experienceOptions} value={answers.experienceLevel} onChange={(value) => update("experienceLevel", value)} />,
     },
     {
-      key: "days",
+      key: "availability",
       icon: Activity,
-      title: "¿Cuántos días por semana?",
-      subtitle: "Sé realista con lo que puedas cumplir cada semana.",
-      valid: answers.daysPerWeek !== "",
-      content: <SingleSelect options={daysOptions} value={answers.daysPerWeek} onChange={(value) => update("daysPerWeek", value)} />,
-    },
-    {
-      key: "session",
-      icon: Timer,
-      title: "¿Cuánto tiempo por sesión?",
-      subtitle: "Ajustamos el volumen para que cada entreno cuadre con tu tiempo.",
-      valid: answers.sessionMinutes !== "",
-      content: <SingleSelect options={sessionOptions} value={answers.sessionMinutes} onChange={(value) => update("sessionMinutes", value)} />,
-    },
-    {
-      key: "injuries",
-      icon: ShieldCheck,
-      title: "¿Tienes alguna lesión o molestia?",
-      subtitle: "Evitamos ejercicios que te puedan hacer daño.",
-      valid: answers.injuries.length > 0 || answers.injuriesOther.trim() !== "",
+      title: "Tu disponibilidad",
+      subtitle: "Sé realista con lo que puedas cumplir: ajustamos volumen y sesiones a tu tiempo real.",
+      valid: answers.daysPerWeek !== "" && answers.sessionMinutes !== "",
       content: (
-        <>
-          <MultiSelect options={injuryOptions} values={answers.injuries} onChange={(value) => update("injuries", value)} exclusiveValue="Ninguna" />
-          <label className="quizInline">
-            Otra (opcional)
-            <input value={answers.injuriesOther} placeholder="Ej. menisco, tendinitis..." onChange={(event) => update("injuriesOther", event.target.value)} />
-          </label>
-        </>
+        <div className="quizGroup">
+          <div className="quizGroupBlock">
+            <span className="quizGroupLabel"><Activity size={14} /> Días por semana</span>
+            <SingleSelect options={daysOptions} value={answers.daysPerWeek} onChange={(value) => update("daysPerWeek", value)} />
+          </div>
+          <div className="quizGroupBlock">
+            <span className="quizGroupLabel"><Timer size={14} /> Minutos por sesión</span>
+            <SingleSelect options={sessionOptions} value={answers.sessionMinutes} onChange={(value) => update("sessionMinutes", value)} />
+          </div>
+        </div>
       ),
     },
     {
-      key: "health",
-      icon: HeartPulse,
-      title: "¿Alguna condición de salud?",
-      subtitle: "Importante por seguridad. Tu coach lo revisa antes de activar tu plan.",
-      valid: answers.healthConditions.length > 0 || answers.healthOther.trim() !== "",
+      key: "injuries-health",
+      icon: ShieldCheck,
+      title: "Lesiones y salud",
+      subtitle: "Evitamos lo que te pueda hacer daño. Tu coach lo revisa antes de activar tu plan.",
+      valid: (answers.injuries.length > 0 || answers.injuriesOther.trim() !== "") && (answers.healthConditions.length > 0 || answers.healthOther.trim() !== ""),
       content: (
-        <>
-          <MultiSelect options={healthOptions} values={answers.healthConditions} onChange={(value) => update("healthConditions", value)} exclusiveValue="Ninguna" />
-          <label className="quizInline">
-            Otra (opcional)
-            <input value={answers.healthOther} placeholder="Ej. medicación, condición relevante..." onChange={(event) => update("healthOther", event.target.value)} />
-          </label>
-        </>
+        <div className="quizGroup">
+          <div className="quizGroupBlock">
+            <span className="quizGroupLabel"><ShieldCheck size={14} /> ¿Lesión o molestia?</span>
+            <MultiSelect options={injuryOptions} values={answers.injuries} onChange={(value) => update("injuries", value)} exclusiveValue="Ninguna" />
+            <label className="quizInline">
+              Otra (opcional)
+              <input value={answers.injuriesOther} placeholder="Ej. menisco, tendinitis..." onChange={(event) => update("injuriesOther", event.target.value)} />
+            </label>
+          </div>
+          <div className="quizGroupBlock">
+            <span className="quizGroupLabel"><HeartPulse size={14} /> ¿Condición de salud?</span>
+            <MultiSelect options={healthOptions} values={answers.healthConditions} onChange={(value) => update("healthConditions", value)} exclusiveValue="Ninguna" />
+            <label className="quizInline">
+              Otra (opcional)
+              <input value={answers.healthOther} placeholder="Ej. medicación, condición relevante..." onChange={(event) => update("healthOther", event.target.value)} />
+            </label>
+          </div>
+        </div>
       ),
     },
     {
@@ -708,6 +720,54 @@ export function OnboardingQuiz({ workspaceId, appName, defaultTimezone, initialF
         <label className="quizSafetyMedication">Medicación actual (opcional)<input value={answers.medications} onChange={(event) => update("medications", event.target.value)} placeholder="Nombre y pauta, si es relevante" /></label>
       </div>,
     },
+  );
+
+  const formValues = buildFormValues(answers);
+  // El mismo formulario final sirve al checkpoint (envío anticipado con lo
+  // esencial) y a la última pantalla (tras afinar alimentación y descanso).
+  const finalFormContent = (isCheckpoint: boolean) => (
+    <form action={saveMemberOnboardingAction} className="quizFinalForm">
+      <input name="workspaceId" type="hidden" value={workspaceId} />
+      {Object.entries(formValues).map(([name, value]) => (
+        <input key={name} name={name} type="hidden" value={value} />
+      ))}
+      <label>
+        ¿Cómo te llamas? (opcional)
+        <input name="fullName" value={answers.fullName} placeholder="Tu nombre" onChange={(event) => update("fullName", event.target.value)} />
+      </label>
+      <label>
+        Algo más que tu coach deba saber (opcional)
+        <textarea name="notes" rows={3} value={answers.notes} placeholder="Horarios, trabajo, estrés, lo que te cuesta cumplir..." onChange={(event) => update("notes", event.target.value)} />
+      </label>
+      <div className="quizSummary">
+        <span><strong>Objetivo</strong>{goalOptions.find((option) => option.value === answers.goal)?.label ?? "·"}</span>
+        <span><strong>Dónde</strong>{locationOptions.find((option) => option.value === answers.trainingLocation)?.label ?? "·"}</span>
+        <span><strong>Días</strong>{answers.daysPerWeek || "·"}/semana · {answers.sessionMinutes || "·"} min</span>
+        {isCheckpoint ? null : <span><strong>Comidas</strong>{answers.mealsPerDay || "·"}/día</span>}
+      </div>
+      {isCheckpoint ? (
+        <p className="quizCheckpointNote">Enviar ahora no te quita nada: la parte de alimentación y descanso la puedes afinar con tu coach más adelante.</p>
+      ) : null}
+      <label className="quizConsent">
+        <input name="healthConsent" type="checkbox" value="yes" checked={answers.healthConsent} onChange={(event) => update("healthConsent", event.target.checked)} required />
+        <span><ShieldCheck size={17} /><span><strong>Confirmo que la información es correcta</strong><small>Entiendo que este cuestionario no sustituye una evaluación o diagnóstico médico.</small></span></span>
+      </label>
+      <button className="btn primary quizSubmit" type="submit" disabled={!answers.healthConsent}>
+        <Sparkles size={16} /> Enviar mi valoración a {appName}
+      </button>
+    </form>
+  );
+
+  screens.push({
+    key: "checkpoint",
+    icon: CheckCircle2,
+    title: "Ya tenemos lo esencial",
+    subtitle: "Puedes enviar tu valoración ahora mismo. Si te sobran 2 minutos, pulsa Continuar y afinamos descanso y alimentación (opcional).",
+    valid: true,
+    content: finalFormContent(true),
+  });
+
+  screens.push(
     {
       key: "recovery",
       icon: Moon,
@@ -807,44 +867,14 @@ export function OnboardingQuiz({ workspaceId, appName, defaultTimezone, initialF
     },
   );
 
-  const formValues = buildFormValues(answers);
-  const finalScreen: Screen = {
+  screens.push({
     key: "final",
     icon: CheckCircle2,
-    title: "¡Casi listo!",
+    title: "¡Último paso!",
     subtitle: "Tu coach recibirá una lectura organizada y revisará cualquier alerta antes de publicar el plan.",
-    valid: answers.healthConsent,
-    content: (
-      <form action={saveMemberOnboardingAction} className="quizFinalForm">
-        <input name="workspaceId" type="hidden" value={workspaceId} />
-        {Object.entries(formValues).map(([name, value]) => (
-          <input key={name} name={name} type="hidden" value={value} />
-        ))}
-        <label>
-          ¿Cómo te llamas? (opcional)
-          <input name="fullName" value={answers.fullName} placeholder="Tu nombre" onChange={(event) => update("fullName", event.target.value)} />
-        </label>
-        <label>
-          Algo más que tu coach deba saber (opcional)
-          <textarea name="notes" rows={3} value={answers.notes} placeholder="Horarios, trabajo, estrés, lo que te cuesta cumplir..." onChange={(event) => update("notes", event.target.value)} />
-        </label>
-        <div className="quizSummary">
-          <span><strong>Objetivo</strong>{goalOptions.find((option) => option.value === answers.goal)?.label ?? "·"}</span>
-          <span><strong>Dónde</strong>{locationOptions.find((option) => option.value === answers.trainingLocation)?.label ?? "·"}</span>
-          <span><strong>Días</strong>{answers.daysPerWeek || "·"}/semana · {answers.sessionMinutes || "·"} min</span>
-          <span><strong>Comidas</strong>{answers.mealsPerDay || "·"}/día</span>
-        </div>
-        <label className="quizConsent">
-          <input name="healthConsent" type="checkbox" value="yes" checked={answers.healthConsent} onChange={(event) => update("healthConsent", event.target.checked)} required />
-          <span><ShieldCheck size={17} /><span><strong>Confirmo que la información es correcta</strong><small>Entiendo que este cuestionario no sustituye una evaluación o diagnóstico médico.</small></span></span>
-        </label>
-        <button className="btn primary quizSubmit" type="submit" disabled={!answers.healthConsent}>
-          <Sparkles size={16} /> Enviar mi valoración a {appName}
-        </button>
-      </form>
-    ),
-  };
-  screens.push(finalScreen);
+    valid: true,
+    content: finalFormContent(false),
+  });
 
   const safeStep = Math.min(step, screens.length - 1);
   const current = screens[safeStep];
@@ -855,6 +885,7 @@ export function OnboardingQuiz({ workspaceId, appName, defaultTimezone, initialF
   return (
     <div className="onboardingQuiz">
       {error ? <p className="quizError" role="alert">{error}</p> : null}
+      {resumed ? <p className="quizResumeNote" role="status">Retomamos donde lo dejaste.</p> : null}
       <div className="quizHeader">
         <span className="quizPhase">{phaseForKey(current.key)}</span>
         <div className="quizProgress" aria-hidden>
@@ -878,8 +909,8 @@ export function OnboardingQuiz({ workspaceId, appName, defaultTimezone, initialF
           <ChevronLeft size={16} /> Atrás
         </button>
         {isLast ? null : (
-          <button type="button" className="btn primary" onClick={() => setStep((value) => Math.min(screens.length - 1, value + 1))} disabled={!current.valid}>
-            Continuar <ChevronRight size={16} />
+          <button type="button" className="btn primary" onClick={() => advanceTo(Math.min(screens.length - 1, safeStep + 1))} disabled={!current.valid}>
+            {current.key === "checkpoint" ? "Afinar alimentación (2 min)" : "Continuar"} <ChevronRight size={16} />
           </button>
         )}
       </div>

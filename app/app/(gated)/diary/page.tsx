@@ -5,7 +5,7 @@ import { MacroStrip } from "@/components/macro-strip";
 import { PhotoMealAdd } from "@/components/photo-meal-add";
 import { Topbar } from "@/components/topbar";
 import { getSelectedMemberAppBrand } from "@/lib/member-app";
-import { saveMealLogAction } from "@/app/app/meals/actions";
+import { saveMealLogAction } from "@/app/app/(gated)/meals/actions";
 import { getMemberMealPlanForToday, getMemberNutritionVisibility, getNutritionDailySummary, listFoodDiaryEntries, sumConsumedMacros } from "@/lib/repositories/nutrition-tracking";
 import { deleteFoodEntryAction, smartAddMealAction } from "./actions";
 

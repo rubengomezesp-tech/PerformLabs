@@ -3843,6 +3843,45 @@ export type Database = {
           },
         ]
       }
+      member_onboarding_drafts: {
+        Row: {
+          answers: Json
+          member_profile_id: string
+          step: number
+          updated_at: string
+          workspace_id: string
+        }
+        Insert: {
+          answers?: Json
+          member_profile_id: string
+          step?: number
+          updated_at?: string
+          workspace_id: string
+        }
+        Update: {
+          answers?: Json
+          member_profile_id?: string
+          step?: number
+          updated_at?: string
+          workspace_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "member_onboarding_drafts_member_profile_id_fkey"
+            columns: ["member_profile_id"]
+            isOneToOne: true
+            referencedRelation: "member_profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "member_onboarding_drafts_workspace_id_fkey"
+            columns: ["workspace_id"]
+            isOneToOne: false
+            referencedRelation: "workspaces"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       member_onboarding_responses: {
         Row: {
           activity_level: number | null
@@ -3922,6 +3961,7 @@ export type Database = {
           goal: string | null
           height_cm: number | null
           id: string
+          intake_gate_exempt: boolean
           onboarding_status: string
           phone: string | null
           sex: string | null
@@ -3942,6 +3982,7 @@ export type Database = {
           goal?: string | null
           height_cm?: number | null
           id?: string
+          intake_gate_exempt?: boolean
           onboarding_status?: string
           phone?: string | null
           sex?: string | null
@@ -3962,6 +4003,7 @@ export type Database = {
           goal?: string | null
           height_cm?: number | null
           id?: string
+          intake_gate_exempt?: boolean
           onboarding_status?: string
           phone?: string | null
           sex?: string | null

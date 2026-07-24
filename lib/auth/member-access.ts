@@ -26,6 +26,10 @@ export type MemberContext = {
   fullName: string;
   membershipActive: boolean;
   isAdmin: boolean;
+  /** Estado del intake (not_started/invited = pendiente). */
+  onboardingStatus: string;
+  /** Exención del gate de valoración: grandfathering u override del coach. */
+  intakeGateExempt: boolean;
 };
 
 const ACTIVE_STATUSES = new Set(["active", "trialing"]);
@@ -120,7 +124,7 @@ async function firstProfileOfWorkspace(workspaceId: string) {
   const supabase = createServiceSupabaseClient();
   const { data } = await supabase
     .from("member_profiles")
-    .select("id,workspace_id,full_name,subscription_status")
+    .select("id,workspace_id,full_name,subscription_status,onboarding_status,intake_gate_exempt")
     .eq("workspace_id", workspaceId)
     .order("created_at", { ascending: true })
     .limit(1)
@@ -146,6 +150,8 @@ export async function getMemberContext(workspaceIdHint?: string): Promise<Member
       fullName: data.full_name ?? "",
       membershipActive: true,
       isAdmin: true,
+      onboardingStatus: (data as { onboarding_status?: string | null }).onboarding_status ?? "not_started",
+      intakeGateExempt: (data as { intake_gate_exempt?: boolean | null }).intake_gate_exempt ?? true,
     };
   }
 
@@ -158,7 +164,7 @@ export async function getMemberContext(workspaceIdHint?: string): Promise<Member
 
   const { data, error } = await supabase
     .from("member_profiles")
-    .select("id,workspace_id,full_name,subscription_status")
+    .select("id,workspace_id,full_name,subscription_status,onboarding_status,intake_gate_exempt")
     .eq("user_id", user.id)
     .order("created_at", { ascending: true });
 
@@ -190,6 +196,8 @@ export async function getMemberContext(workspaceIdHint?: string): Promise<Member
         fullName: provisioned.full_name ?? "",
         membershipActive: true,
         isAdmin: true,
+        onboardingStatus: "not_started",
+        intakeGateExempt: true,
       };
     }
   }
@@ -209,7 +217,27 @@ export async function getMemberContext(workspaceIdHint?: string): Promise<Member
     fullName: chosen.full_name ?? "",
     membershipActive: isAdmin || ACTIVE_STATUSES.has(status),
     isAdmin,
+    onboardingStatus: (chosen as { onboarding_status?: string | null }).onboarding_status ?? "not_started",
+    intakeGateExempt: (chosen as { intake_gate_exempt?: boolean | null }).intake_gate_exempt ?? false,
   };
+}
+
+/** Estados de intake previos a completar el quiz de valoración. */
+const PRE_INTAKE_STATUSES = new Set(["not_started", "invited"]);
+
+/**
+ * Gate de valoración inicial (Lote B). true = el miembro debe completar el quiz
+ * antes de entrar al aula. Exentos: modo open/demo, admins en preview,
+ * grandfathering/override del coach (intake_gate_exempt) y kill-switch por env
+ * (INTAKE_GATE_DISABLED=1) para el primer día de deploy.
+ */
+export function memberNeedsIntake(context: MemberContext | null): boolean {
+  if (process.env.INTAKE_GATE_DISABLED === "1") return false;
+  if (!context) return false;
+  if (context.mode === "open") return false;
+  if (context.isAdmin) return false;
+  if (context.intakeGateExempt) return false;
+  return PRE_INTAKE_STATUSES.has(context.onboardingStatus);
 }
 
 /**

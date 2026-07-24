@@ -16308,3 +16308,7 @@ code.leadAttributionValue {
 .memberNotificationRow form { display: flex; }
 .memberNotificationDismiss { display: inline-flex; align-items: center; justify-content: center; min-width: 44px; border: none; border-left: 1px solid var(--border); background: transparent; color: var(--muted, #a8afbd); cursor: pointer; }
 .memberNotificationDismiss:hover, .memberNotificationDismiss:focus-visible { color: var(--accent); background: color-mix(in srgb, var(--accent) 10%, transparent); }
+
+/* ── Lote B · gate de valoración: quiz core-first ── */
+.quizCheckpointNote { margin: 0; padding: 10px 12px; border: 1px solid var(--border); border-radius: 10px; background: color-mix(in srgb, var(--accent) 6%, transparent); font-size: 13px; color: var(--muted, #a8afbd); }
+.quizResumeNote { margin: 0 0 10px; padding: 8px 12px; border-radius: 999px; display: inline-block; background: color-mix(in srgb, var(--accent) 10%, transparent); color: var(--accent); font-size: 12px; font-weight: 700; }
