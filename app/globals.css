@@ -16312,3 +16312,51 @@ code.leadAttributionValue {
 /* ── Lote B · gate de valoración: quiz core-first ── */
 .quizCheckpointNote { margin: 0; padding: 10px 12px; border: 1px solid var(--border); border-radius: 10px; background: color-mix(in srgb, var(--accent) 6%, transparent); font-size: 13px; color: var(--muted, #a8afbd); }
 .quizResumeNote { margin: 0 0 10px; padding: 8px 12px; border-radius: 999px; display: inline-block; background: color-mix(in srgb, var(--accent) 10%, transparent); color: var(--accent); font-size: 12px; font-weight: 700; }
+
+/* ── Lote D · reevaluaciones y antes/después ── */
+.assessmentHistoryBar { display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap; margin: 12px 0; }
+.assessmentHistoryChips { display: flex; gap: 8px; flex-wrap: wrap; }
+.assessmentChip { padding: 7px 12px; border: 1px solid var(--border); border-radius: 999px; font-size: 12px; font-weight: 700; text-decoration: none; color: var(--muted, #a8afbd); }
+.assessmentChip.active { color: var(--accent); border-color: var(--accent); background: color-mix(in srgb, var(--accent) 10%, transparent); }
+.assessmentCompareStrip { margin: 0 0 12px; padding: 14px 16px; border: 1px solid var(--border); border-radius: 12px; }
+.assessmentCompareStrip ul { display: grid; grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)); gap: 10px; margin: 10px 0 0; padding: 0; list-style: none; }
+.assessmentCompareStrip li { display: grid; gap: 2px; font-size: 13px; }
+.assessmentCompareStrip li strong { font-size: 11px; color: var(--muted, #a8afbd); letter-spacing: .4px; }
+.assessmentCompareStrip li em { font-style: normal; font-weight: 800; font-size: 12px; }
+.assessmentCompareStrip li em.down { color: #68e0a0; }
+.assessmentCompareStrip li em.up { color: #f4c46a; }
+
+/* ── Lote D · comparador, consentimiento y tarjeta antes/después ── */
+.photoCompareForm { display: flex; gap: 12px; align-items: end; flex-wrap: wrap; margin-bottom: 14px; }
+.photoCompareForm label { display: grid; gap: 4px; font-size: 12px; font-weight: 700; }
+.photoComparePairs { display: grid; gap: 16px; }
+.photoComparePair { display: grid; gap: 8px; }
+.photoComparePair > div { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.photoComparePair img { width: 100%; aspect-ratio: 3 / 4; object-fit: cover; border-radius: 12px; border: 1px solid var(--border); }
+.photoConsentRequest { display: grid; gap: 12px; margin-top: 10px; }
+.photoConsentActions { display: flex; gap: 10px; flex-wrap: wrap; }
+.photoConsentRequestForm { display: grid; gap: 10px; max-width: 420px; }
+.photoConsentRequestForm label { display: grid; gap: 4px; font-size: 12px; font-weight: 700; }
+
+.baCard { margin: 0; background: #050914; border: 1px solid #182338; border-radius: 20px; overflow: hidden; color: #fff; display: grid; }
+.baCard.preview { max-width: 420px; }
+.baCard.export { width: 1080px; height: 1350px; border-radius: 0; }
+.baCardHeader { display: flex; justify-content: space-between; align-items: baseline; padding: 22px 26px 12px; }
+.baCard.export .baCardHeader { padding: 48px 56px 24px; font-size: 30px; }
+.baCardHeader strong { color: #00d4ff; letter-spacing: 1px; }
+.baCardHeader span { color: #a9b4c7; font-size: .8em; }
+.baCardPhotos { display: grid; grid-template-columns: 1fr 1fr; gap: 4px; padding: 0 4px; flex: 1; }
+.baCardPhotos img { width: 100%; height: 100%; aspect-ratio: 4 / 5; object-fit: cover; display: block; }
+.baCard.export .baCardPhotos img { aspect-ratio: auto; height: 100%; }
+.baCardPhotos figcaption { text-align: center; padding: 8px 0; font-size: 11px; font-weight: 900; letter-spacing: 1.2px; color: #8e9bb0; }
+.baCard.export .baCardPhotos figcaption { font-size: 22px; padding: 16px 0; }
+.baCardFooter { display: flex; justify-content: space-between; align-items: center; padding: 14px 26px 20px; }
+.baCard.export .baCardFooter { padding: 30px 56px 44px; }
+.baCardFooter strong { font-size: 26px; color: #00d4ff; }
+.baCard.export .baCardFooter strong { font-size: 56px; }
+.baCardWatermark { font-size: 10px; font-weight: 900; letter-spacing: 1.6px; color: #64748b; }
+.baCard.export .baCardWatermark { font-size: 20px; }
+.baCardEmpty { padding: 30px; color: #a9b4c7; }
+.baExportPage { display: grid; gap: 16px; justify-items: start; padding: 20px; overflow-x: auto; }
+.baExportToolbar { display: flex; gap: 14px; align-items: center; }
+.baExportToolbar p { display: inline-flex; gap: 6px; align-items: center; margin: 0; color: var(--muted, #a8afbd); font-size: 13px; }

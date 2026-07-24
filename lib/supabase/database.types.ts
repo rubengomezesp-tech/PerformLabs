@@ -3951,6 +3951,77 @@ export type Database = {
           },
         ]
       }
+      member_photo_consents: {
+        Row: {
+          after_checkin_id: string
+          before_checkin_id: string
+          created_at: string
+          id: string
+          member_profile_id: string
+          note: string
+          requested_at: string
+          requested_by: string | null
+          responded_at: string | null
+          status: string
+          workspace_id: string
+        }
+        Insert: {
+          after_checkin_id: string
+          before_checkin_id: string
+          created_at?: string
+          id?: string
+          member_profile_id: string
+          note?: string
+          requested_at?: string
+          requested_by?: string | null
+          responded_at?: string | null
+          status?: string
+          workspace_id: string
+        }
+        Update: {
+          after_checkin_id?: string
+          before_checkin_id?: string
+          created_at?: string
+          id?: string
+          member_profile_id?: string
+          note?: string
+          requested_at?: string
+          requested_by?: string | null
+          responded_at?: string | null
+          status?: string
+          workspace_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "member_photo_consents_after_checkin_id_fkey"
+            columns: ["after_checkin_id"]
+            isOneToOne: false
+            referencedRelation: "customer_checkins"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "member_photo_consents_before_checkin_id_fkey"
+            columns: ["before_checkin_id"]
+            isOneToOne: false
+            referencedRelation: "customer_checkins"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "member_photo_consents_member_profile_id_fkey"
+            columns: ["member_profile_id"]
+            isOneToOne: false
+            referencedRelation: "member_profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "member_photo_consents_workspace_id_fkey"
+            columns: ["workspace_id"]
+            isOneToOne: false
+            referencedRelation: "workspaces"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       member_profiles: {
         Row: {
           activity_level: number

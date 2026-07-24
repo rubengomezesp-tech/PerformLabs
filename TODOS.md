@@ -7,3 +7,4 @@
 - [ ] **Generalización multi-workspace del alta** (P3, M) — branding por slug y colas genéricas de aprobación. Los lotes se implementan RG-specific; generalizar con el 2º coach. Depende de: decisión UC2.
 - [ ] **APNs/FCM para la app nativa** (P3, L) — el push nativo real; hoy el canal nativo es la bandeja `member_notifications`. Contexto: push.ts:6-8 ya documenta el swap de transporte.
 - [ ] **Recordatorio automático de check-in vencido (JITAI)** (P2, M) — la "jugada diferencial" del posicionamiento: radar de retención detecta, Coach Brain redacta, coach envía. Fase 2 natural tras los lotes.
+- [ ] **Export antes/después como PNG directo** (P3, S) — hoy la tarjeta 1080×1350 se captura desde la página de export; automatizar con satori/resvg si el volumen lo pide.

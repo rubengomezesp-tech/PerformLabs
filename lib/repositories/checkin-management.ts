@@ -455,3 +455,55 @@ export async function getCoachIntelligenceAlerts(workspaceId?: string): Promise<
 
   return alerts.slice(0, 12);
 }
+
+
+export type ActivationStats = {
+  /** Miembros dados de alta en los últimos 90 días. */
+  recentMembers: number;
+  /** De ellos, cuántos ya enviaron su primer check-in. */
+  activated: number;
+  /** Días medios entre alta y primer check-in (solo activados). */
+  averageDaysToFirstCheckin: number | null;
+  /** Activados dentro del objetivo de 48h del plan. */
+  withinTwoDays: number;
+};
+
+/**
+ * Métrica de activación del plan de aula (D-13): alta → primer check-in.
+ * "Alta" = created_at del perfil, comparable entre vías (pago e invitación).
+ */
+export async function getActivationStats(workspaceId: string): Promise<ActivationStats> {
+  const empty: ActivationStats = { recentMembers: 0, activated: 0, averageDaysToFirstCheckin: null, withinTwoDays: 0 };
+  if (!getSupabaseServiceEnv().ok || !workspaceId) return empty;
+  const supabase = createServiceSupabaseClient();
+  const since = new Date(Date.now() - 90 * 24 * 3600 * 1000).toISOString();
+  const [membersResult, checkinsResult] = await Promise.all([
+    supabase.from("member_profiles").select("id,created_at").eq("workspace_id", workspaceId).gte("created_at", since),
+    supabase.from("customer_checkins").select("member_profile_id,submitted_at").eq("workspace_id", workspaceId).order("submitted_at", { ascending: true }),
+  ]);
+  if (membersResult.error || !membersResult.data) return empty;
+  const firstCheckin = new Map<string, string>();
+  for (const row of checkinsResult.data ?? []) {
+    if (row.member_profile_id && row.submitted_at && !firstCheckin.has(row.member_profile_id)) {
+      firstCheckin.set(row.member_profile_id, row.submitted_at);
+    }
+  }
+  let activated = 0;
+  let withinTwoDays = 0;
+  let totalDays = 0;
+  for (const member of membersResult.data) {
+    const first = member.id ? firstCheckin.get(member.id) : undefined;
+    if (!first || !member.created_at) continue;
+    const days = (new Date(first).getTime() - new Date(member.created_at).getTime()) / (24 * 3600 * 1000);
+    if (days < 0) continue;
+    activated += 1;
+    totalDays += days;
+    if (days <= 2) withinTwoDays += 1;
+  }
+  return {
+    recentMembers: membersResult.data.length,
+    activated,
+    averageDaysToFirstCheckin: activated ? Math.round((totalDays / activated) * 10) / 10 : null,
+    withinTwoDays,
+  };
+}

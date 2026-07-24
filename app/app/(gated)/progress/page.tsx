@@ -1,6 +1,7 @@
 import { Camera, CheckCircle2, ClipboardCheck, LineChart, Ruler, Scale, TrendingDown, TrendingUp } from "lucide-react";
 import Link from "next/link";
 import { CheckinPhotosField } from "@/components/member/checkin-photos-field";
+import { PhotoCompareSection } from "@/components/member/photo-compare-section";
 import { PushOptIn } from "@/components/push-optin";
 import { SubmitButton } from "@/components/ui";
 import { Topbar } from "@/components/topbar";
@@ -135,7 +136,7 @@ function MetricCard({ measure, icon, i }: { measure: MeasurementSummary; icon: R
 }
 
 type ProgressPageProps = {
-  searchParams?: Promise<{ tab?: string; enviado?: string; error?: string }>;
+  searchParams?: Promise<{ tab?: string; enviado?: string; error?: string; antes?: string; despues?: string }>;
 };
 
 export default async function ProgressPage({ searchParams }: ProgressPageProps) {
@@ -299,6 +300,16 @@ export default async function ProgressPage({ searchParams }: ProgressPageProps) 
             <p className="muted">Las fotos se suben al enviar tu check-in semanal en la pestaña Medidas. Quedan privadas entre tú y tu coach.</p>
             <Link className="btn primary" href="/app/progress?tab=medidas">{summary.photoUrls.length ? "Enviar nuevo check-in" : "Ir a enviar check-in"} <CheckCircle2 size={16} /></Link>
           </article>
+        ) : null}
+
+        {tab === "fotos" ? (
+          <PhotoCompareSection
+            afterId={params?.despues}
+            beforeId={params?.antes}
+            brandName={brand.appName}
+            memberFirstName={(context?.fullName ?? "").trim().split(/\s+/)[0] || "Cliente"}
+            workspaceId={brand.id}
+          />
         ) : null}
 
         {tab === "medidas" && justSubmitted ? (

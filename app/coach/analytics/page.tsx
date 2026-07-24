@@ -13,7 +13,7 @@ import { Topbar } from "@/components/topbar";
 import { SignalCard, type SignalTone } from "@/components/ui";
 import { getSelectedMemberAppBrand } from "@/lib/member-app";
 import { getCoachDashboard } from "@/lib/repositories/coach-dashboard";
-import { getMemberCheckinSummary } from "@/lib/repositories/checkin-management";
+import { getActivationStats, getMemberCheckinSummary } from "@/lib/repositories/checkin-management";
 import { getRetentionRadar } from "@/lib/repositories/member-retention";
 import { getWorkspaceBillingSummary } from "@/lib/repositories/member-subscriptions";
 
@@ -61,11 +61,12 @@ function DistRow({ label, count, total, color }: { label: string; count: number;
 
 export default async function CoachAnalyticsPage() {
   const brand = await getSelectedMemberAppBrand();
-  const [dashboard, radar, checkins, billing] = await Promise.all([
+  const [dashboard, radar, checkins, billing, activation] = await Promise.all([
     getCoachDashboard(brand.id),
     getRetentionRadar(brand.id),
     getMemberCheckinSummary(brand.id),
     getWorkspaceBillingSummary(brand.id),
+    getActivationStats(brand.id),
   ]);
   const { summary } = radar;
 
@@ -111,6 +112,13 @@ export default async function CoachAnalyticsPage() {
           label="Adherencia 14 días"
           value={`${summary.avgAdherence}%`}
           detail="Entrenando en las últimas 2 semanas"
+        />
+        <SignalCard
+          icon={Activity}
+          tone={activation.recentMembers === 0 || activation.activated === activation.recentMembers ? "good" : "warning"}
+          label="Activación (90 días)"
+          value={activation.averageDaysToFirstCheckin !== null ? `${activation.averageDaysToFirstCheckin} días` : "—"}
+          detail={`Alta → primer check-in · ${activation.activated}/${activation.recentMembers} activados · ${activation.withinTwoDays} en <48h`}
         />
 
         {/* Retención y adherencia */}
