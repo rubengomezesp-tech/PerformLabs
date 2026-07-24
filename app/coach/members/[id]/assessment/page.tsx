@@ -8,16 +8,16 @@ import { calculateAssessmentCompletion, type AssessmentAnswerKey, type CoachAsse
 import { getLocale } from "@/lib/i18n/server";
 import { getCoachAssessmentDictionary } from "@/lib/i18n/coach-assessment";
 import { getSelectedMemberAppBrand } from "@/lib/member-app";
-import { getCoachMemberAssessment } from "@/lib/repositories/coach-assessments";
+import { getCoachMemberAssessment, getCoachMemberAssessmentById, listCoachMemberAssessments } from "@/lib/repositories/coach-assessments";
 import { listManagedMembers } from "@/lib/repositories/member-management";
 import { getManagedMemberOnboardingBrief } from "@/lib/repositories/member-onboarding";
-import { saveCoachAssessmentAction } from "./actions";
+import { saveCoachAssessmentAction, startReassessmentAction } from "./actions";
 
 export const dynamic = "force-dynamic";
 
 type Props = {
   params: Promise<{ id: string }>;
-  searchParams: Promise<{ saved?: string; new?: string; setup?: string; access?: string; pack?: string; session?: string }>;
+  searchParams: Promise<{ saved?: string; new?: string; setup?: string; access?: string; pack?: string; session?: string; aid?: string }>;
 };
 
 type Labels = ReturnType<typeof getCoachAssessmentDictionary>["labels"];
@@ -63,11 +63,16 @@ function yesNoValue(value: unknown) {
 export default async function CoachAssessmentPage({ params, searchParams }: Props) {
   const [{ id: rawId }, query, locale, brand] = await Promise.all([params, searchParams, getLocale(), getSelectedMemberAppBrand()]);
   const id = decodeURIComponent(rawId);
-  const [members, assessment, clientBrief] = await Promise.all([
+  const [members, initialAssessment, clientBrief, history] = await Promise.all([
     listManagedMembers(brand.id),
     getCoachMemberAssessment(brand.id, id),
     getManagedMemberOnboardingBrief(brand.id, id),
+    listCoachMemberAssessments(brand.id, id),
   ]);
+  const assessment = query.aid
+    ? await getCoachMemberAssessmentById(brand.id, id, query.aid)
+    : initialAssessment;
+  const isReassessment = assessment?.assessmentKind === "reassessment";
   const member = members.find((candidate) => candidate.id === id);
   if (!member) notFound();
 
@@ -121,7 +126,7 @@ export default async function CoachAssessmentPage({ params, searchParams }: Prop
       eyebrow={t.eyebrow}
       title={`${t.title} · ${member.fullName}`}
       text={t.subtitle}
-      actions={<><LocaleSwitcher current={locale} label={t.language} changeLabel={t.changeLanguage} supportedLocales={["es", "en"]} /><Link className="btn" href={`/coach/members/${member.id}`}><ArrowLeft size={16} />{t.back}</Link></>}
+      actions={<><LocaleSwitcher current={locale} label={t.language} changeLabel={t.changeLanguage} supportedLocales={["es", "en"]} /><Link className="btn" href={`/coach/members/${member.id}/photos`}>{english ? "Before/after" : "Antes/después"}</Link><Link className="btn" href={`/coach/members/${member.id}`}><ArrowLeft size={16} />{t.back}</Link></>}
     />
 
     {query.new ? <section className={`memberExpressResult ${query.setup === "partial" ? "warning" : "success"}`} role="status">
@@ -157,6 +162,52 @@ export default async function CoachAssessmentPage({ params, searchParams }: Prop
       <p><LockKeyhole aria-hidden="true" size={15} />{t.privateNote}</p>
     </section>
 
+    <section className="assessmentHistoryBar" aria-label={english ? "Assessment history" : "Histórico de valoraciones"}>
+      <div className="assessmentHistoryChips">
+        <Link className={!query.aid ? "assessmentChip active" : "assessmentChip"} href={`/coach/members/${member.id}/assessment`}>
+          {english ? "Initial" : "Inicial"}{initialAssessment?.interviewAt ? ` · ${initialAssessment.interviewAt.slice(0, 10)}` : ""}
+        </Link>
+        {history.filter((entry) => entry.assessmentKind === "reassessment").map((entry) => (
+          <Link className={query.aid === entry.id ? "assessmentChip active" : "assessmentChip"} href={`/coach/members/${member.id}/assessment?aid=${entry.id}`} key={entry.id}>
+            {english ? "Re-eval" : "Reeval"} · {entry.interviewAt.slice(0, 10)}
+          </Link>
+        ))}
+      </div>
+      <form action={startReassessmentAction}>
+        <input name="workspaceId" type="hidden" value={brand.id} />
+        <input name="memberProfileId" type="hidden" value={member.id} />
+        <input name="fromAssessmentId" type="hidden" value={assessment?.id ?? ""} />
+        <SubmitButton variant="secondary">{english ? "New reassessment" : "Nueva reevaluación"}</SubmitButton>
+      </form>
+    </section>
+
+    {isReassessment && initialAssessment ? (
+      <section className="assessmentCompareStrip" aria-label={english ? "Compared to initial" : "Comparativa con la inicial"}>
+        <span className="eyebrow">{english ? "VS INITIAL" : "VS INICIAL"} · {initialAssessment.interviewAt.slice(0, 10)}</span>
+        <ul>
+          {([
+            ["bodyWeightKg", english ? "Weight" : "Peso", "kg"],
+            ["waistCm", english ? "Waist" : "Cintura", "cm"],
+            ["restingHeartRate", english ? "Resting HR" : "FC reposo", "ppm"],
+            ["averageSleep", english ? "Sleep" : "Sueño", "h"],
+            ["dailySteps", english ? "Steps" : "Pasos", ""],
+            ["stressLevel", english ? "Stress" : "Estrés", "/10"],
+          ] as const).map(([key, label, unit]) => {
+            const before = Number.parseFloat(initialAssessment.answers[key] ?? "");
+            const after = Number.parseFloat(assessment?.answers[key] ?? "");
+            const delta = Number.isFinite(before) && Number.isFinite(after) ? after - before : null;
+            return (
+              <li key={key}>
+                <strong>{label}</strong>
+                <span>{Number.isFinite(before) ? before : "—"} → {Number.isFinite(after) ? after : "—"} {unit}</span>
+                {delta !== null && delta !== 0 ? <em className={delta < 0 ? "down" : "up"}>{delta > 0 ? "+" : ""}{Math.round(delta * 10) / 10}</em> : null}
+              </li>
+            );
+          })}
+        </ul>
+      </section>
+    ) : null}
+
     {query.saved ? <div className="assessmentSaved" role="status"><CheckCircle2 size={18} />{t.saved}</div> : null}
     {hasCriticalRisk ? <div className="assessmentRiskAlert" role="alert"><ShieldAlert size={22} /><div><strong>{t.clearance}</strong><p>{t.safetyAlert}</p></div></div> : null}
 
@@ -164,6 +215,8 @@ export default async function CoachAssessmentPage({ params, searchParams }: Prop
       <input name="workspaceId" type="hidden" value={brand.id} />
       <input name="memberProfileId" type="hidden" value={member.id} />
       <input name="locale" type="hidden" value={locale === "en" ? "en" : "es"} />
+      <input name="assessmentId" type="hidden" value={query.aid ? assessment?.id ?? "" : ""} />
+      <input name="assessmentKind" type="hidden" value={isReassessment ? "reassessment" : "initial"} />
 
       <Section title={t.sections.safety[0]} description={t.sections.safety[1]}>
         <YesNo name="currentPain" labels={t.labels} answers={answers} yes={t.yes} no={t.no} />
