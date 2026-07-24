@@ -3,6 +3,13 @@ import { getSupabaseServiceEnv } from "@/lib/supabase/env";
 
 const RESEND_EMAILS_URL = "https://api.resend.com/emails";
 
+/**
+ * La consola del coach es platform-only: en el dominio de miembros, /coach
+ * redirige a la portada (tenantHostRedirectPath). Todo deep-link de email al
+ * coach debe apuntar al apex de plataforma.
+ */
+export const COACH_CONSOLE_BASE_URL = "https://www.performlabs.app";
+
 export type CoachEmailResult =
   | { ok: true; id: string | null }
   | { ok: false; error: string };

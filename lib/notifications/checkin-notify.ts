@@ -1,10 +1,10 @@
 import { createServiceSupabaseClient } from "@/lib/supabase/server";
 import { getSupabaseServiceEnv } from "@/lib/supabase/env";
-import { resolveCoachRecipient, sendCoachEmail, shouldSendCoachEmails } from "@/lib/notifications/coach-email";
+import { COACH_CONSOLE_BASE_URL, resolveCoachRecipient, sendCoachEmail, shouldSendCoachEmails } from "@/lib/notifications/coach-email";
 import { fireMemberEventNotification } from "@/lib/notifications/events";
 import { createMemberNotification } from "@/lib/repositories/member-notifications";
 
-const CHECKINS_URL = "https://miembros.rubengomezcoaching.com/coach/checkins";
+const CHECKINS_URL = `${COACH_CONSOLE_BASE_URL}/coach/checkins`;
 
 export type CheckinEmailFacts = {
   memberName: string;

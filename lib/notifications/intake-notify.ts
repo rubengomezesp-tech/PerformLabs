@@ -1,10 +1,10 @@
-import { resolveCoachRecipient, sendCoachEmail, shouldSendCoachEmails } from "@/lib/notifications/coach-email";
+import { COACH_CONSOLE_BASE_URL, resolveCoachRecipient, sendCoachEmail, shouldSendCoachEmails } from "@/lib/notifications/coach-email";
 import { fireMemberEventNotification } from "@/lib/notifications/events";
 import { createMemberNotification } from "@/lib/repositories/member-notifications";
 import { createServiceSupabaseClient } from "@/lib/supabase/server";
 import { getSupabaseServiceEnv } from "@/lib/supabase/env";
 
-const MEMBERS_URL = "https://miembros.rubengomezcoaching.com/coach/members";
+const MEMBERS_URL = `${COACH_CONSOLE_BASE_URL}/coach/members`;
 
 export function buildIntakeEmailSubject(memberName: string, safetyFlags: number): string {
   const flag = safetyFlags > 0 ? ` · ⚠ ${safetyFlags} alerta${safetyFlags === 1 ? "" : "s"} de salud` : "";

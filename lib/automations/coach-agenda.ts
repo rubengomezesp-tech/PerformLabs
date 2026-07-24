@@ -1,5 +1,6 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { localDateTimeToUtc } from "@/lib/domain/personal-training-schedule";
+import { COACH_CONSOLE_BASE_URL } from "@/lib/notifications/coach-email";
 import { createServiceSupabaseClient } from "@/lib/supabase/server";
 
 const RESEND_EMAILS_URL = "https://api.resend.com/emails";
@@ -52,7 +53,7 @@ function agendaEmail(input: { localDate: string; timezone: string; sessions: Age
     const time = `${formatter.format(new Date(session.starts_at))}–${formatter.format(new Date(session.ends_at))}`;
     return `<tr><td style="padding:14px 0;border-bottom:1px solid #1b2940;color:#00d4ff;font-size:15px;font-weight:900;white-space:nowrap">${escapeHtml(time)}</td><td style="padding:14px 12px;border-bottom:1px solid #1b2940;color:#fff;font-weight:800">${escapeHtml(session.member_profiles?.full_name ?? "Cliente")}</td><td style="padding:14px 0;border-bottom:1px solid #1b2940;color:#9cabc1;text-align:right">${escapeHtml(session.location ?? "LUGAR PENDIENTE")}</td></tr>`;
   }).join("") : `<tr><td style="padding:22px 0;color:#9cabc1">No hay entrenamientos confirmados para mañana.</td></tr>`;
-  const dashboardUrl = "https://miembros.rubengomezcoaching.com/coach/sessions";
+  const dashboardUrl = `${COACH_CONSOLE_BASE_URL}/coach/sessions`;
   const subject = input.sessions.length
     ? `IMPORTANTE · AGENDA RG DE MAÑANA · ${input.sessions.length} ENTRENAMIENTO${input.sessions.length === 1 ? "" : "S"}`
     : "IMPORTANTE · AGENDA RG DE MAÑANA · SIN ENTRENAMIENTOS";
