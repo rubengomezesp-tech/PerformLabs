@@ -7,6 +7,7 @@ import { requireMemberWorkspaceId } from "@/lib/auth/member-access";
 import { notifyCoachOfCheckin } from "@/lib/notifications/checkin-notify";
 import { CHECKIN_PHOTO_ANGLES, createMemberCheckin, type LabeledCheckinPhoto } from "@/lib/repositories/checkin-management";
 import { markMemberNotificationRead } from "@/lib/repositories/member-notifications";
+import { respondPhotoConsent } from "@/lib/repositories/photo-consents";
 
 function readText(formData: FormData, key: string) {
   const value = formData.get(key);
@@ -67,4 +68,15 @@ export async function dismissMemberNotificationAction(formData: FormData) {
   const notificationId = readText(formData, "notificationId");
   if (notificationId) await markMemberNotificationRead(workspaceId, notificationId);
   revalidatePath("/app");
+}
+
+
+export async function respondMemberPhotoConsentAction(formData: FormData) {
+  const workspaceId = await requireMemberWorkspaceId(readText(formData, "workspaceId") || undefined);
+  const consentId = readText(formData, "consentId");
+  const decision = readText(formData, "decision");
+  if (consentId && (decision === "granted" || decision === "denied" || decision === "revoked")) {
+    await respondPhotoConsent(workspaceId, consentId, decision);
+  }
+  revalidatePath("/app/progress");
 }
