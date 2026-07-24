@@ -3962,6 +3962,7 @@ export type Database = {
           height_cm: number | null
           id: string
           intake_gate_exempt: boolean
+          invitation_sent_at: string | null
           onboarding_status: string
           phone: string | null
           sex: string | null
@@ -3983,6 +3984,7 @@ export type Database = {
           height_cm?: number | null
           id?: string
           intake_gate_exempt?: boolean
+          invitation_sent_at?: string | null
           onboarding_status?: string
           phone?: string | null
           sex?: string | null
@@ -4004,6 +4006,7 @@ export type Database = {
           height_cm?: number | null
           id?: string
           intake_gate_exempt?: boolean
+          invitation_sent_at?: string | null
           onboarding_status?: string
           phone?: string | null
           sex?: string | null
