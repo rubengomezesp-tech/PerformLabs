@@ -26,12 +26,14 @@ export function MembersExplorer({
   workoutTemplates,
   dietTemplates,
   bulkAssignAction,
+  resendInvitationAction,
 }: {
   brandId: string;
   members: ManagedMember[];
   workoutTemplates: PlanOption[];
   dietTemplates: DietOption[];
   bulkAssignAction: (formData: FormData) => void | Promise<void>;
+  resendInvitationAction?: (formData: FormData) => void | Promise<void>;
 }) {
   const [query, setQuery] = useState("");
   const [status, setStatus] = useState("all");
@@ -186,7 +188,17 @@ export function MembersExplorer({
           <ul className="list">
             <li className="row">Objetivo <span>{member.goal || "Pendiente"}</span></li>
             <li className="row">Estado <span className="tag">{member.subscriptionStatus}</span></li>
-            <li className="row">Onboarding <span>{member.onboardingStatus}</span></li>
+            <li className="row">Onboarding <span>{member.onboardingStatus === "invited" ? (member.invitationSentAt ? `Invitado · enviada ${member.invitationSentAt.slice(0, 10)}` : "Invitado · sin enviar") : member.onboardingStatus}</span></li>
+            {member.onboardingStatus === "invited" && resendInvitationAction ? (
+              <li className="row">
+                Invitación
+                <form action={resendInvitationAction}>
+                  <input name="workspaceId" type="hidden" value={brandId} />
+                  <input name="memberProfileId" type="hidden" value={member.id} />
+                  <SubmitButton variant="ghost" successToast="Invitación enviada">{member.invitationSentAt ? "Reenviar" : "Enviar invitación"}</SubmitButton>
+                </form>
+              </li>
+            ) : null}
             <li className="row">Zona <strong>{member.timezone}</strong></li>
           </ul>
           <div className="memberAssignmentState">
